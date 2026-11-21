@@ -74,6 +74,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 			claimed = false
 			local nextProfile
 			if current == nil then
+				if expectedGeneration ~= 0 then
+					return nil
+				end
 				nextProfile = table.clone(seed)
 			else
 				local currentValid = IslandData.validate(current, seed.ownerUserId, BuildingCatalog)
