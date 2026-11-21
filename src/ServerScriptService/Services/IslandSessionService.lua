@@ -117,7 +117,12 @@ local function moveCharacterToIsland(userId: number, character: Model)
 	if character.Parent == nil then
 		return
 	end
-	character:PivotTo(arrival)
+	-- The island may have been removed while WaitForChild yielded (lease loss/leave).
+	local currentArrival = IslandWorldService.getArrivalCFrame(userId)
+	if currentArrival == nil then
+		return
+	end
+	character:PivotTo(currentArrival)
 end
 
 local function loadPlayer(player: Player)
