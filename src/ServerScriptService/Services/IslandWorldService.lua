@@ -231,6 +231,59 @@ local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
 	return createFallbackBuilding(catalogId, cellSize)
 end
 
+local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
+	local folder = Instance.new("Folder")
+	folder.Name = "ResourceNodes"
+	folder.Parent = world
+
+	local function addNode(nodeId: string, resourceId: string, reward: number, offsetX: number, offsetZ: number)
+		local node = Instance.new("Model")
+		node.Name = nodeId
+		node:SetAttribute("ResourceNodeId", nodeId)
+		node:SetAttribute("ResourceId", resourceId)
+		node:SetAttribute("RewardAmount", reward)
+		node:SetAttribute("OwnerUserId", profile.ownerUserId)
+		node.Parent = folder
+
+		local base = spawnCFrame * CFrame.new(offsetX * cellSize, 0, offsetZ * cellSize)
+		if resourceId == "wood" then
+			local trunk = makePart(node, "Trunk", Vector3.new(cellSize * 0.22, cellSize * 1.1, cellSize * 0.22),
+				base * CFrame.new(0, cellSize * 0.55, 0), Color3.fromRGB(116, 77, 48), Enum.Material.Wood)
+			trunk.CanQuery = true
+			makePart(node, "Canopy", Vector3.new(cellSize * 0.95, cellSize * 0.85, cellSize * 0.95),
+				base * CFrame.new(0, cellSize * 1.3, 0), Color3.fromRGB(76, 145, 78), Enum.Material.Grass, Enum.PartType.Ball)
+		else
+			makePart(node, "Ore", Vector3.new(cellSize * 0.72, cellSize * 0.62, cellSize * 0.72),
+				base * CFrame.new(0, cellSize * 0.31, 0) * CFrame.Angles(0, math.rad(18), math.rad(8)),
+				Color3.fromRGB(123, 133, 145), Enum.Material.Slate, Enum.PartType.Ball)
+			makePart(node, "OreHighlight", Vector3.new(cellSize * 0.2, cellSize * 0.13, cellSize * 0.16),
+				base * CFrame.new(-cellSize * 0.13, cellSize * 0.55, -cellSize * 0.12),
+				Color3.fromRGB(178, 194, 207), Enum.Material.Rock, Enum.PartType.Ball)
+		end
+
+		local promptPart = node:FindFirstChildWhichIsA("BasePart")
+		if promptPart then
+			local prompt = Instance.new("ProximityPrompt")
+			prompt.Name = "GatherPrompt"
+			prompt.ActionText = if resourceId == "wood" then "Собрать дерево" else "Добыть камень"
+			prompt.ObjectText = if resourceId == "wood" then "Дерево" else "Каменная жила"
+			prompt.KeyboardKeyCode = Enum.KeyCode.E
+			prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+			prompt.HoldDuration = 0.8
+			prompt.MaxActivationDistance = cellSize * 1.6
+			prompt.RequiresLineOfSight = false
+			prompt.Parent = promptPart
+		end
+	end
+
+	local halfWidth = math.max(3, math.floor(profile.boundsWidth / 2) - 2)
+	local halfDepth = math.max(3, math.floor(profile.boundsDepth / 2) - 2)
+	addNode("WoodNode_A", "wood", 3, -halfWidth, -halfDepth)
+	addNode("WoodNode_B", "wood", 3, halfWidth, -halfDepth)
+	addNode("StoneNode_A", "stone", 2, -halfWidth, halfDepth)
+	addNode("StoneNode_B", "stone", 2, halfWidth, halfDepth)
+end
+
 local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
 	for _, record in ipairs(profile.buildings) do
 		local clone = getBuildingTemplate(record.catalogId, cellSize)
@@ -299,6 +352,7 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	local ok, err = pcall(function()
 		createTerrain(world, spawnPoint.CFrame, profile.boundsWidth, profile.boundsDepth, cellSize)
 		spawnBuildings(world, spawnPoint.CFrame, profile, cellSize)
+		spawnResourceNodes(world, spawnPoint.CFrame, profile, cellSize)
 	end)
 	if not ok then
 		world:Destroy()
