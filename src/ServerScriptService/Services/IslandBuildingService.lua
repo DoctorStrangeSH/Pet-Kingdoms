@@ -13,6 +13,9 @@ local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
 local MAX_CACHED_REQUESTS = 64
+local REQUEST_BUCKET_CAPACITY = 12
+local REQUEST_REFILL_PER_SECOND = 4
+local requestBucketsByUserId: { [number]: { tokens: number, updatedAt: number } } = {}
 local resultsByUserId: { [number]: { [string]: any } } = {}
 local requestOrderByUserId: { [number]: { string } } = {}
 
@@ -55,6 +58,34 @@ local function fail(code: string): any
 	return { ok = false, code = code }
 end
 
+-- Token bucket protects the server transaction path from remote spam.
+-- Cached idempotent retries are returned before charging another token.
+local function allowRequest(userId: number): boolean
+	local now = os.clock()
+	local bucket = requestBucketsByUserId[userId]
+	if bucket == nil then
+		bucket = {
+			tokens = REQUEST_BUCKET_CAPACITY,
+			updatedAt = now,
+		}
+		requestBucketsByUserId[userId] = bucket
+	end
+
+	local elapsed = math.max(0, now - bucket.updatedAt)
+	bucket.tokens = math.min(
+		REQUEST_BUCKET_CAPACITY,
+		bucket.tokens + elapsed * REQUEST_REFILL_PER_SECOND
+	)
+	bucket.updatedAt = now
+
+	if bucket.tokens < 1 then
+		return false
+	end
+
+	bucket.tokens -= 1
+	return true
+end
+
 local function handleRequest(player: Player, request: any): any
 	if type(request) ~= "table"
 		or type(request.requestId) ~= "string"
@@ -68,6 +99,10 @@ local function handleRequest(player: Player, request: any): any
 	local cache = resultsByUserId[userId]
 	if cache and cache[request.requestId] then
 		return cache[request.requestId]
+	end
+
+	if not allowRequest(userId) then
+		return fail("RATE_LIMITED")
 	end
 
 	if type(request.action) == "string" then
@@ -209,6 +244,7 @@ function IslandBuildingService.start()
 	game:GetService("Players").PlayerRemoving:Connect(function(player)
 		resultsByUserId[player.UserId] = nil
 		requestOrderByUserId[player.UserId] = nil
+		requestBucketsByUserId[player.UserId] = nil
 	end)
 end
 
