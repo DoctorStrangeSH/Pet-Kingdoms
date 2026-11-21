@@ -13,6 +13,12 @@ import bpy
 import math
 from mathutils import Vector
 
+# Blender ships the FBX exporter as an add-on in standard builds.
+try:
+    bpy.ops.preferences.addon_enable(module="io_scene_fbx")
+except Exception as exc:
+    raise RuntimeError("Blender FBX exporter (io_scene_fbx) is unavailable") from exc
+
 ROOT = Path(__file__).resolve().parent
 OBJ_PATH = ROOT / "bunny.obj"
 BLEND_PATH = ROOT / "bunny_rigged.blend"
