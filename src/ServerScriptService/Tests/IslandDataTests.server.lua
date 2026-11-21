@@ -82,4 +82,39 @@ unknownUnlockProfile.unlockedBuildingIds.unknown_building = true
 local unknownUnlockOk, unknownUnlockCode = IslandData.validate(unknownUnlockProfile, 1001, Catalog)
 expect("unknown catalog unlock rejected", not unknownUnlockOk and unknownUnlockCode == "INVALID_UNLOCK_RECORD")
 
+local sparseProfile = IslandData.create(1001, 10, 10)
+sparseProfile.buildings[2] = {
+	instanceId = "sparse-house",
+	catalogId = "main_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+}
+local sparseOk, sparseCode = IslandData.validate(sparseProfile, 1001, Catalog)
+expect("sparse building list rejected", not sparseOk and sparseCode == "INVALID_BUILDING_LIST")
+
+local keyedProfile = IslandData.create(1001, 10, 10)
+keyedProfile.buildings.extra = {
+	instanceId = "keyed-house",
+	catalogId = "main_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+}
+local keyedOk, keyedCode = IslandData.validate(keyedProfile, 1001, Catalog)
+expect("dictionary building entry rejected", not keyedOk and keyedCode == "INVALID_BUILDING_LIST")
+
+local oversizedProfile = IslandData.create(1001, 1000, 1000)
+for index = 1, IslandData.MAX_BUILDINGS_PER_ISLAND + 1 do
+	table.insert(oversizedProfile.buildings, {
+		instanceId = "building-" .. tostring(index),
+		catalogId = "main_house",
+		x = (index - 1) * 4,
+		z = 0,
+		rotation = 0,
+	})
+end
+local oversizedOk, oversizedCode = IslandData.validate(oversizedProfile, 1001, Catalog)
+expect("oversized building list rejected", not oversizedOk and oversizedCode == "TOO_MANY_BUILDINGS")
+
 print("[PetKingdoms Test] IslandData smoke tests completed.")
