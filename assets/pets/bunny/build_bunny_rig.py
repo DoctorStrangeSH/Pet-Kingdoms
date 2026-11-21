@@ -167,6 +167,8 @@ def set_pose(frame, rotations, location=None):
 
 def make_action(name, frames, loop=True):
     action = bpy.data.actions.new(name)
+    # Keep every named clip in the .blend even when it is not the active action.
+    action.use_fake_user = True
     arm.animation_data_create()
     arm.animation_data.action = action
     for frame, rotations, location in frames:
