@@ -184,6 +184,9 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	world.Name = "Island_" .. tostring(player.UserId)
 	world:SetAttribute("OwnerUserId", player.UserId)
 	world:SetAttribute("SchemaVersion", profile.schemaVersion)
+	world:SetAttribute("GridWidth", profile.boundsWidth)
+	world:SetAttribute("GridDepth", profile.boundsDepth)
+	world:SetAttribute("GridCellSize", cellSize)
 	world.Parent = worldFolder
 
 	local ok, err = pcall(function()
