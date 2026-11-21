@@ -245,16 +245,18 @@ function IslandSessionService.start()
 		shuttingDown = true
 		local pending = 0
 		for userId, session in pairs(sessions) do
-			if session.dirty then
-				pending += 1
-				task.spawn(function()
-					local saved = saveSession(userId, session)
-					if not saved then
-						warn(string.format("[PetKingdoms] Shutdown could not flush island profile for %d", userId))
-					end
-					pending -= 1
-				end)
-			end
+			pending += 1
+			task.spawn(function()
+				local saved = saveSession(userId, session)
+				if not saved then
+					warn(string.format("[PetKingdoms] Shutdown could not flush island profile for %d", userId))
+				end
+				local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
+				if not released then
+					warn(string.format("[PetKingdoms] Shutdown lease release failed for %d: %s", userId, releaseCode))
+				end
+				pending -= 1
+			end)
 		end
 
 		local deadline = os.clock() + 25
