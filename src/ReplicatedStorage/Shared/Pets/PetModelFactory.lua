@@ -53,6 +53,16 @@ local function connectMotor(
 	return motor
 end
 
+
+local function weldDetail(parent: Model, anchor: BasePart, detail: Part)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = "DetailWeld"
+	weld.Part0 = anchor
+	weld.Part1 = detail
+	weld.Parent = detail
+	detail.Parent = parent
+end
+
 local function createBunny(scale: number): Model
 	local model = Instance.new("Model")
 	model.Name = "Pet_Bunny"
@@ -98,6 +108,36 @@ local function createBunny(scale: number): Model
 		CFrame.new(-0.39 * scale, 1.82 * scale, -0.65 * scale), COLORS.cheek, Enum.PartType.Ball)
 	local rightCheek = createPart(model, "Cheek_Right", Vector3.new(0.19, 0.1, 0.06) * scale,
 		CFrame.new(0.39 * scale, 1.82 * scale, -0.65 * scale), COLORS.cheek, Enum.PartType.Ball)
+
+	-- Small, high-contrast facial details keep the expression readable at gameplay distance.
+	local eyeGlintLeft = createPart(model, "EyeGlint_Left", Vector3.new(0.038, 0.045, 0.025) * scale,
+		CFrame.new(-0.315 * scale, 2.065 * scale, -0.735 * scale), COLORS.cream, Enum.PartType.Ball)
+	local eyeGlintRight = createPart(model, "EyeGlint_Right", Vector3.new(0.038, 0.045, 0.025) * scale,
+		CFrame.new(0.265 * scale, 2.065 * scale, -0.735 * scale), COLORS.cream, Enum.PartType.Ball)
+	local mouthLeft = createPart(model, "Mouth_Left", Vector3.new(0.065, 0.035, 0.025) * scale,
+		CFrame.new(-0.045 * scale, 1.735 * scale, -0.77 * scale), COLORS.eye, Enum.PartType.Ball)
+	local mouthRight = createPart(model, "Mouth_Right", Vector3.new(0.065, 0.035, 0.025) * scale,
+		CFrame.new(0.045 * scale, 1.735 * scale, -0.77 * scale), COLORS.eye, Enum.PartType.Ball)
+	local foreheadTuft = createPart(model, "Forehead_Tuft", Vector3.new(0.22, 0.16, 0.2) * scale,
+		CFrame.new(0, 2.36 * scale, -0.52 * scale), COLORS.cream, Enum.PartType.Ball)
+	weldDetail(model, head, eyeGlintLeft)
+	weldDetail(model, head, eyeGlintRight)
+	weldDetail(model, head, mouthLeft)
+	weldDetail(model, head, mouthRight)
+	weldDetail(model, head, foreheadTuft)
+
+	local whiskerColor = Color3.fromRGB(190, 166, 145)
+	for side = -1, 1, 2 do
+		for whiskerIndex = 1, 3 do
+			local verticalOffset = (whiskerIndex - 2) * 0.09
+			local whisker = createPart(model, "Whisker_" .. tostring(side) .. "_" .. tostring(whiskerIndex),
+				Vector3.new(0.025, 0.28, 0.025) * scale,
+				CFrame.new(side * 0.53 * scale, (1.82 + verticalOffset) * scale, -0.69 * scale)
+					* CFrame.Angles(0, 0, math.rad(side * 72 + (whiskerIndex - 2) * 12)),
+				whiskerColor, Enum.PartType.Cylinder)
+			weldDetail(model, head, whisker)
+		end
+	end
 
 	local leftFrontLeg = createPart(model, "Leg_FrontLeft", Vector3.new(0.32, 0.58, 0.34) * scale,
 		CFrame.new(-0.38 * scale, 0.43 * scale, -0.3 * scale), COLORS.body, Enum.PartType.Ball)
