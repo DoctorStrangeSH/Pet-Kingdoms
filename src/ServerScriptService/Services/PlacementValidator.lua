@@ -94,11 +94,12 @@ function PlacementValidator.validate(
 	island: IslandState,
 	catalog: { [string]: BuildingDefinition }
 ): ValidationResult
-	if type(playerUserId) ~= "number" or playerUserId <= 0 then
+	if not isInteger(playerUserId) or playerUserId <= 0 then
 		return failure("INVALID_PLAYER")
 	end
 
 	if type(island) ~= "table"
+		or not isInteger(island.ownerUserId)
 		or island.ownerUserId ~= playerUserId
 		or not isInteger(island.boundsWidth)
 		or not isInteger(island.boundsDepth)
@@ -108,6 +109,10 @@ function PlacementValidator.validate(
 		or (island.unlockedBuildingIds ~= nil and type(island.unlockedBuildingIds) ~= "table")
 	then
 		return failure("INVALID_OR_UNOWNED_ISLAND")
+	end
+
+	if type(catalog) ~= "table" then
+		return failure("INVALID_CATALOG")
 	end
 
 	if type(request) ~= "table"
