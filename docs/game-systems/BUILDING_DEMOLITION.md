@@ -24,7 +24,7 @@
 
 ## Current limitations
 
-- The client selection is mouse-click based; touch selection needs a device pass.
+- Mouse and touch selection events are wired; real-device touch behavior still needs a device pass.
 - There is no selection outline or confirmation modal yet; confirmation is a deliberate second button press.
 - Demolition returns no materials or currency.
 - There is no client move mode yet; the server place/move transaction remains available.
