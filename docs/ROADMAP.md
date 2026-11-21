@@ -20,12 +20,12 @@
 - [ ] Complete the first original pet model and animation pipeline.
   - [x] Create and commit original Bunny OBJ/MTL mesh source (15,332 vertices, 30,194 triangles, 13 named mesh objects, 9 material groups).
   - [x] Reject and remove the unsuitable third-party Bunny candidate from the runtime catalog.
-  - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
+  - [ ] Import the rigged FBX in Studio, inspect its structure/appearance/animations, publish approved assets, and set model/animation IDs.
   - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy actions; Blender 4.2.0 CI build generated and structurally validated `.blend` + `.fbx` outputs.
   - [x] Add GitHub Actions validation for Bunny OBJ/MTL integrity and Blender script Python syntax (source-only run passed).
   - [x] Extend CI to install pinned Blender 4.2.0, execute rig/FBX export, re-import FBX, and verify 10 bones, 13 meshes, and keyed motion for each of the four required unique clips; publish a 30-day artifact (run passed).
   - [x] Run Blender 4.2.0 rig build in CI and generate `.blend` + `.fbx` outputs (both validated and uploaded as a workflow artifact).
-  - [ ] Visually review skin weights, silhouette, and all four actions in Blender; fix deformations before Roblox import.
+  - [ ] Visually review skin weights, silhouette, and all four actions in Blender/Roblox Studio; fix deformations before production approval.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
   - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending; this remains the current runtime prototype until the imported mesh is approved).
   - [x] Add first expressive face-detail pass to Bunny (eye catchlights, mouth, forehead tuft, six whiskers) and extend the factory smoke test; still prototype geometry, Studio review pending.
