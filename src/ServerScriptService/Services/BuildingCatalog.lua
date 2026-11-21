@@ -59,6 +59,30 @@ local Catalog: { [string]: BuildingDefinition } = {
 		},
 		defaultUnlocked = true,
 	},
+	flower_bed = {
+		id = "flower_bed",
+		footprintWidth = 1,
+		footprintDepth = 1,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
+	wooden_fence = {
+		id = "wooden_fence",
+		footprintWidth = 1,
+		footprintDepth = 1,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
 }
 
 return Catalog
