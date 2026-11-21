@@ -530,6 +530,8 @@ local function stopPlacing()
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
+	stonePathButton.Active = true
+	gardenLanternButton.Active = true
 	confirmButton.Text = "ПОСТРОИТЬ"
 	if selectedBuildingModel and selectedBuildingModel.Parent then
 		local selectedCatalog = selectedBuildingModel:GetAttribute("BuildingCatalogId")
@@ -591,7 +593,13 @@ confirmButton.Activated:Connect(function()
 	end
 	if type(response) == "table" and response.ok == true then
 		local wasMoving = movingInstanceId ~= nil
-		setStatus(if wasMoving then "Постройка перемещена!" elseif selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
+		local successLabels = {
+			main_house = "Главный дом построен!",
+			pet_house = "Домик питомцев построен!",
+			stone_path = "Каменная дорожка размещена!",
+			garden_lantern = "Садовый фонарь размещён!",
+		}
+		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[selectedCatalogId] or "Объект размещён!"), true)
 		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
