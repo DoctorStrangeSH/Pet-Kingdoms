@@ -35,6 +35,10 @@ export type FollowController = {
 	connection: RBXScriptConnection?,
 	destroyed: boolean,
 	lastFacing: Vector3,
+	idleElapsed: number,
+	nextIdleActionAt: number,
+	idleActionRemaining: number,
+	idleActionState: string,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
 }
@@ -109,6 +113,10 @@ function CompanionFollowController.new(
 		connection = nil,
 		destroyed = false,
 		lastFacing = horizontal(targetRoot.CFrame.LookVector).Unit,
+		idleElapsed = 0,
+		nextIdleActionAt = math.random(35, 65) / 10,
+		idleActionRemaining = 0,
+		idleActionState = "idle",
 	}, CompanionFollowController)
 
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
@@ -135,6 +143,28 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local targetVelocity = horizontal(self.targetRoot.AssemblyLinearVelocity)
 	local speed = targetVelocity.Magnitude
 	local state = if speed >= self.runSpeed then "run" else if speed >= self.walkSpeed then "walk" else "idle"
+
+	if state == "idle" then
+		self.idleElapsed += dt
+		if self.idleActionRemaining > 0 then
+			self.idleActionRemaining = math.max(0, self.idleActionRemaining - dt)
+			state = self.idleActionState
+			if self.idleActionRemaining <= 0 then
+				self.idleActionState = "idle"
+				self.nextIdleActionAt = self.idleElapsed + math.random(40, 75) / 10
+			end
+		elseif self.idleElapsed >= self.nextIdleActionAt then
+			local actions = { "sniff", "curious", "happy" }
+			self.idleActionState = actions[math.random(1, #actions)]
+			self.idleActionRemaining = math.random(12, 24) / 10
+			state = self.idleActionState
+		end
+	else
+		self.idleElapsed = 0
+		self.idleActionRemaining = 0
+		self.idleActionState = "idle"
+		self.nextIdleActionAt = math.random(35, 65) / 10
+	end
 	self.animation:setState(state)
 
 	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
