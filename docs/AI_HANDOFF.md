@@ -61,6 +61,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] First procedural Bunny rig factory committed with 17 Motor6D joints, AnimationController/Animator, follow/ground attachments, and scale validation; Studio smoke test committed but not yet executed. This is a blockout prototype, not production art.
 - [x] Procedural Bunny animation controller committed with idle, walk, run, happy, curious, alert, and combat states; Studio smoke test committed but not yet executed.
 - [x] Client `CompanionFollowController.lua` committed with three formation slots, ground raycast, smooth follow/orientation, and idle/walk/run state mapping; client Studio smoke test committed but not yet executed.
+- [x] First responsive Russian `PetCollectionUI.client.lua` committed with owned-pet list, search, Bunny viewport preview, equipped count, and server-backed equip/unequip; Studio/device verification pending.
 - [x] Server pet collection backend committed: separate DataStore, default starter Bunny, owned/equipped validation, max three equipped, `Get`/`Equip` RemoteFunction, and expected-revision conflict rejection. Pure data tests committed; Studio DataStore execution pending.
 - [x] First responsive Russian pet collection UI committed with owned-pet list, search, Bunny viewport preview, equipped count, and server-backed equip/unequip. Studio/device verification and final art polish pending; world pet spawn and follow-controller connection remain NOT DONE.
 - [x] Island persistence contract documented.
