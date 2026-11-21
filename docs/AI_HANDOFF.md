@@ -20,6 +20,7 @@ Read these files first:
 5. docs/game-systems/BUILDING_SYSTEM.md
 6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
 7. docs/game-systems/ISLAND_PERSISTENCE.md
+8. docs/game-systems/ISLAND_RESOURCE_WALLET.md
 8. docs/game-systems/ISLAND_SESSION_LIFECYCLE.md
 9. docs/game-systems/ISLAND_SESSION_LEASE.md
 9. docs/BUILD_AND_TEST.md
@@ -49,6 +50,9 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Studio-only placement validator smoke-test script committed.
 - [x] Studio-only GridMath smoke-test script committed.
 - [x] Versioned island profile schema/validation module committed.
+- [x] Persistent island resource wallet added (Wood/Stone/Gold/Gems); existing schema-v1 profiles migrate during claim.
+- [x] Server-only IslandResourceService supports validated grant/spend with atomic balance checks and rollback on non-writable sessions.
+- [x] Added IslandResources and IslandData wallet contract tests; Studio execution pending.
 - [x] Studio-only IslandData smoke-test script committed.
 - [x] Revision-aware IslandStore DataStore adapter committed.
 - [x] IslandStore input-contract smoke test committed.
