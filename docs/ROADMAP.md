@@ -21,7 +21,9 @@
   - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
   - [x] Add procedural Bunny state-pose controller for idle, walk, run, happy, curious, alert, and combat; Studio animation smoke test committed (execution pending).
   - [x] Add a client-side companion follow controller with three formation slots, ground raycast, smooth facing/follow, and idle/walk/run state selection (Studio test committed; execution pending).
-  - [ ] Connect server-authoritative pet equip/spawn replication to the follow controller; verify movement and lifecycle in Studio.
+  - [x] Add a server-authoritative pet collection DataStore profile with starter Bunny, ownership validation, max-three equip validation, and revision-checked equip writes (Studio DataStore verification pending).
+  - [x] Add pure collection data tests for ownership, invalid species, duplicate/sparse equip lists, and the three-pet limit (Studio execution pending).
+  - [ ] Add client inventory/equip UI and connect equipped IDs to replicated pet world spawns and the follow controller.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
