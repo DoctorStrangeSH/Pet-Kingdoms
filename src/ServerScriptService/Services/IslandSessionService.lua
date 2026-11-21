@@ -11,6 +11,7 @@ local services = script.Parent
 local IslandData = require(services:WaitForChild("IslandData"))
 local IslandStore = require(services:WaitForChild("IslandStore"))
 local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
+local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 
 local IslandSessionService = {}
 
@@ -172,6 +173,15 @@ local function loadPlayer(player: Player)
 		return
 	end
 
+	local worldSpawned, worldStatus = IslandWorldService.spawn(player, profile)
+	if not worldSpawned then
+		loading[userId] = nil
+		releaseLoadingLease()
+		warn(string.format("[PetKingdoms] Could not spawn island for %s: %s", player.Name, worldStatus))
+		player:Kick("Не удалось подготовить ваш остров. Пожалуйста, попробуйте позже.")
+		return
+	end
+
 	sessions[userId] = {
 		profile = profile,
 		dirty = false,
@@ -193,6 +203,7 @@ local function loadPlayer(player: Player)
 			if not renewed then
 				activeSession.leaseValid = false
 				activeSession.closing = true
+				IslandWorldService.remove(userId)
 				warn(string.format("[PetKingdoms] Island lease lost for %d: %s", userId, renewCode))
 				local currentPlayer = Players:GetPlayerByUserId(userId)
 				if currentPlayer then
@@ -221,6 +232,7 @@ local function removePlayer(player: Player)
 			return
 		end
 		sessions[userId] = nil
+		IslandWorldService.remove(userId)
 		session.saveFinished:Destroy()
 	end
 	loading[userId] = nil
