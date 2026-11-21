@@ -24,7 +24,9 @@
   - [x] Add a server-authoritative pet collection DataStore profile with starter Bunny, ownership validation, max-three equip validation, and revision-checked equip writes (Studio DataStore verification pending).
   - [x] Add pure collection data tests for ownership, invalid species, duplicate/sparse equip lists, and the three-pet limit (Studio execution pending).
   - [x] Add first responsive Russian pet collection UI with search, pet preview, equipped count, and server-backed equip/unequip (Studio/device verification pending).
-  - [ ] Connect equipped IDs to replicated pet world spawns and the follow controller.
+  - [x] Spawn server-authoritative equipped pet Models under `Workspace/PlayerPets/<UserId>` from validated collection data; refresh on equip and recreate on character respawn (Studio verification pending).
+  - [x] Add client runtime binding replicated owned pet models to the three-slot follow controller with cleanup on removal/character lifecycle (Studio verification pending).
+  - [ ] Verify spawn/equip/unequip/respawn behavior and three-pet movement in Roblox Studio.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
