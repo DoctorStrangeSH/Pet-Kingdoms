@@ -13,8 +13,10 @@ The first implementation target is Bunny, one of the named initial pet examples 
 Source:
 - `src/ReplicatedStorage/Shared/Pets/PetModelFactory.lua`
 - `src/ReplicatedStorage/Shared/Pets/PetAnimationController.lua`
+- `src/StarterPlayer/StarterPlayerScripts/CompanionFollowController.lua`
 - `src/ServerScriptService/Tests/PetModelFactoryTests.server.lua`
 - `src/ServerScriptService/Tests/PetAnimationControllerTests.server.lua`
+- `src/StarterPlayer/StarterPlayerScripts/Tests/CompanionFollowControllerTests.client.lua`
 
 The factory currently supports:
 - Stable species ID: `bunny`
@@ -34,7 +36,9 @@ The factory currently supports:
 
 Supported states: `idle`, `walk`, `run`, `happy`, `curious`, `alert`, and `combat`. The controller validates the Bunny rig version and required Motor6D joints, resets its managed transforms each update, rejects unknown states, and restores identity transforms on destroy.
 
-This is a procedural prototype, not a final animation set. It is not yet connected to a live companion-follow system, and no animation timing or visual quality has been approved in Studio.
+This is a procedural prototype, not a final animation set. The client-side `CompanionFollowController.lua` now drives a pet model toward a three-slot formation behind the local character, uses a downward raycast to find ground height, smoothly turns toward movement, and selects idle/walk/run from horizontal target speed. Create one controller per equipped pet and call `destroy()` when unequipped or the character changes. The module deliberately does not spawn pets or grant ownership; inventory/equip replication remains a separate server-authoritative feature.
+
+The default sprint threshold is set above typical default Roblox walking speed; callers can override it in options. The client smoke test covers three formation slots and rejects slot 4. Studio execution and visual tuning remain pending.
 
 ## Rig conventions
 
@@ -48,7 +52,7 @@ This is a procedural prototype, not a final animation set. It is not yet connect
 
 ## Verification
 
-Run both `PetModelFactoryTests.server.lua` and `PetAnimationControllerTests.server.lua` in Roblox Studio. They check:
+Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`, and the client `CompanionFollowControllerTests.client.lua` in Roblox Studio. They check:
 - Factory success and invalid species/scale rejection
 - Species and rig metadata
 - PrimaryPart, AnimationController, Animator, and attachments
@@ -58,6 +62,7 @@ Run both `PetModelFactoryTests.server.lua` and `PetAnimationControllerTests.serv
 - Animation state acceptance and unknown-state rejection
 - Procedural idle and walk joint motion
 - Safe transform reset and idempotent controller cleanup
+- Three distinct follow formation slots, controller construction, and rejection of slot 4
 
 Both test scripts are committed but have not been executed. No Studio visual, animation, mobile-performance, or companion-follow test has passed yet.
 
@@ -66,7 +71,8 @@ Both test scripts are committed but have not been executed. No Studio visual, an
 - Production mesh sculpt/model, texture work, and final silhouette approval
 - Facial expression variants and blink
 - Uploaded/artist-authored animation clips and polished animation timing
-- Runtime wiring from companion movement/AI states into the procedural controller
+- Server-authoritative pet ownership, inventory, equip/team selection, and spawn replication
+- Runtime lifecycle wiring for respawn, unequip, and character replacement
 - Animation import IDs and playback validation
 - Grounding/contact shadow treatment in the real game camera
 - Mobile performance and multi-pet stress test
