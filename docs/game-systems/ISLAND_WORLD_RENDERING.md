@@ -32,8 +32,10 @@ Model pivots must be authored at the ground-level origin of the building footpri
 - After profile load and DataStore session claim, the session service requests a world spawn.
 - If world creation fails, the player is not admitted into a session and the MemoryStore lease is released.
 - On lease loss or successful player removal, the world is destroyed and its spawn slot released.
-- This renderer does not yet teleport the character, provide a camera, or implement building placement/mutation.
+- The renderer exposes a safe arrival CFrame above the arrival pad. The session service moves the current character there and repeats the move on respawn.
+- The default Roblox camera remains in use; no custom camera controller is implemented.
+- Building placement/mutation is not implemented.
 
 ## Verification
 
-`IslandWorldServiceTests.server.lua` checks invalid-profile rejection and fail-closed behavior when cell-size configuration is absent. Run it in Roblox Studio. Also verify two simultaneous players receive different spawn points, profile buildings clone at expected pivots, missing templates preserve profile data, and player removal releases slots.
+`IslandWorldServiceTests.server.lua` checks invalid-profile rejection and fail-closed behavior when cell-size configuration is absent. Run it in Roblox Studio. Also verify two simultaneous players receive different spawn points, characters arrive above the pad after initial spawn and respawn, profile buildings clone at expected pivots, missing templates preserve profile data, and player removal releases slots.
