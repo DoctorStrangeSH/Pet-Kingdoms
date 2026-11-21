@@ -85,24 +85,35 @@ fbx_actions = [
     action for action in bpy.data.actions
     if action.fcurves and any(curve.keyframe_points for curve in action.fcurves)
 ]
-if len(fbx_actions) < 4:
-    raise RuntimeError(f"FBX round-trip expected at least 4 animated actions, found {len(fbx_actions)}")
+
+# FBX can create both plain action names and armature-prefixed take names.
+# Resolve exactly the four intended clips; do not count importer duplicates.
+resolved_actions = {}
+for expected_name in expected_actions:
+    candidates = [
+        action for action in fbx_actions
+        if action.name == expected_name or action.name.endswith("|" + expected_name)
+    ]
+    if not candidates:
+        raise RuntimeError(f"FBX round-trip is missing required clip: {expected_name}")
+    resolved_actions[expected_name] = candidates[0]
 
 # Require actual keyed motion rather than empty action datablocks.
-for action in fbx_actions:
+for expected_name, action in resolved_actions.items():
     keyed_points = [
         point
         for curve in action.fcurves
         for point in curve.keyframe_points
     ]
     if len(keyed_points) < 2:
-        raise RuntimeError(f"FBX action has fewer than two keyframes: {action.name}")
+        raise RuntimeError(f"FBX action has fewer than two keyframes: {expected_name}")
     values = [point.co.y for point in keyed_points]
     if max(values) - min(values) < 1e-5:
-        raise RuntimeError(f"FBX action has no measurable animated value change: {action.name}")
+        raise RuntimeError(f"FBX action has no measurable animated value change: {expected_name}")
 
 print("[PetKingdoms] PASS: Blender source and FBX round-trip validation")
-print(f"  fbx_action_names={[action.name for action in fbx_actions]}")
+print(f"  fbx_required_clips={sorted(resolved_actions)}")
+print(f"  fbx_imported_action_datablocks={len(fbx_actions)}")
 print(f"  blend_armature_bones={len(actual_bones)} blend_mesh_objects={len(meshes)} blend_actions={blend_action_count}")
 print(f"  fbx_armature_bones={len(fbx_bones)} fbx_mesh_objects={len(fbx_meshes)} fbx_animated_actions={len(fbx_actions)}")
 print(f"  blend_bytes={BLEND_PATH.stat().st_size} fbx_bytes={FBX_PATH.stat().st_size}")
