@@ -30,4 +30,5 @@
 - The current implementation does not implement a separate DataStore fencing number. Revision checks remain a second line of defense, not a substitute for the lease.
 - A network timeout during renewal is treated as lease loss even if the request may have reached MemoryStore. This avoids uncertain writes.
 - Test with two Studio server instances or a dedicated test universe: simultaneous acquire, renewal, expiry takeover, release by stale token, MemoryStore throttling/outage, and server shutdown.
-- The smoke test only checks invalid arguments and does not verify live MemoryStore behavior.
+- `IslandLeaseServiceTests.server.lua` now covers invalid arguments, first acquire, rejection of a second token, owner-only renewal/release, stale-token protection, and reacquisition after release. It requires a dedicated Studio test universe with MemoryStore API access; it has not been executed here.
+- Expiry takeover and forced MemoryStore outage/throttling still require separate multi-server/manual integration tests.
