@@ -255,7 +255,7 @@ local function renderPreview(speciesId: string)
 	camera.Parent = preview
 	preview.CurrentCamera = camera
 
-	local model, status = PetModelFactory.create(speciesId, 0.9)
+	local model = PetModelFactory.create(speciesId, 0.9)
 	if model == nil then
 		return
 	end
@@ -459,11 +459,6 @@ end
 
 openButton.Activated:Connect(openCollection)
 closeButton.Activated:Connect(closeCollection)
-shade.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 and input.Target == shade then
-		closeCollection()
-	end
-end)
 equipButton.Activated:Connect(toggleEquip)
 search:GetPropertyChangedSignal("Text"):Connect(renderList)
 
