@@ -351,6 +351,38 @@ local function getIslandGrid(): (BasePart?, number?, number?, number?)
 	return top, width, depth, cellSize
 end
 
+local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, footprintDepth: number): boolean
+	local island = currentIsland
+	if island == nil or island.Parent == nil then
+		return true
+	end
+	for _, child in ipairs(island:GetChildren()) do
+		if child:IsA("Model")
+			and child ~= selectedBuildingModel
+			and type(child:GetAttribute("BuildingInstanceId")) == "string"
+		then
+			local catalogId = child:GetAttribute("BuildingCatalogId")
+			local otherX = child:GetAttribute("GridX")
+			local otherZ = child:GetAttribute("GridZ")
+			local otherRotation = child:GetAttribute("GridRotation")
+			local otherSize = if type(catalogId) == "string" then BUILDING_SIZES[catalogId] else nil
+			if otherSize == nil or type(otherX) ~= "number" or type(otherZ) ~= "number" or type(otherRotation) ~= "number" then
+				return true
+			end
+			local otherWidth = if otherRotation % 180 == 0 then otherSize.width else otherSize.depth
+			local otherDepth = if otherRotation % 180 == 0 then otherSize.depth else otherSize.width
+			local separated = x + footprintWidth <= otherX
+				or otherX + otherWidth <= x
+				or z + footprintDepth <= otherZ
+				or otherZ + otherDepth <= z
+			if not separated then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 local function updatePreview(screenPosition: Vector2)
 	if not placing or currentPreview == nil then
 		return
@@ -388,9 +420,11 @@ local function updatePreview(screenPosition: Vector2)
 	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
 	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
 	local inside = x >= 0 and z >= 0 and x + footprintWidth <= width and z + footprintDepth <= depth
+	local overlaps = inside and hasBuildingOverlap(x, z, footprintWidth, footprintDepth)
+	local valid = inside and not overlaps
 	currentCellX = x
 	currentCellZ = z
-	currentValid = inside
+	currentValid = valid
 
 	local centerX = (x + footprintWidth / 2 - width / 2) * cellSize
 	local centerZ = (z + footprintDepth / 2 - depth / 2) * cellSize
@@ -399,8 +433,9 @@ local function updatePreview(screenPosition: Vector2)
 		currentPreview.Size = Vector3.new(footprintWidth * cellSize, 5, footprintDepth * cellSize)
 		currentPreview.CFrame = target * CFrame.Angles(0, math.rad(rotation), 0)
 	end
-	currentPreview.Color = if inside then COLORS.valid else COLORS.invalid
-	setStatus(if inside then "Место подходит — можно построить" else "Дом выходит за границы острова", inside)
+	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
+	local message = if not inside then "Дом выходит за границы острова" elseif overlaps then "Это место уже занято другой постройкой" else "Место подходит — можно построить"
+	setStatus(message, valid)
 end
 
 local function setSelectedBuilding(catalogId: string)
