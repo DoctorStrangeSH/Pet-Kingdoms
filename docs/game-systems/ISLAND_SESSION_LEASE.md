@@ -1,6 +1,6 @@
 # Island Session Lease
 
-> Status: MemoryStore lease implementation is committed and wired into the server profile lifecycle. It has not been executed or load-tested in Roblox Studio.
+> Status: MemoryStore coordination lease is committed and wired into the server profile lifecycle. It has not been executed or load-tested in Roblox Studio. It is not yet a complete DataStore fencing mechanism.
 
 ## Contract
 
@@ -27,7 +27,8 @@
 
 - A MemoryStore outage can cause a conservative disconnect; this is preferable to allowing two active writers.
 - If a server crashes, the lease expires after its TTL. Reconnect may be blocked until expiry.
-- The current implementation does not implement a separate DataStore fencing number. Revision checks remain a second line of defense, not a substitute for the lease.
+- **Critical limitation:** MemoryStore and DataStore are separate services; the current save transform does not atomically verify the MemoryStore token. A save already in flight can still complete after the renewal loop detects lease loss, and a paused/stale server could attempt a write before it observes the loss. Revision checks only reject equal/older revisions; they are not a fencing token.
+- Do not describe the current implementation as guaranteed single-writer protection until a DataStore-side fencing token/session generation is checked inside the same UpdateAsync transform that writes the profile. The next persistence milestone must add that mechanism and test stale-server writes after a new session claims ownership.
 - A network timeout during renewal is treated as lease loss even if the request may have reached MemoryStore. This avoids uncertain writes.
 - Test with two Studio server instances or a dedicated test universe: simultaneous acquire, renewal, expiry takeover, release by stale token, MemoryStore throttling/outage, and server shutdown.
 - `IslandLeaseServiceTests.server.lua` now covers invalid arguments, first acquire, rejection of a second token, owner-only renewal/release, stale-token protection, and reacquisition after release. It requires a dedicated Studio test universe with MemoryStore API access; it has not been executed here.
