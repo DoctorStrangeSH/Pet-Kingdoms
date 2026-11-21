@@ -25,6 +25,7 @@ type Session = {
 	closing: boolean,
 	leaseToken: string,
 	leaseValid: boolean,
+	characterAddedConnection: RBXScriptConnection?,
 }
 
 local sessions: { [number]: Session } = {}
@@ -101,6 +102,22 @@ local function saveSession(userId: number, session: Session): boolean
 
 	warn(string.format("[PetKingdoms] Island save failed for %d: %s", userId, code))
 	return false
+end
+
+local function moveCharacterToIsland(userId: number, character: Model)
+	local arrival = IslandWorldService.getArrivalCFrame(userId)
+	if arrival == nil then
+		return
+	end
+	local root = character:WaitForChild("HumanoidRootPart", 10)
+	if root == nil or not root:IsA("BasePart") then
+		warn(string.format("[PetKingdoms] Character root missing for island arrival: %d", userId))
+		return
+	end
+	if character.Parent == nil then
+		return
+	end
+	character:PivotTo(arrival)
 end
 
 local function loadPlayer(player: Player)
@@ -182,6 +199,10 @@ local function loadPlayer(player: Player)
 		return
 	end
 
+	local characterAddedConnection = player.CharacterAdded:Connect(function(character)
+		task.spawn(moveCharacterToIsland, userId, character)
+	end)
+
 	sessions[userId] = {
 		profile = profile,
 		dirty = false,
@@ -190,8 +211,13 @@ local function loadPlayer(player: Player)
 		closing = false,
 		leaseToken = leaseToken,
 		leaseValid = true,
+		characterAddedConnection = characterAddedConnection,
 	}
 	loading[userId] = nil
+
+	if player.Character then
+		task.spawn(moveCharacterToIsland, userId, player.Character)
+	end
 	task.spawn(function()
 		while sessions[userId] ~= nil and not shuttingDown do
 			task.wait(IslandLeaseService.RENEWAL_WINDOW_SECONDS)
@@ -203,6 +229,10 @@ local function loadPlayer(player: Player)
 			if not renewed then
 				activeSession.leaseValid = false
 				activeSession.closing = true
+				if activeSession.characterAddedConnection then
+					activeSession.characterAddedConnection:Disconnect()
+					activeSession.characterAddedConnection = nil
+				end
 				IslandWorldService.remove(userId)
 				warn(string.format("[PetKingdoms] Island lease lost for %d: %s", userId, renewCode))
 				local currentPlayer = Players:GetPlayerByUserId(userId)
@@ -232,6 +262,10 @@ local function removePlayer(player: Player)
 			return
 		end
 		sessions[userId] = nil
+		if session.characterAddedConnection then
+			session.characterAddedConnection:Disconnect()
+			session.characterAddedConnection = nil
+		end
 		IslandWorldService.remove(userId)
 		session.saveFinished:Destroy()
 	end
