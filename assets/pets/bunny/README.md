@@ -22,7 +22,7 @@ This is a first custom mesh draft, not yet accepted production art. The geometry
 
 ## Rigging pipeline
 
-A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions and will generate `bunny_rigged.blend` and `bunny_rigged.fbx` when run in Blender 4.2+. The script has not yet been executed, so these output files are not present yet and no rig/animation quality is claimed.
+A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions. GitHub Actions now installs Blender, executes the build, validates the generated .blend/.fbx, and uploads both as a 30-day workflow artifact. The first full Blender build is currently pending; do not claim the rig or animations approved until the build and visual review pass.
 
 ## Automated source validation
 
