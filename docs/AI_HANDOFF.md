@@ -19,6 +19,7 @@ Read these files first:
 4. docs/ART_BIBLE.md
 5. docs/game-systems/BUILDING_SYSTEM.md
 6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
+7. docs/game-systems/BUILDING_SYSTEM.md
 7. docs/BUILD_AND_TEST.md
 8. docs/ASSET_TRACKER.md
 
@@ -37,6 +38,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Pure server-side placement validator committed.
 - [x] Studio-only placement validator smoke-test script committed.
 - [x] Studio-only GridMath smoke-test script committed.
+- [x] Versioned island profile schema/validation module committed.
+- [x] Studio-only IslandData smoke-test script committed.
 - [x] Placement validation test plan documented.
 - [x] Build/live-sync instructions documented.
 - [ ] Rojo build executed and verified.
@@ -44,6 +47,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Roblox Studio place file created and verified.
 - [ ] Owner reviewed the selected hybrid Rojo + Studio workflow.
 - [ ] Placement validator and GridMath smoke tests executed in Roblox Studio.
+- [ ] DataStore-backed island persistence implemented.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -67,11 +71,12 @@ Important: concept art generated in chat is visual reference only. It is not a p
 The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. Owner review is still pending. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Open the generated place in Roblox Studio and verify the project tree.
-3. Run both `PlacementValidatorTests.server.lua` and `GridMathTests.server.lua` in Studio; record the actual Output results.
-4. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
-5. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
-6. Add save/load and recovery after transaction behavior is tested.
-7. Update ROADMAP and this handoff after each verified milestone.
+3. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
+4. Define and implement DataStore persistence with retries, schema migration, and safe failure behavior.
+5. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+6. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+7. Add save/load recovery tests after persistence behavior is implemented.
+8. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
