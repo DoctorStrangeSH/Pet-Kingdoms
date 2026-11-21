@@ -61,7 +61,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
 - [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
 - [x] MemoryStore cross-server island lease implementation committed and integrated (Studio/multi-server verification pending).
-- [x] IslandLeaseService integration smoke test committed (exclusive acquire, owner renew/release, stale token rejection, release/reacquire).
+- [x] IslandLeaseService integration smoke test committed (exclusive acquire, owner renew/release, stale token rejection, release/reacquire, invalid type rejection).
+- [x] IslandData rejects unknown building IDs in unlock records.
 - [ ] Save concurrency, UpdateAsync rejection, and MemoryStore lease behavior verified in Roblox Studio.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
@@ -85,16 +86,17 @@ Important: concept art generated in chat is visual reference only. It is not a p
 
 The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. Owner review is still pending. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
-2. Open the generated place in Roblox Studio and verify the project tree.
-3. Review the `UpdateAsync` transform behavior and run the stale/equal-revision integration test in a dedicated Studio test universe.
-4. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
-5. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
-6. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
-7. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` in a dedicated test universe with MemoryStore API access; then test expiry takeover, throttling/outage, and shutdown across two Studio servers.
-8. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
-9. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
-10. Add save/load recovery tests after persistence behavior is implemented.
-11. Update ROADMAP and this handoff after each verified milestone.
+2. Run `IslandDataTests.server.lua` and `IslandLeaseServiceTests.server.lua` in a dedicated Studio test universe with MemoryStore API access.
+3. Open the generated place in Roblox Studio and verify the project tree.
+4. Review the `UpdateAsync` transform behavior and run the stale/equal-revision integration test in a dedicated Studio test universe.
+5. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
+6. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
+7. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
+8. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` in a dedicated test universe with MemoryStore API access; then test expiry takeover, throttling/outage, and shutdown across two Studio servers.
+9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+11. Add save/load recovery tests after persistence behavior is implemented.
+12. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
