@@ -116,3 +116,9 @@ The three rig/follow test scripts and the pet collection data test are committed
 ## Acceptance gate
 
 Do not mark Bunny production-ready until the source model and rig are committed, art direction is approved, animation clips are integrated, the pet is viewed in the Green Valley gameplay camera, mobile performance is checked, and Studio verification is recorded in ASSET_TRACKER.md.
+
+## Blender rig/export pipeline
+
+`assets/pets/bunny/build_bunny_rig.py` is the reproducible Blender 4.2+ pipeline. It imports the original OBJ/MTL, creates a 10-bone first-pass armature, assigns spatial skin weights to the fused body, rigidly attaches small accessory objects to semantic bones, defines four actions (`Bunny_Idle`, `Bunny_Walk`, `Bunny_Hop`, `Bunny_Happy`), saves a `.blend`, and exports an FBX. Instructions are in `assets/pets/bunny/RIG_PIPELINE.md`.
+
+The script is committed but has NOT been run in Blender. No generated `.blend` or `.fbx` exists in the repository yet. Skin weights and animation quality are unverified; treat this as pipeline code, not a completed rig or animation deliverable.
