@@ -88,7 +88,21 @@ fbx_actions = [
 if len(fbx_actions) < 4:
     raise RuntimeError(f"FBX round-trip expected at least 4 animated actions, found {len(fbx_actions)}")
 
+# Require actual keyed motion rather than empty action datablocks.
+for action in fbx_actions:
+    keyed_points = [
+        point
+        for curve in action.fcurves
+        for point in curve.keyframe_points
+    ]
+    if len(keyed_points) < 2:
+        raise RuntimeError(f"FBX action has fewer than two keyframes: {action.name}")
+    values = [point.co.y for point in keyed_points]
+    if max(values) - min(values) < 1e-5:
+        raise RuntimeError(f"FBX action has no measurable animated value change: {action.name}")
+
 print("[PetKingdoms] PASS: Blender source and FBX round-trip validation")
+print(f"  fbx_action_names={[action.name for action in fbx_actions]}")
 print(f"  blend_armature_bones={len(actual_bones)} blend_mesh_objects={len(meshes)} blend_actions={blend_action_count}")
 print(f"  fbx_armature_bones={len(fbx_bones)} fbx_mesh_objects={len(fbx_meshes)} fbx_animated_actions={len(fbx_actions)}")
 print(f"  blend_bytes={BLEND_PATH.stat().st_size} fbx_bytes={FBX_PATH.stat().st_size}")
