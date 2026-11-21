@@ -43,7 +43,9 @@
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [ ] Add server transaction handling for resource charging and placement mutation.
-- [ ] Complete persistent personal home islands (profile load/create/save lifecycle code is committed; island world spawning, cross-server session lease, and Studio verification remain).
+- [ ] Complete persistent personal home islands (profile lifecycle code is committed; world spawning, cross-server session lease, and Studio verification remain).
+- [x] Serialize per-player saves and wait for in-flight autosaves before releasing a leaving player's session (code committed; Studio verification pending).
+- [x] Deep-copy island profile snapshots before yielding DataStore writes.
 - [x] Add server PlayerAdded/PlayerRemoving/autosave/BindToClose profile lifecycle code (Studio/live DataStore verification pending).
 - [ ] Implement Kingdom Bond progression and visual island changes.
 - [ ] Make farming and production meaningfully contribute to progression.
@@ -76,4 +78,4 @@
 
 ## Current status
 
-The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, versioned island profile creation/validation helpers, a revision-aware DataStore adapter with bounded retries, and Studio-only smoke-test scripts for placement, grid math, island profiles, and store input contracts. These scripts are committed but have not been executed in Roblox Studio. DataStore adapter code is committed but has not been tested against a live Roblox DataStore. The server profile lifecycle is now wired into Bootstrap, but it has not been executed in Roblox Studio or tested against live DataStores. Island world spawning, cross-server session lease, resource charging, end-to-end building gameplay, and production assets are not implemented.
+The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, versioned island profile creation/validation helpers, a revision-aware DataStore adapter with bounded retries, and Studio-only smoke-test scripts for placement, grid math, island profiles, and store input contracts. These scripts are committed but have not been executed in Roblox Studio. DataStore adapter code is committed but has not been tested against a live Roblox DataStore. The server profile lifecycle is now wired into Bootstrap, but it has not been executed in Roblox Studio or tested against live DataStores. Island world spawning, cross-server session lease, resource charging, end-to-end building gameplay, and production assets are not implemented. Per-player saves are serialized and final-save failures retain the session in memory until shutdown; this concurrency fix is committed but untested in Studio.
