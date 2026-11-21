@@ -19,6 +19,8 @@ local BUILDING_SIZES = {
 	pet_house = { width = 3, depth = 3 },
 	stone_path = { width = 1, depth = 1 },
 	garden_lantern = { width = 1, depth = 1 },
+	flower_bed = { width = 1, depth = 1 },
+	wooden_fence = { width = 1, depth = 1 },
 }
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
@@ -169,6 +171,8 @@ local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ Д�
 local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
 local stonePathButton = makeCatalogButton("StonePath", "🪨  КАМЕННАЯ ДОРОЖКА")
 local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВЫЙ ФОНАРЬ")
+local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА")
+local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР")
 local setStatus: (string, boolean?) -> ()
 local findOwnIsland: () -> Model?
 
@@ -431,7 +435,7 @@ local function updatePreview(screenPosition: Vector2)
 
 	local centerX = (x + footprintWidth / 2 - width / 2) * cellSize
 	local centerZ = (z + footprintDepth / 2 - depth / 2) * cellSize
-	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 else 5
+	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 elseif selectedCatalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
 	local target = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ)
 	if currentPreview:IsA("BasePart") then
 		currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
@@ -452,10 +456,12 @@ local function setSelectedBuilding(catalogId: string)
 	petHouseButton.BackgroundColor3 = if catalogId == "pet_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
 	stonePathButton.BackgroundColor3 = if catalogId == "stone_path" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
 	gardenLanternButton.BackgroundColor3 = if catalogId == "garden_lantern" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	flowerBedButton.BackgroundColor3 = if catalogId == "flower_bed" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	woodenFenceButton.BackgroundColor3 = if catalogId == "wooden_fence" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
-			local previewHeight = if catalogId == "stone_path" then 0.35 elseif catalogId == "garden_lantern" then cellSize * 0.8 else 5
+			local previewHeight = if catalogId == "stone_path" then 0.35 elseif catalogId == "garden_lantern" then cellSize * 0.8 elseif catalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
 			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, previewHeight, BUILDING_DEPTH * cellSize)
 		end
 	end
@@ -464,6 +470,8 @@ local function setSelectedBuilding(catalogId: string)
 		pet_house = "Выбран домик питомцев",
 		stone_path = "Выбрана каменная дорожка",
 		garden_lantern = "Выбран садовый фонарь",
+		flower_bed = "Выбрана цветочная клумба",
+		wooden_fence = "Выбран деревянный забор",
 	}
 	setStatus(labels[catalogId] or "Выбран объект")
 end
@@ -479,6 +487,12 @@ stonePathButton.Activated:Connect(function()
 end)
 gardenLanternButton.Activated:Connect(function()
 	setSelectedBuilding("garden_lantern")
+end)
+flowerBedButton.Activated:Connect(function()
+	setSelectedBuilding("flower_bed")
+end)
+woodenFenceButton.Activated:Connect(function()
+	setSelectedBuilding("wooden_fence")
 end)
 local function beginMoveSelected()
 	local model = selectedBuildingModel
@@ -504,6 +518,8 @@ local function beginMoveSelected()
 	petHouseButton.Active = false
 	stonePathButton.Active = false
 	gardenLanternButton.Active = false
+	flowerBedButton.Active = false
+	woodenFenceButton.Active = false
 	confirmButton.Text = "СОХРАНИТЬ"
 	createPreview()
 	if currentPreview == nil then
@@ -534,6 +550,8 @@ local function stopPlacing()
 	petHouseButton.Active = true
 	stonePathButton.Active = true
 	gardenLanternButton.Active = true
+	flowerBedButton.Active = true
+	woodenFenceButton.Active = true
 	confirmButton.Text = "ПОСТРОИТЬ"
 	if selectedBuildingModel and selectedBuildingModel.Parent then
 		local selectedCatalog = selectedBuildingModel:GetAttribute("BuildingCatalogId")
@@ -600,6 +618,8 @@ confirmButton.Activated:Connect(function()
 			pet_house = "Домик питомцев построен!",
 			stone_path = "Каменная дорожка размещена!",
 			garden_lantern = "Садовый фонарь размещён!",
+			flower_bed = "Клумба размещена!",
+			wooden_fence = "Секция забора установлена!",
 		}
 		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[selectedCatalogId] or "Объект размещён!"), true)
 		if wasMoving then selectBuilding(nil) end
