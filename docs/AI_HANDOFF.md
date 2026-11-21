@@ -61,7 +61,8 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] First procedural Bunny rig factory committed with 17 Motor6D joints, AnimationController/Animator, follow/ground attachments, and scale validation; Studio smoke test committed but not yet executed. This is a blockout prototype, not production art.
 - [x] Procedural Bunny animation controller committed with idle, walk, run, happy, curious, alert, and combat states; Studio smoke test committed but not yet executed.
 - [x] Client `CompanionFollowController.lua` committed with three formation slots, ground raycast, smooth follow/orientation, and idle/walk/run state mapping; client Studio smoke test committed but not yet executed.
-- [x] Server pet collection backend committed: separate DataStore, default starter Bunny, owned/equipped validation, max three equipped, `Get`/`Equip` RemoteFunction, and expected-revision conflict rejection. Pure data tests committed; Studio DataStore execution pending. Inventory UI, world pet spawn, and follow-controller connection remain NOT DONE.
+- [x] Server pet collection backend committed: separate DataStore, default starter Bunny, owned/equipped validation, max three equipped, `Get`/`Equip` RemoteFunction, and expected-revision conflict rejection. Pure data tests committed; Studio DataStore execution pending.
+- [x] First responsive Russian pet collection UI committed with owned-pet list, search, Bunny viewport preview, equipped count, and server-backed equip/unequip. Studio/device verification and final art polish pending; world pet spawn and follow-controller connection remain NOT DONE.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
@@ -120,7 +121,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
 12. Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`, and client `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Bunny motion and formation from the Green Valley gameplay camera.
-13. Add the client collection UI/request wrapper; verify Get and Equip against a published Studio test universe with DataStore access.
+13. Verify PetCollectionUI Get/Equip in a published Studio test universe with DataStore access; test PC, tablet, and touch layouts.
 14. Implement server-authoritative world pet spawn/despawn and connect equipped models to the follow controller; test respawn/unequip cleanup.
 15. Update ROADMAP and this handoff after each verified milestone.
 
