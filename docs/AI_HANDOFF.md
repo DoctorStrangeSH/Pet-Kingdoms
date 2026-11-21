@@ -46,6 +46,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
+- [x] IslandStore detects rejected UpdateAsync writes without relying on a nil outer result.
 - [x] Final-save failure retains the in-memory session for shutdown retry.
 - [x] Island session lifecycle limitations and configuration documented.
 - [x] IslandSessionService contract smoke test committed.
@@ -59,7 +60,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
 - [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
 - [ ] Cross-server single-writer/session lease implemented.
-- [ ] Save concurrency changes verified in Roblox Studio.
+- [ ] Save concurrency and UpdateAsync rejection handling verified in Roblox Studio.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -83,14 +84,15 @@ Important: concept art generated in chat is visual reference only. It is not a p
 The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. Owner review is still pending. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Open the generated place in Roblox Studio and verify the project tree.
-3. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
-4. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
-5. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
-6. Implement a cross-server session lease/single-writer policy before public playtesting; the current revision check is not a lease.
-7. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
-8. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
-9. Add save/load recovery tests after persistence behavior is implemented.
-10. Update ROADMAP and this handoff after each verified milestone.
+3. Review the `UpdateAsync` transform behavior and run the stale/equal-revision integration test in a dedicated Studio test universe.
+4. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
+5. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
+6. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
+7. Implement a cross-server session lease/single-writer policy before public playtesting; the current revision check is not a lease.
+8. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+9. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+10. Add save/load recovery tests after persistence behavior is implemented.
+11. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
