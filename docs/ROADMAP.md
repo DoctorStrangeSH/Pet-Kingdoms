@@ -23,7 +23,8 @@
   - [x] Add a client-side companion follow controller with three formation slots, ground raycast, smooth facing/follow, and idle/walk/run state selection (Studio test committed; execution pending).
   - [x] Add a server-authoritative pet collection DataStore profile with starter Bunny, ownership validation, max-three equip validation, and revision-checked equip writes (Studio DataStore verification pending).
   - [x] Add pure collection data tests for ownership, invalid species, duplicate/sparse equip lists, and the three-pet limit (Studio execution pending).
-  - [ ] Add client inventory/equip UI and connect equipped IDs to replicated pet world spawns and the follow controller.
+  - [x] Add first responsive Russian pet collection UI with search, pet preview, equipped count, and server-backed equip/unequip (Studio/device verification pending).
+  - [ ] Connect equipped IDs to replicated pet world spawns and the follow controller.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
