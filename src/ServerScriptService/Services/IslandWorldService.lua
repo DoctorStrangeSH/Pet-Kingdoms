@@ -175,6 +175,35 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 		light.Parent = glow
 		makePart(model, "Cap", Vector3.new(width * 0.56, unit * 0.08, depth * 0.56),
 			CFrame.new(0, unit * 0.96, 0), Color3.fromRGB(83, 63, 49), Enum.Material.Wood)
+	elseif catalogId == "flower_bed" then
+		makePart(model, "PlanterBase", Vector3.new(width * 0.88, unit * 0.12, depth * 0.88),
+			CFrame.new(0, unit * 0.06, 0), Color3.fromRGB(132, 91, 61), Enum.Material.WoodPlanks)
+		makePart(model, "Soil", Vector3.new(width * 0.72, unit * 0.08, depth * 0.72),
+			CFrame.new(0, unit * 0.15, 0), Color3.fromRGB(76, 58, 43), Enum.Material.Ground)
+		local flowerColors = {
+			Color3.fromRGB(255, 112, 145),
+			Color3.fromRGB(255, 218, 104),
+			Color3.fromRGB(166, 139, 255),
+		}
+		for index = 1, 3 do
+			local x = (index - 2) * width * 0.22
+			local z = if index == 2 then depth * 0.18 else -depth * 0.12
+			makePart(model, "Stem_" .. tostring(index), Vector3.new(0.07, unit * 0.24, 0.07),
+				CFrame.new(x, unit * 0.29, z), Color3.fromRGB(72, 139, 73), Enum.Material.Grass)
+			local bloom = makePart(model, "Bloom_" .. tostring(index), Vector3.new(unit * 0.17, unit * 0.17, unit * 0.17),
+				CFrame.new(x, unit * 0.43, z), flowerColors[index], Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+			bloom.CanCollide = false
+		end
+	elseif catalogId == "wooden_fence" then
+		local postColor = Color3.fromRGB(128, 88, 55)
+		for index, x in ipairs({ -width * 0.4, width * 0.4 }) do
+			makePart(model, "Post_" .. tostring(index), Vector3.new(width * 0.12, unit * 0.62, depth * 0.12),
+				CFrame.new(x, unit * 0.31, 0), postColor, Enum.Material.Wood)
+		end
+		makePart(model, "Rail_Lower", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1),
+			CFrame.new(0, unit * 0.24, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
+		makePart(model, "Rail_Upper", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1),
+			CFrame.new(0, unit * 0.52, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
 	else
 		makePart(model, "Foundation", Vector3.new(width, unit * 0.16, depth),
 			CFrame.new(0, unit * 0.08, 0), Color3.fromRGB(119, 91, 72), Enum.Material.WoodPlanks)
