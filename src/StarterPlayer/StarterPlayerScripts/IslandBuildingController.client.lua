@@ -431,9 +431,10 @@ local function updatePreview(screenPosition: Vector2)
 
 	local centerX = (x + footprintWidth / 2 - width / 2) * cellSize
 	local centerZ = (z + footprintDepth / 2 - depth / 2) * cellSize
-	local target = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + 2.6, centerZ)
+	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 else 5
+	local target = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ)
 	if currentPreview:IsA("BasePart") then
-		currentPreview.Size = Vector3.new(footprintWidth * cellSize, 5, footprintDepth * cellSize)
+		currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
 		currentPreview.CFrame = target * CFrame.Angles(0, math.rad(rotation), 0)
 	end
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
@@ -454,7 +455,8 @@ local function setSelectedBuilding(catalogId: string)
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
-			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, 5, BUILDING_DEPTH * cellSize)
+			local previewHeight = if catalogId == "stone_path" then 0.35 elseif catalogId == "garden_lantern" then cellSize * 0.8 else 5
+			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, previewHeight, BUILDING_DEPTH * cellSize)
 		end
 	end
 	local labels = {
