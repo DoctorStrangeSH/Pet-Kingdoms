@@ -1,4 +1,4 @@
-name: Pet asset source validation
+name: Pet asset source and Blender build
 
 on:
   push:
@@ -23,4 +23,29 @@ jobs:
       - name: Validate OBJ and MTL
         run: python assets/pets/bunny/validate_bunny_source.py
       - name: Check Blender script syntax
-        run: python -m py_compile assets/pets/bunny/build_bunny_rig.py
+        run: python -m py_compile assets/pets/bunny/build_bunny_rig.py assets/pets/bunny/validate_bunny_blender_output.py
+
+  build-bunny-blender:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+      - name: Report Blender version
+        run: blender --version
+      - name: Build rigged Bunny project and FBX
+        run: blender --background --python assets/pets/bunny/build_bunny_rig.py
+      - name: Validate generated Blender and FBX files
+        run: blender --background --python assets/pets/bunny/validate_bunny_blender_output.py
+      - name: Upload rigged Bunny outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pet-kingdoms-bunny-rigged
+          path: |
+            assets/pets/bunny/bunny_rigged.blend
+            assets/pets/bunny/bunny_rigged.fbx
+          if-no-files-found: error
+          retention-days: 30
