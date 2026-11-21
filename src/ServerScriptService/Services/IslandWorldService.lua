@@ -20,6 +20,7 @@ local DIRT_COLOR = Color3.fromRGB(119, 83, 58)
 
 local occupiedSpawns: { [Instance]: number } = {}
 local worldsByUserId: { [number]: Model } = {}
+local arrivalCFrames: { [number]: CFrame } = {}
 
 local function getNumberAttribute(name: string): number?
 	local value = Workspace:GetAttribute(name)
@@ -196,7 +197,12 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 
 	occupiedSpawns[spawnPoint] = player.UserId
 	worldsByUserId[player.UserId] = world
+	arrivalCFrames[player.UserId] = spawnPoint.CFrame * CFrame.new(0, 4, (profile.boundsDepth * cellSize) * 0.34)
 	return true, "SPAWNED"
+end
+
+function IslandWorldService.getArrivalCFrame(userId: number): CFrame?
+	return arrivalCFrames[userId]
 end
 
 function IslandWorldService.remove(userId: number)
@@ -205,6 +211,7 @@ function IslandWorldService.remove(userId: number)
 		world:Destroy()
 		worldsByUserId[userId] = nil
 	end
+	arrivalCFrames[userId] = nil
 	for spawnPoint, ownerUserId in pairs(occupiedSpawns) do
 		if ownerUserId == userId then
 			occupiedSpawns[spawnPoint] = nil
