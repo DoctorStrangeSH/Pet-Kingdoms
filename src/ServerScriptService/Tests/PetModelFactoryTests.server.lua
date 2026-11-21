@@ -31,6 +31,10 @@ local controller = bunny:FindFirstChildOfClass("AnimationController")
 expect("animator exists", controller ~= nil and controller:FindFirstChildOfClass("Animator") ~= nil)
 expect("follow attachment exists", bunny.PrimaryPart ~= nil and bunny.PrimaryPart:FindFirstChild("FollowAttachment") ~= nil)
 expect("ground attachment exists", bunny.PrimaryPart ~= nil and bunny.PrimaryPart:FindFirstChild("GroundContact") ~= nil)
+expect("eye highlights exist", bunny:FindFirstChild("EyeGlint_Left", true) ~= nil and bunny:FindFirstChild("EyeGlint_Right", true) ~= nil)
+expect("mouth details exist", bunny:FindFirstChild("Mouth_Left", true) ~= nil and bunny:FindFirstChild("Mouth_Right", true) ~= nil)
+expect("three whiskers on each cheek", bunny:FindFirstChild("Whisker_-1_1", true) ~= nil and bunny:FindFirstChild("Whisker_-1_2", true) ~= nil and bunny:FindFirstChild("Whisker_-1_3", true) ~= nil and bunny:FindFirstChild("Whisker_1_1", true) ~= nil and bunny:FindFirstChild("Whisker_1_2", true) ~= nil and bunny:FindFirstChild("Whisker_1_3", true) ~= nil)
+expect("forehead tuft exists", bunny:FindFirstChild("Forehead_Tuft", true) ~= nil)
 
 local motorCount = 0
 local allPartsSafe = true
