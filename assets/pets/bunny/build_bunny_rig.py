@@ -44,8 +44,9 @@ if not mesh_objects:
 
 # Smooth shading and normalize transforms without changing world-space shape.
 for obj in mesh_objects:
-    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     for polygon in obj.data.polygons:
         polygon.use_smooth = True
@@ -103,6 +104,8 @@ for vertex in body.data.vertices:
         "BackLeg.L": gaussian(p, (-0.27, 0.18, 0.18), 0.23),
         "BackLeg.R": gaussian(p, (0.27, 0.18, 0.18), 0.23),
         "Tail": gaussian(p, (0, 0.42, 0.39), 0.19),
+        "Ear.L": gaussian(p, (-0.22, 1.68, 0.0), 0.30),
+        "Ear.R": gaussian(p, (0.22, 1.68, 0.0), 0.30),
     }
     total = sum(influences.values()) or 1.0
     for name, weight in influences.items():
@@ -133,9 +136,11 @@ for obj in mesh_objects:
     if obj == body:
         continue
     bone_name = accessory_bone(obj)
+    world_matrix = obj.matrix_world.copy()
     obj.parent = arm
     obj.parent_type = "BONE"
     obj.parent_bone = bone_name
+    obj.matrix_world = world_matrix
 
 # Build a compact first animation set. All actions use a 24 fps timeline.
 bpy.context.scene.render.fps = 24
