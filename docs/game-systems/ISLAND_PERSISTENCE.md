@@ -20,8 +20,10 @@
 
 `IslandStore.save(profile)`
 - Validates the complete profile before DataStore access.
-- Uses UpdateAsync.
-- Refuses to overwrite a stored profile whose revision is equal to or newer than the submitted snapshot.
+- `claimSession(profile)` uses UpdateAsync to increment a monotonic `sessionGeneration` in the same player profile key. It returns the authoritative profile with the claimed generation.
+- `save(profile)` uses UpdateAsync and checks that the stored `sessionGeneration` exactly matches the submitted generation inside the same atomic transform that writes the profile.
+- A stale server generation is rejected even if its revision number is larger than the current stored revision.
+- Within the same generation, refuses to overwrite a stored profile whose revision is equal to or newer than the submitted snapshot.
 - Important: the UpdateAsync transform returns the existing value when rejecting a write. Returning `nil` from an UpdateAsync transform cancels the write but the API still returns the current stored value; callers must not use a nil result as the rejection signal.
 - Tracks whether the transform accepted the submitted snapshot and reports `SAVED` only when that write was accepted.
 - Retries transient failures up to four attempts.
@@ -33,11 +35,11 @@ The adapter is connected to the server PlayerAdded/PlayerRemoving/autosave/BindT
 
 Before integration:
 1. Define the authoritative island bounds and initial profile defaults from the approved world layout.
-2. Add a cross-server session lease/single-writer lock so two server sessions cannot mutate one profile concurrently.
-3. Increment revision on every successful state mutation.
+2. Acquire the MemoryStore coordination lease, then claim the next DataStore `sessionGeneration` before opening the player session.
+3. Increment revision on every successful state mutation; preserve the claimed generation in all snapshots.
 4. Save on controlled checkpoints and PlayerRemoving; use BindToClose as a best-effort final flush.
-5. Keep the player in a safe loading state if load fails; never create a blank profile over an unavailable/invalid save.
-6. Test Studio API access, throttling, disconnects, shutdown, stale writes, and recovery using a dedicated test universe.
+5. Keep the player in a safe loading state if load/claim fails; never create a blank profile over an unavailable/invalid save.
+6. Test Studio API access, throttling, disconnects, shutdown, stale generations, stale writes, and recovery using a dedicated test universe.
 
 ## Studio contract smoke test
 
@@ -50,3 +52,10 @@ Before integration:
 - A profile may contain at most 256 building records. This is a defensive validation ceiling for the MVP data contract, not a player-facing progression limit; revisit it only with an explicit performance and product decision.
 - Unknown IDs in `unlockedBuildingIds` are rejected instead of silently accepted.
 - Studio tests cover sparse/dictionary building collections and over-limit profiles. These tests are committed but not yet executed in Studio.
+
+
+## DataStore-side session fencing
+
+The profile stores an optional `sessionGeneration` field for backward compatibility with existing schema-v1 records. A successful `claimSession` increments it atomically in the profile's DataStore key. Every save must include that generation, and the UpdateAsync transform compares it to the current stored generation before accepting the snapshot. This makes the generation check atomic with the profile write; the MemoryStore lease remains a coordination/fast-rejection layer, not the fencing authority.
+
+`IslandStoreTests.server.lua` now includes an integration scenario: claim generation A, claim generation B, assert that A cannot save, then assert B can save. It uses a synthetic user key and requires a dedicated test universe with DataStore API access. The test has been committed but not executed here.
