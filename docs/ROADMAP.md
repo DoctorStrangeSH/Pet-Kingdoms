@@ -36,13 +36,14 @@
 - [x] Document the MVP building-system design and server-authority requirements.
 
 - [ ] Implement persistent personal home islands.
+- [x] Add versioned island profile schema and validation helpers (Studio tests committed; execution pending).
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [ ] Add server transaction handling for resource charging and placement mutation.
-- [ ] Implement island layout persistence and recovery.
+- [ ] Implement DataStore-backed island layout persistence and recovery (schema validation exists; storage integration is not implemented).
 - [ ] Implement Kingdom Bond progression and visual island changes.
 - [ ] Make farming and production meaningfully contribute to progression.
 
@@ -74,4 +75,4 @@
 
 ## Current status
 
-The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, and Studio-only smoke-test scripts for placement validation and grid math. The validator and tests are committed but have not been executed in Roblox Studio; no end-to-end building gameplay, resource charging, persistence, or production asset is claimed as complete.
+The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, versioned island profile creation/validation helpers, and Studio-only smoke-test scripts for placement, grid math, and island profile data. These scripts are committed but have not been executed in Roblox Studio. DataStore persistence, resource charging, end-to-end building gameplay, and production assets are not implemented.
