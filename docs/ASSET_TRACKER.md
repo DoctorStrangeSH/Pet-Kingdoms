@@ -10,7 +10,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 
 | Pet | Biome / theme | Concept | Model | Rig | Animations | Studio check |
 |---|---|---|---|---|---|---|
-| Bunny | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
+| Bunny | Green Valley | Planned | PROCEDURAL BLOCKOUT RIG v1 committed | PROTOTYPE (17 Motor6D) | NOT STARTED | NOT STARTED |
 | Green Slime | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Forest Cat | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Leaf Fox | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
@@ -31,7 +31,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 | Pet 19 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Pet 20 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 
-The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
+Bunny has a procedural rig prototype in source, but it is not production art and has not passed Studio visual or animation checks. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
 
 ## Environment kits
 
