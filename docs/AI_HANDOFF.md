@@ -47,6 +47,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Revision-aware IslandStore DataStore adapter committed.
 - [x] IslandStore input-contract smoke test committed.
 - [x] DataStore session-generation fencing implemented; Studio integration scenario committed (execution pending).
+- [x] Procedural island blockout renderer committed and integrated into player session lifecycle; Studio verification pending.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
@@ -98,6 +99,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 6. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
 7. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
 8. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` and `IslandStoreTests.server.lua` in a dedicated test universe with MemoryStore and DataStore API access; verify stale-generation rejection, expiry takeover, throttling/outage, and shutdown across two Studio servers.
+9. Configure `IslandGridWidth`, `IslandGridDepth`, `IslandGridCellSize`, and `Workspace/IslandSpawnPoints` per `docs/game-systems/ISLAND_WORLD_RENDERING.md`; run `IslandWorldServiceTests.server.lua` and visually verify two player islands, saved building pivots, missing templates, and spawn-slot release.
 9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
