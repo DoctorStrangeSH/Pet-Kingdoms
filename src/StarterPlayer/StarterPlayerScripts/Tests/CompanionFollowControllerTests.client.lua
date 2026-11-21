@@ -49,6 +49,17 @@ local firstPosition = pets[1]:GetPivot().Position
 local secondPosition = pets[2]:GetPivot().Position
 expect("formation slots produce distinct pet positions", (firstPosition - secondPosition).Magnitude > 0.5)
 
+local observedIdlePersonality = false
+for _ = 1, 900 do
+	controllers[1]:update(1 / 60)
+	local state = controllers[1].animation.state
+	if state == "sniff" or state == "curious" or state == "happy" then
+		observedIdlePersonality = true
+		break
+	end
+end
+expect("stationary Bunny performs an autonomous personality action", observedIdlePersonality)
+
 local invalidController, invalidStatus = CompanionFollowController.new(pets[1], target, { slotIndex = 4 })
 expect("fourth active slot is rejected", invalidController == nil and invalidStatus == "INVALID_SLOT_INDEX")
 
