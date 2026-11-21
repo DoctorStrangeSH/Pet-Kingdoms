@@ -83,11 +83,13 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	local record
+	local previousRecord: any = nil
 	local movingIndex: number? = nil
 	if request.movingInstanceId ~= nil then
 		for index, existing in ipairs(profile.buildings) do
 			if existing.instanceId == request.movingInstanceId then
 				movingIndex = index
+				previousRecord = table.clone(existing)
 				record = {
 					instanceId = existing.instanceId,
 					catalogId = validation.catalogId,
@@ -126,13 +128,7 @@ local function handleRequest(player: Player, request: any): any
 			-- Restore the previous saved record; no dirty revision was issued.
 			for index, existing in ipairs(profile.buildings) do
 				if existing.instanceId == record.instanceId then
-					profile.buildings[index] = {
-						instanceId = record.instanceId,
-						catalogId = request.catalogId,
-						x = request.previousX or record.x,
-						z = request.previousZ or record.z,
-						rotation = request.previousRotation or record.rotation,
-					}
+					profile.buildings[index] = previousRecord
 					break
 				end
 			end
@@ -143,6 +139,13 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	if not IslandSessionService.markDirty(userId) then
+		if movingIndex and previousRecord then
+			profile.buildings[movingIndex] = previousRecord
+			IslandWorldService.syncBuilding(userId, profile, previousRecord)
+		else
+			table.remove(profile.buildings, #profile.buildings)
+			IslandWorldService.removeBuilding(userId, record.instanceId)
+		end
 		return fail("SESSION_NOT_WRITABLE")
 	end
 
