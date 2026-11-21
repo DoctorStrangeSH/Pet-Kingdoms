@@ -63,6 +63,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] MemoryStore cross-server island lease implementation committed and integrated (Studio/multi-server verification pending).
 - [x] IslandLeaseService integration smoke test committed (exclusive acquire, owner renew/release, stale token rejection, release/reacquire, invalid type rejection).
 - [x] IslandData rejects unknown building IDs in unlock records.
+- [x] IslandData rejects sparse/dictionary building lists and profiles exceeding the 256-record defensive ceiling; Studio tests committed.
 - [ ] Save concurrency, UpdateAsync rejection, and MemoryStore lease behavior verified in Roblox Studio.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
