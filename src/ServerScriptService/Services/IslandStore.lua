@@ -6,6 +6,7 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local IslandData = require(script.Parent:WaitForChild("IslandData"))
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
+local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 
 local IslandStore = {}
 local STORE_NAME = "PetKingdoms_Islands_v1"
@@ -49,6 +50,11 @@ function IslandStore.load(userId: number): (boolean, any, string)
 		warn(string.format("[PetKingdoms] Invalid island profile for user %d: %s", userId, reason))
 		return false, nil, "INVALID_SAVED_PROFILE:" .. reason
 	end
+	if data.resources == nil then
+		-- Backward-compatible migration for schema-v1 islands created before
+		-- the wallet field existed. claimSession persists this migrated value.
+		data.resources = IslandResources.create()
+	end
 	return true, data, "LOADED"
 end
 
@@ -64,6 +70,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 
 	local key = makeKey(profile.ownerUserId)
 	local seed = table.clone(profile)
+	if seed.resources == nil then
+		seed.resources = IslandResources.create()
+	end
 	-- Claim only if the generation observed during load is still current.
 	-- This prevents a delayed loader from superseding a newer session.
 	local expectedGeneration = seed.sessionGeneration or 0
@@ -84,6 +93,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 				nextProfile = table.clone(current)
 			end
 
+			if nextProfile.resources == nil then
+				nextProfile.resources = IslandResources.create()
+			end
 			local currentGeneration = nextProfile.sessionGeneration or 0
 			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
 				return current
