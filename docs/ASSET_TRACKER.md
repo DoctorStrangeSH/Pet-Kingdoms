@@ -10,7 +10,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 
 | Pet | Biome / theme | Concept | Model | Rig | Animations | Studio check |
 |---|---|---|---|---|---|---|
-| Bunny | Green Valley | Planned | ORIGINAL PROJECT MESH COMMITTED: 15,332 vertices / 30,194 triangles / 13 mesh objects / 9 materials; Studio import + art review pending | BLENDER 4.2.0 BUILD PASS; BLEND + FBX GENERATED; 10-BONE RIG STRUCTURE VERIFIED; DEFORMATION REVIEW PENDING | IDLE/WALK/HOP/HAPPY ACTION CURVES GENERATED AND STRUCTURALLY VERIFIED; MOTION QUALITY PENDING REVIEW | STUDIO IMPORT / PUBLISH / VISUAL CHECK PENDING |
+| Bunny | Green Valley | Planned | ORIGINAL PROJECT MESH COMMITTED: 15,332 vertices / 30,194 triangles / 13 mesh objects / 9 materials; Studio import + art review pending | BLENDER 4.2.0 BUILD PASS; BLEND + FBX GENERATED; 10-BONE RIG STRUCTURE VERIFIED; DEFORMATION REVIEW PENDING | IDLE/WALK/HOP/HAPPY CLIPS VERIFIED AFTER FBX ROUND-TRIP WITH KEYED MOTION; VISUAL QUALITY PENDING REVIEW | STUDIO IMPORT / PUBLISH / VISUAL CHECK PENDING |
 | Green Slime | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Forest Cat | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Leaf Fox | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
