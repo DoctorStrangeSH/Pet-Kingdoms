@@ -29,6 +29,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Art direction baseline documented.
 - [x] Building system design baseline documented.
 - [x] Rojo project mapping and initial Luau source module committed.
+- [x] Server and client bootstrap entrypoints committed.
 - [x] Build/live-sync instructions documented.
 - [ ] Rojo build executed and verified.
 - [ ] Roblox source project initialized beyond the initial scaffold.
