@@ -70,6 +70,48 @@ local function handleRequest(player: Player, request: any): any
 		return cache[request.requestId]
 	end
 
+	if type(request.action) == "string" then
+		if request.action ~= "demolish" then
+			return fail("UNKNOWN_BUILDING_ACTION")
+		end
+		if type(request.instanceId) ~= "string" or request.instanceId == "" then
+			return fail("INVALID_BUILDING_ID")
+		end
+		local profileForRemoval = IslandSessionService.getProfile(userId)
+		if profileForRemoval == nil then
+			return fail("SESSION_NOT_READY")
+		end
+		local removeIndex = nil
+		local removedRecord = nil
+		for index, existing in ipairs(profileForRemoval.buildings) do
+			if existing.instanceId == request.instanceId then
+				removeIndex = index
+				removedRecord = table.clone(existing)
+				break
+			end
+		end
+		if removeIndex == nil or removedRecord == nil then
+			return fail("BUILDING_NOT_FOUND")
+		end
+		if removedRecord.catalogId == "main_house" then
+			return fail("MAIN_HOUSE_PROTECTED")
+		end
+		table.remove(profileForRemoval.buildings, removeIndex)
+		IslandWorldService.removeBuilding(userId, removedRecord.instanceId)
+		if not IslandSessionService.markDirty(userId) then
+			table.insert(profileForRemoval.buildings, removeIndex, removedRecord)
+			IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
+			return fail("SESSION_NOT_WRITABLE")
+		end
+		local removalResult = {
+			ok = true,
+			code = "BUILDING_DEMOLISHED",
+			instanceId = removedRecord.instanceId,
+		}
+		remember(userId, request.requestId, removalResult)
+		return removalResult
+	end
+
 	local profile = IslandSessionService.getProfile(userId)
 	if profile == nil then
 		return fail("SESSION_NOT_READY")
