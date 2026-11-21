@@ -54,12 +54,13 @@ local panel = make("Frame", {
 	Name = "Panel",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.new(0.5, 0, 1, -22),
-	Size = UDim2.fromOffset(370, 150),
+	Size = UDim2.new(1, -24, 0, 150),
 	BackgroundColor3 = COLORS.panel,
 	BackgroundTransparency = 0.04,
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
+make("UISizeConstraint", { MinSize = Vector2.new(320, 150), MaxSize = Vector2.new(370, 150) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -121,9 +122,9 @@ local function makeButton(name: string, label: string, width: number, color: Col
 	return button
 end
 
-local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 112, COLORS.panelLight)
-local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 112, Color3.fromRGB(45, 137, 91))
-local cancelButton = makeButton("Cancel", "ОТМЕНА", 86, Color3.fromRGB(139, 67, 76))
+local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 104, COLORS.panelLight)
+local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
+local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
 
 local function setStatus(message: string, good: boolean?)
 	status.Text = message
@@ -266,6 +267,7 @@ local function beginPlacing()
 	createPreview()
 	if currentPreview == nil then
 		placing = false
+		panel.Visible = false
 		return
 	end
 	setStatus("Наведи на траву и выбери место")
