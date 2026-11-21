@@ -44,6 +44,7 @@ The eight named pets above are the current working list from project discussions
 | Modular paths and bridges | Green Valley and island connections | NOT STARTED |
 | Home-island terrain kit | Personal kingdom | BLOCKOUT CODE ONLY — production art NOT STARTED |
 | Main House, Pet House | Starter Island | RUNTIME BLOCKOUT MODELS ONLY — production art NOT STARTED |
+| Stone Path, Garden Lantern | Starter Island decor | RUNTIME BLOCKOUT MODELS ONLY — production art NOT STARTED |
 | Farm, Workshop, Laboratory, Market, Garden | Starter Island | NOT STARTED |
 | Resource nodes: wood, stone, berries, crystals | Gathering and production | NOT STARTED |
 
