@@ -23,7 +23,7 @@
   - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
   - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy actions; Blender 4.2.0 CI build generated and structurally validated `.blend` + `.fbx` outputs.
   - [x] Add GitHub Actions validation for Bunny OBJ/MTL integrity and Blender script Python syntax (source-only run passed).
-  - [x] Extend CI to install pinned Blender 4.2.0, execute rig/FBX export, validate generated files and all four action curves, and publish a 30-day artifact (run passed).
+  - [x] Extend CI to install pinned Blender 4.2.0, execute rig/FBX export, re-import FBX, and verify 10 bones, 13 meshes, and keyed motion for each of the four required unique clips; publish a 30-day artifact (run passed).
   - [x] Run Blender 4.2.0 rig build in CI and generate `.blend` + `.fbx` outputs (both validated and uploaded as a workflow artifact).
   - [ ] Visually review skin weights, silhouette, and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
