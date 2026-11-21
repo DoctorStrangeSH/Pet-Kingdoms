@@ -13,10 +13,21 @@ The first implementation target is Bunny, one of the named initial pet examples 
 Source:
 - `src/ReplicatedStorage/Shared/Pets/PetModelFactory.lua`
 - `src/ReplicatedStorage/Shared/Pets/PetAnimationController.lua`
+- `src/ReplicatedStorage/Shared/Pets/PetCollectionData.lua`
+- `src/ServerScriptService/Services/PetCollectionService.lua`
+- `src/ServerScriptService/Tests/PetCollectionDataTests.server.lua`
 - `src/StarterPlayer/StarterPlayerScripts/CompanionFollowController.lua`
 - `src/ServerScriptService/Tests/PetModelFactoryTests.server.lua`
 - `src/ServerScriptService/Tests/PetAnimationControllerTests.server.lua`
 - `src/StarterPlayer/StarterPlayerScripts/Tests/CompanionFollowControllerTests.client.lua`
+
+## Pet collection backend prototype
+
+`PetCollectionData.lua` defines a compact versioned collection profile with a starter Bunny, up to 100 owned pets, and up to three equipped pet IDs. It validates owner identity, species IDs, contiguous lists, unique pet IDs, and equipped ownership. The pure `setEquipped` operation rejects unowned IDs, duplicates, sparse arrays, and more than three equipped pets.
+
+`PetCollectionService.lua` loads and initializes collections in a separate DataStore (`PetKingdoms_PetCollections_v1`). The server exposes `ReplicatedStorage/Remotes/PetCollectionRequest` with `Get` and `Equip` actions. Equip requests are validated against server-loaded ownership and use an expected revision check inside `UpdateAsync` to reject stale concurrent writes. The client can submit only pet IDs and the revision it observed; it cannot submit ownership records or species unlocks.
+
+This is the persistence and equip-data backend only. It does not yet spawn world models, render an inventory UI, or connect equipped IDs to the follow controller. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
 
 The factory currently supports:
 - Stable species ID: `bunny`
@@ -64,20 +75,21 @@ Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`,
 - Safe transform reset and idempotent controller cleanup
 - Three distinct follow formation slots, controller construction, and rejection of slot 4
 
-Both test scripts are committed but have not been executed. No Studio visual, animation, mobile-performance, or companion-follow test has passed yet.
+The three rig/follow test scripts and the pet collection data test are committed but have not been executed. No Studio visual, animation, mobile-performance, or companion-follow test has passed yet.
 
 ## Not done
 
 - Production mesh sculpt/model, texture work, and final silhouette approval
 - Facial expression variants and blink
 - Uploaded/artist-authored animation clips and polished animation timing
-- Server-authoritative pet ownership, inventory, equip/team selection, and spawn replication
+- Server-authoritative pet ownership, inventory UI, and equipped-pet world spawn replication
+- Client request wrapper/UI for `PetCollectionRequest` and connection to companion follow
 - Runtime lifecycle wiring for respawn, unequip, and character replacement
 - Animation import IDs and playback validation
 - Grounding/contact shadow treatment in the real game camera
 - Mobile performance and multi-pet stress test
 - Remaining 19 pet species and shared production template
-- Pet inventory, equip/team, XP, stats, and persistence integration
+- Pet inventory UI, XP, stats, world spawn integration, and progression persistence
 
 ## Acceptance gate
 
