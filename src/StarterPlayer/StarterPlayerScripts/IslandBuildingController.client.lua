@@ -454,6 +454,11 @@ local function beginMoveSelected()
 		placing = false
 		movingInstanceId = nil
 		panel.Visible = false
+		confirmButton.Text = "ПОСТРОИТЬ"
+		mainHouseButton.Active = true
+		petHouseButton.Active = true
+		moveButton.Visible = true
+		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
 	end
 	setStatus("Выбери новое место для постройки")
@@ -489,6 +494,10 @@ local function beginPlacing()
 	if currentPreview == nil then
 		placing = false
 		panel.Visible = false
+		if selectedBuildingModel and selectedBuildingModel.Parent then
+			moveButton.Visible = true
+			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
+		end
 		return
 	end
 	setStatus("Наведи на траву и выбери место")
