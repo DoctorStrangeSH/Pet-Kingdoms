@@ -24,6 +24,7 @@ Read these files first:
 9. docs/game-systems/ISLAND_SESSION_LEASE.md
 9. docs/BUILD_AND_TEST.md
 10. docs/ASSET_TRACKER.md
+11. docs/game-systems/PET_ART_PIPELINE.md
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
@@ -57,6 +58,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Client move mode added with server-authored building metadata, selected instance ID, preview, rotate, confirm/cancel, and authoritative profile/world transaction; Studio/device verification pending.
 - [x] Client placement/move preview now checks island bounds and replicated building footprints for immediate overlap feedback; server remains authoritative; Studio verification pending.
 - [x] Starter decor catalogue adds `stone_path`, `garden_lantern`, `flower_bed`, and `wooden_fence` with 1×1 footprints, fallback blockout models, responsive catalogue cards, and existing server-authoritative placement/move/demolition/persistence path; Studio verification pending.
+- [x] First procedural Bunny rig factory committed with 17 Motor6D joints, AnimationController/Animator, follow/ground attachments, and scale validation; Studio smoke test committed but not yet executed. This is a blockout prototype, not production art.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
@@ -80,7 +82,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [ ] Save concurrency, UpdateAsync rejection, MemoryStore lease, and DataStore fencing verified in Roblox Studio.
 - [x] Add DataStore-side fencing/session generation checked atomically in every profile write (Studio integration test committed; execution pending).
 - [ ] End-to-end building placement, charging, and persistence implemented.
-- [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
+- [ ] Production 3D assets, final pet rigs, animation clips, and gameplay systems implemented. Bunny rig factory is a procedural prototype only; Studio verification is pending.
 
 Important: concept art generated in chat is visual reference only. It is not a production model or integrated game asset.
 
@@ -114,7 +116,8 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
-12. Update ROADMAP and this handoff after each verified milestone.
+12. Run `PetModelFactoryTests.server.lua` in Roblox Studio, inspect the Bunny from the Green Valley gameplay camera, and record actual results before advancing the pet pipeline.
+13. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
