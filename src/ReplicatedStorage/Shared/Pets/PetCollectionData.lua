@@ -48,7 +48,9 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	if not isPositiveInteger(expectedUserId) or profile.ownerUserId ~= expectedUserId then
 		return false, "OWNER_MISMATCH"
 	end
-	if not isPositiveInteger(profile.revision + 1) then
+	if type(profile.revision) ~= "number" or profile.revision < 0
+		or profile.revision ~= math.floor(profile.revision)
+		or profile.revision == math.huge or profile.revision ~= profile.revision then
 		return false, "INVALID_REVISION"
 	end
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
@@ -73,6 +75,7 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or type(record.acquiredAt) ~= "number"
 			or record.acquiredAt < 0
 			or record.acquiredAt ~= record.acquiredAt
+			or record.acquiredAt == math.huge
 		then
 			return false, "INVALID_OWNED_RECORD"
 		end
@@ -118,7 +121,19 @@ function PetCollectionData.clone(profile: any): any
 end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
-	if type(petIds) ~= "table" or #petIds > PetCollectionData.MAX_EQUIPPED_PETS then
+	if type(petIds) ~= "table" then
+		return false, "INVALID_EQUIPPED_COUNT", nil
+	end
+	local requestedCount = 0
+	local highestIndex = 0
+	for key in pairs(petIds) do
+		if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
+			return false, "INVALID_EQUIPPED_LIST", nil
+		end
+		requestedCount += 1
+		highestIndex = math.max(highestIndex, key)
+	end
+	if requestedCount > PetCollectionData.MAX_EQUIPPED_PETS or highestIndex ~= requestedCount then
 		return false, "INVALID_EQUIPPED_COUNT", nil
 	end
 	local ownedById: { [string]: boolean } = {}
