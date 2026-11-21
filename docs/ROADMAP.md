@@ -40,6 +40,7 @@
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
+- [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [ ] Add server transaction handling for resource charging and placement mutation.
 - [ ] Implement island layout persistence and recovery.
 - [ ] Implement Kingdom Bond progression and visual island changes.
@@ -73,4 +74,4 @@
 
 ## Current status
 
-The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, and a Studio-only smoke-test script. The validator and tests are committed but have not been executed in Roblox Studio; no end-to-end building gameplay, resource charging, persistence, or production asset is claimed as complete.
+The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, and Studio-only smoke-test scripts for placement validation and grid math. The validator and tests are committed but have not been executed in Roblox Studio; no end-to-end building gameplay, resource charging, persistence, or production asset is claimed as complete.
