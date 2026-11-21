@@ -183,8 +183,43 @@ function PlacementValidator.validate(
 		end
 		seenInstanceIds[existing.instanceId] = true
 
+		local existingDefinition = catalog[existing.catalogId]
+		if not isValidDefinition(existingDefinition) or existingDefinition.id ~= existing.catalogId then
+			return failure("ISLAND_STATE_INVALID")
+		end
+
+		if not isInteger(existing.x)
+			or not isInteger(existing.z)
+			or not isInteger(existing.rotation)
+		then
+			return failure("ISLAND_STATE_INVALID")
+		end
+
+		local existingRotation = existing.rotation % 360
+		if existingDefinition.allowedRotations[existingRotation] ~= true then
+			return failure("ISLAND_STATE_INVALID")
+		end
+
+		local existingWidth, existingDepth = GridMath.getRotatedFootprint(
+			existingDefinition.footprintWidth,
+			existingDefinition.footprintDepth,
+			existingRotation
+		)
+		if existingWidth == nil or existingDepth == nil then
+			return failure("ISLAND_STATE_INVALID")
+		end
+
+		local occupied = {
+			x = existing.x,
+			z = existing.z,
+			width = existingWidth,
+			depth = existingDepth,
+		}
+		if not GridMath.isWithinBounds(occupied, island.boundsWidth, island.boundsDepth) then
+			return failure("ISLAND_STATE_INVALID")
+		end
+
 		if existing.instanceId ~= movingInstanceId then
-			local existingDefinition = catalog[existing.catalogId]
 			if not isValidDefinition(existingDefinition) or existingDefinition.id ~= existing.catalogId then
 				return failure("ISLAND_STATE_INVALID")
 			end
