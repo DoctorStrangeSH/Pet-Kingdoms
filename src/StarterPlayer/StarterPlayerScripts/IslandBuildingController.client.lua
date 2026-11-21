@@ -166,6 +166,7 @@ end
 local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
 local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
 local setStatus: (string, boolean?) -> ()
+local findOwnIsland: () -> Model?
 
 local demolishButton = make("TextButton", {
 	Name = "DemolishSelected",
@@ -256,7 +257,7 @@ setStatus = function(message: string, good: boolean?)
 	status.TextColor3 = if good == true then COLORS.valid elseif good == false then COLORS.invalid else COLORS.text
 end
 
-local function findOwnIsland(): Model?
+findOwnIsland = function(): Model?
 	local folder = Workspace:FindFirstChild("PlayerIslands")
 	if folder == nil then
 		return nil
@@ -268,6 +269,7 @@ local function findOwnIsland(): Model?
 	end
 	return nil
 end
+
 
 local function clearPreview()
 	if currentPreview then
