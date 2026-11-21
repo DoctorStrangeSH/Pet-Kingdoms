@@ -95,9 +95,13 @@ function CompanionFollowController.new(
 		return nil, "INVALID_SLOT_INDEX"
 	end
 
-	local animation, animationStatus = PetAnimationController.new(model)
-	if animation == nil then
-		return nil, animationStatus
+	local animation = nil
+	if model:GetAttribute("IsExternalMeshPet") ~= true then
+		local animationStatus: string
+		animation, animationStatus = PetAnimationController.new(model)
+		if animation == nil then
+			return nil, animationStatus
+		end
 	end
 
 	local self = setmetatable({
@@ -165,7 +169,9 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.idleActionState = "idle"
 		self.nextIdleActionAt = math.random(35, 65) / 10
 	end
-	self.animation:setState(state)
+	if self.animation then
+		self.animation:setState(state)
+	end
 
 	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
 	local desired = self.targetRoot.CFrame:PointToWorldSpace(offset)
@@ -182,7 +188,9 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local nextPosition = currentPosition:Lerp(desired, alpha)
 	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing)
 	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
-	self.animation:update(dt)
+	if self.animation then
+		self.animation:update(dt)
+	end
 end
 
 function CompanionFollowController.destroy(self: FollowController)
@@ -194,7 +202,9 @@ function CompanionFollowController.destroy(self: FollowController)
 		self.connection:Disconnect()
 		self.connection = nil
 	end
-	self.animation:destroy()
+	if self.animation then
+		self.animation:destroy()
+	end
 end
 
 return CompanionFollowController
