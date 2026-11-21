@@ -49,6 +49,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] DataStore session-generation fencing implemented; Studio integration scenario committed (execution pending).
 - [x] Procedural island blockout renderer committed and integrated into player session lifecycle; Studio verification pending.
 - [x] Character routing to the personal island arrival pad implemented for initial spawn and respawn; Studio verification pending.
+- [x] Server-authoritative building place/move RemoteFunction implemented with idempotency, profile/world rollback, and server-generated IDs; Studio verification pending.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
@@ -101,6 +102,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 7. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
 8. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` and `IslandStoreTests.server.lua` in a dedicated test universe with MemoryStore and DataStore API access; verify stale-generation rejection, expiry takeover, throttling/outage, and shutdown across two Studio servers.
 9. Configure `IslandGridWidth`, `IslandGridDepth`, `IslandGridCellSize`, and `Workspace/IslandSpawnPoints` per `docs/game-systems/ISLAND_WORLD_RENDERING.md`; run `IslandWorldServiceTests.server.lua` and visually verify two player islands, initial/respawn character arrival, saved building pivots, missing templates, and spawn-slot release.
+10. Follow `docs/game-systems/BUILDING_TRANSACTIONS.md`; create a test `main_house` Model, invoke `ReplicatedStorage/Remotes/PlaceBuilding` as a real Studio player, and verify place/move, idempotency, rejection, rollback, and rejoin persistence.
 9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
