@@ -172,10 +172,20 @@ function PlacementValidator.validate(
 		return failure("OUT_OF_BOUNDS")
 	end
 
+	local seenInstanceIds: { [string]: boolean } = {}
 	for _, existing in ipairs(island.buildings) do
+		if type(existing) ~= "table"
+			or type(existing.instanceId) ~= "string"
+			or existing.instanceId == ""
+			or seenInstanceIds[existing.instanceId] == true
+		then
+			return failure("ISLAND_STATE_INVALID")
+		end
+		seenInstanceIds[existing.instanceId] = true
+
 		if existing.instanceId ~= movingInstanceId then
 			local existingDefinition = catalog[existing.catalogId]
-			if not isValidDefinition(existingDefinition) then
+			if not isValidDefinition(existingDefinition) or existingDefinition.id ~= existing.catalogId then
 				return failure("ISLAND_STATE_INVALID")
 			end
 
