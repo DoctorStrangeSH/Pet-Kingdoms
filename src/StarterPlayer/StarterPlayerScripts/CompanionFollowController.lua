@@ -125,7 +125,9 @@ function CompanionFollowController.new(
 
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
 	if character and model:IsDescendantOf(character) then
-		animation:destroy()
+		if animation then
+			animation:destroy()
+		end
 		return nil, "PET_CANNOT_BE_PARENTED_TO_CHARACTER"
 	end
 
