@@ -50,3 +50,19 @@ Use the server catalog and a test island:
 - Add save/load and recovery only after the transaction behavior is established.
 - Execute both Studio smoke-test scripts and record their Output results.
 - Execute these cases in an automated Luau test runner when CI/toolchain is established.
+
+
+## Island profile validation
+
+Studio smoke test: `src/ServerScriptService/Tests/IslandDataTests.server.lua`.
+
+Coverage:
+- Profile creation rejects invalid owner IDs and bounds.
+- Empty profile validates for its owner.
+- Owner mismatch is rejected.
+- Valid building records are accepted.
+- Overlapping saved buildings are rejected.
+- Duplicate building IDs are rejected.
+- Unsupported schema versions are rejected.
+
+The helper is pure with respect to persistence: it does not call DataStoreService, save data, or spawn Instances. Studio execution is still pending.
