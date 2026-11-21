@@ -1,6 +1,6 @@
 # Building Placement Validation — Test Plan
 
-> The validator is a server-side pure decision module. These cases are acceptance tests for the first implementation slice. They have not yet been executed in Roblox Studio.
+ > The validator is a server-side pure decision module. A Studio-only smoke-test script is committed at `src/ServerScriptService/Tests/PlacementValidatorTests.server.lua`. These cases are acceptance tests; they have not yet been executed in Roblox Studio.
 
 ## Setup
 
