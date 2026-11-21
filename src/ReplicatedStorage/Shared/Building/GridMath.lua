@@ -41,7 +41,11 @@ function GridMath.snapWorldToGrid(worldCoordinate: number, gridSize: number, ori
 end
 
 function GridMath.getRotatedFootprint(width: number, depth: number, rotationDegrees: number): (number?, number?)
-	if width <= 0 or depth <= 0 or not isInteger(width) or not isInteger(depth) then
+	if width <= 0 or depth <= 0
+		or not isInteger(width)
+		or not isInteger(depth)
+		or not isInteger(rotationDegrees)
+	then
 		return nil, nil
 	end
 
