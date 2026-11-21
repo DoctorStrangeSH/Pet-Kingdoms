@@ -137,6 +137,7 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 
 		local clone = template:Clone()
 		clone.Name = record.catalogId .. "_" .. record.instanceId
+		clone:SetAttribute("BuildingInstanceId", record.instanceId)
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
