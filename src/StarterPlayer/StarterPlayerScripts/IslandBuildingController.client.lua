@@ -220,7 +220,8 @@ local function selectBuilding(model: Model?)
 	selectedBuildingModel = model
 	demolitionArmed = false
 	moveButton.Visible = model ~= nil
-	demolishButton.Visible = model ~= nil
+	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
+	demolishButton.Visible = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	if model then
 		setStatus("Выбрана постройка: " .. model.Name)
@@ -467,8 +468,9 @@ local function stopPlacing()
 	petHouseButton.Active = true
 	confirmButton.Text = "ПОСТРОИТЬ"
 	if selectedBuildingModel and selectedBuildingModel.Parent then
+		local selectedCatalog = selectedBuildingModel:GetAttribute("BuildingCatalogId")
 		moveButton.Visible = true
-		demolishButton.Visible = true
+		demolishButton.Visible = selectedCatalog ~= "main_house"
 	end
 end
 
@@ -514,7 +516,7 @@ confirmButton.Activated:Connect(function()
 		})
 	end)
 	confirmButton.Active = true
-	confirmButton.Text = "ПОСТРОИТЬ"
+	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
