@@ -6,6 +6,9 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
+local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
+local GridMath = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
+
 local IslandWorldService = {}
 
 local SPAWN_FOLDER_NAME = "IslandSpawnPoints"
@@ -99,9 +102,21 @@ local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, d
 		top * CFrame.new(0, 0.18, sizeZ * 0.34), Color3.fromRGB(181, 177, 160), Enum.Material.Slate)
 end
 
-local function gridToWorld(spawnCFrame: CFrame, x: number, z: number, width: number, depth: number, cellSize: number): CFrame
-	local localX = (x + width / 2) * cellSize
-	local localZ = (z + depth / 2) * cellSize
+local function gridToWorld(spawnCFrame: CFrame, record: any, profile: any, cellSize: number): CFrame
+	local definition = BuildingCatalog[record.catalogId]
+	if definition == nil then
+		error("Building catalog entry disappeared for " .. tostring(record.catalogId))
+	end
+	local footprintWidth, footprintDepth = GridMath.getRotatedFootprint(
+		definition.footprintWidth,
+		definition.footprintDepth,
+		record.rotation
+	)
+	if footprintWidth == nil or footprintDepth == nil then
+		error("Invalid building rotation for " .. tostring(record.instanceId))
+	end
+	local localX = (record.x + footprintWidth / 2 - profile.boundsWidth / 2) * cellSize
+	local localZ = (record.z + footprintDepth / 2 - profile.boundsDepth / 2) * cellSize
 	return spawnCFrame * CFrame.new(localX, 0, localZ)
 end
 
@@ -122,7 +137,7 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 		local clone = template:Clone()
 		clone.Name = record.catalogId .. "_" .. record.instanceId
 		clone.Parent = world
-		local pivot = gridToWorld(spawnCFrame, record.x, record.z, profile.boundsWidth, profile.boundsDepth, cellSize)
+		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
 	end
 end
