@@ -31,7 +31,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 | Pet 19 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Pet 20 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 
-Bunny has a procedural rig, state-pose controller, and client follow controller in source, but these are technical prototypes, not production art or final animation clips; Studio visual, follow, and animation checks have not passed. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
+Bunny has a procedural rig, state-pose controller, and client follow controller in source, but these are technical prototypes, not production art or final animation clips; Studio visual, follow, and animation checks have not passed. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
 
 ## Environment kits
 
@@ -56,6 +56,7 @@ Bunny has a procedural rig, state-pose controller, and client follow controller 
 | Pet collection cards and silhouettes | CODE-BUILT FIRST-PASS UI; ART POLISH AND STUDIO CHECK PENDING |
 | Pet collection data backend | SERVER MODULE + DATASTORE PROTOTYPE COMMITTED; STUDIO VERIFICATION PENDING |
 | Pet collection UI | RUSSIAN CLIENT UI + SEARCH/PREVIEW/EQUIP CONTROLS COMMITTED; STUDIO/DEVICE CHECK PENDING |
+| Equipped pet world runtime | SERVER REPLICATION + CLIENT FOLLOW BINDING COMMITTED; STUDIO LIFECYCLE CHECK PENDING |
 | Pet details / progression panels | NOT STARTED |
 | Building catalogue and placement controls | NOT STARTED |
 | Quest and reward panels | NOT STARTED |
