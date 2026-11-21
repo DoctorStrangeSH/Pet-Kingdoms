@@ -11,7 +11,7 @@ local services = script.Parent.Parent:WaitForChild("Services")
 local Catalog = require(services:WaitForChild("BuildingCatalog"))
 local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 
-local function makeIsland()
+local function makeIsland(): any
 	return {
 		ownerUserId = 1001,
 		boundsWidth = 10,
