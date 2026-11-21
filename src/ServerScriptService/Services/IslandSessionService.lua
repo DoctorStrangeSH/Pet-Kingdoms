@@ -152,15 +152,19 @@ local function loadPlayer(player: Player)
 			return
 		end
 
-		local saved, saveCode = IslandStore.save(profile)
-		if not saved then
-			loading[userId] = nil
-			releaseLoadingLease()
-			warn(string.format("[PetKingdoms] Initial island profile save failed for %s: %s", player.Name, saveCode))
-			player:Kick("Не удалось сохранить новый остров. Пожалуйста, попробуйте позже.")
-			return
-		end
 	end
+
+	-- Claim a monotonically increasing generation in the same DataStore key.
+	-- Every later save must present this exact generation inside UpdateAsync.
+	local claimed, claimedProfile, claimCode = IslandStore.claimSession(profile)
+	if not claimed then
+		loading[userId] = nil
+		releaseLoadingLease()
+		warn(string.format("[PetKingdoms] Could not claim DataStore session for %s: %s", player.Name, claimCode))
+		player:Kick("Не удалось открыть остров. Пожалуйста, попробуйте позже.")
+		return
+	end
+	profile = claimedProfile
 
 	if player.Parent ~= Players then
 		loading[userId] = nil
