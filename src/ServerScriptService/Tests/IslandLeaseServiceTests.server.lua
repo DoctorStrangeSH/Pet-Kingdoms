@@ -10,6 +10,8 @@ local HttpService = game:GetService("HttpService")
 local services = script.Parent.Parent:WaitForChild("Services")
 local LeaseService = require(services:WaitForChild("IslandLeaseService"))
 
+local invalidTypeAcquire, invalidTypeAcquireCode = LeaseService.acquire("not-a-user-id", "token")
+assert(not invalidTypeAcquire and invalidTypeAcquireCode == "INVALID_LEASE_REQUEST")
 local invalidAcquire, invalidAcquireCode = LeaseService.acquire(0, "")
 assert(not invalidAcquire and invalidAcquireCode == "INVALID_LEASE_REQUEST")
 local invalidRenew, invalidRenewCode = LeaseService.renew(0, "")
