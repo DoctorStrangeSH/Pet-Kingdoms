@@ -1,0 +1,40 @@
+--!strict
+-- Server-owned catalog. Client input must only ever reference these stable IDs.
+-- Prices and unlock progression are intentionally omitted until economy values are approved.
+
+export type BuildingDefinition = {
+	id: string,
+	footprintWidth: number,
+	footprintDepth: number,
+	allowedRotations: { [number]: boolean },
+	defaultUnlocked: boolean,
+}
+
+local Catalog: { [string]: BuildingDefinition } = {
+	main_house = {
+		id = "main_house",
+		footprintWidth = 3,
+		footprintDepth = 3,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
+	pet_house = {
+		id = "pet_house",
+		footprintWidth = 3,
+		footprintDepth = 3,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
+}
+
+return Catalog
