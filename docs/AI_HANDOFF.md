@@ -18,6 +18,9 @@ Read these files first:
 3. docs/ROADMAP.md
 4. docs/ART_BIBLE.md
 5. docs/game-systems/BUILDING_SYSTEM.md
+6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
+7. docs/BUILD_AND_TEST.md
+8. docs/ASSET_TRACKER.md
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
@@ -30,11 +33,18 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Building system design baseline documented.
 - [x] Rojo project mapping and initial Luau source module committed.
 - [x] Server and client bootstrap entrypoints committed.
+- [x] Server-owned starter building catalog committed.
+- [x] Pure server-side placement validator committed.
+- [x] Studio-only placement validator smoke-test script committed.
+- [x] Placement validation test plan documented.
 - [x] Build/live-sync instructions documented.
 - [ ] Rojo build executed and verified.
 - [ ] Roblox source project initialized beyond the initial scaffold.
 - [ ] Roblox Studio place file created and verified.
 - [ ] Rojo/Studio workflow explicitly confirmed by owner.
+- [ ] Placement validator smoke tests executed in Roblox Studio.
+- [ ] Rojo build executed and verified.
+- [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
 Important: concept art generated in chat is visual reference only. It is not a production model or integrated game asset.
@@ -56,11 +66,12 @@ Important: concept art generated in chat is visual reference only. It is not a p
 
 The owner was not asked to re-confirm the workflow; the technical lead selected hybrid Rojo + VS Code + Roblox Studio as the project default. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
-2. Add automated Luau/static checks that fit the selected toolchain.
-3. Unit-test GridMath boundary, rotation, snapping, and overlap cases.
-4. Open the generated place in Roblox Studio and verify the project tree.
-5. Continue the first server-authoritative vertical slice only after the original full specification is available for exact scope reconciliation.
-6. Update ROADMAP and this handoff after each verified milestone.
+2. Open the generated place in Roblox Studio and verify the project tree.
+3. Run the Studio-only PlacementValidatorTests script; record the actual Output results.
+4. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+5. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+6. Add save/load and recovery after transaction behavior is tested.
+7. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
