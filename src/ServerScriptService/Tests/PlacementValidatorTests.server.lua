@@ -127,4 +127,84 @@ check("spoofed move target rejected", {
 	movingInstanceId = "not-owned",
 }, occupiedIsland, 1001, "MOVE_TARGET_NOT_FOUND")
 
+
+local lockedCatalog = {
+	locked_house = {
+		id = "locked_house",
+		footprintWidth = 2,
+		footprintDepth = 3,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = false,
+	},
+}
+check("locked building rejected", {
+	catalogId = "locked_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+}, makeIsland(), 1001, "BUILDING_LOCKED")
+
+local unlockedIsland = makeIsland()
+unlockedIsland.unlockedBuildingIds = { locked_house = true }
+local unlockedResult = PlacementValidator.validate(1001, {
+	catalogId = "locked_house",
+	x = 0,
+	z = 0,
+	rotation = 90,
+}, unlockedIsland, lockedCatalog)
+assert(unlockedResult.code == "VALID", "unlocked rectangular building should allow 90-degree rotation")
+assert(unlockedResult.footprintWidth == 3 and unlockedResult.footprintDepth == 2, "rotated footprint should swap dimensions")
+print("[PetKingdoms Test] PASS: unlocked rectangular building rotation")
+
+local malformedMoveIsland = makeIsland()
+table.insert(malformedMoveIsland.buildings, {
+	instanceId = "broken-building",
+	catalogId = "main_house",
+	x = 0,
+	z = 0,
+	rotation = 45,
+})
+check("malformed moved building rejected", {
+	catalogId = "main_house",
+	x = 5,
+	z = 5,
+	rotation = 0,
+	movingInstanceId = "broken-building",
+}, malformedMoveIsland, 1001, "ISLAND_STATE_INVALID")
+
+local duplicateIsland = makeIsland()
+table.insert(duplicateIsland.buildings, {
+	instanceId = "duplicate",
+	catalogId = "main_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+})
+table.insert(duplicateIsland.buildings, {
+	instanceId = "duplicate",
+	catalogId = "pet_house",
+	x = 4,
+	z = 4,
+	rotation = 0,
+})
+check("duplicate instance IDs rejected", {
+	catalogId = "main_house",
+	x = 7,
+	z = 7,
+	rotation = 0,
+}, duplicateIsland, 1001, "ISLAND_STATE_INVALID")
+
+local nan = 0 / 0
+check("NaN coordinate rejected", {
+	catalogId = "main_house",
+	x = nan,
+	z = 0,
+	rotation = 0,
+}, makeIsland(), 1001, "INVALID_REQUEST")
+
 print("[PetKingdoms Test] Placement validator smoke tests completed.")
