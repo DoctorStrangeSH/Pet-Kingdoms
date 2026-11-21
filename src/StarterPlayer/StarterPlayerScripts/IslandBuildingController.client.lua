@@ -184,8 +184,12 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 
 local function findBuildingModel(target: Instance?): Model?
+	local ownIsland = findOwnIsland()
+	if ownIsland == nil or target == nil or not target:IsDescendantOf(ownIsland) then
+		return nil
+	end
 	local current = target
-	while current and current ~= Workspace do
+	while current and current ~= ownIsland do
 		if current:IsA("Model") and type(current:GetAttribute("BuildingInstanceId")) == "string" then
 			return current
 		end
