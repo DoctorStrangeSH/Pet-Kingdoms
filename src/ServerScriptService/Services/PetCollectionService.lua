@@ -97,7 +97,7 @@ local function spawnEquippedPets(player: Player)
 	clearSpawnedPets(player)
 	local playerFolder = getPlayerPetFolder(player)
 	for slotIndex, petId in ipairs(state.profile.equipped) do
-		local record = nil
+		local record: any = nil
 		for _, ownedRecord in ipairs(state.profile.owned) do
 			if ownedRecord.petId == petId then
 				record = ownedRecord
@@ -154,7 +154,6 @@ local function loadPlayer(player: Player)
 
 	state.profile = result
 	state.loading = false
-	spawnEquippedPets(player)
 	if characterConnections[userId] then
 		characterConnections[userId]:Disconnect()
 	end
@@ -163,6 +162,7 @@ local function loadPlayer(player: Player)
 			spawnEquippedPets(player)
 		end)
 	end)
+	spawnEquippedPets(player)
 	print("[PetKingdoms] Pet collection ready for", player.Name)
 end
 
