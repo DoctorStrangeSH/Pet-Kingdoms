@@ -63,6 +63,12 @@
 - [ ] Implement persistent personal home islands.
 - [ ] Verify procedural personal island world rendering and character arrival in Roblox Studio (renderer, spawn routing, and session integration are committed; required Workspace setup and visual checks remain).
 - [x] Add versioned island profile schema and validation helpers (Studio tests committed; execution pending).
+- [x] Add persistent resource wallet to island profiles (provisional starter: 2 Wood, 1 Stone; Gold/Gems start at 0).
+- [x] Add backward-compatible migration for existing schema-v1 profiles without a wallet during session claim.
+- [x] Add server-only atomic resource grant/spend API with rollback when a session is not writable.
+- [x] Add pure Studio contract tests for resource validation, grants, and atomic spending (execution pending).
+- [ ] Implement server-owned gathering nodes/rewards and respawn behavior.
+- [ ] Approve economy balance sheet and define building costs/refunds before enabling resource charges in building transactions.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
