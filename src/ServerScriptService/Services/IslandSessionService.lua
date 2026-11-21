@@ -23,6 +23,8 @@ type Session = {
 	saving: boolean,
 	saveFinished: BindableEvent,
 	closing: boolean,
+	playerLeaving: boolean,
+	finalizing: boolean,
 	leaseToken: string,
 	leaseValid: boolean,
 	characterAddedConnection: RBXScriptConnection?,
@@ -214,6 +216,8 @@ local function loadPlayer(player: Player)
 		saving = false,
 		saveFinished = Instance.new("BindableEvent"),
 		closing = false,
+		playerLeaving = false,
+		finalizing = false,
 		leaseToken = leaseToken,
 		leaseValid = true,
 		characterAddedConnection = characterAddedConnection,
@@ -251,28 +255,46 @@ local function loadPlayer(player: Player)
 	print(string.format("[PetKingdoms] Island profile ready for %s", player.Name))
 end
 
+local function finalizeLeavingSession(userId: number, session: Session)
+	if session.finalizing or not session.playerLeaving then
+		return
+	end
+	session.finalizing = true
+
+	local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
+	if not released then
+		session.finalizing = false
+		warn(string.format("[PetKingdoms] Island lease release failed for %d: %s; will retry", userId, releaseCode))
+		return
+	end
+
+	-- Do not tear down a newer session if this callback was delayed.
+	if sessions[userId] ~= session then
+		return
+	end
+	sessions[userId] = nil
+	if session.characterAddedConnection then
+		session.characterAddedConnection:Disconnect()
+		session.characterAddedConnection = nil
+	end
+	IslandWorldService.remove(userId)
+	session.saveFinished:Destroy()
+end
+
 local function removePlayer(player: Player)
 	local userId = player.UserId
 	local session = sessions[userId]
 	if session then
 		session.closing = true
+		session.playerLeaving = true
 		local saved = saveSession(userId, session)
 		if not saved then
-			warn(string.format("[PetKingdoms] Final save failed; retaining session until server shutdown for %d", userId))
+			-- Keep the profile, world and lease alive. The autosave loop retries
+			-- the final write and then calls finalizeLeavingSession on success.
+			warn(string.format("[PetKingdoms] Final save failed; retaining island session for retry: %d", userId))
 			return
 		end
-		local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
-		if not released then
-			warn(string.format("[PetKingdoms] Island lease release failed for %d: %s", userId, releaseCode))
-			return
-		end
-		sessions[userId] = nil
-		if session.characterAddedConnection then
-			session.characterAddedConnection:Disconnect()
-			session.characterAddedConnection = nil
-		end
-		IslandWorldService.remove(userId)
-		session.saveFinished:Destroy()
+		finalizeLeavingSession(userId, session)
 	end
 	loading[userId] = nil
 end
@@ -289,8 +311,13 @@ function IslandSessionService.start()
 		while not shuttingDown do
 			task.wait(AUTOSAVE_INTERVAL)
 			for userId, session in pairs(sessions) do
-				if session.dirty then
-					task.spawn(saveSession, userId, session)
+				if session.dirty or session.playerLeaving then
+					task.spawn(function()
+						local saved = saveSession(userId, session)
+						if saved and session.playerLeaving then
+							finalizeLeavingSession(userId, session)
+						end
+					end)
 				end
 			end
 		end
