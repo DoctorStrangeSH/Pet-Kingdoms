@@ -19,4 +19,4 @@ This is an automated technical rig draft, not a visually approved character. Rev
 5. Update the runtime catalog only after the imported rig is verified.
 6. Run the pet loader and companion animation tests in Studio.
 
-The source OBJ/MTL remain the editable geometry source. The Blender script is the reproducible rig/export source.
+The source OBJ/MTL remain the editable geometry/material source. The Blender script is the reproducible rig/export source. For the Roblox Studio manual gate, follow ROBLOX_STUDIO_IMPORT_CHECKLIST.md and run tools/roblox/InspectImportedBunny.lua with the imported Model selected. This inspector reports structure only; it does not approve appearance or animation quality.
