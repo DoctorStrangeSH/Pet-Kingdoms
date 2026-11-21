@@ -21,6 +21,7 @@ Read these files first:
 6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
 7. docs/game-systems/ISLAND_PERSISTENCE.md
 8. docs/game-systems/ISLAND_SESSION_LIFECYCLE.md
+9. docs/game-systems/ISLAND_SESSION_LEASE.md
 9. docs/BUILD_AND_TEST.md
 10. docs/ASSET_TRACKER.md
 
@@ -59,8 +60,9 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Placement validator and GridMath smoke tests executed in Roblox Studio.
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
 - [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
-- [ ] Cross-server single-writer/session lease implemented.
-- [ ] Save concurrency and UpdateAsync rejection handling verified in Roblox Studio.
+- [x] MemoryStore cross-server island lease implementation committed and integrated (Studio/multi-server verification pending).
+- [x] IslandLeaseService invalid-input smoke test committed.
+- [ ] Save concurrency, UpdateAsync rejection, and MemoryStore lease behavior verified in Roblox Studio.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -88,7 +90,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 4. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
 5. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
 6. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
-7. Implement a cross-server session lease/single-writer policy before public playtesting; the current revision check is not a lease.
+7. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; test simultaneous acquire, renew, expiry takeover, stale-token release, throttling, and shutdown across two Studio servers or a dedicated test universe.
 8. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 9. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 10. Add save/load recovery tests after persistence behavior is implemented.
