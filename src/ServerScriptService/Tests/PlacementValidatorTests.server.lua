@@ -20,8 +20,8 @@ local function makeIsland(): any
 	}
 end
 
-local function check(name: string, request: any, island: any, playerUserId: number, expectedCode: string)
-	local result = PlacementValidator.validate(playerUserId, request, island, Catalog)
+local function check(name: string, request: any, island: any, playerUserId: number, expectedCode: string, catalogOverride: any?)
+	local result = PlacementValidator.validate(playerUserId, request, island, catalogOverride or Catalog)
 	assert(result.code == expectedCode, string.format(
 		"%s: expected %s, got %s",
 		name,
@@ -147,7 +147,7 @@ check("locked building rejected", {
 	x = 0,
 	z = 0,
 	rotation = 0,
-}, makeIsland(), 1001, "BUILDING_LOCKED")
+}, makeIsland(), 1001, "BUILDING_LOCKED", lockedCatalog)
 
 local unlockedIsland = makeIsland()
 unlockedIsland.unlockedBuildingIds = { locked_house = true }
