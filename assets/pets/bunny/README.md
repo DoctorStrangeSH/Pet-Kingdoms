@@ -22,7 +22,7 @@ This is a first custom mesh draft, not yet accepted production art. The geometry
 
 ## Rigging pipeline
 
-A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions. GitHub Actions now installs Blender, executes the build, validates the generated .blend/.fbx, and uploads both as a 30-day workflow artifact. The first full Blender build is currently pending; do not claim the rig or animations approved until the build and visual review pass.
+A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions. GitHub Actions now installs Blender, executes the build, validates the generated .blend/.fbx, and uploads both as a 30-day workflow artifact. The full Blender 4.2.0 build now passes in GitHub Actions. It generated both `bunny_rigged.blend` (3,416,204 bytes) and `bunny_rigged.fbx` (1,061,468 bytes). The validator reopened the .blend and confirmed the 10-bone armature, fused body skin modifier/vertex groups, and all four named actions with animation curves. Download the 30-day build artifact from [successful workflow run](https://github.com/DoctorStrangeSH/Pet-Kingdoms/actions/runs/44914831260). This is a technically validated build, not yet visual approval or Roblox Studio import approval.
 
 ## Automated source validation
 
