@@ -29,6 +29,7 @@ export type IslandProfile = {
 	boundsDepth: number,
 	buildings: { BuildingRecord },
 	unlockedBuildingIds: { [string]: boolean },
+	resources: { [string]: number },
 	revision: number,
 	sessionGeneration: number?,
 }
@@ -71,6 +72,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		boundsDepth = boundsDepth,
 		buildings = {},
 		unlockedBuildingIds = {},
+		resources = { wood = 2, stone = 1, gold = 0, gems = 0 },
 		revision = 0,
 	}
 end
@@ -101,6 +103,24 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 
 	if type(profile.buildings) ~= "table" or type(profile.unlockedBuildingIds) ~= "table" then
 		return false, "INVALID_PROFILE_COLLECTIONS"
+	end
+
+	-- Legacy schema-v1 profiles may not contain a resource wallet yet.
+	-- IslandStore normalizes them during load/claim; validation accepts nil
+	-- only so the migration can be applied without discarding existing islands.
+	if profile.resources ~= nil then
+		if type(profile.resources) ~= "table" then
+			return false, "INVALID_RESOURCE_WALLET"
+		end
+		for resourceId, amount in pairs(profile.resources) do
+			if type(resourceId) ~= "string"
+				or (resourceId ~= "wood" and resourceId ~= "stone" and resourceId ~= "gold" and resourceId ~= "gems")
+				or not isInteger(amount)
+				or amount < 0
+			then
+				return false, "INVALID_RESOURCE_BALANCE"
+			end
+		end
 	end
 
 	local buildingCount = 0
