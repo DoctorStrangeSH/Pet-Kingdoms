@@ -17,6 +17,7 @@ Source:
 - `src/ServerScriptService/Services/PetCollectionService.lua`
 - `src/ServerScriptService/Tests/PetCollectionDataTests.server.lua`
 - `src/StarterPlayer/StarterPlayerScripts/CompanionFollowController.lua`
+- `src/StarterPlayer/StarterPlayerScripts/PetCollectionUI.client.lua`
 - `src/ServerScriptService/Tests/PetModelFactoryTests.server.lua`
 - `src/ServerScriptService/Tests/PetAnimationControllerTests.server.lua`
 - `src/StarterPlayer/StarterPlayerScripts/Tests/CompanionFollowControllerTests.client.lua`
@@ -27,7 +28,9 @@ Source:
 
 `PetCollectionService.lua` loads and initializes collections in a separate DataStore (`PetKingdoms_PetCollections_v1`). The server exposes `ReplicatedStorage/Remotes/PetCollectionRequest` with `Get` and `Equip` actions. Equip requests are validated against server-loaded ownership and use an expected revision check inside `UpdateAsync` to reject stale concurrent writes. The client can submit only pet IDs and the revision it observed; it cannot submit ownership records or species unlocks.
 
-This is the persistence and equip-data backend only. It does not yet spawn world models, render an inventory UI, or connect equipped IDs to the follow controller. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
+`PetCollectionUI.client.lua` adds a responsive Russian-language collection panel with owned-pet cards, search, a Bunny ViewportFrame preview, current team count, and equip/unequip actions. It calls the server RemoteFunction and sends the observed profile revision; server validation remains authoritative. The UI is a code-built first pass, not final art/UI polish.
+
+This is still a collection/equip UI and persistence prototype. It does not yet spawn world models or connect equipped IDs to the follow controller. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
 
 The factory currently supports:
 - Stable species ID: `bunny`
@@ -83,13 +86,13 @@ The three rig/follow test scripts and the pet collection data test are committed
 - Facial expression variants and blink
 - Uploaded/artist-authored animation clips and polished animation timing
 - Server-authoritative pet ownership, inventory UI, and equipped-pet world spawn replication
-- Client request wrapper/UI for `PetCollectionRequest` and connection to companion follow
+- Connect equipped IDs to replicated pet world spawns and the follow controller
 - Runtime lifecycle wiring for respawn, unequip, and character replacement
 - Animation import IDs and playback validation
 - Grounding/contact shadow treatment in the real game camera
 - Mobile performance and multi-pet stress test
 - Remaining 19 pet species and shared production template
-- Pet inventory UI, XP, stats, world spawn integration, and progression persistence
+- XP, stats, world spawn integration, and progression persistence
 
 ## Acceptance gate
 
