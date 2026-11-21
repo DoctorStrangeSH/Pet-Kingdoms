@@ -23,8 +23,9 @@
   - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
   - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy action definitions (script committed; execution and deformation review pending).
   - [x] Add GitHub Actions validation for Bunny OBJ/MTL integrity and Blender script Python syntax (source-only run passed).
-  - [x] Extend CI to install Blender, execute rig/FBX export, validate generated files, and publish a 30-day artifact (first full build pending).
-  - [ ] Run Blender script and commit generated .blend + .fbx outputs.
+  - [x] Extend CI to install pinned Blender 4.2.0, execute rig/FBX export, validate generated files and all four action curves, and publish a 30-day artifact (run passed).
+  - [x] Run Blender 4.2.0 rig build in CI and generate `.blend` + `.fbx` outputs (both validated and uploaded as a workflow artifact).
+  - [ ] Visually review skin weights, silhouette, and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Review skin weights and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
   - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
