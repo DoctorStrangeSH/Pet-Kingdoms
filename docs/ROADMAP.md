@@ -21,7 +21,9 @@
   - [x] Create and commit original Bunny OBJ/MTL mesh source (15,332 vertices, 30,194 triangles, 13 named mesh objects, 9 material groups).
   - [x] Reject and remove the unsuitable third-party Bunny candidate from the runtime catalog.
   - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
-  - [ ] Rig the original Bunny mesh and produce the companion animation set.
+  - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy action definitions (script committed; execution and deformation review pending).
+  - [ ] Run Blender script and commit generated .blend + .fbx outputs.
+  - [ ] Review skin weights and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
   - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
   - [x] Add first expressive face-detail pass to Bunny (eye catchlights, mouth, forehead tuft, six whiskers) and extend the factory smoke test; still prototype geometry, Studio review pending.
