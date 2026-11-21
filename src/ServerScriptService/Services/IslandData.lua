@@ -100,7 +100,10 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 	end
 
 	for catalogId, unlocked in pairs(profile.unlockedBuildingIds) do
-		if type(catalogId) ~= "string" or type(unlocked) ~= "boolean" then
+		if type(catalogId) ~= "string" or type(unlocked) ~= "boolean"
+			or type(catalog[catalogId]) ~= "table"
+			or catalog[catalogId].id ~= catalogId
+		then
 			return false, "INVALID_UNLOCK_RECORD"
 		end
 	end
