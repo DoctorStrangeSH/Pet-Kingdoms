@@ -1,0 +1,36 @@
+newmtl warm_cream
+Kd 0.94 0.82 0.68
+Ks 0.18 0.16 0.14
+Ns 28
+newmtl soft_rose
+Kd 0.92 0.39 0.43
+Ks 0.2 0.15 0.15
+Ns 24
+newmtl warm_shadow
+Kd 0.24 0.13 0.10
+Ks 0.25 0.2 0.18
+Ns 40
+newmtl deep_brown
+Kd 0.075 0.035 0.025
+Ks 0.8 0.8 0.8
+Ns 100
+newmtl eye_glint
+Kd 1 0.96 0.84
+Ks 1 1 1
+Ns 120
+newmtl nose_pink
+Kd 0.95 0.34 0.38
+Ks 0.6 0.45 0.45
+Ns 70
+newmtl sage_leaf
+Kd 0.25 0.48 0.28
+Ks 0.18 0.2 0.15
+Ns 24
+newmtl acorn_gold
+Kd 0.72 0.39 0.12
+Ks 0.5 0.35 0.12
+Ns 50
+newmtl warm_ivory
+Kd 1 0.91 0.78
+Ks 0.12 0.1 0.08
+Ns 18
