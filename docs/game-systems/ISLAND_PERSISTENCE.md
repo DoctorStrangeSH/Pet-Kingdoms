@@ -42,3 +42,11 @@ Before integration:
 ## Studio contract smoke test
 
 `src/ServerScriptService/Tests/IslandStoreTests.server.lua` checks only that invalid inputs are rejected before any DataStore access. It does not validate live DataStore availability or persistence.
+
+
+## Profile collection integrity
+
+- The persisted `buildings` collection must be a contiguous 1-based array; sparse indexes and dictionary keys are rejected.
+- A profile may contain at most 256 building records. This is a defensive validation ceiling for the MVP data contract, not a player-facing progression limit; revisit it only with an explicit performance and product decision.
+- Unknown IDs in `unlockedBuildingIds` are rejected instead of silently accepted.
+- Studio tests cover sparse/dictionary building collections and over-limit profiles. These tests are committed but not yet executed in Studio.
