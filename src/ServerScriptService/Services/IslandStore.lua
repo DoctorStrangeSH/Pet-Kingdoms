@@ -68,6 +68,7 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 	local ok, result = retry(function()
 		claimed = false
 		return store:UpdateAsync(key, function(current)
+			claimed = false
 			local nextProfile
 			if current == nil then
 				nextProfile = table.clone(seed)
@@ -116,6 +117,7 @@ function IslandStore.save(profile: any): (boolean, string)
 	local ok, result = retry(function()
 		wroteSnapshot = false
 		return store:UpdateAsync(key, function(current)
+			wroteSnapshot = false
 			if type(current) ~= "table" then return current end
 			-- Fencing check is atomic with the profile write. A stale server's
 			-- generation can never overwrite a newer claimed generation.
