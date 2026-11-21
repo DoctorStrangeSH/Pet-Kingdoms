@@ -1,6 +1,7 @@
 --!strict
 -- Studio-only contract tests for IslandStore's input validation.
--- These tests deliberately do not touch a live DataStore.
+-- The input-contract checks avoid DataStore access; the fencing scenario below
+-- writes synthetic test records and requires a dedicated test universe.
 
 local RunService = game:GetService("RunService")
 if not RunService:IsStudio() then
