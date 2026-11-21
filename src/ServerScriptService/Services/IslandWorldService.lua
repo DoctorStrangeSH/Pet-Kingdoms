@@ -1,0 +1,200 @@
+--!strict
+-- Server-side personal island blockout renderer.
+-- The terrain is procedural prototype geometry. Production building models
+-- are supplied separately in ServerStorage/BuildingModels/<catalogId>.
+local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
+local Workspace = game:GetService("Workspace")
+
+local IslandWorldService = {}
+
+local SPAWN_FOLDER_NAME = "IslandSpawnPoints"
+local WORLD_FOLDER_NAME = "PlayerIslands"
+local BUILDING_FOLDER_NAME = "BuildingModels"
+local ROCK_COLOR = Color3.fromRGB(105, 105, 111)
+local GRASS_COLOR = Color3.fromRGB(103, 166, 91)
+local DIRT_COLOR = Color3.fromRGB(119, 83, 58)
+
+local occupiedSpawns: { [Instance]: number } = {}
+local worldsByUserId: { [number]: Model } = {}
+
+local function getNumberAttribute(name: string): number?
+	local value = Workspace:GetAttribute(name)
+	if type(value) ~= "number" or value <= 0 or value ~= value or value == math.huge then
+		return nil
+	end
+	return value
+end
+
+local function makePart(parent: Instance, name: string, size: Vector3, cframe: CFrame, color: Color3, material: Enum.Material, shape: Enum.PartType?): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = true
+	part.Size = size
+	part.CFrame = cframe
+	part.Color = color
+	part.Material = material
+	if shape then part.Shape = shape end
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Parent = parent
+	return part
+end
+
+local function makeTree(parent: Instance, base: CFrame, scale: number, index: number)
+	local tree = Instance.new("Model")
+	tree.Name = "BlockoutTree_" .. tostring(index)
+	tree.Parent = parent
+	local trunkHeight = 5 * scale
+	makePart(tree, "Trunk", Vector3.new(1.2, trunkHeight, 1.2), base * CFrame.new(0, trunkHeight / 2, 0),
+		Color3.fromRGB(112, 76, 48), Enum.Material.Wood)
+	makePart(tree, "Canopy_Lower", Vector3.new(5.2, 4.2, 5.2) * scale,
+		base * CFrame.new(0, trunkHeight + 1.8 * scale, 0), Color3.fromRGB(76, 139, 72), Enum.Material.Grass, Enum.PartType.Ball)
+	makePart(tree, "Canopy_Upper", Vector3.new(3.8, 3.8, 3.8) * scale,
+		base * CFrame.new(0, trunkHeight + 4 * scale, 0), Color3.fromRGB(102, 166, 86), Enum.Material.Grass, Enum.PartType.Ball)
+end
+
+local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, depth: number, cellSize: number)
+	local sizeX = width * cellSize
+	local sizeZ = depth * cellSize
+	local maxDimension = math.max(sizeX, sizeZ)
+	local top = spawnCFrame
+
+	makePart(world, "Island_GrassTop", Vector3.new(sizeX, 4, sizeZ),
+		top * CFrame.new(0, -2, 0), GRASS_COLOR, Enum.Material.Grass)
+
+	makePart(world, "Island_DirtLayer", Vector3.new(sizeX + 2, 5, sizeZ + 2),
+		top * CFrame.new(0, -6.5, 0), DIRT_COLOR, Enum.Material.Ground)
+
+	makePart(world, "Island_StoneCore", Vector3.new(sizeX * 0.88, 8, sizeZ * 0.88),
+		top * CFrame.new(0, -12.5, 0), ROCK_COLOR, Enum.Material.Slate)
+
+	for index = 1, 8 do
+		local angle = (math.pi * 2 * index) / 8
+		local radiusX = sizeX * 0.42
+		local radiusZ = sizeZ * 0.42
+		local x = math.cos(angle) * radiusX
+		local z = math.sin(angle) * radiusZ
+		local rockSize = Vector3.new(maxDimension * 0.12, 5 + (index % 3) * 2, maxDimension * 0.14)
+		makePart(world, "Island_CliffRock_" .. tostring(index), rockSize,
+			top * CFrame.new(x, -9 - (index % 2) * 2, z) * CFrame.Angles(0, angle, math.rad((index % 3 - 1) * 9)),
+			ROCK_COLOR:Lerp(DIRT_COLOR, 0.18), Enum.Material.Rock, Enum.PartType.Ball)
+	end
+
+	-- Deterministic perimeter greenery; kept away from the central building area.
+	local treePositions = {
+		{ -0.38, -0.34, 1.0 }, { 0.35, -0.37, 0.85 }, { -0.42, 0.28, 0.8 },
+		{ 0.4, 0.32, 1.05 }, { -0.1, 0.42, 0.72 }, { 0.12, -0.43, 0.75 },
+	}
+	for index, item in ipairs(treePositions) do
+		local x = item[1] * sizeX
+		local z = item[2] * sizeZ
+		local treeBase = top * CFrame.new(x, 0, z)
+		makeTree(world, treeBase, item[3], index)
+	end
+
+	-- A simple stone arrival pad is a temporary gameplay landmark.
+	makePart(world, "Arrival_Pad", Vector3.new(cellSize * 2.4, 0.35, cellSize * 2.4),
+		top * CFrame.new(0, 0.18, sizeZ * 0.34), Color3.fromRGB(181, 177, 160), Enum.Material.Slate)
+end
+
+local function gridToWorld(spawnCFrame: CFrame, x: number, z: number, width: number, depth: number, cellSize: number): CFrame
+	local localX = (x + width / 2) * cellSize
+	local localZ = (z + depth / 2) * cellSize
+	return spawnCFrame * CFrame.new(localX, 0, localZ)
+end
+
+local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
+	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
+	if templates == nil then
+		warn("[PetKingdoms] ServerStorage/BuildingModels is missing; island loads as terrain-only blockout.")
+		return
+	end
+
+	for _, record in ipairs(profile.buildings) do
+		local template = templates:FindFirstChild(record.catalogId)
+		if template == nil or not template:IsA("Model") then
+			warn(string.format("[PetKingdoms] Missing Model template for building '%s'; record remains saved and is skipped visually.", record.catalogId))
+			continue
+		end
+
+		local clone = template:Clone()
+		clone.Name = record.catalogId .. "_" .. record.instanceId
+		clone.Parent = world
+		local pivot = gridToWorld(spawnCFrame, record.x, record.z, profile.boundsWidth, profile.boundsDepth, cellSize)
+		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
+	end
+end
+
+function IslandWorldService.spawn(player: Player, profile: any): (boolean, string)
+	if worldsByUserId[player.UserId] then
+		return true, "ALREADY_SPAWNED"
+	end
+	if type(profile) ~= "table" or profile.ownerUserId ~= player.UserId then
+		return false, "INVALID_PROFILE"
+	end
+
+	local cellSize = getNumberAttribute("IslandGridCellSize")
+	if cellSize == nil then
+		return false, "MISSING_ISLAND_GRID_CELL_SIZE"
+	end
+
+	local spawnFolder = Workspace:FindFirstChild(SPAWN_FOLDER_NAME)
+	if spawnFolder == nil or not spawnFolder:IsA("Folder") then
+		return false, "MISSING_ISLAND_SPAWN_POINTS"
+	end
+
+	local spawnPoint: BasePart? = nil
+	for _, candidate in ipairs(spawnFolder:GetChildren()) do
+		if candidate:IsA("BasePart") and occupiedSpawns[candidate] == nil then
+			spawnPoint = candidate
+			break
+		end
+	end
+	if spawnPoint == nil then
+		return false, "NO_FREE_ISLAND_SPAWN_POINT"
+	end
+
+	local worldFolder = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+	if worldFolder == nil then
+		worldFolder = Instance.new("Folder")
+		worldFolder.Name = WORLD_FOLDER_NAME
+		worldFolder.Parent = Workspace
+	end
+
+	local world = Instance.new("Model")
+	world.Name = "Island_" .. tostring(player.UserId)
+	world:SetAttribute("OwnerUserId", player.UserId)
+	world:SetAttribute("SchemaVersion", profile.schemaVersion)
+	world.Parent = worldFolder
+
+	local ok, err = pcall(function()
+		createTerrain(world, spawnPoint.CFrame, profile.boundsWidth, profile.boundsDepth, cellSize)
+		spawnBuildings(world, spawnPoint.CFrame, profile, cellSize)
+	end)
+	if not ok then
+		world:Destroy()
+		warn("[PetKingdoms] Island world generation failed:", err)
+		return false, "WORLD_GENERATION_FAILED"
+	end
+
+	occupiedSpawns[spawnPoint] = player.UserId
+	worldsByUserId[player.UserId] = world
+	return true, "SPAWNED"
+end
+
+function IslandWorldService.remove(userId: number)
+	local world = worldsByUserId[userId]
+	if world then
+		world:Destroy()
+		worldsByUserId[userId] = nil
+	end
+	for spawnPoint, ownerUserId in pairs(occupiedSpawns) do
+		if ownerUserId == userId then
+			occupiedSpawns[spawnPoint] = nil
+		end
+	end
+end
+
+return IslandWorldService
