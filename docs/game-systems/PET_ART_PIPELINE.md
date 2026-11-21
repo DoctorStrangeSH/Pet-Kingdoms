@@ -35,11 +35,19 @@ Source:
 
 `PetCompanionRuntime.client.lua` watches the local player's replicated folder, binds each owned pet model to one `CompanionFollowController`, and cleans up controllers on pet removal and character lifecycle changes. Follow movement is client-side presentation; the server remains authoritative for which pets exist and are equipped. This first integration supports the current Bunny species only. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
 
-The Bunny face-detail pass improves expression readability in the procedural blockout, but it is not a sculpted production mesh. All added details are still simple primitive geometry and need a Studio camera-distance/art review.
+## Real mesh asset integration — Bunny candidate
+
+The first non-procedural Bunny candidate is the free Creator Store model `92070521355583` by `@letscreate19` (listing metadata: 3,050 triangles, 4,713 vertices, 5 MeshParts, 1 Decal; described as made with Blender and Clip Studio Paint). Source and acceptance checklist: `assets/pets/bunny/README.md`.
+
+`PetAssetCatalog.lua` records the source ID and provenance. Server-only `PetAssetLoader.lua` uses `AssetService:LoadAssetAsync`, removes executable descendants from the imported model, sets safe non-colliding MeshParts, and returns the real model. `PetCollectionService` now spawns this imported mesh instead of the procedural Part-based Bunny. `CompanionFollowController` supports unrigged imported MeshPart models by moving the model pivot while skipping the old Motor6D animation controller. The collection preview clones the actual replicated world model instead of recreating the procedural blockout.
+
+Required Studio setting: Experience Settings → Security → Allow Loading Third Party Assets. This is disabled by default; without it the asset loader will fail and no real Bunny will spawn. `PetAssetLoaderTests.server.lua` checks the imported mesh path. The asset is integrated in source but remains NOT VERIFIED until the setting is enabled and the test, visual review, and in-game follow test pass.
+
+The old procedural Bunny factory remains only as a prototype/test reference. It is no longer used by the server to spawn the player's production companion.
 
 The Bunny animation controller now includes a procedural `sniff` pose. When a companion remains still, `CompanionFollowController` schedules small autonomous personality moments at randomized intervals: sniffing, looking around curiously, or a happy hop. Movement cancels the idle action and returns to walk/run animation. The behavior is local presentation only and does not grant gameplay rewards or affect server state. Client smoke coverage checks that a stationary companion eventually performs one of these actions.
 
-The factory currently supports:
+The legacy procedural factory currently supports (prototype only):
 - Stable species ID: `bunny`
 - Versioned rig metadata: `RigVersion = 1`
 - Explicit prototype marker: `IsPetRigPrototype = true`
