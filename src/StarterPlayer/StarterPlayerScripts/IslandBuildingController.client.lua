@@ -27,6 +27,7 @@ local currentCellZ: number? = nil
 local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local currentValid = false
+local selectedBuildingModel: Model? = nil
 local pointerPosition = UserInputService:GetMouseLocation()
 
 local COLORS = {
@@ -163,6 +164,77 @@ end
 
 local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
 local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
+local demolishButton = make("TextButton", {
+	Name = "DemolishSelected",
+	AnchorPoint = Vector2.new(0, 0),
+	Position = UDim2.new(0, 22, 0, 24),
+	Size = UDim2.fromOffset(190, 46),
+	BackgroundColor3 = Color3.fromRGB(139, 67, 76),
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "⌫  ДЕМОНТИРОВАТЬ",
+	TextColor3 = COLORS.text,
+	TextSize = 13,
+	Visible = false,
+}, gui) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
+
+local function findBuildingModel(target: Instance?): Model?
+	local current = target
+	while current and current ~= Workspace do
+		if current:IsA("Model") and type(current:GetAttribute("BuildingInstanceId")) == "string" then
+			return current
+		end
+		current = current.Parent
+	end
+	return nil
+end
+
+local function selectBuilding(model: Model?)
+	selectedBuildingModel = model
+	demolishButton.Visible = model ~= nil
+	if model then
+		local catalogId = model.Name:match("^([^_]+)")
+		setStatus("Выбрана постройка: " .. model.Name)
+	end
+end
+
+demolishButton.Activated:Connect(function()
+	local model = selectedBuildingModel
+	if model == nil or model.Parent == nil then
+		selectBuilding(nil)
+		return
+	end
+	local instanceId = model:GetAttribute("BuildingInstanceId")
+	if type(instanceId) ~= "string" then
+		setStatus("Не удалось определить постройку", false)
+		return
+	end
+	demolishButton.Active = false
+	demolishButton.Text = "..."
+	local ok, response = pcall(function()
+		return remote:InvokeServer({
+			requestId = HttpService:GenerateGUID(false),
+			action = "demolish",
+			instanceId = instanceId,
+		})
+	end)
+	demolishButton.Active = true
+	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
+	if not ok then
+		setStatus("Не удалось связаться с сервером", false)
+		return
+	end
+	if type(response) == "table" and response.ok == true then
+		selectBuilding(nil)
+		setStatus("Постройка демонтирована", true)
+	else
+		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
+		setStatus("Нельзя демонтировать: " .. code, false)
+	end
+end)
+
 
 local function setStatus(message: string, good: boolean?)
 	status.Text = message
@@ -375,7 +447,18 @@ confirmButton.Activated:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or not placing then return end
+	if processed then return end
+	if not placing and input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local mousePosition = UserInputService:GetMouseLocation()
+		local ray = camera:ScreenPointToRay(mousePosition.X, mousePosition.Y)
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		if player.Character then params.FilterDescendantsInstances = { player.Character } end
+		local hit = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+		selectBuilding(if hit then findBuildingModel(hit.Instance) else nil)
+		return
+	end
+	if not placing then return end
 	if input.KeyCode == Enum.KeyCode.R then
 		rotation = (rotation + 90) % 360
 	elseif input.KeyCode == Enum.KeyCode.Escape then
