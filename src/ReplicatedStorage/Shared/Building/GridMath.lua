@@ -12,15 +12,30 @@ export type Footprint = {
 }
 
 local function isInteger(value: number): boolean
-	return value == math.floor(value)
+	return value == value
+		and value ~= math.huge
+		and value ~= -math.huge
+		and value == math.floor(value)
 end
 
 function GridMath.snapWorldToGrid(worldCoordinate: number, gridSize: number, origin: number?): number?
-	if gridSize <= 0 then
+	if not isInteger(gridSize) or gridSize <= 0
+		or type(worldCoordinate) ~= "number"
+		or worldCoordinate ~= worldCoordinate
+		or worldCoordinate == math.huge
+		or worldCoordinate == -math.huge
+	then
 		return nil
 	end
 
 	local gridOrigin = origin or 0
+	if type(gridOrigin) ~= "number"
+		or gridOrigin ~= gridOrigin
+		or gridOrigin == math.huge
+		or gridOrigin == -math.huge
+	then
+		return nil
+	end
 	local cell = math.floor(((worldCoordinate - gridOrigin) / gridSize) + 0.5)
 	return gridOrigin + cell * gridSize
 end
@@ -44,6 +59,7 @@ function GridMath.isWithinBounds(footprint: Footprint, boundsWidth: number, boun
 	if not isInteger(footprint.x) or not isInteger(footprint.z)
 		or not isInteger(footprint.width) or not isInteger(footprint.depth)
 		or footprint.width <= 0 or footprint.depth <= 0
+		or not isInteger(boundsWidth) or not isInteger(boundsDepth)
 		or boundsWidth <= 0 or boundsDepth <= 0
 	then
 		return false
