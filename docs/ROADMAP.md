@@ -21,14 +21,13 @@
   - [x] Create and commit original Bunny OBJ/MTL mesh source (15,332 vertices, 30,194 triangles, 13 named mesh objects, 9 material groups).
   - [x] Reject and remove the unsuitable third-party Bunny candidate from the runtime catalog.
   - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
-  - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy action definitions (script committed; execution and deformation review pending).
+  - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy actions; Blender 4.2.0 CI build generated and structurally validated `.blend` + `.fbx` outputs.
   - [x] Add GitHub Actions validation for Bunny OBJ/MTL integrity and Blender script Python syntax (source-only run passed).
   - [x] Extend CI to install pinned Blender 4.2.0, execute rig/FBX export, validate generated files and all four action curves, and publish a 30-day artifact (run passed).
   - [x] Run Blender 4.2.0 rig build in CI and generate `.blend` + `.fbx` outputs (both validated and uploaded as a workflow artifact).
   - [ ] Visually review skin weights, silhouette, and all four actions in Blender; fix deformations before Roblox import.
-  - [ ] Review skin weights and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
-  - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
+  - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending; this remains the current runtime prototype until the imported mesh is approved).
   - [x] Add first expressive face-detail pass to Bunny (eye catchlights, mouth, forehead tuft, six whiskers) and extend the factory smoke test; still prototype geometry, Studio review pending.
   - [x] Add procedural Bunny state-pose controller for idle, walk, run, happy, curious, sniff, alert, and combat; Studio animation smoke test committed (execution pending).
   - [x] Add autonomous idle personality moments (sniff, curious look, happy hop) with randomized pauses; movement interrupts idle actions. Client smoke coverage committed (Studio execution pending).
@@ -38,7 +37,7 @@
   - [x] Add first responsive Russian pet collection UI with search, pet preview, equipped count, and server-backed equip/unequip (Studio/device verification pending).
   - [x] Spawn server-authoritative equipped pet Models under `Workspace/PlayerPets/<UserId>` from validated collection data; refresh on equip and recreate on character respawn (Studio verification pending).
   - [x] Add client runtime binding replicated owned pet models to the three-slot follow controller with cleanup on removal/character lifecycle (Studio verification pending).
-  - [x] Add initial server asset loader and collection preview plumbing (asset ID intentionally unset until project-owned mesh is imported/published).
+  - [x] Add initial server asset loader and collection preview plumbing (asset ID intentionally unset until project-owned mesh is imported/published; loader currently returns `ASSET_NOT_CONFIGURED`).
   - [x] Add original Bunny OBJ/MTL mesh source and reject the unsuitable Creator Store candidate.
   - [ ] Import project-owned Bunny OBJ/MTL in Studio, publish it, set its asset ID, then run mesh smoke test and visually approve scale, orientation, materials, and follow behavior.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
