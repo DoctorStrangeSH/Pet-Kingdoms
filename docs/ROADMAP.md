@@ -71,4 +71,4 @@
 
 ## Current status
 
-The GitHub repository was empty when first inspected on 2026-11-21. Documentation, the initial Rojo mapping, and a pure grid-math utility are now committed. The grid utility has not yet been built or tested in Roblox Studio; no complete gameplay feature or production asset is claimed as complete.
+The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, and a Studio-only smoke-test script. The validator and tests are committed but have not been executed in Roblox Studio; no end-to-end building gameplay, resource charging, persistence, or production asset is claimed as complete.
