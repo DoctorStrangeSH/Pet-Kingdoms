@@ -8,6 +8,7 @@
 - [x] Create a single source-of-truth roadmap.
 - [x] Confirm the intended Roblox development workflow: hybrid Rojo + VS Code + Roblox Studio.
 - [x] Add the initial Rojo project mapping and source folder structure.
+- [x] Add server and client bootstrap entrypoints.
 - [x] Document the local build/live-sync workflow.
 - [ ] Run a real Rojo build and record the result.
 - [ ] Add CI checks appropriate to the chosen workflow.
