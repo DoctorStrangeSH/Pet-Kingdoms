@@ -11,6 +11,8 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 local IslandData = {}
 
 IslandData.SCHEMA_VERSION = 1
+IslandData.MAX_BUILDINGS_PER_ISLAND = 256
+local MAX_BUILDINGS_PER_ISLAND = IslandData.MAX_BUILDINGS_PER_ISLAND
 
 export type BuildingRecord = {
 	instanceId: string,
@@ -97,6 +99,22 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 
 	if type(profile.buildings) ~= "table" or type(profile.unlockedBuildingIds) ~= "table" then
 		return false, "INVALID_PROFILE_COLLECTIONS"
+	end
+
+	local buildingCount = 0
+	local highestBuildingIndex = 0
+	for key in pairs(profile.buildings) do
+		if not isInteger(key) or key < 1 then
+			return false, "INVALID_BUILDING_LIST"
+		end
+		buildingCount += 1
+		highestBuildingIndex = math.max(highestBuildingIndex, key)
+	end
+	if buildingCount > MAX_BUILDINGS_PER_ISLAND then
+		return false, "TOO_MANY_BUILDINGS"
+	end
+	if highestBuildingIndex ~= buildingCount then
+		return false, "INVALID_BUILDING_LIST"
 	end
 
 	for catalogId, unlocked in pairs(profile.unlockedBuildingIds) do
