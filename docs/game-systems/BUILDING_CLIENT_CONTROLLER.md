@@ -1,11 +1,11 @@
 # Client Island Building Controller
 
-> Status: first client construction controller is committed. It provides a local grid preview and server-confirmed placement for the starter `main_house`. Studio input, camera, and visual verification remain pending.
+> Status: first client construction controller is committed. It provides a local grid preview and server-confirmed placement for `main_house` and `pet_house`. Studio input, camera, and visual verification remain pending.
 
 ## Player flow
 
 1. The player opens the `СТРОИТЬ` button.
-2. The construction panel offers rotate, confirm, and cancel actions.
+2. The construction panel offers two starter catalogue entries plus rotate, confirm, and cancel actions.
 3. A translucent local preview follows the pointer/touch position over the player's own grass surface.
 4. The preview is green while its rotated footprint remains inside the configured island bounds; otherwise it is red.
 5. Confirm invokes `ReplicatedStorage/Remotes/PlaceBuilding` with a fresh request ID and the integer grid cell.
@@ -28,7 +28,7 @@ The client raycasts only against `Island_GrassTop` belonging to the local player
 
 ## Current limitations
 
-- Only `main_house` is selectable; the catalogue UI is not implemented yet.
+- `main_house` and `pet_house` are selectable; this is a minimal two-entry catalogue, not the final catalogue UI.
 - Preview is a simple translucent footprint blockout, not the final original house mesh.
 - The client shows bounds validity only; overlap feedback is supplied by the server response.
 - Moving an existing building is supported by the server API but not exposed in this UI.
