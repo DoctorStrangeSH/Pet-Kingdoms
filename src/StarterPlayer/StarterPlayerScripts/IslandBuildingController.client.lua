@@ -65,13 +65,13 @@ local panel = make("Frame", {
 	Name = "Panel",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.new(0.5, 0, 1, -22),
-	Size = UDim2.new(1, -24, 0, 280),
+	Size = UDim2.new(1, -24, 0, 340),
 	BackgroundColor3 = COLORS.panel,
 	BackgroundTransparency = 0.04,
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 280), MaxSize = Vector2.new(420, 280) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(320, 340), MaxSize = Vector2.new(420, 340) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -107,7 +107,7 @@ local status = make("TextLabel", {
 local buttons = make("Frame", {
 	Name = "Buttons",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 204),
+	Position = UDim2.fromOffset(0, 244),
 	Size = UDim2.new(1, 0, 0, 54),
 }, panel)
 make("UIListLayout", {
@@ -141,7 +141,7 @@ local catalogRow = make("Frame", {
 	Name = "Catalog",
 	BackgroundTransparency = 1,
 	Position = UDim2.fromOffset(0, 62),
-	Size = UDim2.new(1, 0, 0, 116),
+	Size = UDim2.new(1, 0, 0, 176),
 }, panel)
 make("UIGridLayout", {
 	CellSize = UDim2.new(0.5, -5, 0, 50),
