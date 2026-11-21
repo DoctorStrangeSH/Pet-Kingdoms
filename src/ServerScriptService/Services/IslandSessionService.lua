@@ -69,6 +69,7 @@ local function cloneProfile(profile: any): any
 		copy.buildings[index] = table.clone(record)
 	end
 	copy.unlockedBuildingIds = table.clone(profile.unlockedBuildingIds)
+	copy.resources = table.clone(profile.resources or { wood = 2, stone = 1, gold = 0, gems = 0 })
 	return copy
 end
 
