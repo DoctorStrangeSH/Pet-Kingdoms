@@ -39,6 +39,8 @@
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
+- [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
+- [ ] Add server transaction handling for resource charging and placement mutation.
 - [ ] Implement island layout persistence and recovery.
 - [ ] Implement Kingdom Bond progression and visual island changes.
 - [ ] Make farming and production meaningfully contribute to progression.
