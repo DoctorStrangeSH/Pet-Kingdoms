@@ -123,7 +123,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 11. Add save/load recovery tests after persistence behavior is implemented.
 12. Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`, and client `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Bunny motion and formation from the Green Valley gameplay camera.
 13. Verify PetCollectionUI Get/Equip in a published Studio test universe with DataStore access; test PC, tablet, and touch layouts.
-14. Implement server-authoritative world pet spawn/despawn and connect equipped models to the follow controller; test respawn/unequip cleanup.
+14. Run Studio integration verification for server spawn replication, client follow, equip/unequip, character death/respawn, and three-pet formation. Fix any visual/physics lifecycle issues before marking the companion runtime complete.
 15. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
