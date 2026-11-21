@@ -219,46 +219,10 @@ function PlacementValidator.validate(
 			return failure("ISLAND_STATE_INVALID")
 		end
 
-		if existing.instanceId ~= movingInstanceId then
-			if not isValidDefinition(existingDefinition) or existingDefinition.id ~= existing.catalogId then
-				return failure("ISLAND_STATE_INVALID")
-			end
-
-			if not isInteger(existing.x)
-				or not isInteger(existing.z)
-				or not isInteger(existing.rotation)
-				or type(existing.instanceId) ~= "string"
-			then
-				return failure("ISLAND_STATE_INVALID")
-			end
-
-			local existingRotation = existing.rotation % 360
-			if existingDefinition.allowedRotations[existingRotation] ~= true then
-				return failure("ISLAND_STATE_INVALID")
-			end
-
-			local existingWidth, existingDepth = GridMath.getRotatedFootprint(
-				existingDefinition.footprintWidth,
-				existingDefinition.footprintDepth,
-				existingRotation
-			)
-			if existingWidth == nil or existingDepth == nil then
-				return failure("ISLAND_STATE_INVALID")
-			end
-
-			local occupied = {
-				x = existing.x,
-				z = existing.z,
-				width = existingWidth,
-				depth = existingDepth,
-			}
-			if not GridMath.isWithinBounds(occupied, island.boundsWidth, island.boundsDepth) then
-				return failure("ISLAND_STATE_INVALID")
-			end
-
-			if GridMath.footprintsOverlap(candidate, occupied) then
-				return failure("FOOTPRINT_OVERLAP")
-			end
+		if existing.instanceId ~= movingInstanceId
+			and GridMath.footprintsOverlap(candidate, occupied)
+		then
+			return failure("FOOTPRINT_OVERLAP")
 		end
 	end
 
