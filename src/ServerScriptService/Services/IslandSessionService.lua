@@ -2,7 +2,7 @@
 -- Server-owned player island profile lifecycle.
 -- Requires Workspace attributes IslandGridWidth and IslandGridDepth to be set
 -- from the approved world/plot layout. Fails closed when they are missing.
--- This module manages data only; visual island spawning is a later integration step.
+-- Loads persistent profiles, creates the personal island world, and routes characters to its arrival pad.
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
