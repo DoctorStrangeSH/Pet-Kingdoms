@@ -81,7 +81,7 @@ end
 
 local function findBuilding(buildings: { ExistingBuilding }, instanceId: string): ExistingBuilding?
 	for _, building in ipairs(buildings) do
-		if building.instanceId == instanceId then
+		if type(building) == "table" and building.instanceId == instanceId then
 			return building
 		end
 	end
