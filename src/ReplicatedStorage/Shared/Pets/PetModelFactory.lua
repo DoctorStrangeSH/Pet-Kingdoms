@@ -64,6 +64,7 @@ local function createBunny(scale: number): Model
 	local root = createPart(model, "HumanoidRootPart", Vector3.new(0.5, 0.5, 0.5) * scale,
 		CFrame.new(0, 0.28 * scale, 0), COLORS.body)
 	root.Transparency = 1
+	root.Anchored = true
 	root.CanQuery = false
 	model.PrimaryPart = root
 
