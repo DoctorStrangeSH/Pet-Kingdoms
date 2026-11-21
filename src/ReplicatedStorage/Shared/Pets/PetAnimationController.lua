@@ -96,7 +96,12 @@ function PetAnimationController.update(self: Controller, dt: number)
 
 	self.phase += math.min(dt, 0.1)
 	local t = self.phase
-	local speed = if self.state == "run" then 13 else if self.state == "walk" then 8 else 3
+	local speed = 3
+	if self.state == "run" then
+		speed = 13
+	elseif self.state == "walk" then
+		speed = 8
+	end
 	local wave = math.sin(t * speed)
 	local secondary = math.sin(t * speed * 2 + 0.7)
 
