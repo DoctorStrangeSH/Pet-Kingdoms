@@ -30,6 +30,7 @@ export type IslandProfile = {
 	buildings: { BuildingRecord },
 	unlockedBuildingIds: { [string]: boolean },
 	revision: number,
+	sessionGeneration: number?,
 }
 
 local function isInteger(value: any): boolean
@@ -93,6 +94,7 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 	if not isInteger(profile.boundsWidth) or profile.boundsWidth <= 0
 		or not isInteger(profile.boundsDepth) or profile.boundsDepth <= 0
 		or not isInteger(profile.revision) or profile.revision < 0
+		or (profile.sessionGeneration ~= nil and (not isInteger(profile.sessionGeneration) or profile.sessionGeneration < 0))
 	then
 		return false, "INVALID_PROFILE_METADATA"
 	end
