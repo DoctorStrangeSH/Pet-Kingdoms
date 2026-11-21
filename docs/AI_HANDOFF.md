@@ -56,6 +56,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Server-authoritative demolition added for non-main-house buildings with client selection, explicit second-press confirmation, and rollback on non-writable session; Studio verification pending.
 - [x] Client move mode added with server-authored building metadata, selected instance ID, preview, rotate, confirm/cancel, and authoritative profile/world transaction; Studio/device verification pending.
 - [x] Client placement/move preview now checks island bounds and replicated building footprints for immediate overlap feedback; server remains authoritative; Studio verification pending.
+- [x] Starter decor catalogue adds `stone_path` and `garden_lantern` with 1×1 footprints, fallback blockout models, and existing server-authoritative placement/move/demolition/persistence path; Studio verification pending.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
