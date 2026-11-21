@@ -1,0 +1,65 @@
+# Island Resource Wallet — MVP Foundation
+
+> Status: persistent wallet schema, backward-compatible profile migration, server-only grant/spend facade, and pure contract tests are committed. Gathering nodes, reward tables, building prices, and client UI are not implemented.
+
+## Resource IDs
+
+The wallet currently recognizes:
+- `wood`
+- `stone`
+- `gold`
+- `gems`
+
+Biome-specific resources remain a later extension; do not accept arbitrary resource IDs from clients.
+
+## Starter balances
+
+The current profile initializer uses the previously documented provisional baseline:
+- 2 Wood
+- 1 Stone
+- 0 Gold
+- 0 Gems
+
+These are provisional implementation defaults, not final balance approval. Keep values centralized in `IslandResources.STARTER_BALANCES`.
+
+## Persistence and migration
+
+- Wallet balances are stored inside the versioned island profile at `resources`.
+- Existing schema-v1 profiles without `resources` are migrated in memory on load and receive the wallet during `claimSession`'s atomic UpdateAsync write.
+- Save snapshots deep-copy the wallet table so mutations during a yielding DataStore call cannot alter the submitted snapshot.
+- Wallet validation rejects unknown IDs, negative/fractional balances, NaN/infinite values, and values above the defensive integer ceiling.
+- The schema version remains 1 because the new field is backward-compatible and optional during validation for legacy records.
+
+## Server API
+
+`IslandResourceService.getBalance(userId, resourceId)`
+- Reads the current server-owned session balance.
+
+`IslandResourceService.grant(userId, resourceId, amount)`
+- Grants a validated positive integer amount.
+- Marks the profile dirty.
+- Rolls back the wallet if the session is not writable.
+
+`IslandResourceService.spend(userId, costs)`
+- Validates all resource IDs and amounts before changing any balance.
+- Checks all balances before mutating any balance (all-or-nothing).
+- Marks the profile dirty.
+- Rolls back the wallet if the session is not writable.
+
+These functions are server-only module APIs. Do not expose a RemoteFunction that accepts arbitrary grant amounts or client-provided costs. Gathering and building services must derive rewards/prices from server-owned definitions.
+
+## Explicitly not implemented yet
+
+- Resource node spawning, gathering interaction, respawn timers.
+- Building costs/refunds; catalog prices remain intentionally unset until approved.
+- Gold/gem earning and shops.
+- Resource inventory UI.
+- Economy balance sheet and final tuning.
+- Studio/DataStore integration verification.
+
+## Tests
+
+- `IslandResourcesTests.server.lua`: starter balances, grant, atomic multi-resource spend, insufficient balance rollback, unknown IDs, fractional values, negative balances, and overflow.
+- `IslandDataTests.server.lua`: wallet defaults and invalid resource balance rejection.
+
+These Studio tests are committed; execution in Roblox Studio is still pending.
