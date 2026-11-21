@@ -4,11 +4,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
-local PetModelFactory = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets"):WaitForChild("PetModelFactory"))
 
 local COLORS = {
 	panel = Color3.fromRGB(31, 35, 48),
@@ -255,18 +255,35 @@ local function renderPreview(speciesId: string)
 	camera.Parent = preview
 	preview.CurrentCamera = camera
 
-	local model = PetModelFactory.create(speciesId, 0.9)
-	if model == nil then
+	local root = Workspace:FindFirstChild("PlayerPets")
+	local playerFolder = root and root:FindFirstChild(tostring(player.UserId))
+	local sourceModel = playerFolder and playerFolder:FindFirstChild(selectedPetId or "")
+	if sourceModel == nil or not sourceModel:IsA("Model") then
+		local placeholder = Instance.new("TextLabel")
+		placeholder.BackgroundTransparency = 1
+		placeholder.Size = UDim2.fromScale(1, 1)
+		placeholder.Text = "3D-модель появится после загрузки питомца"
+		placeholder.TextWrapped = true
+		placeholder.TextColor3 = COLORS.muted
+		placeholder.TextSize = 12
+		placeholder.Font = Enum.Font.Gotham
+		placeholder.Parent = preview
 		return
 	end
+
+	local model = sourceModel:Clone()
 	for _, descendant in ipairs(model:GetDescendants()) do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = true
+			descendant.CanCollide = false
 		end
 	end
 	model.Parent = world
-	model:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(180), 0))
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, 2.0, -7.5), Vector3.new(0, 1.45, 0))
+	local boundsCFrame, boundsSize = model:GetBoundingBox()
+	local center = boundsCFrame.Position
+	model:PivotTo(model:GetPivot() - center)
+	local height = math.max(boundsSize.Y, 1)
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, height * 0.48, -height * 2.8), Vector3.new(0, height * 0.42, 0))
 end
 
 local function updateDetail()
