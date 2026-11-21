@@ -19,6 +19,8 @@ type Session = {
 	profile: any,
 	dirty: boolean,
 	saving: boolean,
+	saveFinished: BindableEvent,
+	closing: boolean,
 }
 
 local sessions: { [number]: Session } = {}
@@ -44,7 +46,7 @@ end
 
 function IslandSessionService.markDirty(userId: number): boolean
 	local session = sessions[userId]
-	if session == nil or shuttingDown then
+	if session == nil or shuttingDown or session.closing then
 		return false
 	end
 
@@ -53,18 +55,35 @@ function IslandSessionService.markDirty(userId: number): boolean
 	return true
 end
 
+local function cloneProfile(profile: any): any
+	local copy = table.clone(profile)
+	copy.buildings = table.clone(profile.buildings)
+	for index, record in ipairs(profile.buildings) do
+		copy.buildings[index] = table.clone(record)
+	end
+	copy.unlockedBuildingIds = table.clone(profile.unlockedBuildingIds)
+	return copy
+end
+
 local function saveSession(userId: number, session: Session): boolean
-	if session.saving or not session.dirty then
-		return not session.dirty
+	-- Serialize saves for one player. A leave/shutdown caller waits for an
+	-- in-flight autosave instead of discarding the session while it is writing.
+	while session.saving do
+		session.saveFinished.Event:Wait()
+	end
+
+	if not session.dirty then
+		return true
 	end
 
 	session.saving = true
-	local snapshot = table.clone(session.profile)
+	local snapshot = cloneProfile(session.profile)
 	local ok, code = IslandStore.save(snapshot)
 	session.saving = false
+	session.saveFinished:Fire()
 
 	if ok then
-		-- Only clear dirty if no newer mutation happened while the save yielded.
+		-- Keep dirty if any mutation happened while the DataStore call yielded.
 		if session.profile.revision == snapshot.revision then
 			session.dirty = false
 		end
@@ -125,6 +144,8 @@ local function loadPlayer(player: Player)
 		profile = profile,
 		dirty = false,
 		saving = false,
+		saveFinished = Instance.new("BindableEvent"),
+		closing = false,
 	}
 	loading[userId] = nil
 	print(string.format("[PetKingdoms] Island profile ready for %s", player.Name))
@@ -134,8 +155,14 @@ local function removePlayer(player: Player)
 	local userId = player.UserId
 	local session = sessions[userId]
 	if session then
-		saveSession(userId, session)
+		session.closing = true
+		local saved = saveSession(userId, session)
+		if not saved then
+			warn(string.format("[PetKingdoms] Final save failed; retaining session until server shutdown for %d", userId))
+			return
+		end
 		sessions[userId] = nil
+		session.saveFinished:Destroy()
 	end
 	loading[userId] = nil
 end
@@ -166,7 +193,10 @@ function IslandSessionService.start()
 			if session.dirty then
 				pending += 1
 				task.spawn(function()
-					saveSession(userId, session)
+					local saved = saveSession(userId, session)
+					if not saved then
+						warn(string.format("[PetKingdoms] Shutdown could not flush island profile for %d", userId))
+					end
 					pending -= 1
 				end)
 			end
