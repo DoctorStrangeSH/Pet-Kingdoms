@@ -37,6 +37,8 @@ Source:
 
 The Bunny face-detail pass improves expression readability in the procedural blockout, but it is not a sculpted production mesh. All added details are still simple primitive geometry and need a Studio camera-distance/art review.
 
+The Bunny animation controller now includes a procedural `sniff` pose. When a companion remains still, `CompanionFollowController` schedules small autonomous personality moments at randomized intervals: sniffing, looking around curiously, or a happy hop. Movement cancels the idle action and returns to walk/run animation. The behavior is local presentation only and does not grant gameplay rewards or affect server state. Client smoke coverage checks that a stationary companion eventually performs one of these actions.
+
 The factory currently supports:
 - Stable species ID: `bunny`
 - Versioned rig metadata: `RigVersion = 1`
