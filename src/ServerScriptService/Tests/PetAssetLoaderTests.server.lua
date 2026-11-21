@@ -8,7 +8,7 @@ local loader = require(ServerScriptService:WaitForChild("Services"):WaitForChild
 
 assert(catalog.bunny.assetId == nil, "Do not restore the rejected Creator Store Bunny asset ID.")
 assert(catalog.bunny.sourcePath == "assets/pets/bunny/bunny.obj", "Runtime source must point to the original project-owned Bunny mesh.")
-assert(catalog.bunny.status == "SOURCE_MESH_COMMITTED_ASSET_ID_PENDING", "Bunny must remain gated until Studio import and publish.")
+assert(catalog.bunny.status == "SOURCE_COMMITTED_BLENDER_BUILD_PENDING", "Bunny must remain gated until Studio import and publish.")
 
 local model, status = loader.create("bunny", 1)
 assert(model == nil, "Bunny must not spawn an unapproved third-party replacement.")
