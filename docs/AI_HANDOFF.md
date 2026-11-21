@@ -53,9 +53,10 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Revision-aware IslandStore DataStore adapter committed.
 - [x] IslandStore input-contract smoke test committed.
 - [x] DataStore session-generation fencing implemented; Studio integration scenario committed (execution pending).
+- [x] Fixed PlayerRemoving failure recovery: final save failures remain in a leaving-session retry path; after autosave succeeds, the service releases the MemoryStore lease and cleans up the island world/spawn slot. Forced-failure Studio integration verification remains pending.
 - [x] Procedural island blockout renderer committed and integrated into player session lifecycle; Studio verification pending.
 - [x] Character routing to the personal island arrival pad implemented for initial spawn and respawn; Studio verification pending.
-- [x] Server-authoritative building place/move RemoteFunction implemented with idempotency, profile/world rollback, and server-generated IDs; Studio verification pending.
+- [x] Server-authoritative building place/move/demolish RemoteFunction implemented with idempotency, profile/world rollback, server-generated IDs, and per-player token-bucket rate limiting; Studio verification pending.
 - [x] First client `main_house` construction controller implemented with local grid preview, rotate, confirm/cancel, and server-authoritative commit; Studio/device verification pending.
 - [x] Runtime fallback blockout Models added for `main_house` and `pet_house`; production art remains NOT STARTED.
 - [x] Minimal client catalogue added for `main_house` and `pet_house`; selected ID is sent to server-authoritative placement. Studio/device verification pending.
@@ -131,7 +132,8 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
-12. Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`, and client `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Bunny motion and formation from the Green Valley gameplay camera.
+12. Force a DataStore final-save failure during PlayerRemoving, then restore DataStore access and verify autosave retry succeeds, the MemoryStore lease releases, the world is destroyed, and the spawn slot is reusable; also force lease-release failure and verify cleanup retries safely.
+13. Run `PetModelFactoryTests.server.lua`, `PetAnimationControllerTests.server.lua`, and client `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Bunny motion and formation from the Green Valley gameplay camera.
 13. Verify PetCollectionUI Get/Equip in a published Studio test universe with DataStore access; test PC, tablet, and touch layouts.
 14. Run Studio integration verification for server spawn replication, client follow, equip/unequip, character death/respawn, and three-pet formation. Fix any visual/physics lifecycle issues before marking the companion runtime complete.
 15. Update ROADMAP and this handoff after each verified milestone.
