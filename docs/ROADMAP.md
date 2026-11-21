@@ -76,7 +76,8 @@
 - [x] Expand the starter decor catalogue with flower_bed and wooden_fence blockout models, selection cards, and the shared placement/move/demolition flow (Studio verification pending).
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
-- [x] Add server-authoritative placement/move transaction endpoint with idempotency and world/profile rollback (Studio integration verification pending).
+- [x] Add server-authoritative placement/move/demolition transaction endpoint with idempotency and world/profile rollback (Studio integration verification pending).
+  - [x] Add per-player token-bucket rate limiting to the building RemoteFunction (12-request burst, refill 4/sec; Studio spam test pending).
 - [ ] Add server transaction handling for resource charging (economy values remain unapproved).
 - [ ] Complete persistent personal home islands (profile lifecycle and MemoryStore lease code are committed; world spawning and Studio verification remain).
 - [x] Add cross-server MemoryStore coordination lease with acquire, renewal, release, and fail-closed handling (Studio verification pending; DataStore fencing is implemented separately).
