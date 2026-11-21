@@ -21,6 +21,7 @@ Read these files first:
 6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
 7. docs/game-systems/ISLAND_PERSISTENCE.md
 8. docs/game-systems/ISLAND_RESOURCE_WALLET.md
+9. docs/game-systems/ISLAND_GATHERING.md
 8. docs/game-systems/ISLAND_SESSION_LIFECYCLE.md
 9. docs/game-systems/ISLAND_SESSION_LEASE.md
 9. docs/BUILD_AND_TEST.md
@@ -52,6 +53,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Versioned island profile schema/validation module committed.
 - [x] Persistent island resource wallet added (Wood/Stone/Gold/Gems); existing schema-v1 profiles migrate during claim.
 - [x] Server-only IslandResourceService supports validated grant/spend with atomic balance checks and rollback on non-writable sessions.
+- [x] IslandWorldService spawns two Wood (3 each) and two Stone (2 each) nodes per personal island; IslandGatheringService validates owner, ancestry, range and rewards, then disables nodes for 60 seconds before respawn. Bootstrap starts the gathering service. Studio multiplayer verification pending.
 - [x] Added IslandResources and IslandData wallet contract tests; Studio execution pending.
 - [x] Studio-only IslandData smoke-test script committed.
 - [x] Revision-aware IslandStore DataStore adapter committed.
