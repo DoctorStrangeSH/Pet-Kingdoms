@@ -103,8 +103,14 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 	if action ~= "Equip" then
 		return false, "UNKNOWN_ACTION"
 	end
-	if type(payload) ~= "table" or type(payload.petIds) ~= "table" then
+	if type(payload) ~= "table" or type(payload.petIds) ~= "table"
+		or type(payload.expectedRevision) ~= "number"
+		or payload.expectedRevision ~= math.floor(payload.expectedRevision)
+	then
 		return false, "INVALID_REQUEST"
+	end
+	if payload.expectedRevision ~= state.profile.revision then
+		return false, "STALE_REVISION"
 	end
 
 	local requestedIds = table.clone(payload.petIds)
@@ -118,6 +124,10 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 		local valid, reason = PetCollectionData.validate(current, player.UserId)
 		if not valid then
 			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+			return current
+		end
+		if current.revision ~= payload.expectedRevision then
+			mutationStatus = "STALE_REVISION"
 			return current
 		end
 		local changed, status, nextProfile = PetCollectionData.setEquipped(current, requestedIds)
