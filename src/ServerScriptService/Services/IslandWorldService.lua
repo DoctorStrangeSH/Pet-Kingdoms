@@ -201,6 +201,18 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	return true, "SPAWNED"
 end
 
+function IslandWorldService.removeBuilding(userId: number, instanceId: string): boolean
+	local world = worldsByUserId[userId]
+	if world == nil then return false end
+	for _, child in ipairs(world:GetChildren()) do
+		if child:IsA("Model") and child:GetAttribute("BuildingInstanceId") == instanceId then
+			child:Destroy()
+			return true
+		end
+	end
+	return false
+end
+
 function IslandWorldService.syncBuilding(userId: number, profile: any, record: any): (boolean, string)
 	local world = worldsByUserId[userId]
 	if world == nil then
