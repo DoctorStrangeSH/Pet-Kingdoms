@@ -91,21 +91,29 @@ function IslandStore.save(profile: any): (boolean, string)
 	local key = makeKey(profile.ownerUserId)
 	local snapshot = table.clone(profile)
 
+	local wroteSnapshot = false
 	local ok, result = retry(function()
+		wroteSnapshot = false
 		return store:UpdateAsync(key, function(current)
+			-- UpdateAsync returning nil cancels the write but returns the
+			-- existing value; it does NOT make the outer result nil.
 			if current == nil then
+				wroteSnapshot = true
 				return snapshot
 			end
 
 			if type(current) ~= "table" or type(current.revision) ~= "number" then
-				-- Do not overwrite data whose format/revision cannot be trusted.
-				return nil
+				-- Preserve data whose format/revision cannot be trusted.
+				wroteSnapshot = false
+				return current
 			end
 
 			if current.revision >= snapshot.revision then
-				return nil
+				wroteSnapshot = false
+				return current
 			end
 
+			wroteSnapshot = true
 			return snapshot
 		end)
 	end)
@@ -114,7 +122,7 @@ function IslandStore.save(profile: any): (boolean, string)
 		return false, "DATASTORE_UNAVAILABLE"
 	end
 
-	if result == nil then
+	if not wroteSnapshot or type(result) ~= "table" or result.revision ~= snapshot.revision then
 		return false, "STALE_OR_UNRECOGNIZED_SAVED_DATA"
 	end
 
