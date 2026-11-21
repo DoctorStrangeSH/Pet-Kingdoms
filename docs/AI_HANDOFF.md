@@ -55,6 +55,7 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Minimal client catalogue added for `main_house` and `pet_house`; selected ID is sent to server-authoritative placement. Studio/device verification pending.
 - [x] Server-authoritative demolition added for non-main-house buildings with client selection, explicit second-press confirmation, and rollback on non-writable session; Studio verification pending.
 - [x] Client move mode added with server-authored building metadata, selected instance ID, preview, rotate, confirm/cancel, and authoritative profile/world transaction; Studio/device verification pending.
+- [x] Client placement/move preview now checks island bounds and replicated building footprints for immediate overlap feedback; server remains authoritative; Studio verification pending.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
@@ -97,7 +98,7 @@ Important: concept art generated in chat is visual reference only. It is not a p
 
 ## Next action
 
-The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. Owner review is still pending. Next:
+The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. The building preview now gives immediate client-side overlap feedback; server validation remains authoritative. Owner review is still pending. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Run `IslandDataTests.server.lua` and `IslandLeaseServiceTests.server.lua` in a dedicated Studio test universe with MemoryStore API access.
 3. Open the generated place in Roblox Studio and verify the project tree.
