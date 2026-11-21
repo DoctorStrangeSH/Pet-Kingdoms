@@ -23,7 +23,6 @@ local currentCellZ: number? = nil
 local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local currentValid = false
-local lastMessage = ""
 local pointerPosition = UserInputService:GetMouseLocation()
 
 local COLORS = {
@@ -127,7 +126,6 @@ local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 112, Color3.fr
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 86, Color3.fromRGB(139, 67, 76))
 
 local function setStatus(message: string, good: boolean?)
-	lastMessage = message
 	status.Text = message
 	status.TextColor3 = if good == true then COLORS.valid elseif good == false then COLORS.invalid else COLORS.text
 end
@@ -217,7 +215,7 @@ local function updatePreview(screenPosition: Vector2)
 		return
 	end
 
-	local ray = camera:ViewportPointToRay(screenPosition.X, screenPosition.Y)
+	local ray = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	local excluded: { Instance } = { currentPreview }
