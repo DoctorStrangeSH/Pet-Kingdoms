@@ -50,7 +50,8 @@ These functions are server-only module APIs. Do not expose a RemoteFunction that
 
 ## Explicitly not implemented yet
 
-- Resource node spawning, gathering interaction, respawn timers.
+- Resource node visuals and respawn timers are implemented; see `ISLAND_GATHERING.md`.
+- Inventory HUD/toast and gathering animation are not implemented.
 - Building costs/refunds; catalog prices remain intentionally unset until approved.
 - Gold/gem earning and shops.
 - Resource inventory UI.
