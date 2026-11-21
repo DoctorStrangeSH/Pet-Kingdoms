@@ -201,6 +201,57 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	return true, "SPAWNED"
 end
 
+function IslandWorldService.syncBuilding(userId: number, profile: any, record: any): (boolean, string)
+	local world = worldsByUserId[userId]
+	if world == nil then
+		return false, "ISLAND_NOT_LOADED"
+	end
+	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
+	if templates == nil then
+		return false, "BUILDING_TEMPLATES_MISSING"
+	end
+	local template = templates:FindFirstChild(record.catalogId)
+	if template == nil or not template:IsA("Model") then
+		return false, "BUILDING_TEMPLATE_NOT_FOUND"
+	end
+	local spawnCFrame = nil
+	for spawnPoint, ownerUserId in pairs(occupiedSpawns) do
+		if ownerUserId == userId then
+			spawnCFrame = spawnPoint.CFrame
+			break
+		end
+	end
+	if spawnCFrame == nil then
+		return false, "ISLAND_SPAWN_REFERENCE_MISSING"
+	end
+
+	local clone = template:Clone()
+	clone.Name = record.catalogId .. "_" .. record.instanceId
+	clone:SetAttribute("BuildingInstanceId", record.instanceId)
+	local cellSize = getNumberAttribute("IslandGridCellSize")
+	if cellSize == nil then
+		clone:Destroy()
+		return false, "MISSING_ISLAND_GRID_CELL_SIZE"
+	end
+	local ok, err = pcall(function()
+		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
+		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
+	end)
+	if not ok then
+		clone:Destroy()
+		warn("[PetKingdoms] Could not position building:", err)
+		return false, "BUILDING_POSITION_FAILED"
+	end
+
+	for _, child in ipairs(world:GetChildren()) do
+		if child:IsA("Model") and child:GetAttribute("BuildingInstanceId") == record.instanceId then
+			child:Destroy()
+		end
+	end
+	clone.Parent = world
+	return true, "BUILDING_SYNCED"
+end
+
 function IslandWorldService.getArrivalCFrame(userId: number): CFrame?
 	return arrivalCFrames[userId]
 end
