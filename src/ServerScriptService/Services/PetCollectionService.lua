@@ -77,15 +77,20 @@ local function clearSpawnedPets(player: Player)
 	local root = Workspace:FindFirstChild("PlayerPets")
 	local playerFolder = root and root:FindFirstChild(tostring(player.UserId))
 	if playerFolder then
-		playerFolder:Destroy()
+		for _, child in ipairs(playerFolder:GetChildren()) do
+			child:Destroy()
+		end
 	end
 end
 
 local function spawnEquippedPets(player: Player)
 	local state = collections[player.UserId]
 	local character = player.Character
-	local targetRoot = character and character:FindFirstChild("HumanoidRootPart")
-	if state == nil or state.loading or state.profile == nil or targetRoot == nil or not targetRoot:IsA("BasePart") then
+	if state == nil or state.loading or state.profile == nil or character == nil then
+		return
+	end
+	local targetRoot = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart", 10)
+	if targetRoot == nil or not targetRoot:IsA("BasePart") or player.Character ~= character then
 		return
 	end
 
