@@ -29,9 +29,10 @@ The factory currently supports:
 ## Rig conventions
 
 - Pet faces forward along local negative Z.
-- Root is the model PrimaryPart.
+- Root is the model PrimaryPart and is anchored so a future companion controller can move the complete rig with PivotTo without physics-driven falling.
 - All visible parts are attached through Motor6D joints.
 - Root attachments provide stable follow and ground reference points.
+- Visual parts remain unanchored, massless, and non-colliding; Motor6D joints keep the assembly together.
 - The factory returns an unparented Model; the caller owns placement, lifecycle, and cleanup.
 - Species ID and rig version are stable metadata; do not infer species from the model name.
 
