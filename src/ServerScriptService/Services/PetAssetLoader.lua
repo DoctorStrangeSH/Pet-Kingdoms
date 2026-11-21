@@ -82,7 +82,7 @@ function PetAssetLoader.create(speciesId: string, scale: number?): (Model?, stri
 		model:ScaleTo(requestedScale)
 	end)
 	if not scaled then
-		warn("[PetKingdoms] Could not scale Creator Store pet:", speciesId, scaleError)
+		warn("[PetKingdoms] Could not scale published project pet:", speciesId, scaleError)
 		model:Destroy()
 		return nil, "ASSET_SCALE_FAILED"
 	end
