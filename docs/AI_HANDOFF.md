@@ -41,9 +41,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Rojo build executed and verified.
 - [ ] Roblox source project initialized beyond the initial scaffold.
 - [ ] Roblox Studio place file created and verified.
-- [ ] Rojo/Studio workflow explicitly confirmed by owner.
+- [ ] Owner reviewed the selected hybrid Rojo + Studio workflow.
 - [ ] Placement validator smoke tests executed in Roblox Studio.
-- [ ] Rojo build executed and verified.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -64,7 +63,7 @@ Important: concept art generated in chat is visual reference only. It is not a p
 
 ## Next action
 
-The owner was not asked to re-confirm the workflow; the technical lead selected hybrid Rojo + VS Code + Roblox Studio as the project default. Next:
+The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recommended project workflow. Owner review is still pending. Next:
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Open the generated place in Roblox Studio and verify the project tree.
 3. Run the Studio-only PlacementValidatorTests script; record the actual Output results.
