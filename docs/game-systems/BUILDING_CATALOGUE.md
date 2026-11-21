@@ -8,8 +8,10 @@
 |---|---|---:|---|
 | `main_house` | Главный дом | 3 × 3 | Default unlocked |
 | `pet_house` | Домик питомцев | 3 × 3 | Default unlocked |
+| `stone_path` | Каменная дорожка | 1 × 1 | Default unlocked |
+| `garden_lantern` | Садовый фонарь | 1 × 1 | Default unlocked |
 
-The server's `BuildingCatalog.lua` remains the authority for footprints, unlocks, and allowed rotations. The client currently mirrors the two starter footprint dimensions solely to size its cosmetic preview; server validation is always authoritative.
+The server's `BuildingCatalog.lua` remains the authority for footprints, unlocks, and allowed rotations. The client currently mirrors the starter footprint dimensions solely to size its cosmetic preview; server validation is always authoritative.
 
 ## Player flow
 
@@ -22,8 +24,8 @@ The server's `BuildingCatalog.lua` remains the authority for footprints, unlocks
 
 ## Current limitations
 
-- The two entries use text/emoji buttons; production illustrations, rarity/category filters, search, prices, and unlock messaging are not implemented.
-- Both starter entries currently use a 3 × 3 footprint.
+- The four entries use text/emoji buttons; production illustrations, rarity/category filters, search, prices, and unlock messaging are not implemented.
+- The two houses use 3 × 3 footprints; path and lantern use 1 × 1 footprints.
 - Resource costs are intentionally absent until economy values are approved.
 - Selection and placement have not yet been verified in Roblox Studio or on a touch device.
 - Move and demolish UX are not part of this milestone.
