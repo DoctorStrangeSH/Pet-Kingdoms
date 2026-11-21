@@ -35,6 +35,30 @@ local Catalog: { [string]: BuildingDefinition } = {
 		},
 		defaultUnlocked = true,
 	},
+	stone_path = {
+		id = "stone_path",
+		footprintWidth = 1,
+		footprintDepth = 1,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
+	garden_lantern = {
+		id = "garden_lantern",
+		footprintWidth = 1,
+		footprintDepth = 1,
+		allowedRotations = {
+			[0] = true,
+			[90] = true,
+			[180] = true,
+			[270] = true,
+		},
+		defaultUnlocked = true,
+	},
 }
 
 return Catalog
