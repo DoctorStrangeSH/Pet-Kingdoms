@@ -358,7 +358,7 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 	end
 	for _, child in ipairs(island:GetChildren()) do
 		if child:IsA("Model")
-			and child ~= selectedBuildingModel
+			and (movingInstanceId == nil or child ~= selectedBuildingModel)
 			and type(child:GetAttribute("BuildingInstanceId")) == "string"
 		then
 			local catalogId = child:GetAttribute("BuildingCatalogId")
