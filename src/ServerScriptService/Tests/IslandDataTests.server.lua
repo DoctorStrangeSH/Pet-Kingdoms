@@ -22,6 +22,15 @@ expect("invalid bounds rejected", IslandData.create(1001, 0, 10) == nil)
 
 local valid, code = IslandData.validate(profile, 1001, Catalog)
 expect("empty profile validates", valid and code == "VALID")
+expect("new profile receives provisional starter wallet", profile.resources.wood == 2 and profile.resources.stone == 1)
+local invalidWalletProfile = IslandData.create(1001, 10, 10)
+invalidWalletProfile.resources = { wood = -1, stone = 1 }
+local invalidWalletOk, invalidWalletCode = IslandData.validate(invalidWalletProfile, 1001, Catalog)
+expect("negative resource balance rejected", not invalidWalletOk and invalidWalletCode == "INVALID_RESOURCE_BALANCE")
+local unknownWalletProfile = IslandData.create(1001, 10, 10)
+unknownWalletProfile.resources = { wood = 1, stone = 1, dragon_scale = 1 }
+local unknownWalletOk, unknownWalletCode = IslandData.validate(unknownWalletProfile, 1001, Catalog)
+expect("unknown resource ID rejected", not unknownWalletOk and unknownWalletCode == "INVALID_RESOURCE_BALANCE")
 local wrongOwner, ownerCode = IslandData.validate(profile, 2002, Catalog)
 expect("owner mismatch rejected", not wrongOwner and ownerCode == "OWNER_MISMATCH")
 
