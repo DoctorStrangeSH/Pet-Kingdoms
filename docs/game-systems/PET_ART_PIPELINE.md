@@ -35,15 +35,18 @@ Source:
 
 `PetCompanionRuntime.client.lua` watches the local player's replicated folder, binds each owned pet model to one `CompanionFollowController`, and cleans up controllers on pet removal and character lifecycle changes. Follow movement is client-side presentation; the server remains authoritative for which pets exist and are equipped. This first integration supports the current Bunny species only. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
 
-## Real mesh asset integration — Bunny candidate
+## Original project-owned Bunny mesh
 
-The first non-procedural Bunny candidate is the free Creator Store model `92070521355583` by `@letscreate19` (listing metadata: 3,050 triangles, 4,713 vertices, 5 MeshParts, 1 Decal; described as made with Blender and Clip Studio Paint). Source and acceptance checklist: `assets/pets/bunny/README.md`.
+The free Creator Store Bunny candidate `92070521355583` by `@letscreate19` was rejected because it does not match the approved Pet Kingdoms art direction. Its ID has been removed from the runtime catalog and it must not be restored.
 
-`PetAssetCatalog.lua` records the source ID and provenance. Server-only `PetAssetLoader.lua` uses `AssetService:LoadAssetAsync`, removes executable descendants from the imported model, sets safe non-colliding MeshParts, and returns the real model. `PetCollectionService` now spawns this imported mesh instead of the procedural Part-based Bunny. `CompanionFollowController` supports unrigged imported MeshPart models by moving the model pivot while skipping the old Motor6D animation controller. The collection preview clones the actual replicated world model instead of recreating the procedural blockout.
+An original mesh source has been committed:
+- `assets/pets/bunny/bunny.obj` — 15,332 vertices, 30,194 triangles, 13 named mesh objects.
+- `assets/pets/bunny/bunny.mtl` — 9 material groups.
+- `assets/pets/bunny/model_notes.md` and `README.md` — source and import requirements.
 
-Required Studio setting: Experience Settings → Security → Allow Loading Third Party Assets. This is disabled by default; without it the asset loader will fail and no real Bunny will spawn. `PetAssetLoaderTests.server.lua` checks the imported mesh path. The asset is integrated in source but remains NOT VERIFIED until the setting is enabled and the test, visual review, and in-game follow test pass.
+The mesh is a custom smooth triangulated body/head/ears/cheeks/legs/tail silhouette with separate facial and woodland accessory meshes. It is intended as a Green Valley woodland explorer with warm ivory coat, rose inner ears, dark expressive eyes, sage leaf mantle, and an acorn charm. This is a first original static mesh draft, not a production-approved asset. It has not been inspected in Roblox Studio; rigging, skin weights, and animation clips are not included.
 
-The old procedural Bunny factory remains only as a prototype/test reference. It is no longer used by the server to spawn the player's production companion.
+The runtime catalog intentionally sets Bunny `assetId = nil`. The old third-party model is no longer a fallback. Import the OBJ/MTL in Roblox Studio, visually inspect and publish it to this experience, then record the new asset ID before enabling runtime spawning. Until then the collection backend may own Bunny, but no visual model should spawn. This avoids silently showing the rejected asset.
 
 The Bunny animation controller now includes a procedural `sniff` pose. When a companion remains still, `CompanionFollowController` schedules small autonomous personality moments at randomized intervals: sniffing, looking around curiously, or a happy hop. Movement cancels the idle action and returns to walk/run animation. The behavior is local presentation only and does not grant gameplay rewards or affect server state. Client smoke coverage checks that a stationary companion eventually performs one of these actions.
 
