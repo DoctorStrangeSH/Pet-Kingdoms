@@ -77,4 +77,9 @@ badVersion.schemaVersion = 999
 local versionOk, versionCode = IslandData.validate(badVersion, 1001, Catalog)
 expect("unknown schema version rejected", not versionOk and versionCode == "UNSUPPORTED_SCHEMA_VERSION")
 
+local unknownUnlockProfile = IslandData.create(1001, 10, 10)
+unknownUnlockProfile.unlockedBuildingIds.unknown_building = true
+local unknownUnlockOk, unknownUnlockCode = IslandData.validate(unknownUnlockProfile, 1001, Catalog)
+expect("unknown catalog unlock rejected", not unknownUnlockOk and unknownUnlockCode == "INVALID_UNLOCK_RECORD")
+
 print("[PetKingdoms Test] IslandData smoke tests completed.")
