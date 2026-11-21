@@ -1,6 +1,6 @@
 # Building Placement Validation — Test Plan
 
- > The validator is a server-side pure decision module. A Studio-only smoke-test script is committed at `src/ServerScriptService/Tests/PlacementValidatorTests.server.lua`. These cases are acceptance tests; they have not yet been executed in Roblox Studio.
+ > The validator is a server-side pure decision module. A Studio-only smoke-test script is committed at `src/ServerScriptService/Tests/PlacementValidatorTests.server.lua`, with grid helper checks in `src/ServerScriptService/Tests/GridMathTests.server.lua`. These are acceptance tests; they have not yet been executed in Roblox Studio.
 
 ## Setup
 
@@ -27,7 +27,11 @@ Use the server catalog and a test island:
 | Unknown catalog ID | catalogId not in server catalog | UNKNOWN_BUILDING |
 | Move existing building | same instanceId, same catalogId; ignore its old footprint | VALID if new cells are free |
 | Spoofed move target | unknown instanceId | MOVE_TARGET_NOT_FOUND |
-| Malformed existing state | invalid saved rotation or coordinates | ISLAND_STATE_INVALID |
+| Malformed existing state | invalid saved rotation or coordinates, including the record being moved | ISLAND_STATE_INVALID |
+| Locked catalog item | item is not default-unlocked and island has no unlock flag | BUILDING_LOCKED |
+| Rotated rectangular footprint | unlocked 2 × 3 item at 90 degrees | VALID, footprint 3 × 2 |
+| Duplicate instance IDs | two saved records share an instanceId | ISLAND_STATE_INVALID |
+| Non-finite coordinate | x = NaN | INVALID_REQUEST |
 
 ## Security review
 
@@ -44,4 +48,5 @@ Use the server catalog and a test island:
 - Add remotes with rate limits and request validation.
 - Add idempotency to prevent duplicate placement charges on retries.
 - Add save/load and recovery only after the transaction behavior is established.
-- Execute these cases in an automated Luau test runner and in Roblox Studio.
+- Execute both Studio smoke-test scripts and record their Output results.
+- Execute these cases in an automated Luau test runner when CI/toolchain is established.
