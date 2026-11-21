@@ -217,20 +217,34 @@ bpy.context.view_layer.objects.active = arm
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_PATH))
 
 # Export armature and all meshes; export all actions for Roblox animation processing.
-bpy.ops.export_scene.fbx(
-    filepath=str(FBX_PATH),
-    use_selection=True,
-    object_types={"ARMATURE", "MESH"},
-    add_leaf_bones=False,
-    apply_scale_options="FBX_SCALE_ALL",
-    bake_anim=True,
-    bake_anim_use_all_actions=True,
-    bake_anim_simplify_factor=0.0,
-    axis_forward="-Z",
-    axis_up="Y",
-    path_mode="COPY",
-    embed_textures=True,
-)
+# Blender's FBX exporter changes properties between major versions.
+# Filter optional settings against the installed operator instead of assuming
+# that legacy properties such as use_selection still exist.
+export_options = {
+    "filepath": str(FBX_PATH),
+    "use_selection": True,
+    "object_types": {"ARMATURE", "MESH"},
+    "add_leaf_bones": False,
+    "apply_scale_options": "FBX_SCALE_ALL",
+    "bake_anim": True,
+    "bake_anim_use_all_actions": True,
+    "bake_anim_simplify_factor": 0.0,
+    "axis_forward": "-Z",
+    "axis_up": "Y",
+    "path_mode": "COPY",
+    "embed_textures": True,
+}
+export_properties = bpy.ops.export_scene.fbx.get_rna_type().properties
+supported_options = {key: value for key, value in export_options.items() if key in export_properties}
+if "filepath" not in supported_options:
+    raise RuntimeError("Installed FBX exporter does not expose the required filepath option")
+result = bpy.ops.export_scene.fbx(**supported_options)
+if "FINISHED" not in result:
+    raise RuntimeError(f"FBX exporter did not finish successfully: {result}")
+if not FBX_PATH.is_file() or FBX_PATH.stat().st_size < 10_000:
+    raise RuntimeError("FBX exporter reported success but produced no valid-sized output")
+
+print(f"[PetKingdoms] FBX exporter options: {sorted(supported_options)}")
 print(f"[PetKingdoms] Saved Blender source: {BLEND_PATH}")
 print(f"[PetKingdoms] Exported rigged FBX: {FBX_PATH}")
 print(f"[PetKingdoms] Mesh objects: {len(mesh_objects)}; actions: {[a.name for a in actions]}")
