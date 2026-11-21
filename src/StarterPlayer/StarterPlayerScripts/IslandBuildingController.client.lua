@@ -369,6 +369,9 @@ local function updatePreview(screenPosition: Vector2)
 	if player.Character then
 		table.insert(excluded, player.Character)
 	end
+	if movingInstanceId ~= nil and selectedBuildingModel ~= nil then
+		table.insert(excluded, selectedBuildingModel)
+	end
 	params.FilterDescendantsInstances = excluded
 	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
 	if result == nil or result.Instance ~= top then
@@ -522,7 +525,9 @@ confirmButton.Activated:Connect(function()
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		setStatus(if movingInstanceId ~= nil then "Постройка перемещена!" elseif selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
+		local wasMoving = movingInstanceId ~= nil
+		setStatus(if wasMoving then "Постройка перемещена!" elseif selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
+		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
