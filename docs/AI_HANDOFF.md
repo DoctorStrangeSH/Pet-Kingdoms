@@ -27,6 +27,8 @@ Read these files first:
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
+DataStore fencing contract: after MemoryStore lease acquisition, call `IslandStore.claimSession(profile)` and use only the returned profile. It increments `sessionGeneration` atomically in the same player key. Every save must preserve that generation; `IslandStore.save` checks it inside the same UpdateAsync transform as the write. Never bypass `claimSession` for a live session.
+
 ## Current verified state
 
 - [x] README and project overview committed.
@@ -44,6 +46,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Studio-only IslandData smoke-test script committed.
 - [x] Revision-aware IslandStore DataStore adapter committed.
 - [x] IslandStore input-contract smoke test committed.
+- [x] DataStore session-generation fencing implemented; Studio integration scenario committed (execution pending).
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
 - [x] Per-player save serialization and deep snapshot cloning committed.
