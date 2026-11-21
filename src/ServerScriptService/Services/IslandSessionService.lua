@@ -75,6 +75,10 @@ local function saveSession(userId: number, session: Session): boolean
 		session.saveFinished.Event:Wait()
 	end
 
+	if not session.leaseValid then
+		warn(string.format("[PetKingdoms] Refusing save without a valid island lease for %d", userId))
+		return false
+	end
 	if not session.dirty then
 		return true
 	end
