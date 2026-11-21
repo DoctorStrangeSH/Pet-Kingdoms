@@ -1,17 +1,21 @@
 --!strict
--- Reviewed third-party asset references used by the production pet art pipeline.
--- Replace a catalog entry only after checking source, license, visual quality, and Studio import.
+-- Project-owned pet mesh catalog. Asset IDs stay unset until the matching source mesh
+-- is imported and published from this experience in Roblox Studio.
 local PetAssetCatalog = {
 	bunny = {
-		assetId = 92070521355583,
-		creator = "@letscreate19",
-		sourceUrl = "https://create.roblox.com/store/asset/92070521355583/Bunny",
-		license = "Free Creator Store model; creator-published asset. Verify current permissions before publishing.",
-		triangleCount = 3050,
-		meshPartCount = 5,
-		assetKind = "MeshPart-based Model",
-		visualReview = "PENDING_IN_STUDIO",
+		assetId = nil,
+		sourcePath = "assets/pets/bunny/bunny.obj",
+		sourceMaterialPath = "assets/pets/bunny/bunny.mtl",
+		creator = "Pet Kingdoms original asset",
+		license = "Project-created original mesh",
+		vertexCount = 15332,
+		triangleCount = 30194,
+		meshObjectCount = 13,
+		materialCount = 9,
+		assetKind = "Original triangulated OBJ mesh",
+		visualReview = "PENDING_ROBLOX_STUDIO_IMPORT",
 		rigStatus = "STATIC_MESH_REQUIRES_RIG",
+		status = "SOURCE_MESH_COMMITTED_ASSET_ID_PENDING",
 	},
 }
 
