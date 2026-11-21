@@ -64,6 +64,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 
 	local key = makeKey(profile.ownerUserId)
 	local seed = table.clone(profile)
+	-- Claim only if the generation observed during load is still current.
+	-- This prevents a delayed loader from superseding a newer session.
+	local expectedGeneration = seed.sessionGeneration or 0
 	local claimed = false
 	local ok, result = retry(function()
 		claimed = false
@@ -79,7 +82,10 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 			end
 
 			local currentGeneration = nextProfile.sessionGeneration or 0
-			if type(currentGeneration) ~= "number" or currentGeneration < 0
+			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
+				return current
+			end
+			if currentGeneration < 0
 				or currentGeneration ~= math.floor(currentGeneration)
 				or currentGeneration >= 2_000_000_000
 			then
