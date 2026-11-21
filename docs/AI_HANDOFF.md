@@ -40,6 +40,9 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Studio-only GridMath smoke-test script committed.
 - [x] Versioned island profile schema/validation module committed.
 - [x] Studio-only IslandData smoke-test script committed.
+- [x] Revision-aware IslandStore DataStore adapter committed.
+- [x] IslandStore input-contract smoke test committed.
+- [x] Island persistence contract documented.
 - [x] Placement validation test plan documented.
 - [x] Build/live-sync instructions documented.
 - [ ] Rojo build executed and verified.
@@ -47,7 +50,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Roblox Studio place file created and verified.
 - [ ] Owner reviewed the selected hybrid Rojo + Studio workflow.
 - [ ] Placement validator and GridMath smoke tests executed in Roblox Studio.
-- [ ] DataStore-backed island persistence implemented.
+- [ ] IslandStore tested against a live Roblox DataStore in Studio.
+- [ ] Player lifecycle integration for island load/save implemented.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -72,11 +76,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Open the generated place in Roblox Studio and verify the project tree.
 3. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
-4. Define and implement DataStore persistence with retries, schema migration, and safe failure behavior.
-5. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
-6. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
-7. Add save/load recovery tests after persistence behavior is implemented.
-8. Update ROADMAP and this handoff after each verified milestone.
+4. Review `docs/game-systems/ISLAND_PERSISTENCE.md`; test the adapter in a dedicated Studio test universe with API access enabled.
+5. Implement per-player session ownership and PlayerAdded/PlayerRemoving/BindToClose lifecycle only after authoritative island bounds/defaults are confirmed.
+6. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+7. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+8. Add save/load recovery tests after persistence behavior is implemented.
+9. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
