@@ -6,13 +6,16 @@
 
 - [x] Create project README and central specification.
 - [x] Create a single source-of-truth roadmap.
-- [ ] Confirm the intended Roblox development workflow (Rojo / Studio / hybrid).
-- [ ] Add project structure and a repeatable local validation workflow.
+- [x] Confirm the intended Roblox development workflow: hybrid Rojo + VS Code + Roblox Studio.
+- [x] Add the initial Rojo project mapping and source folder structure.
+- [x] Document the local build/live-sync workflow.
+- [ ] Run a real Rojo build and record the result.
 - [ ] Add CI checks appropriate to the chosen workflow.
 
 ## Stage 1 — Pet Art Pipeline
 
-- [ ] Lock the visual style guide and technical asset standards.
+- [x] Document the visual style guide and technical asset standards in ART_BIBLE.md.
+- [ ] Review and formally approve the art bible against the full original specification.
 - [ ] Create the first original pet model and animation pipeline.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
@@ -28,6 +31,8 @@
 - [ ] Validate navigation, readability, performance, and exploration flow.
 
 ## Stage 3 — Starter Island, building, and Kingdom Bond
+
+- [x] Document the MVP building-system design and server-authority requirements.
 
 - [ ] Implement persistent personal home islands.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
@@ -65,4 +70,4 @@
 
 ## Current status
 
-The GitHub repository was empty when inspected on 2026-11-21. The files in Stage 0 are the first committed project records; no game implementation is claimed as complete yet.
+The GitHub repository was empty when first inspected on 2026-11-21. Documentation, the initial Rojo mapping, and a pure grid-math utility are now committed. The grid utility has not yet been built or tested in Roblox Studio; no complete gameplay feature or production asset is claimed as complete.
