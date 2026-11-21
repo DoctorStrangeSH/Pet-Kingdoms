@@ -61,7 +61,11 @@ local function failure(code: string): ValidationResult
 end
 
 local function isInteger(value: any): boolean
-	return type(value) == "number" and value == math.floor(value)
+	return type(value) == "number"
+		and value == value
+		and value ~= math.huge
+		and value ~= -math.huge
+		and value == math.floor(value)
 end
 
 local function isValidDefinition(definition: any): boolean
@@ -72,6 +76,7 @@ local function isValidDefinition(definition: any): boolean
 		and definition.footprintWidth > 0
 		and definition.footprintDepth > 0
 		and type(definition.allowedRotations) == "table"
+		and type(definition.defaultUnlocked) == "boolean"
 end
 
 local function findBuilding(buildings: { ExistingBuilding }, instanceId: string): ExistingBuilding?
@@ -100,6 +105,7 @@ function PlacementValidator.validate(
 		or island.boundsWidth <= 0
 		or island.boundsDepth <= 0
 		or type(island.buildings) ~= "table"
+		or (island.unlockedBuildingIds ~= nil and type(island.unlockedBuildingIds) ~= "table")
 	then
 		return failure("INVALID_OR_UNOWNED_ISLAND")
 	end
@@ -118,9 +124,8 @@ function PlacementValidator.validate(
 		return failure("UNKNOWN_BUILDING")
 	end
 
-	if island.unlockedBuildingIds ~= nil
-		and island.unlockedBuildingIds[request.catalogId] == false
-		and not definition.defaultUnlocked
+	if definition.defaultUnlocked ~= true
+		and (island.unlockedBuildingIds == nil or island.unlockedBuildingIds[request.catalogId] ~= true)
 	then
 		return failure("BUILDING_LOCKED")
 	end
@@ -197,6 +202,9 @@ function PlacementValidator.validate(
 				width = existingWidth,
 				depth = existingDepth,
 			}
+			if not GridMath.isWithinBounds(occupied, island.boundsWidth, island.boundsDepth) then
+				return failure("ISLAND_STATE_INVALID")
+			end
 
 			if GridMath.footprintsOverlap(candidate, occupied) then
 				return failure("FOOTPRINT_OVERLAP")
