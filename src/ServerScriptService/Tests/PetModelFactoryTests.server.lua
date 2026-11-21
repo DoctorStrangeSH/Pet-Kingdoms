@@ -1,0 +1,63 @@
+--!strict
+-- Studio-only smoke tests for the first procedural pet rig prototype.
+
+local RunService = game:GetService("RunService")
+if not RunService:IsStudio() then
+	return
+end
+
+local PetModelFactory = require(game:GetService("ReplicatedStorage")
+	:WaitForChild("Shared")
+	:WaitForChild("Pets")
+	:WaitForChild("PetModelFactory"))
+
+local function expect(name: string, condition: boolean)
+	assert(condition, name .. " failed")
+	print("[PetKingdoms Test] PASS:", name)
+end
+
+local bunny, status = PetModelFactory.create("bunny")
+expect("bunny factory returns a model", bunny ~= nil and status == "CREATED")
+assert(bunny ~= nil)
+
+expect("stable species attribute", bunny:GetAttribute("SpeciesId") == "bunny")
+expect("rig version attribute", bunny:GetAttribute("RigVersion") == 1)
+expect("prototype is explicitly marked", bunny:GetAttribute("IsPetRigPrototype") == true)
+expect("root is primary part", bunny.PrimaryPart ~= nil and bunny.PrimaryPart.Name == "HumanoidRootPart")
+expect("animation controller exists", bunny:FindFirstChildOfClass("AnimationController") ~= nil)
+
+local controller = bunny:FindFirstChildOfClass("AnimationController")
+expect("animator exists", controller ~= nil and controller:FindFirstChildOfClass("Animator") ~= nil)
+expect("follow attachment exists", bunny.PrimaryPart ~= nil and bunny.PrimaryPart:FindFirstChild("FollowAttachment") ~= nil)
+expect("ground attachment exists", bunny.PrimaryPart ~= nil and bunny.PrimaryPart:FindFirstChild("GroundContact") ~= nil)
+
+local motorCount = 0
+local allPartsSafe = true
+for _, descendant in ipairs(bunny:GetDescendants()) do
+	if descendant:IsA("Motor6D") then
+		motorCount += 1
+	elseif descendant:IsA("BasePart") then
+		if descendant.Anchored or descendant.CanCollide or descendant.CanTouch or not descendant.Massless then
+			allPartsSafe = false
+		end
+	end
+end
+
+expect("bunny has a complete 17-joint prototype rig", motorCount == 17)
+expect("all visual parts are non-colliding and massless", allPartsSafe)
+
+local scaledBunny, scaledStatus = PetModelFactory.create("bunny", 1.5)
+expect("valid scale accepted", scaledBunny ~= nil and scaledStatus == "CREATED")
+if scaledBunny then
+	expect("scale is recorded", scaledBunny:GetAttribute("Scale") == 1.5)
+	scaledBunny:Destroy()
+end
+
+local unknown, unknownStatus = PetModelFactory.create("unknown_pet")
+expect("unknown species rejected", unknown == nil and unknownStatus == "UNKNOWN_SPECIES")
+
+local invalid, invalidStatus = PetModelFactory.create("bunny", 0)
+expect("zero scale rejected", invalid == nil and invalidStatus == "INVALID_SCALE")
+
+bunny:Destroy()
+print("[PetKingdoms Test] PetModelFactory smoke tests completed.")
