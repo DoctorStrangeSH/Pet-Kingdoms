@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local services = script.Parent
 local IslandData = require(services:WaitForChild("IslandData"))
 local IslandStore = require(services:WaitForChild("IslandStore"))
+local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
 
 local IslandSessionService = {}
 
@@ -21,6 +22,8 @@ type Session = {
 	saving: boolean,
 	saveFinished: BindableEvent,
 	closing: boolean,
+	leaseToken: string,
+	leaseValid: boolean,
 }
 
 local sessions: { [number]: Session } = {}
@@ -46,7 +49,7 @@ end
 
 function IslandSessionService.markDirty(userId: number): boolean
 	local session = sessions[userId]
-	if session == nil or shuttingDown or session.closing then
+	if session == nil or shuttingDown or session.closing or not session.leaseValid then
 		return false
 	end
 
@@ -102,9 +105,26 @@ local function loadPlayer(player: Player)
 	end
 	loading[userId] = true
 
+	local leaseToken = IslandLeaseService.newToken()
+	local leaseAcquired, leaseStatus = IslandLeaseService.acquire(userId, leaseToken)
+	if not leaseAcquired then
+		loading[userId] = nil
+		warn(string.format("[PetKingdoms] Could not acquire island lease for %s: %s", player.Name, leaseStatus))
+		player:Kick("Ваш остров уже загружается на другом сервере. Пожалуйста, попробуйте позже.")
+		return
+	end
+
+	local function releaseLoadingLease()
+		local released, releaseCode = IslandLeaseService.release(userId, leaseToken)
+		if not released then
+			warn(string.format("[PetKingdoms] Could not release loading lease for %d: %s", userId, releaseCode))
+		end
+	end
+
 	local ok, profile, status = IslandStore.load(userId)
 	if not ok then
 		loading[userId] = nil
+		releaseLoadingLease()
 		warn(string.format("[PetKingdoms] Refusing island session for %s: %s", player.Name, status))
 		player:Kick("Не удалось загрузить остров. Пожалуйста, попробуйте войти позже.")
 		return
@@ -114,6 +134,7 @@ local function loadPlayer(player: Player)
 		local width, depth = getConfiguredBounds()
 		if width == nil or depth == nil then
 			loading[userId] = nil
+			releaseLoadingLease()
 			warn("[PetKingdoms] IslandGridWidth/IslandGridDepth Workspace attributes are missing; refusing to create an island profile.")
 			player:Kick("Мир временно недоступен. Пожалуйста, попробуйте позже.")
 			return
@@ -122,6 +143,7 @@ local function loadPlayer(player: Player)
 		profile = IslandData.create(userId, width, depth)
 		if profile == nil then
 			loading[userId] = nil
+			releaseLoadingLease()
 			player:Kick("Не удалось создать остров. Пожалуйста, попробуйте позже.")
 			return
 		end
@@ -129,6 +151,7 @@ local function loadPlayer(player: Player)
 		local saved, saveCode = IslandStore.save(profile)
 		if not saved then
 			loading[userId] = nil
+			releaseLoadingLease()
 			warn(string.format("[PetKingdoms] Initial island profile save failed for %s: %s", player.Name, saveCode))
 			player:Kick("Не удалось сохранить новый остров. Пожалуйста, попробуйте позже.")
 			return
@@ -137,6 +160,7 @@ local function loadPlayer(player: Player)
 
 	if player.Parent ~= Players then
 		loading[userId] = nil
+		releaseLoadingLease()
 		return
 	end
 
@@ -146,8 +170,30 @@ local function loadPlayer(player: Player)
 		saving = false,
 		saveFinished = Instance.new("BindableEvent"),
 		closing = false,
+		leaseToken = leaseToken,
+		leaseValid = true,
 	}
 	loading[userId] = nil
+	task.spawn(function()
+		while sessions[userId] ~= nil and not shuttingDown do
+			task.wait(IslandLeaseService.RENEWAL_WINDOW_SECONDS)
+			local activeSession = sessions[userId]
+			if activeSession == nil or activeSession.leaseToken ~= leaseToken then
+				break
+			end
+			local renewed, renewCode = IslandLeaseService.renew(userId, leaseToken)
+			if not renewed then
+				activeSession.leaseValid = false
+				activeSession.closing = true
+				warn(string.format("[PetKingdoms] Island lease lost for %d: %s", userId, renewCode))
+				local currentPlayer = Players:GetPlayerByUserId(userId)
+				if currentPlayer then
+					currentPlayer:Kick("Потеряно подключение к острову. Пожалуйста, войдите снова.")
+				end
+				break
+			end
+		end
+	end)
 	print(string.format("[PetKingdoms] Island profile ready for %s", player.Name))
 end
 
@@ -159,6 +205,11 @@ local function removePlayer(player: Player)
 		local saved = saveSession(userId, session)
 		if not saved then
 			warn(string.format("[PetKingdoms] Final save failed; retaining session until server shutdown for %d", userId))
+			return
+		end
+		local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
+		if not released then
+			warn(string.format("[PetKingdoms] Island lease release failed for %d: %s", userId, releaseCode))
 			return
 		end
 		sessions[userId] = nil
