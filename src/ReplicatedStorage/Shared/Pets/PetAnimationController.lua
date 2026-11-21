@@ -4,7 +4,7 @@
 local PetAnimationController = {}
 PetAnimationController.__index = PetAnimationController
 
-export type PetState = "idle" | "walk" | "run" | "happy" | "curious" | "alert" | "combat"
+export type PetState = "idle" | "walk" | "run" | "happy" | "curious" | "sniff" | "alert" | "combat"
 
 export type Controller = {
 	model: Model,
@@ -23,6 +23,7 @@ local VALID_STATES: { [string]: boolean } = {
 	run = true,
 	happy = true,
 	curious = true,
+	sniff = true,
 	alert = true,
 	combat = true,
 }
@@ -140,6 +141,15 @@ function PetAnimationController.update(self: Controller, dt: number)
 		put(self.motors, "Head_EarLeft", CFrame.Angles(0, 0, 0.32 + math.sin(t * 2) * 0.04))
 		put(self.motors, "Head_EarRight", CFrame.Angles(0, 0, -0.08))
 		put(self.motors, "Body_Tail", CFrame.Angles(0, math.sin(t * 1.5) * 0.08, 0))
+	elseif self.state == "sniff" then
+		-- Bunny lowers its nose to inspect a nearby scent, then gently flicks its tail.
+		local sniffPulse = math.sin(t * 5.5)
+		put(self.motors, "Root_Body", CFrame.new(0, -0.035 + math.abs(sniffPulse) * 0.018, 0)
+			* CFrame.Angles(0.045, 0, 0))
+		put(self.motors, "Body_Head", CFrame.Angles(0.24 + sniffPulse * 0.035, 0, 0))
+		put(self.motors, "Head_EarLeft", CFrame.Angles(0.04, 0, -0.12 + sniffPulse * 0.035))
+		put(self.motors, "Head_EarRight", CFrame.Angles(0.04, 0, 0.1 - sniffPulse * 0.03))
+		put(self.motors, "Body_Tail", CFrame.Angles(0, math.sin(t * 7) * 0.16, 0))
 	elseif self.state == "alert" then
 		put(self.motors, "Body_Head", CFrame.Angles(-0.12, 0, 0))
 		put(self.motors, "Head_EarLeft", CFrame.Angles(-0.08, 0, -0.28))
