@@ -1,6 +1,6 @@
 # Pet Art Pipeline — Bunny Rig Prototype
 
-> Status: first procedural Bunny rig factory and Studio smoke test are committed. This is a technical blockout rig, not production pet art. Studio execution and visual approval are pending.
+ > Status: procedural Bunny runtime prototype and separate original Blender mesh pipeline both exist. Blender 4.2.0 generated and structurally validated a rigged `.blend` + `.fbx`; visual review and Roblox Studio import are still pending.
 
 ## Scope
 
@@ -22,6 +22,14 @@ Source:
 - `src/ServerScriptService/Tests/PetModelFactoryTests.server.lua`
 - `src/ServerScriptService/Tests/PetAnimationControllerTests.server.lua`
 - `src/StarterPlayer/StarterPlayerScripts/Tests/CompanionFollowControllerTests.client.lua`
+
+## Two Bunny implementations — do not confuse them
+
+The current Roblox runtime prototype is `PetModelFactory.lua`: it builds a Part-based blockout with Motor6D joints for controller testing. It is not the original sculpted Blender mesh and is not approved production art.
+
+The separate project-owned sculpted mesh lives in `assets/pets/bunny/`. Blender 4.2.0 CI generated `bunny_rigged.blend` and `bunny_rigged.fbx`; a validator reopened the `.blend` and checked the 10-bone armature, body skin modifier/vertex groups, and four named action curves. These checks do not inspect rendered appearance, deformation quality, or Roblox import compatibility.
+
+`PetAssetCatalog.bunny.assetId` is intentionally nil. Therefore `PetAssetLoader.create("bunny")` returns `ASSET_NOT_CONFIGURED`; the sculpted mesh is not yet spawned in the game. Next integration gate: import FBX in Roblox Studio, inspect the imported rig/materials, publish the model and animation assets, add IDs to the catalog, adapt runtime loading/animation binding, and verify in a real play session. Until that passes, keep the procedural factory clearly labeled as a prototype.
 
 ## Pet collection backend prototype
 
