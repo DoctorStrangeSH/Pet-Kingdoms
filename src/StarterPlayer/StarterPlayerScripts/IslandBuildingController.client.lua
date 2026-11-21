@@ -24,6 +24,7 @@ local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local currentValid = false
 local lastMessage = ""
+local pointerPosition = UserInputService:GetMouseLocation()
 
 local COLORS = {
 	panel = Color3.fromRGB(35, 31, 59),
@@ -170,40 +171,17 @@ local function createPreview()
 		return
 	end
 
-	local previewFolder = ReplicatedStorage:FindFirstChild("BuildingPreviews")
-	local template = previewFolder and previewFolder:FindFirstChild(CATALOG_ID)
-	if template and template:IsA("Model") then
-		local clone = template:Clone()
-		clone.Name = "LocalBuildingPreview"
-		for _, descendant in ipairs(clone:GetDescendants()) do
-			if descendant:IsA("BasePart") then
-				descendant.Anchored = true
-				descendant.CanCollide = false
-				descendant.CanTouch = false
-				descendant.CanQuery = false
-				descendant.Transparency = math.max(descendant.Transparency, 0.45)
-			end
-		end
-		clone.Parent = Workspace
-		local primary = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart", true)
-		if primary then
-			currentPreview = primary
-			currentPreview:SetAttribute("PreviewModel", true)
-			currentPreview.Parent = clone
-		end
-	else
-		local part = Instance.new("Part")
-		part.Name = "LocalBuildingPreview"
-		part.Size = Vector3.new(BUILDING_WIDTH * cellSize, 5, BUILDING_DEPTH * cellSize)
-		part.Anchored = true
-		part.CanCollide = false
-		part.CanTouch = false
-		part.CanQuery = false
-		part.Material = Enum.Material.ForceField
-		part.Transparency = 0.45
-		part.Parent = Workspace
-		currentPreview = part
-	end
+	local part = Instance.new("Part")
+	part.Name = "LocalBuildingPreview"
+	part.Size = Vector3.new(BUILDING_WIDTH * cellSize, 5, BUILDING_DEPTH * cellSize)
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = false
+	part.Material = Enum.Material.ForceField
+	part.Transparency = 0.45
+	part.Parent = Workspace
+	currentPreview = part
 end
 
 local function getIslandGrid(): (BasePart?, number?, number?, number?)
@@ -342,16 +320,24 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch
 	then
-		local point = if input.UserInputType == Enum.UserInputType.Touch
+		pointerPosition = if input.UserInputType == Enum.UserInputType.Touch
 			then Vector2.new(input.Position.X, input.Position.Y)
 			else UserInputService:GetMouseLocation()
-		updatePreview(point)
+		updatePreview(pointerPosition)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		pointerPosition = UserInputService:GetMouseLocation()
+	elseif input.UserInputType == Enum.UserInputType.Touch then
+		pointerPosition = Vector2.new(input.Position.X, input.Position.Y)
 	end
 end)
 
 RunService.RenderStepped:Connect(function()
 	if placing then
-		updatePreview(UserInputService:GetMouseLocation())
+		updatePreview(pointerPosition)
 	end
 end)
 
