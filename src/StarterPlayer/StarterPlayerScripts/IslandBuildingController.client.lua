@@ -28,6 +28,7 @@ local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
+local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 
@@ -168,11 +169,27 @@ local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТО�
 local setStatus: (string, boolean?) -> ()
 local findOwnIsland: () -> Model?
 
+local moveButton = make("TextButton", {
+	Name = "MoveSelected",
+	AnchorPoint = Vector2.new(0, 0),
+	Position = UDim2.new(0, 22, 0, 24),
+	Size = UDim2.fromOffset(128, 46),
+	BackgroundColor3 = Color3.fromRGB(65, 112, 153),
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "↔  ПЕРЕНЕСТИ",
+	TextColor3 = COLORS.text,
+	TextSize = 12,
+	Visible = false,
+}, gui) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 13) }, moveButton)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, moveButton)
+
 local demolishButton = make("TextButton", {
 	Name = "DemolishSelected",
 	AnchorPoint = Vector2.new(0, 0),
-	Position = UDim2.new(0, 22, 0, 24),
-	Size = UDim2.fromOffset(190, 46),
+	Position = UDim2.new(0, 160, 0, 24),
+	Size = UDim2.fromOffset(180, 46),
 	BackgroundColor3 = Color3.fromRGB(139, 67, 76),
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
@@ -202,6 +219,7 @@ end
 local function selectBuilding(model: Model?)
 	selectedBuildingModel = model
 	demolitionArmed = false
+	moveButton.Visible = model ~= nil
 	demolishButton.Visible = model ~= nil
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	if model then
@@ -404,18 +422,64 @@ end)
 petHouseButton.Activated:Connect(function()
 	setSelectedBuilding("pet_house")
 end)
+local function beginMoveSelected()
+	local model = selectedBuildingModel
+	if model == nil or model.Parent == nil then
+		setStatus("Сначала выбери свою постройку", false)
+		return
+	end
+	local instanceId = model:GetAttribute("BuildingInstanceId")
+	local catalogId = model:GetAttribute("BuildingCatalogId")
+	local savedRotation = model:GetAttribute("GridRotation")
+	if type(instanceId) ~= "string" or type(catalogId) ~= "string" or BUILDING_SIZES[catalogId] == nil then
+		setStatus("Не удалось прочитать данные постройки", false)
+		return
+	end
+	movingInstanceId = instanceId
+	setSelectedBuilding(catalogId)
+	rotation = if type(savedRotation) == "number" then savedRotation else 0
+	placing = true
+	panel.Visible = true
+	moveButton.Visible = false
+	demolishButton.Visible = false
+	mainHouseButton.Active = false
+	petHouseButton.Active = false
+	confirmButton.Text = "СОХРАНИТЬ"
+	createPreview()
+	if currentPreview == nil then
+		placing = false
+		movingInstanceId = nil
+		panel.Visible = false
+		return
+	end
+	setStatus("Выбери новое место для постройки")
+end
+
+moveButton.Activated:Connect(beginMoveSelected)
+
 
 local function stopPlacing()
 	placing = false
+	movingInstanceId = nil
 	panel.Visible = false
 	clearPreview()
+	mainHouseButton.Active = true
+	petHouseButton.Active = true
+	confirmButton.Text = "ПОСТРОИТЬ"
+	if selectedBuildingModel and selectedBuildingModel.Parent then
+		moveButton.Visible = true
+		demolishButton.Visible = true
+	end
 end
 
 local function beginPlacing()
+	movingInstanceId = nil
 	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
 	placing = true
 	panel.Visible = true
+	moveButton.Visible = false
+	demolishButton.Visible = false
 	createPreview()
 	if currentPreview == nil then
 		placing = false
@@ -446,6 +510,7 @@ confirmButton.Activated:Connect(function()
 			x = currentCellX,
 			z = currentCellZ,
 			rotation = rotation,
+			movingInstanceId = movingInstanceId,
 		})
 	end)
 	confirmButton.Active = true
@@ -455,7 +520,7 @@ confirmButton.Activated:Connect(function()
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		setStatus(if selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
+		setStatus(if movingInstanceId ~= nil then "Постройка перемещена!" elseif selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
 		stopPlacing()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
@@ -465,8 +530,8 @@ end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
-	if not placing and input.UserInputType == Enum.UserInputType.MouseButton1 then
-		local mousePosition = UserInputService:GetMouseLocation()
+	if not placing and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+		local mousePosition = if input.UserInputType == Enum.UserInputType.Touch then Vector2.new(input.Position.X, input.Position.Y) else UserInputService:GetMouseLocation()
 		local ray = camera:ScreenPointToRay(mousePosition.X, mousePosition.Y)
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
