@@ -6,7 +6,7 @@
 
 - Store: `PetKingdoms_Islands_v1`
 - Key: `player_<UserId>`
-- Payload: compact versioned island profile from `IslandData.lua`
+- Payload: compact versioned island profile from `IslandData.lua`, including the persistent `resources` wallet (Wood/Stone/Gold/Gems)
 - No Roblox Instances, CFrames, client-supplied prices, or model contents are persisted.
 
 ## API
@@ -53,6 +53,10 @@ Before integration:
 - Unknown IDs in `unlockedBuildingIds` are rejected instead of silently accepted.
 - Studio tests cover sparse/dictionary building collections and over-limit profiles. These tests are committed but not yet executed in Studio.
 
+
+## Resource wallet migration
+
+Existing schema-v1 records without a `resources` field remain valid. `IslandStore.load` supplies the provisional starter wallet in memory; `claimSession` writes it into the profile as part of the atomic session-generation claim. Save snapshots clone the wallet table. See `ISLAND_RESOURCE_WALLET.md` for the server-only grant/spend API and outstanding gathering/economy work.
 
 ## DataStore-side session fencing
 
