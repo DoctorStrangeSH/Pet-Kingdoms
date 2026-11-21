@@ -20,6 +20,12 @@ Expected structural signals:
 - Record bounding box, pivot, mesh count, and bone hierarchy.
 - AnimationController/Animator may not be created by FBX import; their absence is not a failed mesh import. Runtime setup must add them deliberately.
 
+## Latest actual Roblox Studio report (2026-11-21)
+
+Model: `Workspace.bunny_rigged`. 108 descendants; 13 MeshParts; 7 Bones; 13 Motor6D; 1 AnimationController; 0 Animator; 0 Humanoid; 0 scripts/modules; 0 anchored and 14 unanchored BaseParts; bounds 2 x 3.12 x 1.16 studs. All 13 MeshParts report `Enum.Material.Plastic`.
+
+**Result:** structural checks passed, but Roblox import does not match the Blender 10-bone expectation (the two ear bones are absent from the reported hierarchy), and the model's appearance was rejected by the owner. Do not publish or integrate as production pet. Visual polish is explicitly deferred; investigate rig import parity separately.
+
 ## Visual and animation acceptance
 - [ ] Overall silhouette matches the Green Valley woodland explorer direction.
 - [ ] Warm ivory coat, expressive dark eyes, rose inner ears, sage leaf mantle, and acorn charm are present and legible.
