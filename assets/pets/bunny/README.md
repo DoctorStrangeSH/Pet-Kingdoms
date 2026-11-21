@@ -24,6 +24,10 @@ This is a first custom mesh draft, not yet accepted production art. The geometry
 
 A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions and will generate `bunny_rigged.blend` and `bunny_rigged.fbx` when run in Blender 4.2+. The script has not yet been executed, so these output files are not present yet and no rig/animation quality is claimed.
 
+## Automated source validation
+
+GitHub Actions workflow `Pet asset source validation` now runs `validate_bunny_source.py` and Python syntax compilation for the Blender script on relevant changes. Latest run passed: [run #1](https://github.com/DoctorStrangeSH/Pet-Kingdoms/actions/runs/44912586099). This validates OBJ/MTL structure and Python syntax only; it does not execute Blender or approve the model visually.
+
 ## Required next steps
 1. Import `bunny.obj` using Roblox Studio 3D Importer with `bunny.mtl` alongside it.
 2. Check orientation, pivot, shading, material assignment, silhouette, and scale.
