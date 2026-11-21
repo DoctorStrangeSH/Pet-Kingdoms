@@ -153,6 +153,28 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 			CFrame.new(0, unit * 0.15, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
 		makePart(model, "Sign", Vector3.new(width * 0.38, unit * 0.13, 0.12),
 			CFrame.new(0, unit * 0.82, -depth * 0.37), Color3.fromRGB(255, 218, 137), Enum.Material.SmoothPlastic)
+	elseif catalogId == "stone_path" then
+		local slab = makePart(model, "StoneSlab", Vector3.new(width * 0.92, unit * 0.1, depth * 0.92),
+			CFrame.new(0, unit * 0.05, 0), Color3.fromRGB(157, 157, 150), Enum.Material.Slate)
+		slab.TopSurface = Enum.SurfaceType.Smooth
+		makePart(model, "StoneAccent", Vector3.new(width * 0.24, unit * 0.035, depth * 0.16),
+			CFrame.new(-width * 0.18, unit * 0.12, -depth * 0.12), Color3.fromRGB(190, 184, 166), Enum.Material.Rock)
+	elseif catalogId == "garden_lantern" then
+		makePart(model, "Foot", Vector3.new(width * 0.5, unit * 0.08, depth * 0.5),
+			CFrame.new(0, unit * 0.04, 0), Color3.fromRGB(102, 78, 57), Enum.Material.Wood)
+		makePart(model, "Post", Vector3.new(width * 0.12, unit * 0.62, depth * 0.12),
+			CFrame.new(0, unit * 0.36, 0), Color3.fromRGB(111, 77, 48), Enum.Material.Wood)
+		local glow = makePart(model, "LanternGlow", Vector3.new(width * 0.42, unit * 0.28, depth * 0.42),
+			CFrame.new(0, unit * 0.78, 0), Color3.fromRGB(255, 211, 125), Enum.Material.Neon)
+		glow.CanCollide = false
+		local light = Instance.new("PointLight")
+		light.Color = Color3.fromRGB(255, 205, 126)
+		light.Brightness = 0.7
+		light.Range = cellSize * 2.5
+		light.Shadows = false
+		light.Parent = glow
+		makePart(model, "Cap", Vector3.new(width * 0.56, unit * 0.08, depth * 0.56),
+			CFrame.new(0, unit * 0.96, 0), Color3.fromRGB(83, 63, 49), Enum.Material.Wood)
 	else
 		makePart(model, "Foundation", Vector3.new(width, unit * 0.16, depth),
 			CFrame.new(0, unit * 0.08, 0), Color3.fromRGB(119, 91, 72), Enum.Material.WoodPlanks)
