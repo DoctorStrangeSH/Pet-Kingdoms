@@ -22,16 +22,18 @@
 - Validates the complete profile before DataStore access.
 - Uses UpdateAsync.
 - Refuses to overwrite a stored profile whose revision is equal to or newer than the submitted snapshot.
+- Important: the UpdateAsync transform returns the existing value when rejecting a write. Returning `nil` from an UpdateAsync transform cancels the write but the API still returns the current stored value; callers must not use a nil result as the rejection signal.
+- Tracks whether the transform accepted the submitted snapshot and reports `SAVED` only when that write was accepted.
 - Retries transient failures up to four attempts.
 - Returns an explicit result code; callers must not report save success unless the result is successful.
 
 ## Important integration boundary
 
-This adapter is not yet connected to PlayerAdded/PlayerRemoving, BindToClose, island spawning, or a building transaction service. Do not call it as if a full save lifecycle exists.
+The adapter is connected to the server PlayerAdded/PlayerRemoving/autosave/BindToClose profile lifecycle through `IslandSessionService`, but the complete lifecycle has not been verified in Roblox Studio. Island spawning and a building transaction service are not implemented.
 
 Before integration:
 1. Define the authoritative island bounds and initial profile defaults from the approved world layout.
-2. Add a per-player in-memory session owner/lock so two server sessions cannot mutate one profile concurrently.
+2. Add a cross-server session lease/single-writer lock so two server sessions cannot mutate one profile concurrently.
 3. Increment revision on every successful state mutation.
 4. Save on controlled checkpoints and PlayerRemoving; use BindToClose as a best-effort final flush.
 5. Keep the player in a safe loading state if load fails; never create a blank profile over an unavailable/invalid save.
