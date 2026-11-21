@@ -8,7 +8,7 @@ local Workspace = game:GetService("Workspace")
 
 local sharedPets = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets")
 local PetCollectionData = require(sharedPets:WaitForChild("PetCollectionData"))
-local PetModelFactory = require(sharedPets:WaitForChild("PetModelFactory"))
+local PetAssetLoader = require(script.Parent:WaitForChild("PetAssetLoader"))
 
 local PetCollectionService = {}
 local STORE_NAME = "PetKingdoms_PetCollections_v1"
@@ -105,7 +105,7 @@ local function spawnEquippedPets(player: Player)
 			end
 		end
 		if record then
-			local petModel, status = PetModelFactory.create(record.speciesId, 1)
+			local petModel, status = PetAssetLoader.create(record.speciesId, 1)
 			if petModel and status == "CREATED" then
 				petModel.Name = petId
 				petModel:SetAttribute("PetId", petId)
