@@ -29,8 +29,13 @@ assert(seed ~= nil, "synthetic profile should be created")
 local claimAOk, profileA, claimAStatus = IslandStore.claimSession(seed)
 assert(claimAOk, "first session claim failed: " .. claimAStatus)
 
+-- A delayed loader holding the original generation-zero snapshot must not
+-- supersede the first session after its claim has committed.
+local staleClaimOk, _, staleClaimStatus = IslandStore.claimSession(seed)
+assert(not staleClaimOk and staleClaimStatus == "SESSION_CLAIM_REJECTED", "stale loader must not claim over a newer generation")
+
 local claimBOk, profileB, claimBStatus = IslandStore.claimSession(profileA)
-assert(claimBOk, "second session claim failed: " .. claimBStatus)
+assert(claimBOk, "second sequential session claim failed: " .. claimBStatus)
 assert(profileB.sessionGeneration > profileA.sessionGeneration, "new claim must increment generation")
 
 profileA.revision += 1
