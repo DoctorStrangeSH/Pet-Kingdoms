@@ -22,6 +22,7 @@
   - [x] Reject and remove the unsuitable third-party Bunny candidate from the runtime catalog.
   - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
   - [x] Add reproducible Blender Python rig/export script with 10-bone first-pass rig and Idle/Walk/Hop/Happy action definitions (script committed; execution and deformation review pending).
+  - [x] Add GitHub Actions validation for Bunny OBJ/MTL integrity and Blender script Python syntax (latest run passed).
   - [ ] Run Blender script and commit generated .blend + .fbx outputs.
   - [ ] Review skin weights and all four actions in Blender; fix deformations before Roblox import.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
