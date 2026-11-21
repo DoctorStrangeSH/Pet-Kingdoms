@@ -53,8 +53,9 @@ Bunny has a procedural rig, state-pose controller, and client follow controller 
 | Asset group | Status |
 |---|---|
 | Core navigation and HUD | NOT STARTED |
-| Pet collection cards and silhouettes | NOT STARTED |
+| Pet collection cards and silhouettes | CODE-BUILT FIRST-PASS UI; ART POLISH AND STUDIO CHECK PENDING |
 | Pet collection data backend | SERVER MODULE + DATASTORE PROTOTYPE COMMITTED; STUDIO VERIFICATION PENDING |
+| Pet collection UI | RUSSIAN CLIENT UI + SEARCH/PREVIEW/EQUIP CONTROLS COMMITTED; STUDIO/DEVICE CHECK PENDING |
 | Pet details / progression panels | NOT STARTED |
 | Building catalogue and placement controls | NOT STARTED |
 | Quest and reward panels | NOT STARTED |
