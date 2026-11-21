@@ -190,6 +190,10 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 
 		clone.Name = record.catalogId .. "_" .. record.instanceId
 		clone:SetAttribute("BuildingInstanceId", record.instanceId)
+		clone:SetAttribute("BuildingCatalogId", record.catalogId)
+		clone:SetAttribute("GridX", record.x)
+		clone:SetAttribute("GridZ", record.z)
+		clone:SetAttribute("GridRotation", record.rotation)
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
@@ -295,6 +299,10 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 
 	clone.Name = record.catalogId .. "_" .. record.instanceId
 	clone:SetAttribute("BuildingInstanceId", record.instanceId)
+	clone:SetAttribute("BuildingCatalogId", record.catalogId)
+	clone:SetAttribute("GridX", record.x)
+	clone:SetAttribute("GridZ", record.z)
+	clone:SetAttribute("GridRotation", record.rotation)
 	local ok, err = pcall(function()
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
