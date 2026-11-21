@@ -437,7 +437,7 @@ local function updatePreview(screenPosition: Vector2)
 		currentPreview.CFrame = target * CFrame.Angles(0, math.rad(rotation), 0)
 	end
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
-	local message = if not inside then "Дом выходит за границы острова" elseif overlaps then "Это место уже занято другой постройкой" else "Место подходит — можно построить"
+	local message = if not inside then "Объект выходит за границы острова" elseif overlaps then "Это место уже занято другим объектом" else "Место подходит — можно разместить"
 	setStatus(message, valid)
 end
 
@@ -457,7 +457,13 @@ local function setSelectedBuilding(catalogId: string)
 			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, 5, BUILDING_DEPTH * cellSize)
 		end
 	end
-	setStatus(if catalogId == "pet_house" then "Выбран домик питомцев" else "Выбран главный дом")
+	local labels = {
+		main_house = "Выбран главный дом",
+		pet_house = "Выбран домик питомцев",
+		stone_path = "Выбрана каменная дорожка",
+		garden_lantern = "Выбран садовый фонарь",
+	}
+	setStatus(labels[catalogId] or "Выбран объект")
 end
 
 mainHouseButton.Activated:Connect(function()
@@ -505,8 +511,8 @@ local function beginMoveSelected()
 		confirmButton.Text = "ПОСТРОИТЬ"
 		mainHouseButton.Active = true
 		petHouseButton.Active = true
-	stonePathButton.Active = true
-	gardenLanternButton.Active = true
+		stonePathButton.Active = true
+		gardenLanternButton.Active = true
 		moveButton.Visible = true
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
