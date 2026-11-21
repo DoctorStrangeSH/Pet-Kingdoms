@@ -1,0 +1,26 @@
+name: Pet asset source validation
+
+on:
+  push:
+    paths:
+      - "assets/pets/bunny/**"
+      - ".github/workflows/pet-asset-validation.yml"
+  pull_request:
+    paths:
+      - "assets/pets/bunny/**"
+      - ".github/workflows/pet-asset-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-bunny-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate OBJ and MTL
+        run: python assets/pets/bunny/validate_bunny_source.py
+      - name: Check Blender script syntax
+        run: python -m py_compile assets/pets/bunny/build_bunny_rig.py
