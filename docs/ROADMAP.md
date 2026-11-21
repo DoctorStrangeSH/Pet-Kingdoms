@@ -18,7 +18,9 @@
 - [x] Document the visual style guide and technical asset standards in ART_BIBLE.md.
 - [ ] Review and formally approve the art bible against the full original specification.
 - [ ] Create the first original pet model and animation pipeline.
-  - [ ] Bunny procedural rig prototype is committed; run its Studio smoke test and visually inspect before acceptance.
+  - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
+  - [x] Add procedural Bunny state-pose controller for idle, walk, run, happy, curious, alert, and combat; Studio animation smoke test committed (execution pending).
+  - [ ] Wire the controller into the live companion-follow system and verify movement/state transitions in Studio.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
