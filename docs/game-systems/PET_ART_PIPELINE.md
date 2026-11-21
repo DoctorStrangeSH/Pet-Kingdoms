@@ -35,6 +35,8 @@ Source:
 
 `PetCompanionRuntime.client.lua` watches the local player's replicated folder, binds each owned pet model to one `CompanionFollowController`, and cleans up controllers on pet removal and character lifecycle changes. Follow movement is client-side presentation; the server remains authoritative for which pets exist and are equipped. This first integration supports the current Bunny species only. The starter Bunny is granted to every new collection by default. DataStore API access must be enabled in a published test universe for runtime verification.
 
+The Bunny face-detail pass improves expression readability in the procedural blockout, but it is not a sculpted production mesh. All added details are still simple primitive geometry and need a Studio camera-distance/art review.
+
 The factory currently supports:
 - Stable species ID: `bunny`
 - Versioned rig metadata: `RigVersion = 1`
@@ -42,6 +44,7 @@ The factory currently supports:
 - Validated scale input from greater than zero through 3
 - A primary `HumanoidRootPart`
 - Separate body, belly, head, ears, inner ears, eyes, nose, cheeks, four legs, and tail
+- Added eye catchlights, split mouth, forehead tuft, and three whiskers on each cheek using lightweight welded detail parts; the 17-joint animation rig remains unchanged
 - 17 Motor6D joints
 - `AnimationController` and `Animator`
 - `FollowAttachment` and `GroundContact`
