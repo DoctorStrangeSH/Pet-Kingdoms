@@ -60,11 +60,12 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Placement validator and GridMath smoke tests executed in Roblox Studio.
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
 - [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
-- [x] MemoryStore cross-server island lease implementation committed and integrated (Studio/multi-server verification pending).
+- [x] MemoryStore cross-server coordination lease implementation committed and integrated (Studio/multi-server verification pending; not a DataStore fencing guarantee).
 - [x] IslandLeaseService integration smoke test committed (exclusive acquire, owner renew/release, stale token rejection, release/reacquire, invalid type rejection).
 - [x] IslandData rejects unknown building IDs in unlock records.
 - [x] IslandData rejects sparse/dictionary building lists and profiles exceeding the 256-record defensive ceiling; Studio tests committed.
 - [ ] Save concurrency, UpdateAsync rejection, and MemoryStore lease behavior verified in Roblox Studio.
+- [ ] Add DataStore-side fencing/session generation checked atomically in every profile write; test a stale server save after a new session claims ownership.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -93,7 +94,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 5. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
 6. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
 7. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
-8. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` in a dedicated test universe with MemoryStore API access; then test expiry takeover, throttling/outage, and shutdown across two Studio servers.
+8. Review `docs/game-systems/ISLAND_SESSION_LEASE.md`; run `IslandLeaseServiceTests.server.lua` in a dedicated test universe with MemoryStore API access; then implement DataStore-side fencing and test stale server writes, expiry takeover, throttling/outage, and shutdown across two Studio servers.
 9. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 10. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 11. Add save/load recovery tests after persistence behavior is implemented.
