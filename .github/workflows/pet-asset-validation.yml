@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   validate-bunny-source:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,20 +26,33 @@ jobs:
         run: python -m py_compile assets/pets/bunny/build_bunny_rig.py assets/pets/bunny/validate_bunny_blender_output.py
 
   build-bunny-blender:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Blender
+      - name: Install pinned Blender 4.2.0
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes blender
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/blender"
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender4.2/blender-4.2.0-linux-x64.tar.xz \
+            | tar -xJ --strip-components=1 -C "$RUNNER_TEMP/blender"
+          echo "$RUNNER_TEMP/blender" >> "$GITHUB_PATH"
       - name: Report Blender version
-        run: blender --version
+        run: |
+          blender --version
+          blender --background --python-expr "import bpy; assert bpy.app.version >= (4, 2, 0), bpy.app.version_string"
       - name: Build rigged Bunny project and FBX
-        run: blender --background --python-exit-code 1 --python assets/pets/bunny/build_bunny_rig.py
+        run: |
+          set -euo pipefail
+          blender --background --python-exit-code 1 --python assets/pets/bunny/build_bunny_rig.py
+          test -s assets/pets/bunny/bunny_rigged.blend
+          test -s assets/pets/bunny/bunny_rigged.fbx
       - name: Validate generated Blender and FBX files
-        run: blender --background --python-exit-code 1 --python assets/pets/bunny/validate_bunny_blender_output.py
+        run: |
+          set -euo pipefail
+          blender --background --python-exit-code 1 --python assets/pets/bunny/validate_bunny_blender_output.py
+          test -s assets/pets/bunny/bunny_rigged.blend
+          test -s assets/pets/bunny/bunny_rigged.fbx
       - name: Upload rigged Bunny outputs
         uses: actions/upload-artifact@v4
         with:
