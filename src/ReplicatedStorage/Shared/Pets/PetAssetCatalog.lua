@@ -14,8 +14,8 @@ local PetAssetCatalog = {
 		materialCount = 9,
 		assetKind = "Original triangulated OBJ mesh",
 		visualReview = "PENDING_ROBLOX_STUDIO_IMPORT",
-		rigStatus = "STATIC_MESH_REQUIRES_RIG",
-		status = "SOURCE_MESH_COMMITTED_ASSET_ID_PENDING",
+		rigStatus = "BLENDER_BUILD_CI_PENDING",
+		status = "SOURCE_COMMITTED_BLENDER_BUILD_PENDING",
 	},
 }
 
