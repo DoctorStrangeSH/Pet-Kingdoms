@@ -43,7 +43,7 @@
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [ ] Add server transaction handling for resource charging and placement mutation.
-- [ ] Implement DataStore-backed island layout persistence and recovery (schema validation exists; storage integration is not implemented).
+- [ ] Integrate DataStore-backed island persistence into the player/island lifecycle (adapter implemented; lifecycle, Studio verification, and recovery remain).
 - [ ] Implement Kingdom Bond progression and visual island changes.
 - [ ] Make farming and production meaningfully contribute to progression.
 
@@ -75,4 +75,4 @@
 
 ## Current status
 
-The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, versioned island profile creation/validation helpers, and Studio-only smoke-test scripts for placement, grid math, and island profile data. These scripts are committed but have not been executed in Roblox Studio. DataStore persistence, resource charging, end-to-end building gameplay, and production assets are not implemented.
+The repository now contains the documentation baseline, Rojo mapping, grid math, server/client bootstraps, a server-owned starter building catalog, a pure placement validator, versioned island profile creation/validation helpers, a revision-aware DataStore adapter with bounded retries, and Studio-only smoke-test scripts for placement, grid math, island profiles, and store input contracts. These scripts are committed but have not been executed in Roblox Studio. DataStore adapter code is committed but has not been tested against a live Roblox DataStore. Player lifecycle integration, resource charging, end-to-end building gameplay, and production assets are not implemented.
