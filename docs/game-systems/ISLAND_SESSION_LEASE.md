@@ -27,7 +27,7 @@
 
 - A MemoryStore outage can cause a conservative disconnect; this is preferable to allowing two active writers.
 - If a server crashes, the lease expires after its TTL. Reconnect may be blocked until expiry.
-- DataStore-side fencing is now implemented separately from this MemoryStore coordination lease: `IslandStore.claimSession` increments a monotonic generation in the player's DataStore profile, and every save checks that generation inside the same UpdateAsync transform as the write.
+- DataStore-side fencing is implemented separately from this MemoryStore coordination lease: `IslandStore.claimSession` increments a monotonic generation using compare-and-swap against the generation observed during load, and every save checks that generation inside the same UpdateAsync transform as the write. A delayed loader cannot supersede a newer claim, and a stale nonzero-generation loader cannot recreate a missing profile.
 - The MemoryStore token is not itself checked by DataStore; the monotonic DataStore generation is the write fence. A server whose generation has been superseded cannot commit a later profile snapshot.
 - This behavior is covered by a committed Studio integration scenario, but it remains unverified until run against a dedicated test universe with DataStore API access.
 - A network timeout during renewal is treated as lease loss even if the request may have reached MemoryStore. This avoids uncertain writes.
