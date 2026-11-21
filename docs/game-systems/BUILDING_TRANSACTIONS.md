@@ -19,7 +19,7 @@ The server creates `ReplicatedStorage/Remotes/PlaceBuilding` as a RemoteFunction
 
 The server derives the player identity from the invoking Player, reads the active server profile, resolves dimensions/unlocks from BuildingCatalog, and validates with PlacementValidator. Client-provided prices, dimensions, previous coordinates, and ownership are never accepted.
 
-Successful responses contain `ok`, `code`, `instanceId`, `catalogId`, `x`, `z`, and `rotation`. Failures return `ok = false` and a stable error code. Repeated request IDs return the cached result for that player (bounded to 64 recent IDs).
+Successful responses contain `ok`, `code`, `instanceId`, `catalogId`, `x`, `z`, and `rotation`. Failures return `ok = false` and a stable error code. Repeated request IDs return the cached result for that player (bounded to 64 recent IDs) and do not consume another rate-limit token. The remote also uses a per-player token bucket: burst capacity 12 requests, refilling at 4 requests/second. Excess requests fail with `RATE_LIMITED`; bucket state is removed when the player leaves.
 
 ## Transaction behavior
 
