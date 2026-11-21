@@ -121,21 +121,73 @@ local function gridToWorld(spawnCFrame: CFrame, record: any, profile: any, cellS
 	return spawnCFrame * CFrame.new(localX, 0, localZ)
 end
 
-local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
-	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
-	if templates == nil then
-		warn("[PetKingdoms] ServerStorage/BuildingModels is missing; island loads as terrain-only blockout.")
-		return
+local function createFallbackBuilding(catalogId: string, cellSize: number): Model?
+	local definition = BuildingCatalog[catalogId]
+	if definition == nil then
+		return nil
 	end
+	local footprintWidth, footprintDepth = definition.footprintWidth, definition.footprintDepth
+	local width = footprintWidth * cellSize * 0.82
+	local depth = footprintDepth * cellSize * 0.82
+	local unit = cellSize
+	local model = Instance.new("Model")
+	model.Name = "Fallback_" .. catalogId
+	local root = Instance.new("Part")
+	root.Name = "Pivot"
+	root.Size = Vector3.new(0.2, 0.2, 0.2)
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanTouch = false
+	root.CanQuery = false
+	root.CFrame = CFrame.new()
+	root.Parent = model
+	model.PrimaryPart = root
 
+	if catalogId == "pet_house" then
+		makePart(model, "Body", Vector3.new(width * 0.82, unit * 0.48, depth * 0.72),
+			CFrame.new(0, unit * 0.24, 0), Color3.fromRGB(238, 190, 132), Enum.Material.Wood)
+		makePart(model, "Roof", Vector3.new(width, unit * 0.16, depth * 0.9),
+			CFrame.new(0, unit * 0.58, 0), Color3.fromRGB(105, 164, 205), Enum.Material.SmoothPlastic)
+		makePart(model, "Door", Vector3.new(width * 0.22, unit * 0.3, 0.12),
+			CFrame.new(0, unit * 0.15, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
+		makePart(model, "Sign", Vector3.new(width * 0.38, unit * 0.13, 0.12),
+			CFrame.new(0, unit * 0.82, -depth * 0.37), Color3.fromRGB(255, 218, 137), Enum.Material.SmoothPlastic)
+	else
+		makePart(model, "Foundation", Vector3.new(width, unit * 0.16, depth),
+			CFrame.new(0, unit * 0.08, 0), Color3.fromRGB(119, 91, 72), Enum.Material.WoodPlanks)
+		makePart(model, "Walls", Vector3.new(width * 0.9, unit * 0.68, depth * 0.84),
+			CFrame.new(0, unit * 0.5, 0), Color3.fromRGB(246, 218, 169), Enum.Material.SmoothPlastic)
+		makePart(model, "Roof", Vector3.new(width * 1.08, unit * 0.2, depth * 1.02),
+			CFrame.new(0, unit * 0.94, 0), Color3.fromRGB(126, 83, 139), Enum.Material.Slate)
+		makePart(model, "Door", Vector3.new(width * 0.2, unit * 0.42, 0.14),
+			CFrame.new(0, unit * 0.3, -depth * 0.425), Color3.fromRGB(126, 83, 57), Enum.Material.Wood)
+		makePart(model, "Window_Left", Vector3.new(width * 0.16, unit * 0.17, 0.12),
+			CFrame.new(-width * 0.28, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
+		makePart(model, "Window_Right", Vector3.new(width * 0.16, unit * 0.17, 0.12),
+			CFrame.new(width * 0.28, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
+	end
+	model:SetAttribute("IsFallbackBlockout", true)
+	return model
+end
+
+local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
+	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
+	local template = templates and templates:FindFirstChild(catalogId)
+	if template and template:IsA("Model") then
+		return template:Clone()
+	end
+	return createFallbackBuilding(catalogId, cellSize)
+end
+
+local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
 	for _, record in ipairs(profile.buildings) do
-		local template = templates:FindFirstChild(record.catalogId)
-		if template == nil or not template:IsA("Model") then
-			warn(string.format("[PetKingdoms] Missing Model template for building '%s'; record remains saved and is skipped visually.", record.catalogId))
+		local clone = getBuildingTemplate(record.catalogId, cellSize)
+		if clone == nil then
+			warn(string.format("[PetKingdoms] No template or fallback for building '%s'; record remains saved and is skipped visually.", record.catalogId))
 			continue
 		end
 
-		local clone = template:Clone()
 		clone.Name = record.catalogId .. "_" .. record.instanceId
 		clone:SetAttribute("BuildingInstanceId", record.instanceId)
 		clone.Parent = world
@@ -222,12 +274,12 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 	if world == nil then
 		return false, "ISLAND_NOT_LOADED"
 	end
-	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
-	if templates == nil then
-		return false, "BUILDING_TEMPLATES_MISSING"
+	local cellSize = getNumberAttribute("IslandGridCellSize")
+	if cellSize == nil then
+		return false, "MISSING_ISLAND_GRID_CELL_SIZE"
 	end
-	local template = templates:FindFirstChild(record.catalogId)
-	if template == nil or not template:IsA("Model") then
+	local clone = getBuildingTemplate(record.catalogId, cellSize)
+	if clone == nil then
 		return false, "BUILDING_TEMPLATE_NOT_FOUND"
 	end
 	local spawnCFrame = nil
@@ -241,14 +293,8 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 		return false, "ISLAND_SPAWN_REFERENCE_MISSING"
 	end
 
-	local clone = template:Clone()
 	clone.Name = record.catalogId .. "_" .. record.instanceId
 	clone:SetAttribute("BuildingInstanceId", record.instanceId)
-	local cellSize = getNumberAttribute("IslandGridCellSize")
-	if cellSize == nil then
-		clone:Destroy()
-		return false, "MISSING_ISLAND_GRID_CELL_SIZE"
-	end
 	local ok, err = pcall(function()
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
