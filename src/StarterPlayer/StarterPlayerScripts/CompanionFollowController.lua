@@ -104,7 +104,7 @@ function CompanionFollowController.new(
 		sideSpacing = math.clamp(settings.sideSpacing or 2.4, 1.5, 4),
 		smoothing = math.clamp(settings.smoothing or 8, 2, 16),
 		walkSpeed = math.clamp(settings.walkSpeed or 1.5, 0.5, 4),
-		runSpeed = math.clamp(settings.runSpeed or 10, 5, 18),
+		runSpeed = math.clamp(settings.runSpeed or 18, 5, 24),
 		animation = animation,
 		connection = nil,
 		destroyed = false,
