@@ -20,6 +20,10 @@ The unsuitable Creator Store Bunny candidate (asset `92070521355583`) is rejecte
 
 This is a first custom mesh draft, not yet accepted production art. The geometry has not yet been inspected in Roblox Studio and is currently static: no skeleton, skin weights, or animation clips.
 
+## Rigging pipeline
+
+A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions and will generate `bunny_rigged.blend` and `bunny_rigged.fbx` when run in Blender 4.2+. The script has not yet been executed, so these output files are not present yet and no rig/animation quality is claimed.
+
 ## Required next steps
 1. Import `bunny.obj` using Roblox Studio 3D Importer with `bunny.mtl` alongside it.
 2. Check orientation, pivot, shading, material assignment, silhouette, and scale.
