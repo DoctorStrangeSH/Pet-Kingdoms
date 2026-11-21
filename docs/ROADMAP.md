@@ -17,7 +17,12 @@
 
 - [x] Document the visual style guide and technical asset standards in ART_BIBLE.md.
 - [ ] Review and formally approve the art bible against the full original specification.
-- [ ] Create the first original pet model and animation pipeline.
+- [ ] Complete the first original pet model and animation pipeline.
+  - [x] Create and commit original Bunny OBJ/MTL mesh source (15,332 vertices, 30,194 triangles, 13 named mesh objects, 9 material groups).
+  - [x] Reject and remove the unsuitable third-party Bunny candidate from the runtime catalog.
+  - [ ] Import the original Bunny mesh in Studio, publish it to the experience, and set its asset ID.
+  - [ ] Rig the original Bunny mesh and produce the companion animation set.
+  - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
   - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending).
   - [x] Add first expressive face-detail pass to Bunny (eye catchlights, mouth, forehead tuft, six whiskers) and extend the factory smoke test; still prototype geometry, Studio review pending.
   - [x] Add procedural Bunny state-pose controller for idle, walk, run, happy, curious, sniff, alert, and combat; Studio animation smoke test committed (execution pending).
@@ -28,9 +33,9 @@
   - [x] Add first responsive Russian pet collection UI with search, pet preview, equipped count, and server-backed equip/unequip (Studio/device verification pending).
   - [x] Spawn server-authoritative equipped pet Models under `Workspace/PlayerPets/<UserId>` from validated collection data; refresh on equip and recreate on character respawn (Studio verification pending).
   - [x] Add client runtime binding replicated owned pet models to the three-slot follow controller with cleanup on removal/character lifecycle (Studio verification pending).
-  - [x] Add a real Creator Store Bunny MeshPart candidate and server AssetService loader; replace the server's procedural Part-based spawn path with the imported model (Studio verification pending).
-  - [x] Add safe handling for unrigged imported mesh companions and show the actual replicated mesh in the collection preview.
-  - [ ] Enable third-party asset loading in Studio; run the real-mesh smoke test and visually approve scale, orientation, materials, and follow behavior.
+  - [x] Add initial server asset loader and collection preview plumbing (asset ID intentionally unset until project-owned mesh is imported/published).
+  - [x] Add original Bunny OBJ/MTL mesh source and reject the unsuitable Creator Store candidate.
+  - [ ] Import project-owned Bunny OBJ/MTL in Studio, publish it, set its asset ID, then run mesh smoke test and visually approve scale, orientation, materials, and follow behavior.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
