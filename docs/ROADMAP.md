@@ -67,7 +67,10 @@
 - [x] Add backward-compatible migration for existing schema-v1 profiles without a wallet during session claim.
 - [x] Add server-only atomic resource grant/spend API with rollback when a session is not writable.
 - [x] Add pure Studio contract tests for resource validation, grants, and atomic spending (execution pending).
-- [ ] Implement server-owned gathering nodes/rewards and respawn behavior.
+- [x] Spawn two Wood and two Stone gathering nodes on each personal island using server-owned reward values.
+- [x] Add server-authoritative ProximityPrompt gathering with ownership/distance checks, duplicate-trigger protection, wallet grant, and 60-second node respawn (Studio verification pending).
+- [ ] Add inventory HUD/toast and gathering feedback animations.
+- [ ] Verify multiplayer ownership, prompt interactions, respawn, and persistence in Roblox Studio.
 - [ ] Approve economy balance sheet and define building costs/refunds before enabling resource charges in building transactions.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
