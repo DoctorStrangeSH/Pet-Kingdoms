@@ -1,6 +1,6 @@
 --!strict
--- Loads approved real mesh assets from the Roblox Creator Store.
--- Requires Experience Settings > Security > Allow Loading Third Party Assets.
+-- Loads project-owned pet models after they have been imported and published to this experience.
+-- Asset IDs remain unset until the matching original source is approved in Studio.
 local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -33,8 +33,8 @@ function PetAssetLoader.create(speciesId: string, scale: number?): (Model?, stri
 		return AssetService:LoadAssetAsync(entry.assetId)
 	end)
 	if not ok or loaded == nil or not loaded:IsA("Model") then
-		warn("[PetKingdoms] Creator Store pet asset could not be loaded:", speciesId, loaded)
-		return nil, "CREATOR_STORE_LOAD_FAILED"
+		warn("[PetKingdoms] Published project pet asset could not be loaded:", speciesId, loaded)
+		return nil, "PUBLISHED_ASSET_LOAD_FAILED"
 	end
 
 	local model = loaded
