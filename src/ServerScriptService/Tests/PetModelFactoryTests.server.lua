@@ -24,6 +24,7 @@ expect("stable species attribute", bunny:GetAttribute("SpeciesId") == "bunny")
 expect("rig version attribute", bunny:GetAttribute("RigVersion") == 1)
 expect("prototype is explicitly marked", bunny:GetAttribute("IsPetRigPrototype") == true)
 expect("root is primary part", bunny.PrimaryPart ~= nil and bunny.PrimaryPart.Name == "HumanoidRootPart")
+expect("root is anchored for safe PivotTo-driven companion movement", bunny.PrimaryPart ~= nil and bunny.PrimaryPart.Anchored)
 expect("animation controller exists", bunny:FindFirstChildOfClass("AnimationController") ~= nil)
 
 local controller = bunny:FindFirstChildOfClass("AnimationController")
@@ -37,7 +38,7 @@ for _, descendant in ipairs(bunny:GetDescendants()) do
 	if descendant:IsA("Motor6D") then
 		motorCount += 1
 	elseif descendant:IsA("BasePart") then
-		if descendant.Anchored or descendant.CanCollide or descendant.CanTouch or not descendant.Massless then
+		if (descendant ~= bunny.PrimaryPart and descendant.Anchored) or descendant.CanCollide or descendant.CanTouch or not descendant.Massless then
 			allPartsSafe = false
 		end
 	end
