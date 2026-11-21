@@ -16,7 +16,7 @@ local function expect(name: string, condition: boolean)
 	print("[PetKingdoms Test] PASS:", name)
 end
 
-expect("snap to cell center", GridMath.snapWorldToGrid(2.4, 4) == 0)
+expect("snap to cell center", GridMath.snapWorldToGrid(1.4, 4) == 0)
 expect("snap across half-cell", GridMath.snapWorldToGrid(2.1, 4) == 4)
 expect("invalid grid size rejected", GridMath.snapWorldToGrid(1, 0) == nil)
 expect("non-finite world coordinate rejected", GridMath.snapWorldToGrid(math.huge, 4) == nil)
