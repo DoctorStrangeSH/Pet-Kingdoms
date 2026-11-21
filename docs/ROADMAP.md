@@ -28,7 +28,9 @@
   - [x] Add first responsive Russian pet collection UI with search, pet preview, equipped count, and server-backed equip/unequip (Studio/device verification pending).
   - [x] Spawn server-authoritative equipped pet Models under `Workspace/PlayerPets/<UserId>` from validated collection data; refresh on equip and recreate on character respawn (Studio verification pending).
   - [x] Add client runtime binding replicated owned pet models to the three-slot follow controller with cleanup on removal/character lifecycle (Studio verification pending).
-  - [ ] Verify spawn/equip/unequip/respawn behavior and three-pet movement in Roblox Studio.
+  - [x] Add a real Creator Store Bunny MeshPart candidate and server AssetService loader; replace the server's procedural Part-based spawn path with the imported model (Studio verification pending).
+  - [x] Add safe handling for unrigged imported mesh companions and show the actual replicated mesh in the collection preview.
+  - [ ] Enable third-party asset loading in Studio; run the real-mesh smoke test and visually approve scale, orientation, materials, and follow behavior.
 - [ ] Validate scale, silhouette, materials, rig, animation, and mobile performance.
 - [ ] Produce a reusable template for all 20 MVP pets.
 
