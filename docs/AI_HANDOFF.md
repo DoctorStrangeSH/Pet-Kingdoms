@@ -33,6 +33,8 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 ## Current verified state
 
 - [x] README and project overview committed.
+- [x] Added read-only Roblox Studio Bunny import inspector: tools/roblox/InspectImportedBunny.lua.
+- [x] Added manual Studio import/acceptance checklist: assets/pets/bunny/ROBLOX_STUDIO_IMPORT_CHECKLIST.md.
 - [x] MVP specification committed.
 - [x] Scoped roadmap committed.
 - [x] Art direction baseline documented.
