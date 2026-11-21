@@ -1,19 +1,16 @@
 --!strict
--- DataStore adapter for compact island profiles.
--- Call only from server scripts. This module never spawns world Instances.
--- Save uses revision-aware UpdateAsync to prevent an older server snapshot overwriting newer data.
-
+-- DataStore adapter with DataStore-side session fencing.
+-- The session generation is incremented atomically on claim and checked
+-- inside every profile-writing UpdateAsync transform.
 local DataStoreService = game:GetService("DataStoreService")
 
 local IslandData = require(script.Parent:WaitForChild("IslandData"))
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
 
 local IslandStore = {}
-
 local STORE_NAME = "PetKingdoms_Islands_v1"
 local MAX_ATTEMPTS = 4
 local BASE_RETRY_DELAY = 1
-
 local store = DataStoreService:GetDataStore(STORE_NAME)
 
 local function makeKey(userId: number): string
@@ -21,111 +18,122 @@ local function makeKey(userId: number): string
 end
 
 local function isValidUserId(userId: number): boolean
-	return type(userId) == "number"
-		and userId == userId
-		and userId ~= math.huge
-		and userId ~= -math.huge
-		and userId > 0
-		and userId == math.floor(userId)
+	return type(userId) == "number" and userId == userId
+		and userId ~= math.huge and userId ~= -math.huge
+		and userId > 0 and userId == math.floor(userId)
 end
 
 local function retry<T>(operation: () -> T): (boolean, T?)
 	local lastError: any = nil
-
 	for attempt = 1, MAX_ATTEMPTS do
 		local ok, result = pcall(operation)
-		if ok then
-			return true, result
-		end
-
+		if ok then return true, result end
 		lastError = result
 		if attempt < MAX_ATTEMPTS then
 			task.wait(BASE_RETRY_DELAY * (2 ^ (attempt - 1)))
 		end
 	end
-
 	warn("[PetKingdoms] Island DataStore operation failed after retries:", lastError)
 	return false, nil
 end
 
 function IslandStore.load(userId: number): (boolean, any, string)
-	if not isValidUserId(userId) then
-		return false, nil, "INVALID_USER_ID"
-	end
-
+	if not isValidUserId(userId) then return false, nil, "INVALID_USER_ID" end
 	local ok, data = retry(function()
 		return store:GetAsync(makeKey(userId))
 	end)
-
-	if not ok then
-		return false, nil, "DATASTORE_UNAVAILABLE"
-	end
-
-	if data == nil then
-		return true, nil, "NOT_FOUND"
-	end
-
+	if not ok then return false, nil, "DATASTORE_UNAVAILABLE" end
+	if data == nil then return true, nil, "NOT_FOUND" end
 	local valid, reason = IslandData.validate(data, userId, BuildingCatalog)
 	if not valid then
-		warn(string.format(
-			"[PetKingdoms] Quarantining invalid island profile for user %d: %s",
-			userId,
-			reason
-		))
+		warn(string.format("[PetKingdoms] Invalid island profile for user %d: %s", userId, reason))
 		return false, nil, "INVALID_SAVED_PROFILE:" .. reason
 	end
-
 	return true, data, "LOADED"
+end
+
+-- Atomically claims the next monotonically increasing generation in the
+-- same DataStore key as the profile. The returned profile is the only
+-- generation allowed to write until a later claim increments it.
+function IslandStore.claimSession(profile: any): (boolean, any, string)
+	if type(profile) ~= "table" or not isValidUserId(profile.ownerUserId) then
+		return false, nil, "INVALID_PROFILE"
+	end
+	local valid, reason = IslandData.validate(profile, profile.ownerUserId, BuildingCatalog)
+	if not valid then return false, nil, "INVALID_PROFILE:" .. reason end
+
+	local key = makeKey(profile.ownerUserId)
+	local seed = table.clone(profile)
+	local claimed = false
+	local ok, result = retry(function()
+		claimed = false
+		return store:UpdateAsync(key, function(current)
+			local nextProfile
+			if current == nil then
+				nextProfile = table.clone(seed)
+			else
+				local currentValid = IslandData.validate(current, seed.ownerUserId, BuildingCatalog)
+				if not currentValid then return current end
+				nextProfile = table.clone(current)
+			end
+
+			local currentGeneration = nextProfile.sessionGeneration or 0
+			if type(currentGeneration) ~= "number" or currentGeneration < 0
+				or currentGeneration ~= math.floor(currentGeneration)
+				or currentGeneration >= 2_000_000_000
+			then
+				return current
+			end
+			nextProfile.sessionGeneration = currentGeneration + 1
+			claimed = true
+			return nextProfile
+		end)
+	end)
+	if not ok then return false, nil, "DATASTORE_UNAVAILABLE" end
+	if not claimed or type(result) ~= "table" then
+		return false, nil, "SESSION_CLAIM_REJECTED"
+	end
+	local resultValid, resultReason = IslandData.validate(result, profile.ownerUserId, BuildingCatalog)
+	if not resultValid then return false, nil, "INVALID_CLAIMED_PROFILE:" .. resultReason end
+	return true, result, "CLAIMED"
 end
 
 function IslandStore.save(profile: any): (boolean, string)
 	if type(profile) ~= "table" or not isValidUserId(profile.ownerUserId) then
 		return false, "INVALID_PROFILE"
 	end
-
 	local valid, reason = IslandData.validate(profile, profile.ownerUserId, BuildingCatalog)
-	if not valid then
-		return false, "INVALID_PROFILE:" .. reason
+	if not valid then return false, "INVALID_PROFILE:" .. reason end
+	if type(profile.sessionGeneration) ~= "number" or profile.sessionGeneration < 1
+		or profile.sessionGeneration ~= math.floor(profile.sessionGeneration)
+	then
+		return false, "INVALID_SESSION_GENERATION"
 	end
 
 	local key = makeKey(profile.ownerUserId)
 	local snapshot = table.clone(profile)
-
 	local wroteSnapshot = false
 	local ok, result = retry(function()
 		wroteSnapshot = false
 		return store:UpdateAsync(key, function(current)
-			-- UpdateAsync returning nil cancels the write but returns the
-			-- existing value; it does NOT make the outer result nil.
-			if current == nil then
-				wroteSnapshot = true
-				return snapshot
-			end
-
-			if type(current) ~= "table" or type(current.revision) ~= "number" then
-				-- Preserve data whose format/revision cannot be trusted.
-				wroteSnapshot = false
+			if type(current) ~= "table" then return current end
+			-- Fencing check is atomic with the profile write. A stale server's
+			-- generation can never overwrite a newer claimed generation.
+			if current.sessionGeneration ~= snapshot.sessionGeneration then return current end
+			if type(current.revision) ~= "number" or current.revision >= snapshot.revision then
 				return current
 			end
-
-			if current.revision >= snapshot.revision then
-				wroteSnapshot = false
-				return current
-			end
-
 			wroteSnapshot = true
 			return snapshot
 		end)
 	end)
-
-	if not ok then
-		return false, "DATASTORE_UNAVAILABLE"
+	if not ok then return false, "DATASTORE_UNAVAILABLE" end
+	if not wroteSnapshot or type(result) ~= "table"
+		or result.revision ~= snapshot.revision
+		or result.sessionGeneration ~= snapshot.sessionGeneration
+	then
+		return false, "STALE_SESSION_OR_REVISION"
 	end
-
-	if not wroteSnapshot or type(result) ~= "table" or result.revision ~= snapshot.revision then
-		return false, "STALE_OR_UNRECOGNIZED_SAVED_DATA"
-	end
-
 	return true, "SAVED"
 end
 
