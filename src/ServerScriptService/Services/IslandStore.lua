@@ -102,7 +102,7 @@ function IslandStore.save(profile: any): (boolean, string)
 				return nil
 			end
 
-			if current.revision > snapshot.revision then
+			if current.revision >= snapshot.revision then
 				return nil
 			end
 
