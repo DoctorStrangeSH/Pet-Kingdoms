@@ -10,7 +10,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 
 | Pet | Biome / theme | Concept | Model | Rig | Animations | Studio check |
 |---|---|---|---|---|---|---|
-| Bunny | Green Valley | Planned | PROCEDURAL BLOCKOUT RIG v1 + FACE DETAIL PASS committed | PROTOTYPE (17 Motor6D) | PROCEDURAL STATE POSES + AUTONOMOUS IDLE PERSONALITY + client follow controller committed; Studio checks pending | NOT STARTED |
+| Bunny | Green Valley | Planned | REAL CREATOR STORE MESH CANDIDATE INTEGRATED (Asset 92070521355583; 3,050 tris / 5 MeshParts); Studio visual review pending | STATIC IMPORTED MESH; RIG NOT YET DONE | FOLLOW SUPPORT INTEGRATED; CUSTOM MESH ANIMATIONS NOT DONE | THIRD-PARTY ASSET SETTING + STUDIO CHECK PENDING |
 | Green Slime | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Forest Cat | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Leaf Fox | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
@@ -31,7 +31,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 | Pet 19 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Pet 20 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 
-Bunny has a procedural rig with a first face-detail pass (eye catchlights, mouth, tuft, whiskers), state-pose controller, autonomous idle personality actions (sniff/curious/happy), and client follow controller in source, but these are technical prototypes, not production art or final animation clips; Studio visual, follow, and animation checks have not passed. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
+A real Creator Store Bunny MeshPart model (asset 92070521355583) is now the server spawn source instead of the procedural Part blockout. It is integrated through AssetService:LoadAssetAsync and a safe loader; it is currently an unrigged static mesh candidate. Third-party asset loading must be enabled in Studio, then import, appearance, scale, pivot, and follow must be tested. Do not mark production art DONE until these checks pass. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
 
 ## Environment kits
 
@@ -63,6 +63,11 @@ Bunny has a procedural rig with a first face-detail pass (eye catchlights, mouth
 | Mobile control layout | NOT STARTED |
 
 ## External asset provenance
+
+| Asset | Creator Store ID | Creator | Technical listing data | Runtime status |
+|---|---:|---|---|---|
+| Bunny candidate | `92070521355583` | `@letscreate19` | 3,050 triangles, 4,713 vertices, 5 MeshParts, 1 Decal | Integrated; third-party setting and Studio visual check pending |
+
 
 For every non-original asset, record:
 - Exact asset URL or Roblox asset ID.
