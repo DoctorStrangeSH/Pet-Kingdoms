@@ -45,6 +45,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] IslandStore input-contract smoke test committed.
 - [x] Island persistence contract documented.
 - [x] Player island profile lifecycle service committed and started from server bootstrap.
+- [x] Per-player save serialization and deep snapshot cloning committed.
+- [x] Final-save failure retains the in-memory session for shutdown retry.
 - [x] Island session lifecycle limitations and configuration documented.
 - [x] IslandSessionService contract smoke test committed.
 - [x] Placement validation test plan documented.
@@ -57,6 +59,7 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
 - [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
 - [ ] Cross-server single-writer/session lease implemented.
+- [ ] Save concurrency changes verified in Roblox Studio.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -83,7 +86,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 3. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
 4. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
 5. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
-6. Implement a cross-server session lease/single-writer policy before public playtesting.
+6. Implement a cross-server session lease/single-writer policy before public playtesting; the current revision check is not a lease.
 7. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
 8. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
 9. Add save/load recovery tests after persistence behavior is implemented.
