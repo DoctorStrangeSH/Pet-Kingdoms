@@ -165,6 +165,8 @@ end
 
 local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
 local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
+local setStatus: (string, boolean?) -> ()
+
 local demolishButton = make("TextButton", {
 	Name = "DemolishSelected",
 	AnchorPoint = Vector2.new(0, 0),
@@ -208,6 +210,12 @@ demolishButton.Activated:Connect(function()
 		selectBuilding(nil)
 		return
 	end
+	if not demolitionArmed then
+		demolitionArmed = true
+		demolishButton.Text = "ТОЧНО УДАЛИТЬ?"
+		setStatus("Нажми ещё раз для подтверждения демонтажа", false)
+		return
+	end
 	local instanceId = model:GetAttribute("BuildingInstanceId")
 	if type(instanceId) ~= "string" then
 		setStatus("Не удалось определить постройку", false)
@@ -239,7 +247,7 @@ demolishButton.Activated:Connect(function()
 end)
 
 
-local function setStatus(message: string, good: boolean?)
+setStatus = function(message: string, good: boolean?)
 	status.Text = message
 	status.TextColor3 = if good == true then COLORS.valid elseif good == false then COLORS.invalid else COLORS.text
 end
