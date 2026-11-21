@@ -17,6 +17,8 @@ local selectedCatalogId = "main_house"
 local BUILDING_SIZES = {
 	main_house = { width = 3, depth = 3 },
 	pet_house = { width = 3, depth = 3 },
+	stone_path = { width = 1, depth = 1 },
+	garden_lantern = { width = 1, depth = 1 },
 }
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
@@ -61,13 +63,13 @@ local panel = make("Frame", {
 	Name = "Panel",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.new(0.5, 0, 1, -22),
-	Size = UDim2.new(1, -24, 0, 218),
+	Size = UDim2.new(1, -24, 0, 280),
 	BackgroundColor3 = COLORS.panel,
 	BackgroundTransparency = 0.04,
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 218), MaxSize = Vector2.new(420, 218) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(320, 280), MaxSize = Vector2.new(420, 280) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -103,7 +105,7 @@ local status = make("TextLabel", {
 local buttons = make("Frame", {
 	Name = "Buttons",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 142),
+	Position = UDim2.fromOffset(0, 204),
 	Size = UDim2.new(1, 0, 0, 54),
 }, panel)
 make("UIListLayout", {
@@ -137,19 +139,18 @@ local catalogRow = make("Frame", {
 	Name = "Catalog",
 	BackgroundTransparency = 1,
 	Position = UDim2.fromOffset(0, 62),
-	Size = UDim2.new(1, 0, 0, 62),
+	Size = UDim2.new(1, 0, 0, 116),
 }, panel)
-make("UIListLayout", {
-	FillDirection = Enum.FillDirection.Horizontal,
-	HorizontalAlignment = Enum.HorizontalAlignment.Left,
-	VerticalAlignment = Enum.VerticalAlignment.Center,
-	Padding = UDim.new(0, 10),
+make("UIGridLayout", {
+	CellSize = UDim2.new(0.5, -5, 0, 50),
+	CellPadding = UDim2.fromOffset(10, 8),
+	SortOrder = Enum.SortOrder.LayoutOrder,
 }, catalogRow)
 
 local function makeCatalogButton(name: string, label: string): TextButton
 	local button = make("TextButton", {
 		Name = name,
-		Size = UDim2.new(0.5, -5, 0, 54),
+		Size = UDim2.new(0.5, -5, 0, 50),
 		BackgroundColor3 = COLORS.panelLight,
 		BorderSizePixel = 0,
 		AutoButtonColor = true,
@@ -166,6 +167,8 @@ end
 
 local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
 local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
+local stonePathButton = makeCatalogButton("StonePath", "🪨  КАМЕННАЯ ДОРОЖКА")
+local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВЫЙ ФОНАРЬ")
 local setStatus: (string, boolean?) -> ()
 local findOwnIsland: () -> Model?
 
@@ -446,6 +449,8 @@ local function setSelectedBuilding(catalogId: string)
 	BUILDING_DEPTH = size.depth
 	mainHouseButton.BackgroundColor3 = if catalogId == "main_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
 	petHouseButton.BackgroundColor3 = if catalogId == "pet_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	stonePathButton.BackgroundColor3 = if catalogId == "stone_path" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	gardenLanternButton.BackgroundColor3 = if catalogId == "garden_lantern" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
@@ -460,6 +465,12 @@ mainHouseButton.Activated:Connect(function()
 end)
 petHouseButton.Activated:Connect(function()
 	setSelectedBuilding("pet_house")
+end)
+stonePathButton.Activated:Connect(function()
+	setSelectedBuilding("stone_path")
+end)
+gardenLanternButton.Activated:Connect(function()
+	setSelectedBuilding("garden_lantern")
 end)
 local function beginMoveSelected()
 	local model = selectedBuildingModel
@@ -483,6 +494,8 @@ local function beginMoveSelected()
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
 	petHouseButton.Active = false
+	stonePathButton.Active = false
+	gardenLanternButton.Active = false
 	confirmButton.Text = "СОХРАНИТЬ"
 	createPreview()
 	if currentPreview == nil then
@@ -492,6 +505,8 @@ local function beginMoveSelected()
 		confirmButton.Text = "ПОСТРОИТЬ"
 		mainHouseButton.Active = true
 		petHouseButton.Active = true
+	stonePathButton.Active = true
+	gardenLanternButton.Active = true
 		moveButton.Visible = true
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
