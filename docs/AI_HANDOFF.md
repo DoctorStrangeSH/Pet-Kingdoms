@@ -19,9 +19,10 @@ Read these files first:
 4. docs/ART_BIBLE.md
 5. docs/game-systems/BUILDING_SYSTEM.md
 6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
-7. docs/game-systems/BUILDING_SYSTEM.md
-7. docs/BUILD_AND_TEST.md
-8. docs/ASSET_TRACKER.md
+7. docs/game-systems/ISLAND_PERSISTENCE.md
+8. docs/game-systems/ISLAND_SESSION_LIFECYCLE.md
+9. docs/BUILD_AND_TEST.md
+10. docs/ASSET_TRACKER.md
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
@@ -43,6 +44,9 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [x] Revision-aware IslandStore DataStore adapter committed.
 - [x] IslandStore input-contract smoke test committed.
 - [x] Island persistence contract documented.
+- [x] Player island profile lifecycle service committed and started from server bootstrap.
+- [x] Island session lifecycle limitations and configuration documented.
+- [x] IslandSessionService contract smoke test committed.
 - [x] Placement validation test plan documented.
 - [x] Build/live-sync instructions documented.
 - [ ] Rojo build executed and verified.
@@ -51,7 +55,8 @@ The repository is authoritative. If a chat message conflicts with these files, s
 - [ ] Owner reviewed the selected hybrid Rojo + Studio workflow.
 - [ ] Placement validator and GridMath smoke tests executed in Roblox Studio.
 - [ ] IslandStore tested against a live Roblox DataStore in Studio.
-- [ ] Player lifecycle integration for island load/save implemented.
+- [ ] Player lifecycle executed and verified in Roblox Studio with live DataStore access.
+- [ ] Cross-server single-writer/session lease implemented.
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [ ] Any production 3D assets, rigs, animations, or gameplay systems implemented.
 
@@ -76,12 +81,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 1. Run a Rojo build from the repository root and fix any mapping errors.
 2. Open the generated place in Roblox Studio and verify the project tree.
 3. Run `PlacementValidatorTests.server.lua`, `GridMathTests.server.lua`, and `IslandDataTests.server.lua` in Studio; record the actual Output results.
-4. Review `docs/game-systems/ISLAND_PERSISTENCE.md`; test the adapter in a dedicated Studio test universe with API access enabled.
-5. Implement per-player session ownership and PlayerAdded/PlayerRemoving/BindToClose lifecycle only after authoritative island bounds/defaults are confirmed.
-6. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
-7. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
-8. Add save/load recovery tests after persistence behavior is implemented.
-9. Update ROADMAP and this handoff after each verified milestone.
+4. Set Workspace attributes `IslandGridWidth` and `IslandGridDepth` from the approved island plot layout; do not guess dimensions.
+5. Review `docs/game-systems/ISLAND_PERSISTENCE.md` and `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`; test the lifecycle in a dedicated Studio test universe with API access enabled.
+6. Implement a cross-server session lease/single-writer policy before public playtesting.
+7. Add a server transaction layer for resource charging and placement mutation only after economy prices are approved.
+8. Add remotes with server-side rate limiting and idempotency; never expose client-trusted prices or footprints.
+9. Add save/load recovery tests after persistence behavior is implemented.
+10. Update ROADMAP and this handoff after each verified milestone.
 
 ## Working rules
 
