@@ -13,9 +13,13 @@ local playerGui = player:WaitForChild("PlayerGui")
 local camera = Workspace.CurrentCamera
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceBuilding") :: RemoteFunction
 
-local CATALOG_ID = "main_house"
-local BUILDING_WIDTH = 3
-local BUILDING_DEPTH = 3
+local selectedCatalogId = "main_house"
+local BUILDING_SIZES = {
+	main_house = { width = 3, depth = 3 },
+	pet_house = { width = 3, depth = 3 },
+}
+local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
+local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
 local placing = false
 local currentCellX: number? = nil
@@ -54,13 +58,13 @@ local panel = make("Frame", {
 	Name = "Panel",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.new(0.5, 0, 1, -22),
-	Size = UDim2.new(1, -24, 0, 150),
+	Size = UDim2.new(1, -24, 0, 218),
 	BackgroundColor3 = COLORS.panel,
 	BackgroundTransparency = 0.04,
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 150), MaxSize = Vector2.new(370, 150) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(320, 218), MaxSize = Vector2.new(420, 218) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -87,7 +91,7 @@ local status = make("TextLabel", {
 	Position = UDim2.fromOffset(0, 30),
 	Size = UDim2.new(1, 0, 0, 25),
 	Font = Enum.Font.GothamMedium,
-	Text = "Выбери место для главного дома",
+	Text = "Выбери здание и место для него",
 	TextColor3 = COLORS.text,
 	TextSize = 13,
 	TextXAlignment = Enum.TextXAlignment.Left,
@@ -96,8 +100,8 @@ local status = make("TextLabel", {
 local buttons = make("Frame", {
 	Name = "Buttons",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 65),
-	Size = UDim2.new(1, 0, 0, 60),
+	Position = UDim2.fromOffset(0, 142),
+	Size = UDim2.new(1, 0, 0, 54),
 }, panel)
 make("UIListLayout", {
 	FillDirection = Enum.FillDirection.Horizontal,
@@ -122,9 +126,43 @@ local function makeButton(name: string, label: string, width: number, color: Col
 	return button
 end
 
-local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 104, COLORS.panelLight)
+local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 94, COLORS.panelLight)
 local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
+
+local catalogRow = make("Frame", {
+	Name = "Catalog",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 62),
+	Size = UDim2.new(1, 0, 0, 62),
+}, panel)
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	HorizontalAlignment = Enum.HorizontalAlignment.Left,
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+	Padding = UDim.new(0, 10),
+}, catalogRow)
+
+local function makeCatalogButton(name: string, label: string): TextButton
+	local button = make("TextButton", {
+		Name = name,
+		Size = UDim2.new(0.5, -5, 0, 54),
+		BackgroundColor3 = COLORS.panelLight,
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+		Font = Enum.Font.GothamBold,
+		Text = label,
+		TextColor3 = COLORS.text,
+		TextSize = 13,
+		TextWrapped = true,
+	}, catalogRow) :: TextButton
+	make("UICorner", { CornerRadius = UDim.new(0, 12) }, button)
+	make("UIStroke", { Color = COLORS.gold, Transparency = 0.75, Thickness = 1 }, button)
+	return button
+end
+
+local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
+local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
 
 local function setStatus(message: string, good: boolean?)
 	status.Text = message
@@ -254,6 +292,30 @@ local function updatePreview(screenPosition: Vector2)
 	setStatus(if inside then "Место подходит — можно построить" else "Дом выходит за границы острова", inside)
 end
 
+local function setSelectedBuilding(catalogId: string)
+	local size = BUILDING_SIZES[catalogId]
+	if size == nil then return end
+	selectedCatalogId = catalogId
+	BUILDING_WIDTH = size.width
+	BUILDING_DEPTH = size.depth
+	mainHouseButton.BackgroundColor3 = if catalogId == "main_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	petHouseButton.BackgroundColor3 = if catalogId == "pet_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	if currentPreview then
+		local _, _, _, cellSize = getIslandGrid()
+		if cellSize then
+			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, 5, BUILDING_DEPTH * cellSize)
+		end
+	end
+	setStatus(if catalogId == "pet_house" then "Выбран домик питомцев" else "Выбран главный дом")
+end
+
+mainHouseButton.Activated:Connect(function()
+	setSelectedBuilding("main_house")
+end)
+petHouseButton.Activated:Connect(function()
+	setSelectedBuilding("pet_house")
+end)
+
 local function stopPlacing()
 	placing = false
 	panel.Visible = false
@@ -261,6 +323,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
+	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
 	placing = true
 	panel.Visible = true
@@ -290,7 +353,7 @@ confirmButton.Activated:Connect(function()
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
 			requestId = HttpService:GenerateGUID(false),
-			catalogId = CATALOG_ID,
+			catalogId = selectedCatalogId,
 			x = currentCellX,
 			z = currentCellZ,
 			rotation = rotation,
@@ -303,7 +366,7 @@ confirmButton.Activated:Connect(function()
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		setStatus("Дом построен!", true)
+		setStatus(if selectedCatalogId == "pet_house" then "Домик питомцев построен!" else "Главный дом построен!", true)
 		stopPlacing()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
