@@ -28,6 +28,7 @@ local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
+local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 
 local COLORS = {
@@ -193,9 +194,10 @@ end
 
 local function selectBuilding(model: Model?)
 	selectedBuildingModel = model
+	demolitionArmed = false
 	demolishButton.Visible = model ~= nil
+	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	if model then
-		local catalogId = model.Name:match("^([^_]+)")
 		setStatus("Выбрана постройка: " .. model.Name)
 	end
 end
@@ -222,6 +224,7 @@ demolishButton.Activated:Connect(function()
 	end)
 	demolishButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
+	demolitionArmed = false
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
