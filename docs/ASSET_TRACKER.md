@@ -10,7 +10,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 
 | Pet | Biome / theme | Concept | Model | Rig | Animations | Studio check |
 |---|---|---|---|---|---|---|
-| Bunny | Green Valley | Planned | REAL CREATOR STORE MESH CANDIDATE INTEGRATED (Asset 92070521355583; 3,050 tris / 5 MeshParts); Studio visual review pending | STATIC IMPORTED MESH; RIG NOT YET DONE | FOLLOW SUPPORT INTEGRATED; CUSTOM MESH ANIMATIONS NOT DONE | THIRD-PARTY ASSET SETTING + STUDIO CHECK PENDING |
+| Bunny | Green Valley | Planned | ORIGINAL PROJECT MESH COMMITTED: 15,332 vertices / 30,194 triangles / 13 mesh objects / 9 materials; Studio import + art review pending | STATIC OBJ; RIG NOT YET DONE | NOT DONE | STUDIO IMPORT / PUBLISH / VISUAL CHECK PENDING |
 | Green Slime | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Forest Cat | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Leaf Fox | Green Valley | Planned | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
@@ -31,7 +31,7 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 | Pet 19 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 | Pet 20 | TBD | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED | NOT STARTED |
 
-A real Creator Store Bunny MeshPart model (asset 92070521355583) is now the server spawn source instead of the procedural Part blockout. It is integrated through AssetService:LoadAssetAsync and a safe loader; it is currently an unrigged static mesh candidate. Third-party asset loading must be enabled in Studio, then import, appearance, scale, pivot, and follow must be tested. Do not mark production art DONE until these checks pass. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
+The unsuitable Creator Store Bunny (asset 92070521355583) is REJECTED and removed from the catalog. An original project-owned OBJ mesh and MTL were committed under `assets/pets/bunny/`. It is a static first mesh draft; Studio import, material review, rigging, animations, and runtime asset publishing are still pending. The runtime catalog intentionally has no asset ID until the project-owned mesh is imported and published. Do not mark production art DONE yet. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
 
 ## Environment kits
 
@@ -66,7 +66,8 @@ A real Creator Store Bunny MeshPart model (asset 92070521355583) is now the serv
 
 | Asset | Creator Store ID | Creator | Technical listing data | Runtime status |
 |---|---:|---|---|---|
-| Bunny candidate | `92070521355583` | `@letscreate19` | 3,050 triangles, 4,713 vertices, 5 MeshParts, 1 Decal | Integrated; third-party setting and Studio visual check pending |
+| Rejected Bunny candidate | `92070521355583` | `@letscreate19` | 3,050 triangles, 5 MeshParts | REJECTED — not used in project |
+| Original Bunny mesh | Project-owned | Pet Kingdoms | 15,332 vertices, 30,194 triangles, 13 objects, 9 material groups | OBJ/MTL committed; Studio import and visual approval pending |
 
 
 For every non-original asset, record:
