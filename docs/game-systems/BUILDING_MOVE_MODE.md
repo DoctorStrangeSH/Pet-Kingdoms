@@ -22,9 +22,9 @@ These attributes are presentation metadata for selection and editing. The server
 5. A translucent footprint preview appears and follows the pointer/touch over the island grid.
 6. Rotate with the existing rotate control or R key.
 7. Confirm with `СОХРАНИТЬ`, or cancel to leave the original building untouched.
-8. The client sends the existing `movingInstanceId` field to `PlaceBuilding`.
-9. The server finds the existing profile record, validates bounds/overlap/unlock/rotation, synchronizes the replacement model, and marks the profile dirty.
-10. The existing instance ID is preserved; a second building record is not created.
+9. The client sends the existing `movingInstanceId` field to `PlaceBuilding`.
+10. The server finds the existing profile record, validates bounds/overlap/unlock/rotation, synchronizes the replacement model, and marks the profile dirty.
+11. The existing instance ID is preserved; a second building record is not created.
 
 ## Safety
 
@@ -38,7 +38,7 @@ These attributes are presentation metadata for selection and editing. The server
 ## Current limitations
 
 - Preview is still a translucent footprint blockout, not a cloned production mesh.
-- Client preview checks bounds only; server validation remains authoritative for overlap.
+- Client preview checks bounds and known building footprints for immediate feedback; server validation remains authoritative.
 - There is no drag-to-move while in selection mode; the player enters an explicit move mode.
 - Touch input and camera behavior need device testing.
 - Studio transaction/persistence checks remain pending.
@@ -46,6 +46,7 @@ These attributes are presentation metadata for selection and editing. The server
 ## Acceptance
 
 - Selection reads correct server-authored building attributes.
+- Overlapping a different building is shown as invalid in the client preview.
 - Moving a building keeps the same instance ID and does not duplicate its profile record or world Model.
 - Move to overlapping/out-of-bounds positions is rejected and old position remains.
 - Cancel leaves original building and profile unchanged.
