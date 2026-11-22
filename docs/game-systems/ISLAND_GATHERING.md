@@ -66,3 +66,8 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 - Transparency of each visual BasePart is recorded in `GatherBaseTransparency` and restored after cooldown, so translucent mesh details and the invisible prompt anchor stay transparent after node respawn.
 - No third-party assets have been imported or approved. Keep visual asset provenance and studio review in `docs/ASSET_TRACKER.md`; do not put executable code inside source models.
 - A Studio-only world integration test constructs a temporary resource Model, checks that the scripted payload is stripped and that the trusted prompt anchor exists, then removes the fixture. Studio execution is still pending.
+
+## Prompt origin and rejoin checks (2026-11-22)
+
+- On gather, the server accepts only its named `GatherPrompt` directly under the trusted `GatherAnchor` inside a node Model belonging to `ResourceNodes`. Other prompts are ignored.
+- Studio world integration tests now model a persisted cooldown on a second player's island and assert the hidden prompt, transparent anchor and saved custom-mesh base transparency. Actual post-delay respawn still requires runtime testing.
