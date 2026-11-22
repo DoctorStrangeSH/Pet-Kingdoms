@@ -973,6 +973,9 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 local function closeKingdomOverview()
 	overview.Visible = false
 	overviewShade.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "kingdom" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 end
 
 local function refreshKingdomOverview()
@@ -1024,10 +1027,21 @@ local function refreshKingdomOverview()
 end
 
 local function openKingdomOverview()
+	playerGui:SetAttribute("PetKingdomsActiveModal", "kingdom")
 	refreshKingdomOverview()
 	overviewShade.Visible = true
 	overview.Visible = true
 end
+
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	if overview.Visible and playerGui:GetAttribute("PetKingdomsActiveModal") ~= "kingdom" then
+		closeKingdomOverview()
+	end
+end)
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not overview.Visible then return end
+	if input.KeyCode == Enum.KeyCode.Escape then closeKingdomOverview() end
+end)
 
 overviewClose.Activated:Connect(closeKingdomOverview)
 overviewShade.Activated:Connect(closeKingdomOverview)
