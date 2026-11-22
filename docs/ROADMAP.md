@@ -207,7 +207,8 @@
 - [ ] Implement the approved combat loop.
 - [ ] Implement quests and rewards.
   - [x] Audit the island-wallet and pet-collection DataStore boundary; document a durable claim + outbox + idempotent pet-XP delivery protocol and its recovery invariants.
-  - [ ] Extend pet reward receipt retention/reconciliation so a pending island outbox can never outlive its duplicate-protection receipt.
+  - [x] Make pet XP idempotency receipts permanent while unacknowledged; add a trusted source-acknowledgement operation, then start the bounded retention window.
+- [ ] Integrate the acknowledgement operation with the durable island XP outbox and verify cross-store recovery.
   - [ ] Approve resource/Gold/Gems and pet-XP reward values, plus the pet recipient rule.
   - [ ] Implement permanent quest claim receipts, atomic island resource grants, and durable pet-XP outbox delivery.
   - [ ] Add failure-injection tests for lost acknowledgements, duplicate claims, DataStore outages, and server shutdown during outbox delivery.
