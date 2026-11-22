@@ -41,3 +41,6 @@ The project specification leaves exact earning rates, prices, upgrade costs, and
 ## Renderer integration test
 
 The IslandWorldService integration test now includes a level-1 expanded profile (32x32 grid), verifies the rendered terrain dimensions and world attributes, and compares the main-house pivot before/after the +4-cell coordinate shift. This is a Studio test only; it does not mean purchase or live resize is implemented.
+
+
+The renderer integration test now covers both expansion levels: 32x32 / 256x256 studs and 40x40 / 320x320 studs. At each level it asserts that the main-house world pivot remains unchanged after the corresponding saved-grid offset. Test execution is pending in Roblox Studio.
