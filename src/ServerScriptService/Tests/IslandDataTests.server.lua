@@ -34,6 +34,21 @@ local malformedJournalOk, malformedJournalCode =
 expect("malformed building operation receipt rejected",
 	not malformedJournalOk and string.find(malformedJournalCode, "INVALID_BUILDING_LEDGER:", 1, true) == 1)
 
+local futureReceiptProfile = IslandData.create(1001, 10, 10)
+futureReceiptProfile.buildingOperations = {
+	{
+		requestId = "future-receipt",
+		fingerprint = "place|pet_house|1|1|0",
+		action = "place",
+		createdAt = os.time(),
+		revision = 1,
+		result = { ok = true, code = "BUILDING_PLACED", instanceId = "future-building" },
+	},
+}
+local futureReceiptOk, futureReceiptCode = IslandData.validate(futureReceiptProfile, 1001, Catalog)
+expect("building receipt ahead of saved profile revision is rejected",
+	not futureReceiptOk and futureReceiptCode == "INVALID_BUILDING_LEDGER:REVISION_AHEAD")
+
 expect("new profile receives provisional starter wallet", profile.resources.wood == 2 and profile.resources.stone == 1)
 local invalidWalletProfile = IslandData.create(1001, 10, 10)
 invalidWalletProfile.resources = { wood = -1, stone = 1 }
