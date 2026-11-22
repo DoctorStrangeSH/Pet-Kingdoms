@@ -337,3 +337,5 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [ ] Monitor the bounded 128-entry receipt ledger; capacity reservation fails closed before charging, but high-volume acquisition patterns may require a compacted external dedupe index.
 
 - [x] Upgrade legacy acquisition receipts and pending reservations with the transaction ID from their matching durable hatch journal before completing recovery.
+
+- [ ] Audit any pre-deployment CHARGED hatch journal whose old seven-day acquisition receipt may already have been pruned; such a legacy record can be ambiguous and must not be described as fully recoverable without a matching receipt/reservation or an explicit migration decision.
