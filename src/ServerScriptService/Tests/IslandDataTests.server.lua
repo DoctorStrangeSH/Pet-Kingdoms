@@ -31,6 +31,12 @@ local unknownWalletProfile = IslandData.create(1001, 10, 10)
 unknownWalletProfile.resources = { wood = 1, stone = 1, dragon_scale = 1 }
 local unknownWalletOk, unknownWalletCode = IslandData.validate(unknownWalletProfile, 1001, Catalog)
 expect("unknown resource ID rejected", not unknownWalletOk and unknownWalletCode == "INVALID_RESOURCE_BALANCE")
+local overCapWalletProfile = IslandData.create(1001, 10, 10)
+overCapWalletProfile.resources = { wood = 2_000_000_001, stone = 1, gold = 0, gems = 0 }
+local overCapWalletOk, overCapWalletCode = IslandData.validate(overCapWalletProfile, 1001, Catalog)
+expect("saved wallet above the live resource cap is rejected",
+	not overCapWalletOk and overCapWalletCode == "INVALID_RESOURCE_BALANCE")
+
 local wrongOwner, ownerCode = IslandData.validate(profile, 2002, Catalog)
 expect("owner mismatch rejected", not wrongOwner and ownerCode == "OWNER_MISMATCH")
 
