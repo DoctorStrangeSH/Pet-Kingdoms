@@ -31,6 +31,8 @@ export type FollowController = {
 	smoothing: number,
 	walkSpeed: number,
 	runSpeed: number,
+	catchUpDistance: number,
+	teleportDistance: number,
 	animation: any,
 	connection: RBXScriptConnection?,
 	destroyed: boolean,
@@ -118,6 +120,8 @@ function CompanionFollowController.new(
 		smoothing = math.clamp(settings.smoothing or 8, 2, 16),
 		walkSpeed = math.clamp(settings.walkSpeed or 1.5, 0.5, 4),
 		runSpeed = math.clamp(settings.runSpeed or 18, 5, 24),
+		catchUpDistance = 8,
+		teleportDistance = 55,
 		animation = animation,
 		connection = nil,
 		destroyed = false,
@@ -164,7 +168,27 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 
 	local targetVelocity = horizontal(self.targetRoot.AssemblyLinearVelocity)
 	local speed = targetVelocity.Magnitude
-	local state = if speed >= self.runSpeed then "run" else if speed >= self.walkSpeed then "walk" else "idle"
+	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
+	local desired = self.targetRoot.CFrame:PointToWorldSpace(offset)
+	desired = resolveGroundPosition(self.model, desired, self.groundRaycastParams)
+	local current = self.model:GetPivot()
+	local currentPosition = current.Position
+	local lagDistance = horizontal(desired - currentPosition).Magnitude
+
+	-- If the player outruns a companion for a while, it should visibly hurry
+	-- instead of sliding with an idle animation. Very large gaps can happen
+	-- after streaming or a character reset; recover near the owner safely.
+	local state = if speed >= self.runSpeed or lagDistance >= self.catchUpDistance
+		then "run"
+		else if speed >= self.walkSpeed or lagDistance >= 1.1 then "walk" else "idle"
+
+	if lagDistance >= self.teleportDistance then
+		local recoveryPosition = desired - horizontal(self.targetRoot.CFrame.LookVector) * 2
+		self.model:PivotTo(CFrame.lookAt(recoveryPosition, recoveryPosition + horizontal(self.targetRoot.CFrame.LookVector)))
+		current = self.model:GetPivot()
+		currentPosition = current.Position
+		lagDistance = horizontal(desired - currentPosition).Magnitude
+	end
 
 	if state == "idle" then
 		self.idleElapsed += dt
@@ -200,17 +224,11 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.animation:setState(state)
 	end
 
-	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
-	local desired = self.targetRoot.CFrame:PointToWorldSpace(offset)
-	desired = resolveGroundPosition(self.model, desired, self.groundRaycastParams)
-
 	local facing = if speed > 0.75 then targetVelocity.Unit else horizontal(self.targetRoot.CFrame.LookVector)
 	if facing.Magnitude > 0.001 then
 		self.lastFacing = facing.Unit
 	end
 
-	local current = self.model:GetPivot()
-	local currentPosition = current.Position
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
 	local nextPosition = currentPosition:Lerp(desired, alpha)
 	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing)
