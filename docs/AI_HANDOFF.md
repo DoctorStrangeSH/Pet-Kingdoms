@@ -1335,3 +1335,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This avoids repeated multi-ray scans every render frame for stationary companions while allowing frequent short-lived checks for changing geometry. Emergency teleport recovery clears the cache.
 - Added a Studio-only test asserting stationary reuse and invalidation after moving the target 1.5 studs.
 - No FPS/raycast benchmarks were actually measured. GitHub Actions Rojo build does not execute client-side tests.
+
+## Shared modal close/ownership pass (2026-11-22)
+
+- Added `PetKingdomsActiveModal` ownership integration to `QuestJournalUI.client.lua`, `IslandExpansionUI.client.lua`, and the kingdom overview in `IslandBuildingController.client.lua`. Construction and pet collection previously had it.
+- The currently open owner relinquishes visibility when another major panel claims the attribute, preventing the known building/collection/quest/expansion/overview modal stack.
+- Quest journal, expansion, and kingdom overview now respond to Escape. Quest, expansion, and pet collection support backdrop click/tap for dismissal when the pointer falls outside the panel's absolute rectangle.
+- Closing only clears the global attribute if the closing panel owns it; switching panels cannot inadvertently clear the newly opened owner's token.
+- All changes are client UI logic only. Roblox Studio manual keyboard/touch testing and safe area/resolution testing are still pending; GitHub Actions Rojo builds cannot validate actual close hit targets.
