@@ -852,3 +852,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Extended IslandWorldService Studio integration coverage to render the maximum prototype expansion level (40x40 grid, 320x320 studs at 8-stud cells).
 - The test checks persisted world bounds, rendered grass dimensions, main-house existence, and exact preservation of its original world-space pivot after the cumulative +8-cell coordinate offset.
 - This remains a Studio integration test and has not been executed in the owner's Studio session. No purchase, live resize, or resource transaction was added.
+
+
+## Expansion profile bounds consistency guard (2026-11-22)
+
+- Added IslandExpansion.matchesProfileBounds(profile, baseWidth, baseDepth), which validates the stored width/depth against the configured base dimensions and persisted expansionLevel. Legacy profiles without expansionLevel remain level 0.
+- IslandWorldService.spawn now fails closed with INVALID_EXPANSION_BOUNDS before allocating a spawn slot or creating world instances when persisted geometry does not match its expansion level; missing base Workspace bounds return MISSING_ISLAND_GRID_BOUNDS.
+- Added pure contract cases for legacy, level 1, max level, mismatched bounds, and out-of-range levels, plus a world-renderer rejection integration case.
+- No expansion purchase or wallet mutation has been introduced. Studio tests remain pending execution by the owner.
