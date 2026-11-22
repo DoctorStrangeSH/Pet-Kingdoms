@@ -860,3 +860,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandWorldService.spawn now fails closed with INVALID_EXPANSION_BOUNDS before allocating a spawn slot or creating world instances when persisted geometry does not match its expansion level; missing base Workspace bounds return MISSING_ISLAND_GRID_BOUNDS.
 - Added pure contract cases for legacy, level 1, max level, mismatched bounds, and out-of-range levels, plus a world-renderer rejection integration case.
 - No expansion purchase or wallet mutation has been introduced. Studio tests remain pending execution by the owner.
+
+
+## Canonical next-expansion preparation (2026-11-22)
+
+- Added pure IslandExpansion.prepareNextProfile(profile, baseWidth, baseDepth).
+- It first validates the current profile against configured starter dimensions and persisted expansion level, then derives the next profile and validates the resulting bounds again.
+- It returns PREPARED only for a canonical one-level transition. Invalid current geometry, max-level, and malformed building records retain explicit failure codes.
+- The helper does not mutate the source profile, debit resources, write DataStore, or change the live world. It is a safe preparation primitive for the future server-authoritative transaction after economy rules are approved.
+- Added Studio contract cases for valid starter preparation, source immutability, and rejection of a non-canonical current profile.
