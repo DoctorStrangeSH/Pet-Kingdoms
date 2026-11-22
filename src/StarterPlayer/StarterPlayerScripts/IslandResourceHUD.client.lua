@@ -184,7 +184,7 @@ gatherHint.Size = UDim2.new(0.94, 0, 0, 32)
 gatherHint.BackgroundColor3 = COLORS.panel
 gatherHint.BackgroundTransparency = 0.08
 gatherHint.BorderSizePixel = 0
-gatherHint.Text = "НАЙДИ ДЕРЕВО  •  E / НАЖМИ «СРYБИТЬ»"
+gatherHint.Text = "НАЙДИ ДЕРЕВО  •  E / НАЖМИ «СРУБИТЬ»"
 gatherHint.TextColor3 = COLORS.mint
 gatherHint.TextSize = 11
 gatherHint.Font = Enum.Font.GothamBold
@@ -259,6 +259,7 @@ local function resize()
 	for _, label in pairs(amountLabels) do
 		label.TextSize = compact and 14 or 17
 	end
+	gatherHint.TextSize = compact and 9 or 11
 end
 
 if Workspace.CurrentCamera then
