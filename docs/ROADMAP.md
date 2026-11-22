@@ -527,3 +527,6 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Assert a reloaded node cannot be gathered twice during its persisted cooldown and that a distinct node advances quest progress once.
 - [ ] Execute the serialization/reload contract in Roblox Studio.
 - [ ] Run true DataStore leave/rejoin and server-restart scenarios in a dedicated test place; JSON round-trip is a schema contract, not a live DataStore test.
+
+
+- [x] Verify gathering serialization/reload contract packaging in GitHub Actions run #157 (Rojo build + Studio artifact upload PASS); Studio execution and live DataStore testing remain pending.
