@@ -37,14 +37,18 @@ These are provisional implementation defaults, not final balance approval. Keep 
 
 `IslandResourceService.grant(userId, resourceId, amount)`
 - Grants a validated positive integer amount.
-- Marks the profile dirty.
-- Rolls back the wallet if the session is not writable.
+- Requires the exact live Player session and a writable island lease.
+- Rejects the mutation while a building, gathering, or hatch profile transaction is active.
+- Marks the profile dirty and rolls back the wallet if the session cannot be marked dirty.
+
+`IslandResourceService.grantMany(userId, rewards)`
+- Validates and grants the complete reward map atomically.
+- Uses the same live-session and profile-mutation exclusion checks as `grant`.
 
 `IslandResourceService.spend(userId, costs)`
 - Validates all resource IDs and amounts before changing any balance.
 - Checks all balances before mutating any balance (all-or-nothing).
-- Marks the profile dirty.
-- Rolls back the wallet if the session is not writable.
+- Uses the same live-session and profile-mutation exclusion checks as `grant`.
 
 These functions are server-only module APIs. Do not expose a RemoteFunction that accepts arbitrary grant amounts or client-provided costs. Gathering and building services must derive rewards/prices from server-owned definitions.
 
@@ -73,13 +77,11 @@ These functions are server-only module APIs. Do not expose a RemoteFunction that
 
 These Studio tests are committed; execution in Roblox Studio is still pending.
 
-
 ## Pet hatching integration constraint
 
 The island wallet and pet collection currently live in separate DataStores. The current `spend` API mutates the loaded island session and marks it dirty for autosave; it is not a durable transaction acknowledgement. Do not implement paid egg hatching as a simple `spend` followed by `grantPet`. A server crash between operations can leave the player charged without a pet.
 
 Before paid hatching ships, add a persisted transaction journal/debit receipt in the island profile, a durable save/commit acknowledgement, and retry/reconciliation using the same hatch transaction ID and pet acquisition ID. The selected species and rarity must be fixed in the durable prepared record before charging, so a retry cannot reroll. The pet collection acquisition receipt remains the idempotent grant boundary.
-
 
 ## Persisted hatch journal data contract
 
@@ -87,11 +89,9 @@ Island profiles now support an optional `hatchTransactions` array (new profiles 
 
 This module does not itself write DataStore. Until a serialized session API durably saves each transition and recovery handles PREPARED/CHARGED records across server restarts, it is not safe to acknowledge paid hatching to players or expose a hatch endpoint.
 
-
 ## Durable session mutation acknowledgement
 
 `IslandSessionService.applyHatchOperation` now applies a single journal transition under a per-session hatch guard and waits for the exact profile revision to be confirmed by `IslandStore.save`. A timeout leaves the in-memory profile dirty so the existing autosave loop can retry; a later retry must reuse the same transaction ID. This provides a durable island-side acknowledgement, but does not yet orchestrate recovery or reconcile the separate pet collection DataStore.
-
 
 ## Recovery after player rejoin
 
@@ -99,13 +99,11 @@ This module does not itself write DataStore. Until a serialized session API dura
 
 If the pet collection is full or either datastore is unavailable, the transaction remains pending; it is not silently discarded. The recovery worker retries on a later join. A capacity reservation or overflow/inbox policy is still required before paid hatching is enabled.
 
-
 ## Pet collection capacity reservation contract
 
 Before a hatch is charged, `PetCollectionService.reservePetSlot` persists one slot in the pet collection profile under the transaction's acquisition ID. The invariant is `owned + reserved <= MAX_OWNED_PETS`. Ordinary pet rewards cannot consume reserved capacity. The matching idempotent grant atomically consumes the reservation and adds the owned pet.
 
 Recovery reserves capacity before resuming a PREPARED or CHARGED transaction. If no slot is available, it defers without charging a PREPARED transaction. Reservations are not auto-expired because the island journal may still contain a payable or already charged transaction. Cancellation/release requires a future coordinated protocol.
-
 
 ## Pet inventory protection and removal
 
