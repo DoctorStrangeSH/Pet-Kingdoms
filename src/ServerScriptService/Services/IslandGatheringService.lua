@@ -13,9 +13,19 @@ local MAX_DISTANCE = 18
 local activeNodes: { [Instance]: boolean } = {}
 
 local function getNode(prompt: ProximityPrompt): Model?
-	local parent = prompt.Parent
-	if parent == nil then return nil end
-	return parent:FindFirstAncestorWhichIsA("Model")
+	-- Only the server-created gather prompt on the invisible interaction anchor
+	-- can grant resources. Imported resource visuals are not gameplay endpoints.
+	if prompt.Name ~= "GatherPrompt" or not prompt.Enabled then return nil end
+	local anchor = prompt.Parent
+	if anchor == nil or not anchor:IsA("BasePart") or anchor.Name ~= "GatherAnchor" then
+		return nil
+	end
+	local node = anchor.Parent
+	if node == nil or not node:IsA("Model") or node.Parent == nil
+		or node.Parent.Name ~= "ResourceNodes" then
+		return nil
+	end
+	return node
 end
 
 local function setNodeVisible(node: Model, visible: boolean)
