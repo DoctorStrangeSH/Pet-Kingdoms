@@ -112,3 +112,13 @@ A successful Rojo build proves the project tree can be serialized; it does not p
 - Server publishes `PetKingdomsLoadStatus` and `PetKingdomsLoadMessage` attributes during each phase. `IslandLoading.client.lua` shows a localized loading screen and dismisses it only after the character has been moved to the island arrival point.
 - On failure, the player sees a clear failure state before the server kicks them with a localized message.
 - This flow must be playtested in Studio with API access enabled in a dedicated test universe; CI only verifies the project builds.
+
+
+## Character respawn verification
+
+- Because automatic character loading is disabled, manually verify the server-controlled respawn loop in a dedicated Studio test place.
+- Kill the player character and confirm exactly one replacement appears after the five-second delay on the current island arrival point.
+- Repeat deaths quickly; ensure only one respawn request is pending.
+- Leave during the delay; ensure no delayed LoadCharacterAsync occurs after the session closes.
+- Simulate a lease loss during the delay; ensure the stale session cannot respawn.
+- Confirm the loading overlay clears only after the replacement character reaches the island.
