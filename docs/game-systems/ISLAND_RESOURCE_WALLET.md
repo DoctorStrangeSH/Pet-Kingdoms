@@ -105,3 +105,8 @@ If the pet collection is full or either datastore is unavailable, the transactio
 Before a hatch is charged, `PetCollectionService.reservePetSlot` persists one slot in the pet collection profile under the transaction's acquisition ID. The invariant is `owned + reserved <= MAX_OWNED_PETS`. Ordinary pet rewards cannot consume reserved capacity. The matching idempotent grant atomically consumes the reservation and adds the owned pet.
 
 Recovery reserves capacity before resuming a PREPARED or CHARGED transaction. If no slot is available, it defers without charging a PREPARED transaction. Reservations are not auto-expired because the island journal may still contain a payable or already charged transaction. Cancellation/release requires a future coordinated protocol.
+
+
+## Pet inventory protection and removal
+
+Pet records now carry `isLocked` and `isFavorite` flags. The server exposes revision-checked `Protect` and `Delete` collection actions. Permanent removal is denied for the starter Bunny, locked pets, equipped pets, and the last remaining pet. A successful deletion frees capacity. Future UI confirmation and sorting/filtering are not part of this technical foundation.
