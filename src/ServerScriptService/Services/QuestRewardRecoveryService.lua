@@ -138,7 +138,7 @@ local function processPlayer(player: Player)
 		for _, record in ipairs(pending) do
 			if not isPlayerReady(player, token) then break end
 			local ok, status = deliverPendingReward(player, record)
-			local warningKey = record.rewardId .. ":" .. status
+			local warningKey = record.rewardId
 			if ok then
 				clearWarning(player, record.rewardId)
 				print("[PetKingdoms] Quest XP reward recovered", player.UserId, record.rewardId, status)
