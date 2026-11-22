@@ -74,3 +74,7 @@ The client no longer repositions its preview when the pointer crosses its visibl
 ## In-flight modal switching (2026-11-22)
 
 When a request is pending, switching to another major window defers construction cleanup until the remote returns. The response handler then closes the now-inactive build panel without clearing the new window's modal ownership. Tests and touch interaction verification in Roblox Studio remain pending.
+
+## Completed request GUID release on modal changes (2026-11-22)
+
+When a building placement remote returns after another major UI panel has opened, the client now records and cleans up the response's idempotency GUID **before** dismissing the stale construction UI. This prevents a completed placement from poisoning the next attempt with an old request ID. Retriable/pending server result codes still keep their original GUID. Displayed success text uses the immutable submitted catalog and move ID rather than mutable UI selection.
