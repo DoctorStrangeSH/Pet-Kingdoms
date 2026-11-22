@@ -16,7 +16,7 @@ The home island must grow without moving the island, relocating existing buildin
 - The profile stores `expansionLevel`; legacy schema-v1 records without it are normalized to level 0 during load/session claim.
 - Each expansion adds 8 cells per axis and shifts saved grid coordinates by 4 cells per axis. Because world rendering centers the grid, existing buildings retain their exact world-space positions.
 - Existing grid coordinates are not translated by this geometry helper; world rendering must continue to center the grid using the profile's effective bounds.
-- The helper is pure Luau and has no DataStore, Instance, RemoteEvent, wallet, or client dependencies.
+- The helper is pure Luau and has no DataStore, Instance, RemoteEvent, wallet, or client dependencies. Studio contract tests now also cover two sequential profile transformations, cumulative coordinate shifts, source immutability, and max-level rejection; execution remains pending.
 
 ## Economy and progression deliberately deferred
 
