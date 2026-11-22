@@ -5,7 +5,7 @@
 
 local IslandBuildingJournalData = {}
 
-local MAX_RECEIPTS = 128
+local MAX_RECEIPTS = 512
 local RETENTION_SECONDS = 7 * 24 * 60 * 60
 local MAX_REQUEST_ID_LENGTH = 80
 local MAX_FINGERPRINT_LENGTH = 256
