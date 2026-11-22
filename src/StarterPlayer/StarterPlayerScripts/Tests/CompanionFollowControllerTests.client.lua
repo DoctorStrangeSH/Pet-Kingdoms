@@ -140,8 +140,16 @@ expect("fourth active slot is rejected", invalidController == nil and invalidSta
 -- Catch-up must switch to run when the pet falls behind, then recover from
 -- extreme streaming/character-reset gaps without remaining stranded far away.
 target.AssemblyLinearVelocity = Vector3.zero
+-- Reproduce an owner teleport while navigation is waiting on an obstacle route:
+-- recovery must use the owner's formation target, not a nearby waypoint.
+controllers[1].pathPending = true
+controllers[1].pathWaypoints = {}
+local previousGeneration = controllers[1].pathGeneration
 target.CFrame = target.CFrame + Vector3.new(70, 0, 0)
 controllers[1]:update(1 / 60)
+expect("teleport recovery cancels pending navigation", not controllers[1].pathPending
+	and controllers[1].pathGeneration > previousGeneration
+	and #controllers[1].pathWaypoints == 0)
 local catchUpTarget = target.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
 expect("lagging companion switches to run", controllers[1].animation.state == "run")
 expect("extremely distant companion recovers near its owner",
