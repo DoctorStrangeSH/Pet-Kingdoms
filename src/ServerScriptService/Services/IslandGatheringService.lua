@@ -21,9 +21,16 @@ end
 local function setNodeVisible(node: Model, visible: boolean)
 	for _, descendant in ipairs(node:GetDescendants()) do
 		if descendant:IsA("BasePart") then
-			descendant.Transparency = if visible then 0 else 1
+			-- Do not turn a resource's invisible prompt anchor (or transparent
+			-- accents on imported art) into a visible solid cube on respawn.
+			local baseTransparency = descendant:GetAttribute("GatherBaseTransparency")
+			if type(baseTransparency) ~= "number" then
+				baseTransparency = descendant.Transparency
+				descendant:SetAttribute("GatherBaseTransparency", baseTransparency)
+			end
+			descendant.Transparency = if visible then baseTransparency else 1
 			descendant.CanCollide = false
-			descendant.CanTouch = visible
+			descendant.CanTouch = false
 		elseif descendant:IsA("ProximityPrompt") then
 			descendant.Enabled = visible
 		elseif descendant:IsA("BillboardGui") then
