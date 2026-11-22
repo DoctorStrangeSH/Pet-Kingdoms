@@ -24,13 +24,16 @@ local COLORS = {
 	danger = Color3.fromRGB(255, 135, 135),
 }
 
-type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number? }
+type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
 
 local collection: Collection? = nil
 local selectedPetId: string? = nil
 local busy = false
 local cardButtons: { [string]: TextButton } = {}
+local activeFilter = "all"
+local sortMode = "newest"
+local pendingDeletePetId: string? = nil
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
@@ -133,10 +136,38 @@ local search = make("TextBox", {
 make("UICorner", { CornerRadius = UDim.new(0, 11) }, search)
 make("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 10) }, search)
 
+local filterBar = make("Frame", {
+	Name = "CollectionFilters",
+	Position = UDim2.new(0, 24, 0, 132),
+	Size = UDim2.new(0.48, -28, 0, 32),
+	BackgroundTransparency = 1,
+}, panel) :: Frame
+
+local function makeFilterButton(name: string, text: string, x: number, width: number): TextButton
+	local button = make("TextButton", {
+		Name = name,
+		Position = UDim2.new(x, 0, 0, 0),
+		Size = UDim2.new(width, -4, 1, 0),
+		BackgroundColor3 = COLORS.panelSoft,
+		Text = text,
+		TextSize = 10,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = COLORS.cream,
+		AutoButtonColor = true,
+	}, filterBar) :: TextButton
+	make("UICorner", { CornerRadius = UDim.new(0, 8) }, button)
+	return button
+end
+
+local allFilterButton = makeFilterButton("All", "ВСЕ", 0, 0.25)
+local teamFilterButton = makeFilterButton("Team", "КОМАНДА", 0.25, 0.25)
+local favoriteFilterButton = makeFilterButton("Favorites", "★", 0.5, 0.18)
+local sortButton = makeFilterButton("Sort", "НОВЫЕ", 0.68, 0.32)
+
 local list = make("ScrollingFrame", {
 	Name = "PetList",
-	Position = UDim2.new(0, 24, 0, 140),
-	Size = UDim2.new(0.48, -28, 1, -164),
+	Position = UDim2.new(0, 24, 0, 172),
+	Size = UDim2.new(0.48, -28, 1, -196),
 	BackgroundTransparency = 1,
 	BorderSizePixel = 0,
 	ScrollBarThickness = 5,
@@ -167,7 +198,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, preview)
 local petName = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 16, 0.55, 0),
-	Size = UDim2.new(1, -32, 0, 30),
+	Size = UDim2.new(1, -112, 0, 30),
 	Font = Enum.Font.GothamBold,
 	Text = "Зайчик",
 	TextSize = 21,
@@ -198,6 +229,30 @@ local petDescription = make("TextLabel", {
 	TextYAlignment = Enum.TextYAlignment.Top,
 	TextColor3 = COLORS.muted,
 }, detail) :: TextLabel
+
+local favoriteButton = make("TextButton", {
+	Name = "ToggleFavorite",
+	Position = UDim2.new(1, -88, 0.55, 0),
+	Size = UDim2.fromOffset(34, 30),
+	BackgroundColor3 = COLORS.card,
+	Text = "☆",
+	TextSize = 19,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.gold,
+}, detail) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 9) }, favoriteButton)
+
+local lockButton = make("TextButton", {
+	Name = "ToggleLock",
+	Position = UDim2.new(1, -48, 0.55, 0),
+	Size = UDim2.fromOffset(34, 30),
+	BackgroundColor3 = COLORS.card,
+	Text = "🔓",
+	TextSize = 16,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.cream,
+}, detail) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 9) }, lockButton)
 
 local teamLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
@@ -254,7 +309,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
 
 local equipButton = make("TextButton", {
 	Position = UDim2.new(0, 14, 1, -58),
-	Size = UDim2.new(1, -28, 0, 46),
+	Size = UDim2.new(0.68, -18, 0, 46),
 	BackgroundColor3 = COLORS.mint,
 	Text = "ЭКИПИРОВАТЬ",
 	TextSize = 14,
@@ -263,6 +318,69 @@ local equipButton = make("TextButton", {
 	AutoButtonColor = true,
 }, detail) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, equipButton)
+
+local deleteButton = make("TextButton", {
+	Name = "DeletePet",
+	Position = UDim2.new(0.68, 2, 1, -58),
+	Size = UDim2.new(0.32, -16, 0, 46),
+	BackgroundColor3 = COLORS.rose,
+	Text = "УДАЛИТЬ",
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = Color3.fromRGB(52, 30, 38),
+}, detail) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 13) }, deleteButton)
+
+local confirmPanel = make("Frame", {
+	Name = "DeleteConfirmation",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(330, 178),
+	BackgroundColor3 = COLORS.panel,
+	Visible = false,
+	ZIndex = 30,
+}, shade) :: Frame
+make("UICorner", { CornerRadius = UDim.new(0, 18) }, confirmPanel)
+make("UIStroke", { Color = COLORS.rose, Thickness = 1.5, Transparency = 0.15 }, confirmPanel)
+local confirmTitle = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 18, 0, 14),
+	Size = UDim2.new(1, -36, 0, 30),
+	Text = "Удалить питомца?",
+	TextColor3 = COLORS.cream,
+	TextSize = 18,
+	Font = Enum.Font.GothamBold,
+}, confirmPanel) :: TextLabel
+local confirmMessage = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 18, 0, 48),
+	Size = UDim2.new(1, -36, 0, 48),
+	Text = "Это действие нельзя отменить.",
+	TextWrapped = true,
+	TextColor3 = COLORS.muted,
+	TextSize = 12,
+	Font = Enum.Font.Gotham,
+}, confirmPanel) :: TextLabel
+local cancelDeleteButton = make("TextButton", {
+	Position = UDim2.new(0, 16, 1, -48),
+	Size = UDim2.new(0.5, -22, 0, 34),
+	BackgroundColor3 = COLORS.panelSoft,
+	Text = "ОТМЕНА",
+	TextColor3 = COLORS.cream,
+	TextSize = 11,
+	Font = Enum.Font.GothamBold,
+}, confirmPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, cancelDeleteButton)
+local confirmDeleteButton = make("TextButton", {
+	Position = UDim2.new(0.5, 6, 1, -48),
+	Size = UDim2.new(0.5, -22, 0, 34),
+	BackgroundColor3 = COLORS.rose,
+	Text = "УДАЛИТЬ",
+	TextColor3 = Color3.fromRGB(52, 30, 38),
+	TextSize = 11,
+	Font = Enum.Font.GothamBold,
+}, confirmPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, confirmDeleteButton)
 
 local statusLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
@@ -360,6 +478,11 @@ local function updateDetail()
 		then string.format("ДРУЖБА • УРОВЕНЬ %d  •  МАКСИМУМ", bondLevel)
 		else string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
 	local equipped = isEquipped(selected.petId)
+	favoriteButton.Text = if selected.isFavorite then "★" else "☆"
+	favoriteButton.BackgroundColor3 = if selected.isFavorite then COLORS.cardSelected else COLORS.card
+	lockButton.Text = if selected.isLocked then "🔒" else "🔓"
+	lockButton.BackgroundColor3 = if selected.isLocked then COLORS.cardSelected else COLORS.card
+	deleteButton.Visible = not selected.isLocked
 	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
 	equipButton.BackgroundColor3 = if equipped then COLORS.rose else COLORS.mint
 	equipButton.TextColor3 = Color3.fromRGB(30, 43, 43)
@@ -378,9 +501,30 @@ local function renderList()
 	table.clear(cardButtons)
 
 	local filter = string.lower(search.Text)
-	for index, record in ipairs(collection.owned) do
+	local visibleRecords = {}
+	for _, record in ipairs(collection.owned) do
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
-		if filter == "" or string.find(string.lower(name), filter, 1, true) then
+		local matchesSearch = filter == "" or string.find(string.lower(name), filter, 1, true) ~= nil
+		local matchesFilter = activeFilter == "all"
+			or (activeFilter == "team" and isEquipped(record.petId))
+			or (activeFilter == "favorites" and record.isFavorite == true)
+		if matchesSearch and matchesFilter then table.insert(visibleRecords, record) end
+	end
+	table.sort(visibleRecords, function(a, b)
+		if (a.isFavorite == true) ~= (b.isFavorite == true) then return a.isFavorite == true end
+		if sortMode == "name" then
+			return string.lower(a.speciesId) < string.lower(b.speciesId)
+		elseif sortMode == "bond" then
+			local aBond = a.bondLevel or 1
+			local bBond = b.bondLevel or 1
+			if aBond ~= bBond then return aBond > bBond end
+			return (a.bondXp or 0) > (b.bondXp or 0)
+		end
+		return a.acquiredAt > b.acquiredAt
+	end)
+	for index, record in ipairs(visibleRecords) do
+		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
+		if true then
 			local equipped = isEquipped(record.petId)
 			local button = make("TextButton", {
 				Name = "Pet_" .. record.petId,
@@ -415,7 +559,11 @@ local function renderList()
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0, 66, 0, 34),
 				Size = UDim2.new(1, -112, 0, 18),
-				Text = if equipped then "В КОМАНДЕ" else "ОБЫЧНЫЙ",
+				Text = table.concat({
+					if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
+					if record.isLocked then "🔒" else "",
+					if record.isFavorite then "★" else "",
+				}, "  "),
 				TextSize = 9,
 				Font = Enum.Font.GothamMedium,
 				TextXAlignment = Enum.TextXAlignment.Left,
@@ -430,6 +578,10 @@ local function renderList()
 		end
 	end
 	list.CanvasPosition = Vector2.zero
+	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
+	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
+	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
+	sortButton.Text = if sortMode == "newest" then "НОВЫЕ" elseif sortMode == "name" then "ИМЯ" else "ДРУЖБА"
 end
 
 local function refreshCollection()
@@ -528,6 +680,87 @@ local function interactWithSelected(interactionType: string)
 	showStatus(if interactionType == "pet" then "Питомцу приятно! +10 дружбы" else "Вы отлично провели время! +10 дружбы")
 end
 
+local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
+	if busy or collection == nil or selectedPetId == nil then return end
+	busy = true
+	favoriteButton.Active = false
+	lockButton.Active = false
+	local ok, success, result = pcall(function()
+		return remote:InvokeServer("Protect", {
+			petId = selectedPetId,
+			isFavorite = isFavorite,
+			isLocked = isLocked,
+			expectedRevision = collection.revision,
+		})
+	end)
+	busy = false
+	favoriteButton.Active = true
+	lockButton.Active = true
+	if not ok or success ~= true or type(result) ~= "table" then
+		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
+		showStatus(if reason == "STALE_REVISION" then "Коллекция обновилась. Загружаю..." else "Не удалось сохранить настройки питомца.", true)
+		refreshCollection()
+		return
+	end
+	collection = result :: Collection
+	renderList()
+	updateDetail()
+	showStatus("Настройки питомца сохранены.")
+end
+
+local function requestDeleteSelected()
+	if busy or collection == nil or selectedPetId == nil then return end
+	local selected: PetRecord? = nil
+	for _, record in ipairs(collection.owned) do
+		if record.petId == selectedPetId then selected = record break end
+	end
+	if selected == nil then return end
+	if selected.isLocked then
+		showStatus("Сначала сними защиту с питомца.", true)
+		return
+	end
+	pendingDeletePetId = selected.petId
+	confirmTitle.Text = "Удалить питомца?"
+	confirmMessage.Text = "Питомец будет навсегда удалён из коллекции. Это действие нельзя отменить."
+	confirmPanel.Visible = true
+end
+
+local function confirmDeleteSelected()
+	if busy or collection == nil or pendingDeletePetId == nil then return end
+	busy = true
+	confirmDeleteButton.Active = false
+	confirmDeleteButton.Text = "УДАЛЯЕМ..."
+	local ok, success, result = pcall(function()
+		return remote:InvokeServer("Delete", {
+			petId = pendingDeletePetId,
+			expectedRevision = collection.revision,
+		})
+	end)
+	busy = false
+	confirmDeleteButton.Active = true
+	confirmDeleteButton.Text = "УДАЛИТЬ"
+	confirmPanel.Visible = false
+	pendingDeletePetId = nil
+	if not ok or success ~= true or type(result) ~= "table" then
+		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
+		local messages = {
+			STARTER_PET_PROTECTED = "Стартового питомца нельзя удалить.",
+			LAST_PET_PROTECTED = "В коллекции должен остаться хотя бы один питомец.",
+			PET_LOCKED = "Сначала сними защиту с питомца.",
+			PET_EQUIPPED = "Сначала убери питомца из команды.",
+			STALE_REVISION = "Коллекция обновилась. Загружаю изменения...",
+		}
+		showStatus(messages[reason] or "Не удалось удалить питомца. Обновляю коллекцию...", true)
+		refreshCollection()
+		return
+	end
+	collection = result :: Collection
+	selectedPetId = collection.owned[1] and collection.owned[1].petId or nil
+	renderList()
+	updateDetail()
+	showStatus("Питомец удалён из коллекции.")
+end
+
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
@@ -579,6 +812,37 @@ local function closeCollection()
 end
 
 openButton.Activated:Connect(openCollection)
+allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
+teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList() end)
+favoriteFilterButton.Activated:Connect(function() activeFilter = "favorites" renderList() end)
+sortButton.Activated:Connect(function()
+	sortMode = if sortMode == "newest" then "name" elseif sortMode == "name" then "bond" else "newest"
+	renderList()
+end)
+favoriteButton.Activated:Connect(function()
+	if collection == nil or selectedPetId == nil then return end
+	for _, record in ipairs(collection.owned) do
+		if record.petId == selectedPetId then
+			updatePetFlags(not (record.isFavorite == true), record.isLocked == true)
+			return
+		end
+	end
+end)
+lockButton.Activated:Connect(function()
+	if collection == nil or selectedPetId == nil then return end
+	for _, record in ipairs(collection.owned) do
+		if record.petId == selectedPetId then
+			updatePetFlags(record.isFavorite == true, not (record.isLocked == true))
+			return
+		end
+	end
+end)
+deleteButton.Activated:Connect(requestDeleteSelected)
+cancelDeleteButton.Activated:Connect(function()
+	pendingDeletePetId = nil
+	confirmPanel.Visible = false
+end)
+confirmDeleteButton.Activated:Connect(confirmDeleteSelected)
 
 local function isOwnedPetHousePrompt(prompt: ProximityPrompt): boolean
 	if prompt.Name ~= "PetHousePrompt" then return false end
