@@ -166,6 +166,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Keep PC and mobile in scope from the start.
 
 
+## Pet collection responsive layout (2026-11-22)
+
+- Pet collection UI now subscribes to the active camera ViewportSize and re-applies responsive panel sizing when the viewport changes.
+- The UI rebinds this listener when Workspace.CurrentCamera is replaced and disconnects the previous camera listener to avoid stale subscriptions.
+- Studio verification remains pending: resize desktop window, rotate a touch device, and replace CurrentCamera while the panel is open.
+
 ## Pet collection request hardening (2026-11-22)
 
 - Equip and Interact now share a server-side one-second per-player mutation rate limit to prevent repeated DataStore writes; read-only Get remains unrestricted by this mutation limiter.
