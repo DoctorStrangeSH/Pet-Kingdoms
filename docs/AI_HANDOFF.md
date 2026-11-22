@@ -336,3 +336,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Modifier lists are capped at 128, must be dense arrays, reject duplicate modifier IDs, invalid array keys, malformed entries, and unknown fields. Defensive clone helpers are included.
 - This is a data contract only. It does not define percentage units, operation order, stacking/refresh rules, source ownership checks, duration semantics, or how modifiers affect combat. No modifiers are applied by `PetStatsCalculator` yet.
 - Added Studio-only tests for valid equipment/skill/ability records, invalid source/stat/operation/value, extra fields, duplicate IDs, sparse/invalid lists, and clone isolation. Tests are committed but not executed in Roblox Studio.
+
+
+## Ordered pet stat modifier pipeline (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetStatModifierPipeline.lua`. It validates the base stat map and modifier list, clones inputs, and processes modifiers in their supplied list order through a required `applyModifier(currentStats, modifier, index)` callback.
+- The callback is responsible for all arithmetic semantics. The pipeline does not define percent units, flat/percent ordering, stacking, caps, refresh behavior, or source ownership.
+- Each callback invocation is protected with `pcall`; its complete five-stat result is validated and copied before the next modifier. Errors or invalid outputs stop the pipeline with an indexed reason. Empty modifier lists return a defensive copy without requiring a policy.
+- Added Studio-only tests for empty lists, order preservation, policy output, missing policy, duplicate IDs, invalid base/result values, callback errors, unknown output stats, and reference isolation. Corrected one test assertion after reviewing its expected error prefix. Tests are committed but not executed in Roblox Studio.
+- This pipeline is not yet connected to `PetStatsCalculator`, inventory/equipment, skills, abilities, or combat.
