@@ -341,9 +341,14 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	-- If the player outruns a companion for a while, it should visibly hurry
 	-- instead of sliding with an idle animation. Very large gaps can happen
 	-- after streaming or a character reset; recover near the owner safely.
-	local state = if speed >= self.runSpeed or lagDistance >= self.catchUpDistance
-		then "run"
-		else if speed >= self.walkSpeed or lagDistance >= 1.1 then "walk" else "idle"
+	-- A blocked path can have a nearby waypoint even when the owner is far
+	-- away. Base catch-up animation on the formation target, not waypoint length;
+	-- do not animate walking when navigation is stalled.
+	local canMove = horizontal(navigationGoal - currentPosition).Magnitude >= 0.15
+	local state = if not canMove then "idle"
+		else if speed >= self.runSpeed or ownerDistance >= self.catchUpDistance
+			then "run"
+			else if speed >= self.walkSpeed or lagDistance >= 1.1 then "walk" else "idle"
 
 	if ownerDistance >= self.teleportDistance then
 		local recoveryPosition = desired - horizontal(self.targetRoot.CFrame.LookVector) * 2
@@ -482,9 +487,11 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.lastFacing = facing.Unit
 	end
 
+	-- One interpolation for position and orientation. Previously nextPosition
+	-- was already interpolated, then the whole CFrame was interpolated again,
+	-- applying alpha twice to translation and making pets lag far behind.
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
-	local nextPosition = currentPosition:Lerp(navigationGoal, alpha)
-	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing)
+	local targetCFrame = CFrame.lookAt(navigationGoal, navigationGoal + self.lastFacing)
 	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
 	if self.animation then
 		self.animation:update(dt)
