@@ -1,6 +1,6 @@
 # Quest Rewards — Transaction and Recovery Design
 
-Status: partially implemented server-side persistence primitives. No reward amounts, reward catalog entries, delivery worker, or live claim endpoint are approved by this document.
+Status: server-side persistence and recovery-worker scaffolding implemented. Reward amounts, progression thresholds, reward catalog entries, and live claim endpoint are still not approved by this document.
 
 ## Existing storage boundaries
 
@@ -57,3 +57,14 @@ Do not enable a live claim button until the economy values and pet recipient rul
 - `commitQuestRewardAcknowledgement` records the source-side acknowledgement only after the caller has durably acknowledged the pet-side XP receipt. `getPendingQuestRewards` and `getQuestRewardsAwaitingAcknowledgement` expose separate recovery phases to trusted server code.
 - Fully acknowledged outbox records may be compacted on a later enqueue. Pending and delivered-but-unacknowledged records are never evicted; permanent quest claim receipts are retained separately.
 - Still NOT DONE: reward catalog/balance approval, recipient selection, XP threshold configuration, worker integration, live claim remote/UI, and cross-DataStore fault-injection tests.
+
+
+## Recovery worker implementation (2026-11-22)
+
+- Added `QuestRewardRecoveryService`, started by the server bootstrap. It waits for the exact Player's writable island session and ready pet collection before processing.
+- For pending records it resolves the exact stored progression version, calls `grantExperienceWithProgressOnce` with the stable reward ID and stored pet ID/amount, persists the island delivery transition, acknowledges the pet receipt, and finally persists the island source acknowledgement.
+- For delivered-but-unacknowledged records it resumes at the receipt acknowledgement phase. DataStore failures, unavailable targets, and configuration gaps fail closed and retry without changing or dropping the outbox record.
+- Added `PetProgressionCatalog` as a versioned server-owned registry. It is intentionally empty until XP thresholds are approved; unknown versions return `PROGRESSION_VERSION_NOT_CONFIGURED`. This prevents the worker from inventing a progression curve or delivering a reward with the wrong curve.
+- Added Studio-only catalog contract tests and started the worker from `Bootstrap.server.lua`.
+- The worker is infrastructure only while the catalog is empty: no quest reward can be delivered until a progression version is explicitly configured and a trusted claim catalog creates valid outbox records.
+- Remaining: resolve the pet-receipt/source-ack retry retention edge case under prolonged DataStore outage, add service-level fault-injection tests, run Studio tests, and approve progression/reward/recipient policy.
