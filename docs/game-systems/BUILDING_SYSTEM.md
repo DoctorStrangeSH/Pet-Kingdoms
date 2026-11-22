@@ -115,3 +115,11 @@ The client shows these as hints only. `IslandBuildingService` charges the server
 6. Add mobile controls.
 7. Add save/load with schema versioning and idempotency.
 8. Verify in Studio with overlap, boundary, exploit, and persistence tests.
+
+
+## Physical Main House interaction
+
+- The Main House exposes a localized `MainHousePrompt` ("Управлять королевством") on its door; custom models without a Door fall back to PrimaryPart/first BasePart.
+- Activating the prompt on the owner's own island starts the existing construction placement flow. The normal catalogue, client preview, server-side placement validation, wallet charging, persistence and rollback remain unchanged.
+- The prompt does not directly place a building or grant resources. The player still chooses an item and confirms a valid placement through the existing flow.
+- Keyboard E, gamepad X, zero hold duration, 10-stud activation distance; Roblox ProximityPrompt supplies the touch interaction affordance.
