@@ -73,6 +73,34 @@ function IslandResources.grant(wallet: any, resourceId: string, amount: number):
 	return true, "GRANTED", wallet[resourceId]
 end
 
+function IslandResources.grantMany(wallet: any, rewards: any): (boolean, string, { [string]: number }?)
+	local valid = IslandResources.validate(wallet)
+	if not valid then return false, "INVALID_RESOURCE_WALLET", nil end
+	if type(rewards) ~= "table" then return false, "INVALID_REWARDS", nil end
+	if next(rewards) == nil then return false, "EMPTY_REWARDS", nil end
+
+	local normalizedRewards: { [string]: number } = {}
+	for resourceId, amount in pairs(rewards) do
+		if type(resourceId) ~= "string" or IslandResources.RESOURCE_IDS[resourceId] ~= true then
+			return false, "UNKNOWN_RESOURCE", nil
+		end
+		if not isNonNegativeInteger(amount) or amount == 0 then
+			return false, "INVALID_AMOUNT", nil
+		end
+		local current = IslandResources.get(wallet, resourceId)
+		if current > MAX_BALANCE - amount then
+			return false, "RESOURCE_CAP_REACHED", nil
+		end
+		normalizedRewards[resourceId] = amount
+	end
+
+	-- Validate every reward and cap before mutating any balance.
+	for resourceId, amount in pairs(normalizedRewards) do
+		wallet[resourceId] = IslandResources.get(wallet, resourceId) + amount
+	end
+	return true, "GRANTED", table.clone(wallet)
+end
+
 function IslandResources.spend(wallet: any, costs: any): (boolean, string, { [string]: number }?)
 	local valid = IslandResources.validate(wallet)
 	if not valid then return false, "INVALID_RESOURCE_WALLET", nil end
