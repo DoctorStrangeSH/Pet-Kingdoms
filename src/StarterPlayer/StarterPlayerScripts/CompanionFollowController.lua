@@ -52,6 +52,7 @@ export type FollowController = {
 	lastInvestigatedAt: number,
 	interactionConnection: RBXScriptConnection?,
 	groundRaycastParams: RaycastParams,
+	groundLift: number,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
 }
@@ -71,13 +72,11 @@ local function getSlotOffset(slotIndex: number, sideSpacing: number, followDista
 	return Vector3.new(0, 0, followDistance + sideSpacing * 0.8)
 end
 
-local function resolveGroundPosition(model: Model, desired: Vector3, params: RaycastParams): Vector3
-	local scale = model:GetAttribute("Scale")
-	local resolvedScale = if type(scale) == "number" then scale else 1
+local function resolveGroundPosition(desired: Vector3, params: RaycastParams, groundLift: number): Vector3
 	local origin = desired + Vector3.new(0, 8, 0)
 	local result = Workspace:Raycast(origin, Vector3.new(0, -32, 0), params)
 	if result then
-		return Vector3.new(desired.X, result.Position.Y + 0.28 * resolvedScale, desired.Z)
+		return Vector3.new(desired.X, result.Position.Y + groundLift, desired.Z)
 	end
 	return desired
 end
@@ -112,6 +111,15 @@ function CompanionFollowController.new(
 		end
 	end
 
+	-- Models can use different pivots: the procedural Bunny root is close to
+	-- the floor, while imported meshes commonly pivot around their center.
+	-- Derive the lift from the actual bounding-box bottom instead of assuming
+	-- every species has the same 0.28-stud root offset.
+	local modelPivot = model:GetPivot()
+	local boundsCFrame, boundsSize = model:GetBoundingBox()
+	local boundsBottomY = boundsCFrame.Position.Y - boundsSize.Y * 0.5
+	local groundLift = math.max(0.08, modelPivot.Position.Y - boundsBottomY)
+
 	local groundRaycastParams = RaycastParams.new()
 	groundRaycastParams.FilterType = Enum.RaycastFilterType.Exclude
 	groundRaycastParams.FilterDescendantsInstances = { model, targetRoot.Parent }
@@ -121,6 +129,7 @@ function CompanionFollowController.new(
 		model = model,
 		targetRoot = targetRoot,
 		groundRaycastParams = groundRaycastParams,
+		groundLift = groundLift,
 		slotIndex = slotIndex,
 		followDistance = math.clamp(settings.followDistance or 4.5, 3, 8),
 		sideSpacing = math.clamp(settings.sideSpacing or 2.4, 1.5, 4),
@@ -184,7 +193,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local speed = targetVelocity.Magnitude
 	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
 	local desired = self.targetRoot.CFrame:PointToWorldSpace(offset)
-	desired = resolveGroundPosition(self.model, desired, self.groundRaycastParams)
+	desired = resolveGroundPosition(desired, self.groundRaycastParams, self.groundLift)
 	local current = self.model:GetPivot()
 	local currentPosition = current.Position
 	local lagDistance = horizontal(desired - currentPosition).Magnitude
@@ -274,7 +283,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 			local away = horizontal(currentPosition - nodePosition)
 			if away.Magnitude < 0.1 then away = -horizontal(self.targetRoot.CFrame.LookVector) end
 			local approachPosition = nodePosition + away.Unit * 2.8
-			self.investigatePosition = resolveGroundPosition(self.model, approachPosition, self.groundRaycastParams)
+			self.investigatePosition = resolveGroundPosition(approachPosition, self.groundRaycastParams, self.groundLift)
 			self.investigateUntil = os.clock() + 4
 			self.lastInvestigatedNode = nearestNode
 			self.lastInvestigatedAt = os.clock()
