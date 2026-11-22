@@ -99,7 +99,7 @@ local function spawnEquippedPets(player: Player)
 	local userId = player.UserId
 	local state = collections[userId]
 	local character = player.Character
-	if state == nil or state.loading or state.profile == nil or character == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil or character == nil then
 		return
 	end
 
@@ -251,7 +251,7 @@ function PetCollectionService.isReady(player: Player): boolean
 		return false
 	end
 	local state = collections[player.UserId]
-	return state ~= nil and not state.loading and state.profile ~= nil
+	return state ~= nil and state.player == player and not state.loading and state.profile ~= nil
 end
 
 local function handleRequest(player: Player, action: any, payload: any): (boolean, any)
