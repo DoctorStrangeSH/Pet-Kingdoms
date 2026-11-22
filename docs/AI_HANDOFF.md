@@ -1383,3 +1383,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Success labels now use the frozen submitted catalog/move ID, not potentially changed selection values after the remote yields.
 - Added `Services/ResourceNodeVisibility.lua` to preserve per-part `GatherBaseTransparency`, prohibit collidable resource parts, toggle resource markers and prompts, and keep `GatherAnchor` invisible across cooldowns. `IslandGatheringService` delegates to it.
 - Added `Tests/ResourceNodeVisibilityTests.server.lua`, Studio-only, covering hide, restoration and repeated hide/restore cycles. It is not executed by Rojo packaging CI; manual Studio playtest is pending.
+
+## Gathering cooldown scheduler safety (2026-11-22)
+
+- `IslandGatheringService.activeNodes` now stores an exact `availableAt` deadline (`-1` means the server is processing the gather). Scheduling an identical timestamp is idempotent. A callback verifies its timestamp is still registered and matches the node attribute before modifying visibility or clearing registration.
+- A node is restored only after the deadline passes **and** the owner session can write. When the session is temporarily unavailable, it remains hidden; the reconciler retries restoration when session write access returns.
+- The reconciliation sweep no longer repeatedly resets visible nodes every 5 seconds: it checks whether the trusted `GatherPrompt` is disabled before restoring.
+- Resource reward timing, the 60-second canonical respawn duration, saved cooldown persistence and visual transparency attributes are unchanged.
+- Rojo packaging does not execute Studio-only tests. Required manual tests: two overlapping timeout revisions, refresh/rejoin mid-cooldown, session read-only transition, and mobile gather/respawn.
