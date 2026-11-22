@@ -160,6 +160,9 @@ function IslandHatchLedgerData.prepare(profile: any, record: any, now: number): 
 		for resourceId, amount in pairs(record.costs) do
 			if existing.costs[resourceId] ~= amount then return nil, "TRANSACTION_ID_CONFLICT" end
 		end
+		if existing.state == "GRANTED" then
+			return copyProfile(profile), "ALREADY_GRANTED"
+		end
 		return copyProfile(profile), "ALREADY_PREPARED"
 	end
 
