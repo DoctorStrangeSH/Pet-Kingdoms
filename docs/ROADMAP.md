@@ -123,6 +123,7 @@
 - [ ] Implement companion states and mobile-safe movement.
   - [x] Reuse one per-companion RaycastParams instance for ground projection instead of allocating a new filter object every RenderStepped update; mobile/terrain verification pending.
 - [ ] Implement actual pet levels (maximum 50), gameplay XP, core stats, skill tree, abilities, equipment, and Bond. Bond is a separate relationship progression; the current Bond prototype is not the pet-level system.
+  - [x] Add a trusted server-only `PetCollectionService.grantExperience(player, petId, amount)` API backed by DataStore UpdateAsync and a pure validated `PetCollectionData.grantExperience` mutation. It rejects invalid amounts and unowned pets. It is not exposed to clients; no XP reward amounts, level thresholds, or gameplay source callers are defined yet.
   - [x] Add backward-compatible per-pet progression fields (`level`, `xp`), default new pets to level 1 / 0 XP, and validate level 1–50 plus finite non-negative integer XP. This is a data-model foundation only; XP thresholds and awarding are intentionally not implemented until approved.
   - [x] Implement first per-pet companionship Bond loop: Pet and Play each grant 10 provisional Bond XP; shared per-pet 30-second cooldown; Bond level 1–10 at 50 XP per level; 450 XP cap; validation enforces XP/level consistency. Studio/DataStore verification remains pending.
   - [x] Collection UI now reflows when the active camera viewport changes (window resize, device rotation, or CurrentCamera replacement); Studio/device verification pending.
