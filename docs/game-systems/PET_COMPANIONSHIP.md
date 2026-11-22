@@ -130,3 +130,7 @@ The obstruction raycast helper now has its horizontal-vector dependency declared
 - Pathfinding waypoints are also checked for ground support before each movement update; unsupported segments halt movement and schedule a new route.
 - Emergency teleport destinations are projected onto nearby ground with model-specific pivot offset.
 - A Studio-only cliff-gap regression has been authored. Verify actual generated island terrain and mobile framerates before treating this as shippable terrain traversal.
+
+## Companion navigation raycast-budget pass (2026-11-22)
+
+To reduce render-frame raycast work, the controller caches direct obstacle+terrain checks for a maximum of 0.12 seconds while both the companion pivot and formation target remain within 0.5 studs of sampled positions. A significant movement or timer expiry forces recalculation, and teleports clear cached results. The path system remains client-side cosmetic movement; Studio FPS and multiplayer validation is still required.
