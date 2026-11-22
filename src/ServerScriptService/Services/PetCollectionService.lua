@@ -656,7 +656,7 @@ function PetCollectionService.grantPet(
 			mutationStatus = "ALREADY_ACQUIRED"
 			return current
 		end
-		if not reserved or reservedProfile == nil then
+		if (not reserved and reserveStatus ~= "ALREADY_RESERVED") or reservedProfile == nil then
 			mutationStatus = reserveStatus
 			return current
 		end
