@@ -7,6 +7,7 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 	:WaitForChild("Shared")
 	:WaitForChild("Building")
 	:WaitForChild("GridMath"))
+local IslandHatchLedgerData = require(script.Parent:WaitForChild("IslandHatchLedgerData"))
 
 local IslandData = {}
 
@@ -120,6 +121,13 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 			then
 				return false, "INVALID_RESOURCE_BALANCE"
 			end
+		end
+	end
+
+	if profile.hatchTransactions ~= nil then
+		local validLedger, ledgerReason = IslandHatchLedgerData.validateLedger(profile.hatchTransactions)
+		if not validLedger then
+			return false, "INVALID_HATCH_LEDGER:" .. ledgerReason
 		end
 	end
 
