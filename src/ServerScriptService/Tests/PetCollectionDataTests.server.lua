@@ -299,6 +299,20 @@ expect("first acquisition ID adds a pet", acquiredOnce and acquiredOnceStatus ==
 assert(acquiredOnceProfile ~= nil)
 expect("first acquisition stores its receipt", #acquiredOnceProfile.acquisitionReceipts == 1)
 
+local duplicateReceiptPetIdProfile = PetCollectionData.clone(acquiredOnceProfile)
+local duplicateReceipt = table.clone(duplicateReceiptPetIdProfile.acquisitionReceipts[1])
+duplicateReceipt.acquisitionId = "egg:opening_duplicate_pet"
+table.insert(duplicateReceiptPetIdProfile.acquisitionReceipts, duplicateReceipt)
+local duplicateReceiptPetIdValid, duplicateReceiptPetIdReason =
+	PetCollectionData.validate(duplicateReceiptPetIdProfile, profile.ownerUserId)
+expect("two acquisition receipts cannot claim the same pet ID", not duplicateReceiptPetIdValid and duplicateReceiptPetIdReason == "INVALID_ACQUISITION_RECEIPT")
+
+local mismatchedReceiptPetProfile = PetCollectionData.clone(acquiredOnceProfile)
+mismatchedReceiptPetProfile.owned[2].rarityTier = 3
+local mismatchedReceiptPetValid, mismatchedReceiptPetReason =
+	PetCollectionData.validate(mismatchedReceiptPetProfile, profile.ownerUserId)
+expect("owned pet metadata must match its acquisition receipt", not mismatchedReceiptPetValid and mismatchedReceiptPetReason == "ACQUISITION_RECEIPT_PET_MISMATCH")
+
 local acquiredDuplicate, acquiredDuplicateStatus, duplicateAcquisitionProfile =
 	PetCollectionData.addPetOnce(acquiredOnceProfile, "pet_acq_new_retry", "bunny", 2, 1_800_000_001, "egg:opening_001")
 expect("repeated acquisition ID does not add a second pet", not acquiredDuplicate and acquiredDuplicateStatus == "ALREADY_ACQUIRED")
