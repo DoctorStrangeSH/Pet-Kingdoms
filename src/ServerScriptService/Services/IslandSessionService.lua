@@ -38,6 +38,8 @@ type Session = {
 	leaseToken: string,
 	leaseValid: boolean,
 	characterAddedConnection: RBXScriptConnection?,
+	humanoidDiedConnection: RBXScriptConnection?,
+	respawnPending: boolean,
 }
 
 local sessions: { [number]: Session } = {}
@@ -432,6 +434,66 @@ local function moveCharacterToIsland(userId: number, character: Model)
 	end
 end
 
+local function bindCharacterLifecycle(session: Session, character: Model)
+	if session.humanoidDiedConnection then
+		session.humanoidDiedConnection:Disconnect()
+		session.humanoidDiedConnection = nil
+	end
+
+	task.spawn(moveCharacterToIsland, session.player.UserId, character)
+	local humanoid = character:WaitForChild("Humanoid", 10)
+	if humanoid == nil or not humanoid:IsA("Humanoid")
+		or sessions[session.player.UserId] ~= session or session.player.Character ~= character
+	then
+		return
+	end
+
+	session.humanoidDiedConnection = humanoid.Died:Connect(function()
+		if session.respawnPending or sessions[session.player.UserId] ~= session
+			or not IslandSessionService.canWrite(session.player.UserId, session.player)
+		then
+			return
+		end
+		session.respawnPending = true
+		setPlayerLoadState(session.player, "Loading", "Питомцы ждут тебя. Возвращаемся на остров...")
+		task.delay(5, function()
+			local player = session.player
+			if sessions[player.UserId] ~= session or player.Parent ~= Players
+				or not IslandSessionService.canWrite(player.UserId, player)
+				or player.Character ~= character
+			then
+				session.respawnPending = false
+				return
+			end
+
+			local loaded = false
+			local lastError: any = nil
+			for attempt = 1, 3 do
+				if sessions[player.UserId] ~= session or not IslandSessionService.canWrite(player.UserId, player) then
+					break
+				end
+				local ok, result = pcall(function()
+					player:LoadCharacterAsync()
+				end)
+				if ok then
+					loaded = true
+					break
+				end
+				lastError = result
+				warn(string.format("[PetKingdoms] Respawn attempt %d failed for %d: %s", attempt, player.UserId, tostring(result)))
+				if attempt < 3 then task.wait(attempt * 2) end
+			end
+
+			session.respawnPending = false
+			if not loaded and sessions[player.UserId] == session and player.Parent == Players then
+				setPlayerLoadState(player, "Failed", "Не удалось вернуть персонажа. Переподключись к игре.")
+				warn(string.format("[PetKingdoms] Character respawn exhausted retries for %d: %s", player.UserId, tostring(lastError)))
+				player:Kick("Не удалось возродить персонажа. Пожалуйста, войдите снова.")
+			end
+		end)
+	end)
+end
+
 local function loadPlayer(player: Player)
 	local userId = player.UserId
 	if loading[userId] or sessions[userId] ~= nil then
@@ -523,7 +585,10 @@ local function loadPlayer(player: Player)
 	end
 
 	local characterAddedConnection = player.CharacterAdded:Connect(function(character)
-		task.spawn(moveCharacterToIsland, userId, character)
+		local activeSession = sessions[userId]
+		if activeSession then
+			bindCharacterLifecycle(activeSession, character)
+		end
 	end)
 
 	sessions[userId] = {
@@ -542,6 +607,8 @@ local function loadPlayer(player: Player)
 		leaseToken = leaseToken,
 		leaseValid = true,
 		characterAddedConnection = characterAddedConnection,
+		humanoidDiedConnection = nil,
+		respawnPending = false,
 	}
 	loading[userId] = nil
 
@@ -575,6 +642,10 @@ local function loadPlayer(player: Player)
 				if activeSession.characterAddedConnection then
 					activeSession.characterAddedConnection:Disconnect()
 					activeSession.characterAddedConnection = nil
+				end
+				if activeSession.humanoidDiedConnection then
+					activeSession.humanoidDiedConnection:Disconnect()
+					activeSession.humanoidDiedConnection = nil
 				end
 				IslandWorldService.remove(userId)
 				warn(string.format("[PetKingdoms] Island lease lost for %d: %s", userId, renewCode))
@@ -610,6 +681,10 @@ local function finalizeLeavingSession(userId: number, session: Session)
 	if session.characterAddedConnection then
 		session.characterAddedConnection:Disconnect()
 		session.characterAddedConnection = nil
+	end
+	if session.humanoidDiedConnection then
+		session.humanoidDiedConnection:Disconnect()
+		session.humanoidDiedConnection = nil
 	end
 	IslandWorldService.remove(userId)
 	session.saveFinished:Destroy()
