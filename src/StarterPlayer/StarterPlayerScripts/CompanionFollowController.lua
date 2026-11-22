@@ -237,11 +237,23 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		local nearestNode = nil
 		if nodes then
 			for _, node in ipairs(nodes:GetChildren()) do
-				if node:IsA("Model") and node:GetAttribute("AvailableAt") ~= nil then
-					local distance = (node:GetPivot().Position - currentPosition).Magnitude
-					if distance < nearestDistance then
-						nearestDistance = distance
-						nearestNode = node
+				local availableAt = node:GetAttribute("AvailableAt")
+				if node:IsA("Model") and type(availableAt) == "number"
+					and availableAt <= os.time()
+				then
+					local visible = false
+					for _, part in ipairs(node:GetDescendants()) do
+						if part:IsA("BasePart") and part.Transparency < 1 then
+							visible = true
+							break
+						end
+					end
+					if visible then
+						local distance = (node:GetPivot().Position - currentPosition).Magnitude
+						if distance < nearestDistance then
+							nearestDistance = distance
+							nearestNode = node
+						end
 					end
 				end
 			end
