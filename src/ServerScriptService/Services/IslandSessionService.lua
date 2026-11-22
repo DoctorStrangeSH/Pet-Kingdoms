@@ -20,6 +20,7 @@ local AUTOSAVE_INTERVAL = 60
 
 type Session = {
 	profile: any,
+	player: Player,
 	dirty: boolean,
 	saving: boolean,
 	persistedRevision: number,
@@ -54,6 +55,15 @@ function IslandSessionService.getProfile(userId: number): any?
 	return if session then session.profile else nil
 end
 
+-- Collection writers share the existing island MemoryStore lease and fail closed
+-- whenever their island session is closing, superseded, or no longer writable.
+function IslandSessionService.canWrite(userId: number, player: Player): boolean
+	local session = sessions[userId]
+	return session ~= nil and session.player == player
+		and not shuttingDown and not session.closing and not session.playerLeaving
+		and session.leaseValid
+end
+
 function IslandSessionService.markDirty(userId: number): boolean
 	local session = sessions[userId]
 	if session == nil or shuttingDown or session.closing or not session.leaseValid then
@@ -64,6 +74,10 @@ function IslandSessionService.markDirty(userId: number): boolean
 	session.dirty = true
 	return true
 end
+
+-- Forward declaration: the hatch operation function must capture this local,
+-- not an unresolved global (its implementation appears later in this module).
+local saveSession: (number, Session) -> boolean
 
 -- Applies one hatch journal transition to the live island profile and waits
 -- until a DataStore save has persisted at least that revision before returning success.
@@ -168,7 +182,7 @@ local function cloneProfile(profile: any): any
 	return copy
 end
 
-local function saveSession(userId: number, session: Session): boolean
+saveSession = function(userId: number, session: Session): boolean
 	-- Serialize saves for one player. A leave/shutdown caller waits for an
 	-- in-flight autosave instead of discarding the session while it is writing.
 	while session.saving do
@@ -311,6 +325,7 @@ local function loadPlayer(player: Player)
 
 	sessions[userId] = {
 		profile = profile,
+		player = player,
 		dirty = false,
 		saving = false,
 		persistedRevision = profile.revision,
