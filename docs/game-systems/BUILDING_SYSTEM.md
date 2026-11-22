@@ -1,6 +1,6 @@
 # Island Building System — MVP Design
 
-> Status: design baseline only. No building gameplay code exists yet.
+ > Status: server-authoritative placement/move/demolition code exists. New placement charging is implemented with provisional prices; Studio integration and persistence tests remain pending.
 
 ## 1. Player experience
 
@@ -9,7 +9,8 @@ Players personalize a persistent home island by placing, moving, rotating, upgra
 ## 2. Placement model
 
 - Use a logical grid for building footprints.
-- Every catalog item defines a stable item ID, footprint width/depth, allowed plot/zone, placement height policy, rotation steps, cost, and unlock requirement.
+- Every catalog item defines a stable item ID, footprint width/depth, rotation steps, unlock state, and optional server-owned resource cost.
+- Current provisional prices (not final economy approval): Main House free; Pet House 5 Wood + 2 Stone; Stone Path 1 Wood + 1 Stone; Garden Lantern 2 Wood + 1 Stone; Flower Bed 1 Wood; Wooden Fence 1 Wood.
 - The visual preview follows the pointer/touch ray and snaps to the logical grid.
 - Preview states: valid, invalid, blocked, and unavailable.
 - Rotation is in 90-degree increments unless an asset explicitly requires a different rule.
@@ -42,10 +43,11 @@ For every place/move/remove/upgrade request, the server must:
 2. Resolve item ID and price from server-side catalog data.
 3. Validate unlocks and available plot bounds.
 4. Validate footprint, collision/overlap, and allowed surface.
-5. Validate and atomically charge resources.
-6. Create/update/remove the server-owned building record.
-7. Persist the new island layout safely.
-8. Return a result; the client must not claim success before confirmation.
+5. Resolve the cost from `BuildingCatalog`; never accept client-supplied prices.
+6. For new placements, validate and charge the resource wallet before creating the building record. Moves do not charge again.
+7. If world sync or the profile write gate fails, restore the building/world state and atomically refund the charged resource bundle.
+8. Persist the new island layout through the existing profile save lifecycle.
+9. Return a result; the client must not claim success before confirmation.
 
 Never trust client-supplied costs, dimensions, ownership, refund values, or final placement validity.
 
@@ -67,6 +69,7 @@ Do not persist arbitrary client-provided CFrames or model contents. Derive world
 - Validate loaded records before spawning Instances.
 - Ignore or quarantine malformed records rather than crashing the entire island load.
 - Prevent duplicate charges and duplicate building creation on retries; use request IDs or idempotent operation handling.
+- Current limitation: a process crash between charging and placement rollback is not yet protected by a durable transaction journal. Demolition refunds are intentionally not enabled.
 - Handle DataStore failures without falsely acknowledging a save.
 - Consider a bounded operation journal or revision number for recovery.
 - Test rejoin, server shutdown, throttling, and partial failure in Roblox Studio.
@@ -89,7 +92,20 @@ Not in scope before MVP unless the original source specification requires them:
 - Player-to-player trading of buildings.
 - User-generated building templates.
 
-## 8. Implementation sequence
+## 8. Current construction costs (provisional)
+
+| Building | Cost |
+|---|---|
+| Main House | Free |
+| Pet House | 5 Wood + 2 Stone |
+| Stone Path | 1 Wood + 1 Stone |
+| Garden Lantern | 2 Wood + 1 Stone |
+| Flower Bed | 1 Wood |
+| Wooden Fence | 1 Wood |
+
+The client shows these as hints only. `IslandBuildingService` charges the server catalog values. The values need playtesting and a full economy balance pass. Failed placement sync/write-gate attempts use an atomic multi-resource refund. Demolition currently gives no refund.
+
+## 9. Implementation sequence
 
 1. Confirm toolchain and island coordinate model.
 2. Define catalog schema and a small test catalog.
