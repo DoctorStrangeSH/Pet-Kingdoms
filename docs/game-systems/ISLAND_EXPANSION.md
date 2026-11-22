@@ -36,3 +36,8 @@ The project specification leaves exact earning rates, prices, upgrade costs, and
 - Terrain/world regeneration and safe handling of occupied edge cells.
 - Expansion preview, confirmation UI, costs, and progression requirements.
 - Save/rejoin, multiplayer, and mobile Studio playtests.
+
+
+## Renderer integration test
+
+The IslandWorldService integration test now includes a level-1 expanded profile (32x32 grid), verifies the rendered terrain dimensions and world attributes, and compares the main-house pivot before/after the +4-cell coordinate shift. This is a Studio test only; it does not mean purchase or live resize is implemented.
