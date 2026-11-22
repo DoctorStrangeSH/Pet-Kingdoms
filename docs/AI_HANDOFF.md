@@ -883,3 +883,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Corrected IslandExpansionTests.server.lua so the representative source profile and its derived second-level profile are declared before the preparation assertions that consume them.
 - This fixes a Studio runtime test-script ordering defect; no production gameplay code or save data changed.
 - GitHub Actions Rojo build passed for commit bd463c062ba24a8099d271a47d0704f99e9cd175. This validates project packaging, not execution of Studio-only tests.
+
+
+## Expansion contract test deduplication (2026-11-22)
+
+- Removed a second duplicated copy of the IslandExpansion geometry contract test block.
+- Confirmed the Studio test file now has exactly one declaration each for the representative source profile, first-level profile, and second-level profile. Preparation assertions run after those values are constructed.
+- No production service or profile data changed. GitHub Actions packaging check is pending for the cleanup commit.
