@@ -255,7 +255,7 @@ local function resize()
 	local compact = camera.ViewportSize.X < 520
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	openButton.Position = UDim2.new(1, compact and -12 or -22, 0.70, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 370 or 390)
+	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
 end
 if Workspace.CurrentCamera then
 	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
