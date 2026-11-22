@@ -9,6 +9,7 @@ end
 local services = script.Parent.Parent:WaitForChild("Services")
 local Catalog = require(services:WaitForChild("BuildingCatalog"))
 local IslandData = require(services:WaitForChild("IslandData"))
+local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 
 local function expect(name: string, condition: boolean)
 	assert(condition, name .. " failed")
@@ -22,6 +23,38 @@ expect("invalid bounds rejected", IslandData.create(1001, 0, 10) == nil)
 
 local valid, code = IslandData.validate(profile, 1001, Catalog)
 expect("empty profile validates", valid and code == "VALID")
+expect("new island profile starts at expansion level zero", profile.expansionLevel == 0)
+expect("legacy profile without expansion level remains valid", (function()
+	local legacy = table.clone(profile)
+	legacy.expansionLevel = nil
+	local legacyOk = IslandData.validate(legacy, 1001, Catalog)
+	return legacyOk
+end)())
+local invalidExpansionProfile = table.clone(profile)
+invalidExpansionProfile.expansionLevel = 99
+local invalidExpansionOk, invalidExpansionCode = IslandData.validate(invalidExpansionProfile, 1001, Catalog)
+expect("invalid saved expansion level rejected", not invalidExpansionOk and invalidExpansionCode == "INVALID_EXPANSION_LEVEL")
+
+local expansionSource = IslandData.create(1001, 24, 24)
+table.insert(expansionSource.buildings, { instanceId = "keep-position", catalogId = "main_house", x = 8, z = 6, rotation = 0 })
+local expandedProfile, expansionCode = IslandExpansion.expandProfile(expansionSource)
+expect("profile expands by one level", expandedProfile ~= nil and expansionCode == "EXPANDED"
+	and expandedProfile.expansionLevel == 1 and expandedProfile.boundsWidth == 32 and expandedProfile.boundsDepth == 32)
+expect("existing building grid coordinates shift by half expansion", expandedProfile ~= nil
+	and expandedProfile.buildings[1].x == 12 and expandedProfile.buildings[1].z == 10)
+local originalWorldX = (8 + 1 - 24 / 2)
+local expandedWorldX = (expandedProfile.buildings[1].x + 1 - expandedProfile.boundsWidth / 2)
+local originalWorldZ = (6 + 1 - 24 / 2)
+local expandedWorldZ = (expandedProfile.buildings[1].z + 1 - expandedProfile.boundsDepth / 2)
+expect("existing building world position remains unchanged", originalWorldX == expandedWorldX and originalWorldZ == expandedWorldZ)
+local expandedTwice, twiceCode = IslandExpansion.expandProfile(expandedProfile)
+expect("second expansion reaches 40 by 40", expandedTwice ~= nil and twiceCode == "EXPANDED"
+	and expandedTwice.boundsWidth == 40 and expandedTwice.boundsDepth == 40 and expandedTwice.expansionLevel == 2)
+local thirdExpansion, thirdCode = IslandExpansion.expandProfile(expandedTwice)
+expect("expansion beyond maximum rejected", thirdExpansion == nil and thirdCode == "MAX_EXPANSION_REACHED")
+expect("source profile is not mutated by expansion", expansionSource.expansionLevel == 0
+	and expansionSource.boundsWidth == 24 and expansionSource.buildings[1].x == 8)
+
 expect("new island profile starts with an empty building operation journal",
 	type(profile.buildingOperations) == "table" and #profile.buildingOperations == 0)
 expect("new island profile starts with no resource cooldowns",
