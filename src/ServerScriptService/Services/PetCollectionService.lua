@@ -9,6 +9,7 @@ local Workspace = game:GetService("Workspace")
 
 local sharedPets = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets")
 local PetCollectionData = require(sharedPets:WaitForChild("PetCollectionData"))
+local PetCollectionSessionData = require(sharedPets:WaitForChild("PetCollectionSessionData"))
 local PetAssetLoader = require(script.Parent:WaitForChild("PetAssetLoader"))
 
 local PetCollectionService = {}
@@ -20,6 +21,8 @@ type PlayerCollection = {
 	profile: any,
 	loading: boolean,
 	player: Player,
+	sessionToken: string?,
+	sessionGeneration: number?,
 }
 
 local collections: { [number]: PlayerCollection } = {}
@@ -52,9 +55,24 @@ end
 
 local function updateWithRetry(userId: number, transform: (any) -> any): (boolean, any)
 	local lastError = nil
+	local originatingState = collections[userId]
 	for attempt = 1, MAX_ATTEMPTS do
 		local ok, result = pcall(function()
-			return store:UpdateAsync(keyFor(userId), transform)
+			return store:UpdateAsync(keyFor(userId), function(current)
+				-- This guard runs inside the atomic DataStore callback, not merely
+				-- before the request. Older server generations cannot commit.
+				if originatingState ~= nil and not originatingState.loading then
+					if collections[userId] ~= originatingState
+						or originatingState.player.Parent ~= Players
+						or not PetCollectionSessionData.owns(
+							current, originatingState.sessionGeneration, originatingState.sessionToken
+						)
+					then
+						return nil
+					end
+				end
+				return transform(current)
+			end)
 		end)
 		if ok then
 			return true, result
@@ -65,6 +83,17 @@ local function updateWithRetry(userId: number, transform: (any) -> any): (boolea
 		end
 	end
 	warn("[PetKingdoms] Pet collection DataStore failed:", userId, lastError)
+	return false, nil
+end
+
+local function observeCollection(userId: number): (boolean, any)
+	for attempt = 1, MAX_ATTEMPTS do
+		local ok, result = pcall(function()
+			return store:GetAsync(keyFor(userId))
+		end)
+		if ok then return true, result end
+		if attempt < MAX_ATTEMPTS then task.wait(0.5 * (2 ^ (attempt - 1))) end
+	end
 	return false, nil
 end
 
@@ -155,11 +184,31 @@ local function loadPlayer(player: Player)
 	local ownedState: PlayerCollection = { profile = nil, loading = true, player = player }
 	collections[userId] = ownedState
 
-	local ok, result = updateWithRetry(userId, function(current)
-		if current == nil then
-			return PetCollectionData.createDefault(userId)
+	local observedOk, observed = observeCollection(userId)
+	if not observedOk then
+		if collections[userId] == ownedState then collections[userId] = nil end
+		warn("[PetKingdoms] Could not observe pet collection for", userId)
+		return
+	end
+	if observed ~= nil then
+		local observedValid, observedReason = PetCollectionData.validate(observed, userId)
+		if not observedValid then
+			if collections[userId] == ownedState then collections[userId] = nil end
+			warn("[PetKingdoms] Invalid observed pet collection for", userId, observedReason)
+			return
 		end
-		return current
+	end
+
+	local claimToken = HttpService:GenerateGUID(false)
+	local claimStatus = "NOT_CLAIMED"
+	local ok, result = updateWithRetry(userId, function(current)
+		local claimed, status = PetCollectionSessionData.claim(
+			current, observed, claimToken, function()
+				return PetCollectionData.createDefault(userId)
+			end
+		)
+		claimStatus = status
+		return claimed
 	end)
 
 	-- A prior Player instance may finish loading after a disconnect and
@@ -171,9 +220,9 @@ local function loadPlayer(player: Player)
 		return
 	end
 	local state = ownedState
-	if not ok or type(result) ~= "table" then
+	if not ok or type(result) ~= "table" or (claimStatus ~= "CLAIMED" and claimStatus ~= "ALREADY_CLAIMED") then
 		collections[userId] = nil
-		warn("[PetKingdoms] Pet collection unavailable for", player.Name)
+		warn("[PetKingdoms] Pet collection claim unavailable for", player.Name, claimStatus)
 		return
 	end
 
@@ -185,6 +234,8 @@ local function loadPlayer(player: Player)
 	end
 
 	state.profile = result
+	state.sessionToken = claimToken
+	state.sessionGeneration = result.collectionSessionGeneration
 	state.loading = false
 	if characterConnections[userId] then
 		characterConnections[userId]:Disconnect()
