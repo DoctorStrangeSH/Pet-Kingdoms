@@ -21,6 +21,14 @@ expect("legacy profile without quest progress receives default quest snapshot",
 local invalidSnapshot = QuestProgressData.snapshot({ unknown_quest = { count = 1 } })
 expect("malformed quest progress never leaks into client snapshot", #invalidSnapshot == 0)
 
+local orderedSnapshot = QuestProgressData.snapshot(state)
+local repeatedSnapshot = QuestProgressData.snapshot(state)
+expect("quest journal order is stable and starts with wood then stone",
+	orderedSnapshot[1].id == "gather_wood"
+		and orderedSnapshot[2].id == "gather_stone"
+		and repeatedSnapshot[1].id == orderedSnapshot[1].id
+		and repeatedSnapshot[2].id == orderedSnapshot[2].id)
+
 local afterWood, completedWood, woodCode = QuestProgressData.recordGather(state, "wood")
 expect("wood gather increments only wood quest", afterWood ~= nil and woodCode == "RECORDED"
 	and afterWood.gather_wood.count == 1 and afterWood.gather_stone.count == 0)
