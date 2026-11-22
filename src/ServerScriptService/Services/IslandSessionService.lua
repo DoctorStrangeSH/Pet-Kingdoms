@@ -104,7 +104,9 @@ function IslandSessionService.commitResourceGathering(
 	if not IslandSessionService.canWrite(userId, player) then
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	if session.gatheringMutationBusy then return false, "GATHERING_BUSY", nil end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "GATHERING_BUSY", nil
+	end
 
 	local definition = IslandResourceNodeCatalog.get(nodeId)
 	if definition == nil then return false, "UNKNOWN_NODE", nil end
@@ -189,7 +191,9 @@ function IslandSessionService.commitBuildingOperation(
 	if not IslandSessionService.canWrite(userId, player) then
 		return false, "SESSION_NOT_WRITABLE"
 	end
-	if session.buildingMutationBusy then return false, "BUILDING_OPERATION_BUSY" end
+	if session.buildingMutationBusy or session.gatheringMutationBusy or session.hatchMutationBusy then
+		return false, "BUILDING_OPERATION_BUSY"
+	end
 
 	session.buildingMutationBusy = true
 	local nextLedger, journalCode = IslandBuildingJournalData.append(
@@ -251,7 +255,9 @@ function IslandSessionService.applyHatchOperation(
 	if shuttingDown or session.closing or not session.leaseValid then
 		return false, "SESSION_NOT_WRITABLE"
 	end
-	if session.hatchMutationBusy then return false, "HATCH_OPERATION_BUSY" end
+	if session.hatchMutationBusy or session.buildingMutationBusy or session.gatheringMutationBusy then
+		return false, "HATCH_OPERATION_BUSY"
+	end
 	if operation ~= "PREPARE" and operation ~= "CHARGE" and operation ~= "GRANT" then
 		return false, "UNKNOWN_HATCH_OPERATION"
 	end
