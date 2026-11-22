@@ -421,6 +421,7 @@ function PetCollectionData.reservePetSlotOnce(
 ): (boolean, string, any?)
 	local valid, reason = validateMutationProfile(profile)
 	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
+	if not canIncrementRevision(profile) then return false, "REVISION_OVERFLOW", nil end
 	if type(acquisitionId) ~= "string" or #acquisitionId < 1 or #acquisitionId > 128
 		or string.match(acquisitionId, "^[%w][%w:_%-]*$") == nil
 	then
