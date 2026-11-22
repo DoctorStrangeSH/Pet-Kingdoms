@@ -845,3 +845,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The test asserts world GridWidth/GridDepth attributes, 256x256-stud grass terrain at the configured 8-stud cell size, and unchanged main-house world pivot compared with the starter plot.
 - This validates the existing profile-driven renderer on a rejoin-style respawn path; it does not implement live in-session expansion, purchase, resource debit, or a durable expansion receipt.
 - Studio execution is still pending.
+
+
+## Maximum expanded island renderer regression (2026-11-22)
+
+- Extended IslandWorldService Studio integration coverage to render the maximum prototype expansion level (40x40 grid, 320x320 studs at 8-stud cells).
+- The test checks persisted world bounds, rendered grass dimensions, main-house existence, and exact preservation of its original world-space pivot after the cumulative +8-cell coordinate offset.
+- This remains a Studio integration test and has not been executed in the owner's Studio session. No purchase, live resize, or resource transaction was added.
