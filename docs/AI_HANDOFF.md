@@ -809,3 +809,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - It now uses the same shouldKeepPendingRequest predicate as demolition and retains the request ID for transient/in-progress outcomes. This allows the server's idempotency cache and durable building journal to recognize a retry as the same logical operation instead of creating a new charge/place request.
 - Transport failures already retained the request ID and remain unchanged.
 - Verify with Studio fault injection: force a transient persistence result, retry the same placement, and assert exactly one building record and one resource charge. Also verify definitive errors clear the pending request key.
+
+
+## Construction catalog cleanup (2026-11-22)
+
+- Removed the unused BUILDING_COSTS table from IslandBuildingController. It duplicated provisional prices already owned by the server's BuildingCatalog and was not read by the client.
+- Server remains authoritative for all construction costs and affordability decisions. This is dead-code removal only; no price, placement, or economy behavior changed.
