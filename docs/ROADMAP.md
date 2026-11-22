@@ -111,6 +111,7 @@
 - [x] Add a Main House interaction that opens an island overview with live Kingdom Bond progress, building count, and a route into the existing construction flow (Studio/device verification pending).
 - [x] Add initial decor catalogue entries for stone_path and garden_lantern with saved placement, move, and demolition support (Studio verification pending).
 - [x] Expand the starter decor catalogue with flower_bed and wooden_fence blockout models, selection cards, and the shared placement/move/demolition flow (Studio verification pending).
+- [x] Preserve the same client request ID for placement/move retries while the server reports BUILDING_OPERATION_IN_PROGRESS, BUILDING_OPERATION_BUSY, PERSIST_TIMEOUT, or SESSION_NOT_WRITABLE; clear it only after a definitive response (Studio fault-injection verification pending).
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [x] Add server-authoritative placement/move/demolition transaction endpoint with recent request deduplication and world/profile rollback (Studio integration verification pending).
