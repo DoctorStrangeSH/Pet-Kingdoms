@@ -23,6 +23,7 @@ type PlayerCollection = {
 local collections: { [number]: PlayerCollection } = {}
 local remote: RemoteFunction? = nil
 local characterConnections: { [number]: RBXScriptConnection } = {}
+local interactionRequestTimes: { [number]: number } = {}
 
 local function keyFor(userId: number): string
 	return "player_" .. tostring(userId)
@@ -32,7 +33,7 @@ local function cloneForClient(profile: any): any
 	return {
 		schemaVersion = profile.schemaVersion,
 		revision = profile.revision,
-		owned = table.clone(profile.owned),
+		owned = PetCollectionData.clone(profile).owned,
 		equipped = table.clone(profile.equipped),
 		maxEquipped = PetCollectionData.MAX_EQUIPPED_PETS,
 	}
@@ -174,6 +175,63 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 
 	if action == "Get" then
 		return true, cloneForClient(state.profile)
+	end
+
+	if action == "Interact" then
+		if type(payload) ~= "table"
+			or type(payload.petId) ~= "string"
+			or type(payload.interactionType) ~= "string"
+			or type(payload.expectedRevision) ~= "number"
+			or payload.expectedRevision ~= math.floor(payload.expectedRevision)
+		then
+			return false, "INVALID_REQUEST"
+		end
+		if payload.expectedRevision ~= state.profile.revision then
+			return false, "STALE_REVISION"
+		end
+		local nowClock = os.clock()
+		if nowClock - (interactionRequestTimes[player.UserId] or 0) < 1 then
+			return false, "REQUEST_RATE_LIMITED"
+		end
+		interactionRequestTimes[player.UserId] = nowClock
+
+		local mutationStatus = "NOT_UPDATED"
+		local ok, result = updateWithRetry(player.UserId, function(current)
+			if type(current) ~= "table" then
+				mutationStatus = "PROFILE_MISSING"
+				return current
+			end
+			local valid, reason = PetCollectionData.validate(current, player.UserId)
+			if not valid then
+				mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+				return current
+			end
+			if current.revision ~= payload.expectedRevision then
+				mutationStatus = "STALE_REVISION"
+				return current
+			end
+			local changed, status, nextProfile = PetCollectionData.interact(
+				current,
+				payload.petId,
+				payload.interactionType,
+				os.time()
+			)
+			mutationStatus = status
+			if not changed then return current end
+			return nextProfile
+		end)
+
+		if not ok then return false, "DATASTORE_UNAVAILABLE" end
+		if mutationStatus ~= "UPDATED" or type(result) ~= "table" then
+			return false, mutationStatus
+		end
+		local valid, reason = PetCollectionData.validate(result, player.UserId)
+		if not valid then
+			warn("[PetKingdoms] Pet interaction result invalid:", player.UserId, reason)
+			return false, "INVALID_SAVE_RESULT"
+		end
+		state.profile = result
+		return true, cloneForClient(result)
 	end
 
 	if action ~= "Equip" then
