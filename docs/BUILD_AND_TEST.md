@@ -66,6 +66,28 @@ Before integrating it into placement gameplay, verify these cases:
 - Adjacent footprints do not overlap.
 - Footprints sharing any positive-area region do overlap.
 
+## Opt-in client smoke tests
+
+The client companion-controller smoke test is included in the Studio project, but it must not create test pets during an ordinary play session.
+
+To run it deliberately in a dedicated Studio test place:
+
+1. In Edit mode, open **View → Command Bar**.
+2. Run:
+
+   ```lua
+   workspace:SetAttribute("RunPetKingdomsStudioTests", true)
+   ```
+
+3. Press **Play**. The client smoke test creates three temporary Bunny blockouts under `Workspace/CompanionFollowControllerTests`, runs its assertions, and removes the folder when it completes.
+4. Stop the session. In Edit mode, disable the gate:
+
+   ```lua
+   workspace:SetAttribute("RunPetKingdomsStudioTests", false)
+   ```
+
+Do not enable the gate in a normal development session; it is for isolated test runs only.
+
 ## Roblox Studio test checklist
 
 The repository contains Studio-only test scripts under `src/ServerScriptService/Tests` and client test scripts under `src/StarterPlayer/StarterPlayerScripts/Tests`. Run these in a dedicated Studio test place, not against production player data.
