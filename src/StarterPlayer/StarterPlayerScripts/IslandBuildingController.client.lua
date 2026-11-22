@@ -43,6 +43,20 @@ local selectedBuildingModel: Model? = nil
 local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
+local pendingRequestIds: { [string]: string } = {}
+
+local function getPendingRequestId(operationKey: string): string
+	local requestId = pendingRequestIds[operationKey]
+	if requestId == nil then
+		requestId = HttpService:GenerateGUID(false)
+		pendingRequestIds[operationKey] = requestId
+	end
+	return requestId
+end
+
+local function clearPendingRequestId(operationKey: string)
+	pendingRequestIds[operationKey] = nil
+end
 
 local COLORS = {
 	panel = Color3.fromRGB(35, 31, 59),
@@ -262,9 +276,11 @@ demolishButton.Activated:Connect(function()
 	end
 	demolishButton.Active = false
 	demolishButton.Text = "..."
+	local operationKey = "demolish:" .. instanceId
+	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
-			requestId = HttpService:GenerateGUID(false),
+			requestId = requestId,
 			action = "demolish",
 			instanceId = instanceId,
 		})
@@ -272,6 +288,7 @@ demolishButton.Activated:Connect(function()
 	demolishButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
+	if ok then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
@@ -603,9 +620,18 @@ confirmButton.Activated:Connect(function()
 	end
 	confirmButton.Active = false
 	confirmButton.Text = "..."
+	local operationKey = table.concat({
+		"build",
+		selectedCatalogId,
+		tostring(currentCellX),
+		tostring(currentCellZ),
+		tostring(rotation),
+		tostring(movingInstanceId or ""),
+	}, ":")
+	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
-			requestId = HttpService:GenerateGUID(false),
+			requestId = requestId,
 			catalogId = selectedCatalogId,
 			x = currentCellX,
 			z = currentCellZ,
@@ -615,6 +641,7 @@ confirmButton.Activated:Connect(function()
 	end)
 	confirmButton.Active = true
 	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
+	if ok then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
