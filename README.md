@@ -23,22 +23,28 @@ A colorful, child-friendly Roblox adventure about collecting, bonding with, and 
 
 The project uses a hybrid **Rojo + VS Code + Roblox Studio** workflow.
 
-1. Install Roblox Studio and Rojo 7.x.
+1. Install Roblox Studio and [Rokit](https://github.com/rojo-rbx/rokit).
 2. Clone this repository and open its root folder in VS Code.
-3. Build the place model:
+3. Install the exact project tool versions pinned in `rokit.toml`:
 
    ```bash
-   rojo build default.project.json -o build/PetKingdoms.rbxlx
+   rokit install
    ```
 
-   Create the `build` directory first if it does not exist.
-4. For live sync, run:
+4. Build the place model:
+
+   ```bash
+   mkdir -p build
+   rojo build default.project.json --output build/PetKingdoms.rbxlx
+   ```
+
+5. For live sync, run:
 
    ```bash
    rojo serve default.project.json
    ```
 
-5. Connect to the running Rojo server from the Rojo plugin in Roblox Studio.
+6. Connect to the running Rojo server from the Rojo plugin in Roblox Studio.
 
 See [docs/BUILD_AND_TEST.md](docs/BUILD_AND_TEST.md) for the workflow and testing requirements.
 
@@ -49,7 +55,7 @@ See [docs/BUILD_AND_TEST.md](docs/BUILD_AND_TEST.md) for the workflow and testin
 - `src/StarterPlayer/StarterPlayerScripts` — client UI and companion controllers.
 - `assets/pets` — source meshes, rig/export scripts, and pet pipeline documentation.
 - `tools/roblox` — Roblox Studio inspection and helper scripts.
-- `.github/workflows` — automated pet asset source and Blender pipeline validation.
+- `.github/workflows` — automated Bunny asset validation and full Rojo place builds.
 
 ## Current implementation snapshot
 
@@ -61,7 +67,7 @@ The repository contains an initial playable-systems scaffold, including:
 - Server-authoritative building placement, movement, and demolition prototypes.
 - Kingdom Bond island progression and a starter resource HUD.
 
-**Important:** this is not a production-ready game release. Many systems are prototypes awaiting Roblox Studio verification. The Bunny is not approved production art, the Green Valley biome and complete 20-pet collection are not finished, and live DataStore, multiplayer, mobile, and visual acceptance checks remain outstanding. The authoritative status is always [docs/ROADMAP.md](docs/ROADMAP.md).
+**Important:** this is not a production-ready game release. Many systems are prototypes awaiting Roblox Studio verification. The Bunny is not approved production art, the Green Valley biome and complete 20-pet collection are not finished, and live DataStore, multiplayer, mobile, and visual acceptance checks remain outstanding. The authoritative status is always [docs/ROADMAP.md](docs/ROADMAP.md). Successful CI builds also publish a downloadable Studio-ready `.rbxlx` artifact.
 
 ## Quality rule
 
