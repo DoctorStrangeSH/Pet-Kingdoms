@@ -255,3 +255,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A request that completes late can therefore no longer send a stale profile revision back to the UI after a newer concurrent mutation has already updated the in-memory snapshot.
 - Equip still respawns from the current in-memory profile after synchronization.
 - Verify overlapping Equip/Interact/XP calls from multiple client requests in Studio; UI should converge to the greatest revision and not display rolled-back equipped IDs or Bond values.
+
+
+## Companion interaction animation priority (2026-11-22)
+
+- Fixed a state-priority bug in `CompanionFollowController.update`: player-triggered `happy`/`curious` reactions now override autonomous `sniff`/`curious`/`happy` idle personality moments while the companion is stationary.
+- Walk/run states remain higher priority, so an affection/play reaction does not freeze or replace movement animation.
+- Added client Studio smoke assertions for interaction-over-idle priority and movement-over-interaction priority.
+- Studio execution remains pending.
