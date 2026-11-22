@@ -25,4 +25,8 @@ expect("unknown transaction state fails closed", invalidAction == nil and invali
 local nilAction, nilStatus = RecoveryData.getNextAction(nil)
 expect("missing transaction fails closed", nilAction == nil and nilStatus == "INVALID_TRANSACTION")
 
+expect("hatch recovery readiness window exceeds collection lease wait",
+	RecoveryData.hasSufficientReadinessWindow()
+		and RecoveryData.RECOVERY_READY_TIMEOUT_SECONDS > RecoveryData.COLLECTION_READY_TIMEOUT_SECONDS)
+
 print("[PetKingdoms Test] PetHatchingRecoveryData tests completed.")
