@@ -11,6 +11,7 @@ local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
+local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -38,7 +39,7 @@ local function getRemote(): RemoteFunction
 	return remote
 end
 
-local function remember(userId: number, requestId: string, result: any)
+local function remember(userId: number, requestId: string, fingerprint: string, result: any)
 	local cache = resultsByUserId[userId]
 	if cache == nil then
 		cache = {}
@@ -49,11 +50,30 @@ local function remember(userId: number, requestId: string, result: any)
 	if cache[requestId] == nil then
 		table.insert(order, requestId)
 	end
-	cache[requestId] = result
+	cache[requestId] = { fingerprint = fingerprint, result = result }
 	while #order > MAX_CACHED_REQUESTS do
 		local expired = table.remove(order, 1)
 		cache[expired] = nil
 	end
+end
+
+local function makeFingerprint(request: any): (string, string)
+	local action = if request.action == "demolish" then "demolish"
+		elseif request.movingInstanceId ~= nil then "move" else "place"
+	local values = {
+		action,
+		tostring(request.instanceId or ""),
+		tostring(request.catalogId or ""),
+		tostring(request.x or ""),
+		tostring(request.z or ""),
+		tostring(request.rotation or ""),
+		tostring(request.movingInstanceId or ""),
+	}
+	local encoded = {}
+	for _, value in ipairs(values) do
+		table.insert(encoded, tostring(#value) .. ":" .. value)
+	end
+	return table.concat(encoded), action
 end
 
 local function fail(code: string): any
@@ -101,9 +121,24 @@ local function handleRequest(player: Player, request: any): any
 	if not IslandSessionService.canWrite(userId, player) then
 		return fail("SESSION_NOT_WRITABLE")
 	end
+	local fingerprint, operationAction = makeFingerprint(request)
 	local cache = resultsByUserId[userId]
-	if cache and cache[request.requestId] then
-		return cache[request.requestId]
+	local cached = cache and cache[request.requestId]
+	if cached ~= nil then
+		if cached.fingerprint ~= fingerprint then return fail("REQUEST_ID_CONFLICT") end
+		return cached.result
+	end
+
+	local activeProfile = IslandSessionService.getProfile(userId)
+	if activeProfile == nil then return fail("SESSION_NOT_READY") end
+	local durableResult, journalStatus = IslandBuildingJournalData.find(
+		activeProfile.buildingOperations or {}, request.requestId, fingerprint, os.time()
+	)
+	if journalStatus == "DUPLICATE" and durableResult ~= nil then
+		remember(userId, request.requestId, fingerprint, durableResult)
+		return durableResult
+	elseif journalStatus ~= "NOT_FOUND" then
+		return fail(journalStatus)
 	end
 
 	if not allowRequest(userId) then
