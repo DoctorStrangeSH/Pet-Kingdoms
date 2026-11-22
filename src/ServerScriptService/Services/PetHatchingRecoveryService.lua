@@ -12,10 +12,13 @@ local PetHatchingRecoveryService = {}
 
 -- Pet collection load itself can wait up to 120 seconds for the island lease.
 -- The recovery poll must not expire first during a delayed but valid login.
-local READY_TIMEOUT_SECONDS = 150
+local READY_TIMEOUT_SECONDS = PetHatchingRecoveryData.RECOVERY_READY_TIMEOUT_SECONDS
 local READY_POLL_SECONDS = 0.25
 type RecoveryRun = { player: Player, token: {} }
 local activeRuns: { [number]: RecoveryRun } = {}
+
+assert(PetHatchingRecoveryData.hasSufficientReadinessWindow(),
+	"[PetKingdoms] Hatch recovery readiness window must exceed collection load wait.")
 
 local function isCurrentRun(player: Player, token: {}): boolean
 	local run = activeRuns[player.UserId]
