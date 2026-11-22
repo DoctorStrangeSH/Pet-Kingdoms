@@ -186,6 +186,67 @@ make("UICorner", { CornerRadius = UDim.new(0, 12) }, refreshButton)
 local opened = false
 local loading = false
 local lastPreview: any = nil
+local previewFolder: Folder? = nil
+
+local function clearWorldPreview()
+	if previewFolder then
+		previewFolder:Destroy()
+		previewFolder = nil
+	end
+end
+
+local function showWorldPreview(data: any)
+	clearWorldPreview()
+	if not opened or type(data) ~= "table" or data.ok ~= true or data.canExpand ~= true then return end
+	local islands = Workspace:FindFirstChild("PlayerIslands")
+	if islands == nil then return end
+	local world = islands:FindFirstChild("Island_" .. tostring(player.UserId))
+	if not world or not world:IsA("Model") or world:GetAttribute("OwnerUserId") ~= player.UserId then return end
+	local grass = world:FindFirstChild("Island_GrassTop")
+	if not grass or not grass:IsA("BasePart") then return end
+	if type(data.nextWidth) ~= "number" or type(data.nextDepth) ~= "number" then return end
+
+	local currentWidth = grass.Size.X
+	local currentDepth = grass.Size.Z
+	local nextWidth = data.nextWidth * (currentWidth / data.currentWidth)
+	local nextDepth = data.nextDepth * (currentDepth / data.currentDepth)
+	local addedX = (nextWidth - currentWidth) / 2
+	local addedZ = (nextDepth - currentDepth) / 2
+	if addedX <= 0 or addedZ <= 0 then return end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "LocalIslandExpansionPreview"
+	folder.Parent = Workspace
+	previewFolder = folder
+
+	local yOffset = grass.Size.Y / 2 + 0.16
+	local function makeStrip(name: string, size: Vector3, offset: CFrame)
+		local part = Instance.new("Part")
+		part.Name = name
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanTouch = false
+		part.CanQuery = false
+		part.CastShadow = false
+		part.Material = Enum.Material.Neon
+		part.Color = Color3.fromRGB(115, 230, 171)
+		part.Transparency = 0.58
+		part.Size = size
+		part.CFrame = grass.CFrame * offset
+		part.Parent = folder
+		local selection = Instance.new("SelectionBox")
+		selection.Adornee = part
+		selection.Color3 = Color3.fromRGB(177, 255, 208)
+		selection.LineThickness = 0.035
+		selection.SurfaceTransparency = 1
+		selection.Parent = part
+	end
+
+	makeStrip("Preview_North", Vector3.new(nextWidth, 0.12, addedZ), CFrame.new(0, yOffset, -(currentDepth / 2 + addedZ / 2)))
+	makeStrip("Preview_South", Vector3.new(nextWidth, 0.12, addedZ), CFrame.new(0, yOffset, currentDepth / 2 + addedZ / 2))
+	makeStrip("Preview_West", Vector3.new(addedX, 0.12, currentDepth), CFrame.new(-(currentWidth / 2 + addedX / 2), yOffset, 0))
+	makeStrip("Preview_East", Vector3.new(addedX, 0.12, currentDepth), CFrame.new(currentWidth / 2 + addedX / 2, yOffset, 0))
+end
 
 local function renderPreview(data: any)
 	if type(data) ~= "table" or data.ok ~= true then
@@ -199,6 +260,7 @@ local function renderPreview(data: any)
 
 	lastPreview = data
 	currentValue.Text = string.format("Уровень %d  •  %d × %d", data.currentLevel, data.currentWidth, data.currentDepth)
+	showWorldPreview(data)
 	if data.canExpand and type(data.nextLevel) == "number" then
 		nextValue.Text = string.format("Уровень %d  •  %d × %d", data.nextLevel, data.nextWidth, data.nextDepth)
 		status.Text = "Новые земли доступны по геометрии, но покупка пока отключена."
@@ -238,6 +300,7 @@ local function setOpen(value: boolean)
 		TweenService:Create(shade, TweenInfo.new(0.16), { BackgroundTransparency = 0.42 }):Play()
 		refresh()
 	else
+		clearWorldPreview()
 		TweenService:Create(shade, TweenInfo.new(0.12), { BackgroundTransparency = 1 }):Play()
 		task.delay(0.13, function()
 			if not opened then shade.Visible = false end
