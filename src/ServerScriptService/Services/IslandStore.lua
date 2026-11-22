@@ -55,6 +55,10 @@ function IslandStore.load(userId: number): (boolean, any, string)
 		-- the wallet field existed. claimSession persists this migrated value.
 		data.resources = IslandResources.create()
 	end
+	if data.buildingOperations == nil then
+		-- Legacy profiles start with an empty durable construction receipt ledger.
+		data.buildingOperations = {}
+	end
 	return true, data, "LOADED"
 end
 
@@ -72,6 +76,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 	local seed = table.clone(profile)
 	if seed.resources == nil then
 		seed.resources = IslandResources.create()
+	end
+	if seed.buildingOperations == nil then
+		seed.buildingOperations = {}
 	end
 	-- Claim only if the generation observed during load is still current.
 	-- This prevents a delayed loader from superseding a newer session.
@@ -95,6 +102,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 
 			if nextProfile.resources == nil then
 				nextProfile.resources = IslandResources.create()
+			end
+			if nextProfile.buildingOperations == nil then
+				nextProfile.buildingOperations = {}
 			end
 			local currentGeneration = nextProfile.sessionGeneration or 0
 			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
