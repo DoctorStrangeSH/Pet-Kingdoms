@@ -102,6 +102,7 @@
   - [x] Persist `expansionLevel` as an optional schema-v1 profile field; normalize legacy saves to level 0 during load and session claim.
   - [x] Add a pure next-level profile transformation that shifts saved grid coordinates by half the added dimensions, preserving existing buildings in world space; cover two levels and max-level rejection in Studio tests (execution pending).
 - [x] Extend IslandExpansion Studio contract tests to verify both successive profile transformations, exact cumulative coordinate offsets, source-profile immutability, and rejection beyond the maximum level (Studio execution pending).
+- [x] Harden expansion profile transformation against negative/fractional saved grid coordinates and add regression cases (Studio execution pending).
   - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
