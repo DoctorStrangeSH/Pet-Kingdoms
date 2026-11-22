@@ -33,6 +33,17 @@ expect("negative levels are rejected", IslandExpansion.getBounds(24, 24, -1) == 
 expect("fractional levels are rejected", IslandExpansion.getBounds(24, 24, 0.5) == nil)
 expect("levels above maximum are rejected", IslandExpansion.getBounds(24, 24, 3) == nil)
 expect("invalid base dimensions are rejected", IslandExpansion.getBounds(0, 24, 1) == nil)
+
+expect("legacy profile without expansion level matches starter bounds",
+	IslandExpansion.matchesProfileBounds({ boundsWidth = 24, boundsDepth = 24 }, 24, 24))
+expect("first expanded profile matches expected bounds",
+	IslandExpansion.matchesProfileBounds({ boundsWidth = 32, boundsDepth = 32, expansionLevel = 1 }, 24, 24))
+expect("maximum expanded profile matches expected bounds",
+	IslandExpansion.matchesProfileBounds({ boundsWidth = 40, boundsDepth = 40, expansionLevel = 2 }, 24, 24))
+expect("profile with mismatched bounds and expansion level is rejected",
+	not IslandExpansion.matchesProfileBounds({ boundsWidth = 40, boundsDepth = 40, expansionLevel = 1 }, 24, 24))
+expect("profile with out-of-range expansion level is rejected",
+	not IslandExpansion.matchesProfileBounds({ boundsWidth = 48, boundsDepth = 48, expansionLevel = 3 }, 24, 24))
 expect("non-finite dimensions are rejected", IslandExpansion.getBounds(math.huge, 24, 1) == nil)
 
 local original = {
