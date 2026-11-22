@@ -1328,3 +1328,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Teleport recovery projects the destination back to the ground surface and retains the measured pet pivot lift.
 - Added Studio smoke-test geometry with a reachable owner across a ground gap and an assertion that the pet does not move directly into the void.
 - This is conservative safety logic, not full terrain intelligence. Real steps, collision, slopes and navmesh are unverified. GitHub Actions builds do not run Studio assertions.
+
+## Companion direct-route probe budget (2026-11-22)
+
+- `CompanionFollowController` now caches the result of its two horizontal obstacle rays plus ground samples for at most 0.12 s when both the pet pivot and desired formation position remain within 0.5 studs of the previous check. Significant movement triggers an immediate recheck.
+- This avoids repeated multi-ray scans every render frame for stationary companions while allowing frequent short-lived checks for changing geometry. Emergency teleport recovery clears the cache.
+- Added a Studio-only test asserting stationary reuse and invalidation after moving the target 1.5 studs.
+- No FPS/raycast benchmarks were actually measured. GitHub Actions Rojo build does not execute client-side tests.
