@@ -91,3 +91,8 @@ Every successful live refresh retains the canonical model name `Island_<userId>`
 ## Expansion completion effect
 
 After a successful persisted-profile world replacement, the server creates a short replicated effect: neon ribbons pulse along the newly added perimeter and a particle burst plays from a transient attachment. The effect folder is automatically removed after 3.5 seconds. It does not alter terrain geometry, collisions, profile data, or save state. Failed world generation emits no success effect.
+
+
+## Retry side-effect guarantee
+
+A request that reaches the already-applied expected level returns `ALREADY_APPLIED` after durability confirmation and does not refresh the active world or replay completion effects. Only the first successful level transition performs world replacement.
