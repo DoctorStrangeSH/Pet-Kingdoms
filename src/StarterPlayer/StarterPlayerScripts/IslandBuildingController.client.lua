@@ -906,24 +906,32 @@ local function refreshKingdomOverview()
 
 	local stageName = island:GetAttribute("KingdomBondStageName")
 	local points = island:GetAttribute("KingdomBondPoints")
-	local buildingCount = island:GetAttribute("KingdomBondBuildingCount")
+	local totalBuildingCount = island:GetAttribute("KingdomBondTotalBuildingCount")
+	local stageId = island:GetAttribute("KingdomBondStage")
 	local nextPoints = island:GetAttribute("KingdomBondNextStagePoints")
 	if type(stageName) ~= "string" then stageName = "Тихий остров" end
 	if type(points) ~= "number" then points = 0 end
-	if type(buildingCount) ~= "number" then buildingCount = 0 end
+	if type(totalBuildingCount) ~= "number" then totalBuildingCount = 0 end
+	if type(stageId) ~= "string" then stageId = "quiet" end
+
+	local buildingWord = if totalBuildingCount % 10 == 1 and totalBuildingCount % 100 ~= 11
+		then "постройка"
+		elseif totalBuildingCount % 10 >= 2 and totalBuildingCount % 10 <= 4
+			and (totalBuildingCount % 100 < 12 or totalBuildingCount % 100 > 14)
+		then "постройки"
+		else "построек"
 
 	overviewStage.Text = "🏡  " .. stageName
-	overviewStats.Text = string.format("%d очков развития  •  %d построек", points, buildingCount)
+	overviewStats.Text = string.format("%d очков развития  •  %d %s", points, totalBuildingCount, buildingWord)
 
 	if type(nextPoints) == "number" and nextPoints > 0 then
-		local previousThreshold = 0
-		if stageName == "Уютное королевство" then
-			previousThreshold = 10
-		elseif stageName == "Цветущее королевство" then
-			previousThreshold = 30
-		elseif stageName == "Процветающее королевство" then
-			previousThreshold = 50
-		end
+		local previousThresholdByStage = {
+			quiet = 0,
+			cozy = 10,
+			blooming = 30,
+			thriving = 50,
+		}
+		local previousThreshold = previousThresholdByStage[stageId] or 0
 		local span = math.max(1, nextPoints - previousThreshold)
 		local progress = math.clamp((points - previousThreshold) / span, 0, 1)
 		progressFill.Size = UDim2.fromScale(progress, 1)
@@ -953,6 +961,8 @@ local function bindKingdomOverview(island: Instance)
 		"KingdomBondStageName",
 		"KingdomBondPoints",
 		"KingdomBondBuildingCount",
+		"KingdomBondTotalBuildingCount",
+		"KingdomBondStage",
 		"KingdomBondNextStagePoints",
 	}) do
 		island:GetAttributeChangedSignal(attribute):Connect(function()
