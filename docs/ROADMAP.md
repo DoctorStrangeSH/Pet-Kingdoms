@@ -232,3 +232,11 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add tests for definition lookup, successful transition preparation, stable identity, progression/metadata preservation, original-record immutability, wrong-source rejection, malformed records, and unknown evolution IDs.
 - [ ] Do not add a production evolution service or persistence transaction until the species registry and at least one real target form are approved; the current collection schema only accepts `bunny`.
 - [ ] Once target species are approved, extend the species registry and add bounded evolution history/receipts plus an idempotent UpdateAsync transaction with expected-revision checks.
+
+
+### Pet identity ledger hardening
+
+- [x] Prevent a newly added pet from reusing a petId already present in the retained acquisition receipt ledger, even if the original pet was deleted.
+- [x] Add a regression test that acquires, removes, and attempts to recreate a pet with the same ID.
+- [ ] Review acquisition receipt retention and capacity policy before treating pet IDs as permanent lifetime identities; the current bounded ledger retains receipts for the configured retention window.
+- [ ] Add cross-system audit correlation for hatch transaction IDs, acquisition IDs, and stable pet IDs when evolution transactions are implemented.
