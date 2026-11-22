@@ -635,7 +635,9 @@ function PetCollectionData.interact(profile: any, petId: string, interactionType
 	if not canIncrementRevision(profile) then
 		return false, "REVISION_OVERFLOW", nil
 	end
-	if type(petId) ~= "string" or petId == "" then
+	if type(petId) ~= "string" or #petId < 1 or #petId > 128
+		or string.match(petId, "^[%w][%w:_%-]*$") == nil
+	then
 		return false, "INVALID_PET_ID", nil
 	end
 	if interactionType ~= "pet" and interactionType ~= "play" then
