@@ -565,3 +565,14 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Keep only `grantExperienceWithProgressOnce` as the server service XP write entry point; every retryable gameplay reward must carry a stable server-generated reward ID.
 - [x] Keep pure `PetCollectionData` mutation helpers for isolated deterministic data tests; they are not exposed as service-level DataStore write APIs.
 - [ ] Add each approved combat/quest/interaction source through the durable reward protocol with an explicit amount, progression version, and pet-recipient policy.
+
+
+### Pet activity reward contracts (2026-11-22)
+
+- [x] Add a Studio-only API boundary test proving the legacy non-idempotent pet XP service methods are not exposed and the stable reward-ID method is the only XP write entry point.
+- [x] Document server-authoritative reward invariants for the three specification sources: combat, quests, and interactions.
+- [x] Explicitly separate pet progression XP from Kingdom Bond XP; existing Bond interaction XP must not be treated as progression XP.
+- [x] Record open decisions without inventing values: XP curve/amounts, deterministic recipient policy, combat contribution/anti-farming rules, and interaction repeat/cooldown policy.
+- [ ] Implement source-specific reward validation and durable event/outbox integration after each source's gameplay event model exists.
+- [ ] Approve reward amounts, progression curve, and pet recipient policy before enabling live XP issuance.
+- [ ] Execute the new API boundary test in Roblox Studio.
