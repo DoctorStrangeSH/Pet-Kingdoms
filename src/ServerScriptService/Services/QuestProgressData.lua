@@ -73,11 +73,14 @@ function QuestProgressData.recordGather(state: any, resourceId: string): (any?, 
 end
 
 function QuestProgressData.snapshot(state: any): { any }
-	local valid = QuestProgressData.validate(state)
+	-- Legacy island profiles may predate questProgress. Present the current
+	-- introductory quest set at zero progress without mutating the saved profile.
+	local source = if state == nil then QuestProgressData.create() else state
+	local valid = QuestProgressData.validate(source)
 	if not valid then return {} end
 	local result = {}
 	for questId, definition in pairs(QuestProgressData.DEFINITIONS) do
-		local entry = state[questId]
+		local entry = source[questId]
 		table.insert(result, {
 			id = definition.id,
 			name = definition.name,
