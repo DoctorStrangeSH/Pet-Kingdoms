@@ -74,4 +74,25 @@ expect("interaction with unowned pet rejected", not notOwnedInteraction and notO
 local persistedValid = PetCollectionData.validate(playedProfile, 12345)
 expect("interaction profile remains valid", persistedValid)
 
+local levelled = PetCollectionData.clone(profile)
+levelled.owned[1].bondXp = 50
+levelled.owned[1].bondLevel = 2
+local levelledValid = PetCollectionData.validate(levelled, 12345)
+expect("Bond level and XP persist in valid collection", levelledValid)
+
+local legacy = PetCollectionData.clone(profile)
+legacy.owned[1].bondXp = nil
+legacy.owned[1].bondLevel = nil
+legacy.owned[1].lastInteractionAt = nil
+local legacyValid = PetCollectionData.validate(legacy, 12345)
+expect("legacy collection without Bond fields remains valid", legacyValid)
+local normalizedLegacy = PetCollectionData.clone(legacy)
+expect("legacy Bond fields normalize safely", normalizedLegacy.owned[1].bondXp == 0 and normalizedLegacy.owned[1].bondLevel == 1)
+
+local capped = PetCollectionData.clone(profile)
+capped.owned[1].bondXp = 1000
+capped.owned[1].bondLevel = PetCollectionData.MAX_BOND_LEVEL
+local cappedValid = PetCollectionData.validate(capped, 12345)
+expect("maximum Bond level remains valid", cappedValid)
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
