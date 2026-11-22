@@ -196,6 +196,45 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 		return false, "INVALID_OWNED_COUNT"
 	end
 
+	if profile.reservedAcquisitions ~= nil then
+		if type(profile.reservedAcquisitions) ~= "table" then
+			return false, "INVALID_RESERVED_ACQUISITIONS"
+		end
+		local reservationCount = 0
+		local highestReservationIndex = 0
+		local seenReservations: { [string]: boolean } = {}
+		for key, reservation in pairs(profile.reservedAcquisitions) do
+			if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
+				return false, "INVALID_RESERVATION_LIST"
+			end
+			reservationCount += 1
+			highestReservationIndex = math.max(highestReservationIndex, key)
+			if type(reservation) ~= "table"
+				or type(reservation.acquisitionId) ~= "string"
+				or #reservation.acquisitionId < 1 or #reservation.acquisitionId > 128
+				or string.match(reservation.acquisitionId, "^[%w][%w:_%-]*$") == nil
+				or seenReservations[reservation.acquisitionId]
+				or type(reservation.speciesId) ~= "string" or not VALID_SPECIES[reservation.speciesId]
+				or not isPositiveInteger(reservation.rarityTier) or reservation.rarityTier > 6
+				or not isNonNegativeInteger(reservation.reservedAt)
+			then
+				return false, "INVALID_RESERVED_ACQUISITION"
+			end
+			seenReservations[reservation.acquisitionId] = true
+		end
+		if reservationCount > PetCollectionData.MAX_OWNED_PETS
+			or highestReservationIndex ~= reservationCount
+			or ownedCount + reservationCount > PetCollectionData.MAX_OWNED_PETS
+		then
+			return false, "INVALID_RESERVATION_COUNT"
+		end
+		for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
+			if seenReservations[receipt.acquisitionId] then
+				return false, "ACQUISITION_ALREADY_RESERVED"
+			end
+		end
+	end
+
 	local equippedCount = 0
 	local equippedSeen: { [string]: boolean } = {}
 	local equippedHighest = 0
@@ -232,6 +271,10 @@ function PetCollectionData.clone(profile: any): any
 	copy.acquisitionReceipts = {}
 	for index, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		copy.acquisitionReceipts[index] = table.clone(receipt)
+	end
+	copy.reservedAcquisitions = {}
+	for index, reservation in ipairs(profile.reservedAcquisitions or {}) do
+		copy.reservedAcquisitions[index] = table.clone(reservation)
 	end
 	for index, record in ipairs(profile.owned) do
 		local clonedRecord = table.clone(record)
@@ -276,7 +319,7 @@ function PetCollectionData.addPet(
 	if not isNonNegativeInteger(now) then
 		return false, "INVALID_TIMESTAMP", nil
 	end
-	if #profile.owned >= PetCollectionData.MAX_OWNED_PETS then
+	if #profile.owned + #(profile.reservedAcquisitions or {}) >= PetCollectionData.MAX_OWNED_PETS then
 		return false, "COLLECTION_FULL", nil
 	end
 	for _, record in ipairs(profile.owned) do
@@ -307,6 +350,63 @@ function PetCollectionData.addPet(
 end
 
 -- Idempotent acquisition: retries with the same acquisition ID never create a second pet.
+-- Reserve one collection slot atomically in the pet collection DataStore profile.
+-- The reservation is consumed by addPetOnce with the same acquisitionId.
+function PetCollectionData.reservePetSlotOnce(
+	profile: any,
+	acquisitionId: string,
+	speciesId: string,
+	rarityTier: number,
+	now: number
+): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
+	if type(acquisitionId) ~= "string" or #acquisitionId < 1 or #acquisitionId > 128
+		or string.match(acquisitionId, "^[%w][%w:_%-]*$") == nil
+	then
+		return false, "INVALID_ACQUISITION_ID", nil
+	end
+	if type(speciesId) ~= "string" or not VALID_SPECIES[speciesId] then
+		return false, "INVALID_SPECIES", nil
+	end
+	if not isPositiveInteger(rarityTier) or rarityTier > 6 then
+		return false, "INVALID_RARITY_TIER", nil
+	end
+	if not isNonNegativeInteger(now) then return false, "INVALID_TIMESTAMP", nil end
+
+	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
+		if receipt.acquisitionId == acquisitionId then
+			if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier then
+				return false, "ACQUISITION_ID_CONFLICT", nil
+			end
+			return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
+		end
+	end
+	for _, reservation in ipairs(profile.reservedAcquisitions or {}) do
+		if reservation.acquisitionId == acquisitionId then
+			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier then
+				return false, "RESERVATION_CONFLICT", nil
+			end
+			return false, "ALREADY_RESERVED", PetCollectionData.clone(profile)
+		end
+	end
+	if #profile.owned + #(profile.reservedAcquisitions or {}) >= PetCollectionData.MAX_OWNED_PETS then
+		return false, "COLLECTION_FULL", nil
+	end
+
+	local updated = PetCollectionData.clone(profile)
+	table.insert(updated.reservedAcquisitions, {
+		acquisitionId = acquisitionId,
+		speciesId = speciesId,
+		rarityTier = rarityTier,
+		reservedAt = now,
+	})
+	updated.revision += 1
+	local updatedValid, updatedReason = PetCollectionData.validate(updated, profile.ownerUserId)
+	if not updatedValid then return false, "INVALID_RESERVED_PROFILE:" .. updatedReason, nil end
+	return true, "RESERVED", updated
+end
+
 function PetCollectionData.addPetOnce(
 	profile: any,
 	petId: string,
@@ -328,6 +428,17 @@ function PetCollectionData.addPetOnce(
 		return false, "INVALID_TIMESTAMP", nil
 	end
 
+	local reservations = profile.reservedAcquisitions or {}
+	local reservationIndex = nil
+	for index, reservation in ipairs(reservations) do
+		if reservation.acquisitionId == acquisitionId then
+			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier then
+				return false, "RESERVATION_CONFLICT", nil
+			end
+			reservationIndex = index
+			break
+		end
+	end
 	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		local age = now - receipt.processedAt
@@ -345,7 +456,12 @@ function PetCollectionData.addPetOnce(
 		return false, "ACQUISITION_LEDGER_FULL", nil
 	end
 
-	local changed, status, updated = PetCollectionData.addPet(profile, petId, speciesId, rarityTier, now)
+	local grantBase = profile
+	if reservationIndex ~= nil then
+		grantBase = PetCollectionData.clone(profile)
+		table.remove(grantBase.reservedAcquisitions, reservationIndex)
+	end
+	local changed, status, updated = PetCollectionData.addPet(grantBase, petId, speciesId, rarityTier, now)
 	if not changed or updated == nil then
 		return false, status, nil
 	end
