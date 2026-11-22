@@ -837,3 +837,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio contract cases for NaN and positive-infinity saved building coordinates.
 - The expansion transformer rejects both through the non-negative integer coordinate guard.
 - No runtime gameplay or economy behavior changed. Studio execution remains pending.
+
+
+## Expanded island renderer integration coverage (2026-11-22)
+
+- Extended IslandWorldService Studio integration test to respawn a profile at expansion level 1 with 32x32 bounds and +4-cell shifted building coordinates.
+- The test asserts world GridWidth/GridDepth attributes, 256x256-stud grass terrain at the configured 8-stud cell size, and unchanged main-house world pivot compared with the starter plot.
+- This validates the existing profile-driven renderer on a rejoin-style respawn path; it does not implement live in-session expansion, purchase, resource debit, or a durable expansion receipt.
+- Studio execution is still pending.
