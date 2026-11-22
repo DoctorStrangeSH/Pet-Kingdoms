@@ -644,7 +644,7 @@ local expiredIdentityReuse, expiredIdentityStatus = PetCollectionData.addPet(
 	identityAcknowledgedProfile,
 	"retired-pet-id",
 	"bunny",
-	2,
+	3,
 	300 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 1
 )
 expect("completed pet identity can be reused after journal retention", expiredIdentityReuse and expiredIdentityStatus == "UPDATED")
