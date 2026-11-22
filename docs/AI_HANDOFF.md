@@ -1228,3 +1228,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Updated `PetCollectionUI.client.lua` to show each selected pet's persisted level and lifetime XP. The UI deliberately does not invent a next-level bar or XP requirement while the production curve remains unapproved.
 - Existing client snapshot cloning uses the canonical PetCollectionData clone, which preserves level/xp; no new client authority or RemoteFunction was added.
 - Studio test execution and desktop/mobile visual inspection remain pending. No production progression curve has been enabled.
+
+
+## Pet progression hardening CI verification (2026-11-22)
+
+- GitHub Actions run #173 / run ID 45042191273 passed on commit `fa078b12971fe16cab08eb55f0ed7bf848139b04`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761488381 is available until 2026-12-06 16:09 UTC.
+- Run #172 also passed for the collection UI level/lifetime-XP display.
+- These runs verify project packaging only. Studio-only test execution and visual inspection are still pending.
