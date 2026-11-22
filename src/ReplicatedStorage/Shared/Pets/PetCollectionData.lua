@@ -14,6 +14,8 @@ PetCollectionData.BOND_XP_PER_LEVEL = 50
 PetCollectionData.MAX_BOND_XP = (PetCollectionData.MAX_BOND_LEVEL - 1) * PetCollectionData.BOND_XP_PER_LEVEL
 PetCollectionData.BOND_XP_PER_INTERACTION = 10
 PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS = 30
+PetCollectionData.MAX_REWARD_RECEIPTS = 128
+PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS = 7 * 24 * 60 * 60
 
 local VALID_SPECIES: { [string]: boolean } = {
 	bunny = true,
@@ -85,6 +87,38 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
 		return false, "INVALID_COLLECTIONS"
 	end
+	if profile.rewardReceipts ~= nil then
+		if type(profile.rewardReceipts) ~= "table" then
+			return false, "INVALID_REWARD_RECEIPTS"
+		end
+		local receiptCount = 0
+		local receiptHighestIndex = 0
+		local seenRewardIds: { [string]: boolean } = {}
+		for key, receipt in pairs(profile.rewardReceipts) do
+			if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
+				return false, "INVALID_REWARD_RECEIPT_LIST"
+			end
+			receiptCount += 1
+			receiptHighestIndex = math.max(receiptHighestIndex, key)
+			if type(receipt) ~= "table"
+				or type(receipt.rewardId) ~= "string"
+				or #receipt.rewardId < 1
+				or #receipt.rewardId > 128
+				or string.match(receipt.rewardId, "^[%w][%w:_%-]*$") == nil
+				or seenRewardIds[receipt.rewardId]
+				or type(receipt.petId) ~= "string"
+				or receipt.petId == ""
+				or not isPositiveInteger(receipt.amount)
+				or not isNonNegativeInteger(receipt.processedAt)
+			then
+				return false, "INVALID_REWARD_RECEIPT"
+			end
+			seenRewardIds[receipt.rewardId] = true
+		end
+		if receiptCount > PetCollectionData.MAX_REWARD_RECEIPTS or receiptHighestIndex ~= receiptCount then
+			return false, "INVALID_REWARD_RECEIPT_COUNT"
+		end
+	end
 
 	local ownedCount = 0
 	local highestIndex = 0
@@ -153,7 +187,11 @@ function PetCollectionData.clone(profile: any): any
 		revision = profile.revision,
 		owned = {},
 		equipped = table.clone(profile.equipped),
+		rewardReceipts = {},
 	}
+	for index, receipt in ipairs(profile.rewardReceipts or {}) do
+		copy.rewardReceipts[index] = table.clone(receipt)
+	end
 	for index, record in ipairs(profile.owned) do
 		local clonedRecord = table.clone(record)
 		clonedRecord.level = clonedRecord.level or 1
@@ -311,6 +349,68 @@ function PetCollectionData.grantExperienceWithProgress(
 		isMaxLevel = progression.isMaxLevel,
 	}
 end
+
+
+-- Apply a progression reward once per stable server-generated reward ID.
+-- The bounded receipt window guarantees deduplication for seven days; older IDs may be reused after expiry.
+function PetCollectionData.grantExperienceWithProgressOnce(
+	profile: any,
+	petId: string,
+	amount: number,
+	thresholds: any,
+	rewardId: string,
+	now: number
+): (boolean, string, any?, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil, nil
+	end
+	if type(rewardId) ~= "string"
+		or #rewardId < 1
+		or #rewardId > 128
+		or string.match(rewardId, "^[%w][%w:_%-]*$") == nil
+	then
+		return false, "INVALID_REWARD_ID", nil, nil
+	end
+	if not isNonNegativeInteger(now) then
+		return false, "INVALID_TIMESTAMP", nil, nil
+	end
+
+	local retainedReceipts = {}
+	for _, receipt in ipairs(profile.rewardReceipts or {}) do
+		local age = now - receipt.processedAt
+		if age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+			table.insert(retainedReceipts, receipt)
+			if receipt.rewardId == rewardId then
+				if receipt.petId ~= petId or receipt.amount ~= amount then
+					return false, "REWARD_ID_CONFLICT", nil, nil
+				end
+				return false, "ALREADY_PROCESSED", nil, table.clone(receipt)
+			end
+		end
+	end
+
+	if #retainedReceipts >= PetCollectionData.MAX_REWARD_RECEIPTS then
+		return false, "REWARD_LEDGER_FULL", nil, nil
+	end
+
+	local changed, status, updated, summary =
+		PetCollectionData.grantExperienceWithProgress(profile, petId, amount, thresholds)
+	if not changed or updated == nil then
+		return false, status, nil, nil
+	end
+
+	table.insert(retainedReceipts, {
+		rewardId = rewardId,
+		petId = petId,
+		amount = amount,
+		processedAt = now,
+	})
+	updated.rewardReceipts = retainedReceipts
+
+	return true, "UPDATED", updated, summary
+end
+
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
 	local valid, reason = validateMutationProfile(profile)
