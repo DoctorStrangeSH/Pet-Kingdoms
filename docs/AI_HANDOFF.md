@@ -939,3 +939,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This matters because the client hologram locates the active island through `PlayerIslands/Island_<userId>`; the old naming behavior made the world preview disappear after the first refresh.
 - Added Studio integration assertions for the canonical name after both level-1 and level-2 refreshes.
 - Visual effect/animation remains a separate follow-up; Studio execution is pending.
+
+
+## Post-persistence expansion completion effect (2026-11-22)
+
+- Added a short server-replicated completion effect inside IslandWorldService.refresh, invoked only after the replacement world is fully generated, parented, and made active.
+- Four neon edge ribbons pulse/fade over the newly added perimeter; a particle burst uses a transient attachment contained in the effect folder. Debris removes the entire effect folder after 3.5 seconds.
+- The effect is visual only: no terrain/profile mutation, collision, touch, query, or saved state. If refresh generation fails, no effect is emitted.
+- Added a Studio integration assertion that a successful size increase creates the transient effect and particle emitter. Roblox Studio visual verification remains pending.
