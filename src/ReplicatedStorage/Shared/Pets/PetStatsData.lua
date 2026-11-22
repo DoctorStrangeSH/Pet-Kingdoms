@@ -77,7 +77,12 @@ function PetStatsData.validate(snapshot: any): (boolean, string)
 	return true, "VALID"
 end
 
-function PetStatsData.clone(snapshot: any): any
+function PetStatsData.clone(snapshot: any): (any?, string?)
+	local valid, reason = PetStatsData.validate(snapshot)
+	if not valid then
+		return nil, reason
+	end
+
 	local stats = {}
 	for _, statKey in ipairs(STAT_KEYS) do
 		stats[statKey] = snapshot.stats[statKey]
