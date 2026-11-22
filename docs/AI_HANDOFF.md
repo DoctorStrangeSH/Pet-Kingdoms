@@ -59,8 +59,8 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Added provisional server-owned construction costs for Pet House, Stone Path, Garden Lantern, Flower Bed, and Wooden Fence; Main House remains free. New placements charge through `IslandResourceService.spend`; moves are free. Placement rollback uses atomic `grantMany`; catalog costs are shown in the client and insufficient resources are localized. Values are provisional, no final balance approval; Studio transaction/failure testing pending.
 - [x] Added `BuildingCatalogEconomyTests.server.lua` for catalog price/resource contracts (Studio execution pending).
 - [ ] Durable transaction journal and demolition refund policy remain open.
-- [x] Added first layout-derived Kingdom Bond progression: 10 provisional points per non-Main-House building, with four stages (Quiet/Cozy/Blooming/Thriving); score is derived from saved buildings, not client input or a farmable separate currency.
-- [x] IslandWorldService replicates Bond attributes, tints the grass, and creates stage decorations on spawn and after building sync/demolition; stage decor is rebuilt idempotently.
+- [x] Added first layout-derived Kingdom Bond progression: 10 provisional points per distinct non-Main-House building type, with four stages (Quiet/Cozy/Blooming/Thriving); duplicate types do not grant extra points. Score is derived from saved buildings, not client input or a farmable separate currency.
+- [x] IslandWorldService replicates Bond attributes, tints the grass, and creates stage decorations on spawn and after building sync/demolition; stage decor is rebuilt idempotently and keyed to the derived stage, not raw building count.
 - [x] Resource HUD displays Bond stage, points, and next threshold.
 - [x] Added KingdomBondTests.server.lua and docs/game-systems/KINGDOM_BOND.md (Studio execution and visual verification pending).
 - [ ] Pet/quest/farming contributions, final thresholds, rewards, and production stage art are not implemented.
