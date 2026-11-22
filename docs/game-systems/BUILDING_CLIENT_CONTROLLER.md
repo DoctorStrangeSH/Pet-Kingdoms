@@ -62,3 +62,7 @@ The client raycasts only against `Island_GrassTop` belonging to the local player
 ## Shared modal ownership extension (2026-11-22)
 
 The global `PlayerGui.PetKingdomsActiveModal` convention now includes `building`, `pets`, `quests`, `expansion`, and `kingdom`. Opening a major panel hides the previous one without stacking close-button hit targets. Quest, expansion, and kingdom overview respond to Escape; quest, expansion, and pet collection accept a backdrop click/tap outside their panel. Roblox Studio/mobile validation remains pending.
+
+## Compact placement UI (2026-11-22)
+
+The building catalogue is visible while choosing a building. Once the player enters placement preview, its large catalogue grid hides, and the bottom panel becomes a compact action bar (rotate, confirm, cancel, close), leaving more screen area available for positioning the preview. Ending the mode restores catalogue layout. Responsive sizing is retained on viewport changes; Studio mobile usability testing is pending.
