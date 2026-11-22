@@ -302,3 +302,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `PetStatsData.clone(snapshot)` now runs the full schema validator before reading nested fields.
 - Invalid input returns `nil, reason` for nil, malformed level/rarity/stat maps, or invalid stat values; valid input still returns an independent copy containing only the approved schema.
 - Added tests for nil and malformed clone input. Roblox Studio execution remains pending.
+
+
+## Species base-stat definition contract (2026-11-22)
+
+- Exposed `PetStatsData.validateStats(stats)` and `cloneStats(stats)` so species definitions can reuse the exact five-stat contract without fabricating level or rarity fields.
+- Added `ReplicatedStorage/Shared/Pets/PetSpeciesStatsData.lua`. It validates stable lowercase species IDs, exact definition shape (`baseStats` only), all five finite non-negative base stats, and complete catalogs. It also returns defensive copies of individual definitions and catalogs.
+- No species entries, names, base values, rarity assignments, or balance formulas were added. The PROJECT_SPEC explicitly leaves the remaining species and final rarity distribution open; this is a reusable contract only.
+- Added Studio-only pure tests for valid/invalid IDs, malformed definitions, extra fields, invalid base stats, empty/invalid catalogs, and clone isolation. Tests are committed but not executed in Roblox Studio.
