@@ -26,6 +26,8 @@ local function setNodeVisible(node: Model, visible: boolean)
 			descendant.CanTouch = visible
 		elseif descendant:IsA("ProximityPrompt") then
 			descendant.Enabled = visible
+		elseif descendant:IsA("BillboardGui") then
+			descendant.Enabled = visible
 		end
 	end
 end
