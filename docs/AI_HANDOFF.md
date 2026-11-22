@@ -907,3 +907,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandSessionService.commitIslandExpansion now calls refresh only after the target profile revision is confirmed durable. If rendering fails after persistence, the operation reports durable success with PERSISTED_WORLD_REFRESH_PENDING and leaves the saved profile authoritative for next load.
 - Updated IslandWorldService Studio integration tests to refresh the active world from 24x24 to 32x32 and then 40x40 without removing/reallocating the island. Tests assert the old model is replaced and existing building world positions remain stable.
 - No client RemoteFunction or purchase endpoint is exposed yet; the economy is not approved, so no free expansion can be triggered by clients. Studio runtime tests remain pending.
+
+
+## Read-only island expansion preview endpoint (2026-11-22)
+
+- Added IslandExpansionService and started it from Bootstrap.server.lua.
+- Exposes ReplicatedStorage/Remotes/GetIslandExpansionPreview as a RemoteFunction. It requires the exact current writable Player session, validates the profile against configured base bounds, and returns current/next level and dimensions, max level, canExpand, purchaseAvailable=false, and ECONOMY_NOT_APPROVED.
+- Preview calls are rate-limited per user; first request is allowed immediately and per-user limiter state is cleaned on PlayerRemoving.
+- This endpoint is read-only. It does not mutate profile data, charge resources, or invoke commitIslandExpansion. No client UI is wired yet.
