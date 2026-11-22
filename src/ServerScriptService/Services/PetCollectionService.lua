@@ -836,7 +836,12 @@ function PetCollectionService.acknowledgeAcquisition(
 		return current
 	end)
 	if not ok then return false, "DATASTORE_UNAVAILABLE" end
-	if mutationStatus == "ALREADY_ACKNOWLEDGED" then return true, mutationStatus end
+	if mutationStatus == "ALREADY_ACKNOWLEDGED" and type(result) == "table" then
+		local valid, reason = PetCollectionData.validate(result, player.UserId)
+		if not valid then return false, "INVALID_SAVE_RESULT:" .. reason end
+		syncProfileIfNewer(state, result)
+		return true, mutationStatus
+	end
 	if mutationStatus ~= "ACKNOWLEDGED" or type(result) ~= "table" then
 		return false, mutationStatus
 	end
