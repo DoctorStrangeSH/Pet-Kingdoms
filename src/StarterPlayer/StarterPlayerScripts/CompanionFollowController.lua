@@ -304,7 +304,8 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		end
 	end
 	if speed < self.walkSpeed and self.interactionState == nil
-		and self.environmentState ~= nil and os.clock() < self.environmentUntil then
+		and self.environmentState ~= nil and os.clock() < self.environmentUntil
+		and (self.investigatePosition == nil or lagDistance <= 1.2) then
 		state = self.environmentState
 	elseif self.environmentState ~= nil and os.clock() >= self.environmentUntil then
 		self.environmentState = nil
