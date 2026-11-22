@@ -566,3 +566,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The readiness polling loop only checks run identity before testing live island lease and collection readiness, so it correctly waits for an island that does not yet exist. Each pending operation checks run identity, island write authority and collection readiness again.
 - All changes are source-verified and committed to main. Roblox Studio tests and multi-server failure injection remain NOT DONE.
 - Important unresolved issue: acquisition receipts are retained for seven days, whereas unfinished CHARGED hatch journals can persist longer. A grant succeeded just before an acknowledgement failure can become indistinguishable from a never-granted transaction once its acquisition receipt expires. Live paid hatching remains blocked until an unambiguous long-lived completion/deduplication strategy is implemented.
+
+
+## Active-session hatch recovery retries (2026-11-22)
+
+- Recovery already waits 150 seconds for readiness (collection may need 120 seconds for the island lease); current recovery source was found updated independently before this change.
+- Updated `PetHatchingRecoveryService.recoverPlayer`: it now repeatedly reads the current island journal and attempts outstanding PREPARED/CHARGED transactions while `isCurrentRun`, `IslandSessionService.canWrite`, and `PetCollectionService.isReady` hold. A failed transaction no longer has to wait until the next login for another attempt.
+- The retry delay is 15 seconds; the worker stops on an empty pending journal, disconnect, lease loss, or collection unavailability. It does not spin while a transaction cannot yet complete.
+- Roblox Studio fault injection remains NOT DONE. A separate unresolved reliability issue is the seven-day expiry of acquisition receipts while CHARGED hatch transactions can persist longer. Until addressed, do not claim unlimited-duration duplicate prevention for a grant whose journal completion never persisted.
