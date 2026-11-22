@@ -11,7 +11,6 @@ local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
-local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -131,12 +130,14 @@ local function handleRequest(player: Player, request: any): any
 
 	local activeProfile = IslandSessionService.getProfile(userId)
 	if activeProfile == nil then return fail("SESSION_NOT_READY") end
-	local durableResult, journalStatus = IslandBuildingJournalData.find(
-		activeProfile.buildingOperations or {}, request.requestId, fingerprint, os.time()
+	local durableResult, journalStatus = IslandSessionService.findBuildingOperation(
+		userId, request.requestId, fingerprint, os.time()
 	)
 	if journalStatus == "DUPLICATE" and durableResult ~= nil then
 		remember(userId, request.requestId, fingerprint, durableResult)
 		return durableResult
+	elseif journalStatus == "IN_PROGRESS" then
+		return fail("BUILDING_OPERATION_IN_PROGRESS")
 	elseif journalStatus ~= "NOT_FOUND" then
 		return fail(journalStatus)
 	end
