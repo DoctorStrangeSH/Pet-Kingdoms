@@ -262,7 +262,8 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 			petModel:SetAttribute("InteractionEmotion", if payload.interactionType == "pet" then "happy" else "curious")
 			petModel:SetAttribute("InteractionSequence", (petModel:GetAttribute("InteractionSequence") or 0) + 1)
 		end
-		return true, cloneForClient(result)
+		-- Return the newest in-memory snapshot, not a possibly older UpdateAsync response.
+		return true, cloneForClient(state.profile)
 	end
 
 	if action ~= "Equip" then
@@ -326,7 +327,8 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 
 	syncProfileIfNewer(state, result)
 	spawnEquippedPets(player)
-	return true, cloneForClient(result)
+	-- A concurrent mutation may already have advanced the live profile beyond this response.
+	return true, cloneForClient(state.profile)
 end
 
 -- Trusted server-only entry point for combat, quest, and interaction reward systems.
