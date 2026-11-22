@@ -948,6 +948,21 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+-- Dismiss the collection by tapping the backdrop, without accidentally
+-- dismissing the confirmation layer when the user taps inside the panel.
+shade.InputBegan:Connect(function(input)
+	if not panel.Visible then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local position = input.Position
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if position.X < origin.X or position.X > origin.X + size.X
+		or position.Y < origin.Y or position.Y > origin.Y + size.Y then
+		closeCollection()
+	end
+end)
+
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
 teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList() end)
