@@ -1105,3 +1105,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Player data readiness no longer gives up after 120 seconds. It logs one warning after the threshold and keeps waiting while the same player session remains active; recovery cannot silently remain skipped for a long but valid profile load.
 - Clear the readiness warning once both island and pet collection data become writable.
 - Validation: latest GitHub Actions run is pending/not yet visible in the PR-filtered commit-run listing. Previous run #127 passed Rojo build and Studio artifact upload; this latest hardening still requires a fresh CI result.
+
+
+## Recovery readiness CI verification (2026-11-22)
+
+- GitHub Actions run #131 / run ID 45040551285 passed on worker code commit `af98734adece28bd1ee34eb102208e0150396b25`.
+- Confirmed successful steps: checkout, pinned Rokit setup, Rojo version verification, Roblox place build, and Studio-ready artifact upload.
+- Artifact `pet-kingdoms-studio-build` ID 14761452485 is available until 2026-12-06 15:51 UTC.
+- This validates project packaging and Rojo build only; Studio-only Luau test scripts and live DataStore fault injection still need execution in Roblox Studio.
