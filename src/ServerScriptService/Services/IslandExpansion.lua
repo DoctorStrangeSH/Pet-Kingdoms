@@ -71,6 +71,23 @@ function IslandExpansion.matchesProfileBounds(profile: any, baseWidth: number, b
 		and profile.boundsDepth == expected.depth
 end
 
+-- Validates the canonical current profile before preparing its next level.
+-- This is intentionally a pure preparation step: it does not charge resources,
+-- mutate the source profile, or persist the result.
+function IslandExpansion.prepareNextProfile(profile: any, baseWidth: number, baseDepth: number): (any?, string)
+	if not IslandExpansion.matchesProfileBounds(profile, baseWidth, baseDepth) then
+		return nil, "INVALID_EXPANSION_BOUNDS"
+	end
+	local nextProfile, status = IslandExpansion.expandProfile(profile)
+	if nextProfile == nil then
+		return nil, status
+	end
+	if not IslandExpansion.matchesProfileBounds(nextProfile, baseWidth, baseDepth) then
+		return nil, "INVALID_NEXT_EXPANSION_BOUNDS"
+	end
+	return nextProfile, "PREPARED"
+end
+
 -- Returns a cloned profile for the next expansion level.
 -- Moving each saved grid coordinate by half the added dimensions preserves
 -- every building's world-space position while the renderer keeps the grid centered.
