@@ -397,3 +397,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionData.addPetOnce`: duplicate acquisition IDs with the same species/rarity return `ALREADY_ACQUIRED` and the unchanged collection; mismatched species/rarity returns `ACQUISITION_ID_CONFLICT`. The service caller must reuse the same acquisition ID when retrying the same egg/shop/quest grant.
 - Added tests for valid acquisition, defaults, rarity, revision, duplicate pet IDs, invalid species/tier/time, capacity, duplicate acquisition, acquisition conflicts, ledger full, and receipt expiry. Tests are committed but not executed in Roblox Studio.
 - Important scope boundary: the project spec defines a 20-pet MVP target but explicitly leaves the remaining species and final rarity distribution open. Current allowlist contains only Bunny. This acquisition API is infrastructure only; it does not implement eggs, roll odds, currency costs, species catalog, or a client-facing hatch endpoint. Do not invent those rules.
+
+
+## Pet egg data contract (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetEggData.lua` as a pure reusable contract for future egg definitions. A definition contains only an ordered `entries` array of unique `speciesId` + positive integer `weight` pairs; unknown fields, unknown catalog species, duplicate species, sparse arrays, empty lists, invalid weights, and total weight above 1,000,000,000 are rejected.
+- The caller supplies the current approved species catalog to validation and cloning. No species are silently added by the egg system.
+- `PetEggData.roll(eggId, definition, speciesCatalog, randomValue)` performs deterministic weighted selection from a caller-supplied value in [0, 1). The production caller must obtain that value from a server-owned `Random` instance; do not accept client-provided random values.
+- Added Studio-only `PetEggDataTests.server.lua` covering valid definitions, clone isolation, weighted boundaries, unknown/duplicate species, invalid weights, sparse arrays, unknown fields, invalid random values, total-weight overflow, and empty definitions. Tests are committed but not executed in Roblox Studio.
+- This is deliberately not a playable hatch system: no egg definitions, drop rates, rarity weights, currency costs, economy mutations, client remotes, or hatch UI exist. The project spec leaves exact economy rates and the final 20-species/rarity distribution open. Resolve those decisions before authoring production egg tables.
