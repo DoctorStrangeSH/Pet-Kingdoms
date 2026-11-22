@@ -106,7 +106,12 @@
 - [x] Correctly detect UpdateAsync rejected writes (the transform returns the current value; Studio verification pending).
 - [x] Add server PlayerAdded/PlayerRemoving/autosave/BindToClose profile lifecycle code (Studio/live DataStore verification pending).
 - [x] Fix failed PlayerRemoving save lifecycle: mark the session as leaving, retry the final save on autosave, then release the MemoryStore lease and destroy the island world/spawn reservation only after save and lease release succeed (forced-failure Studio integration test pending).
-- [ ] Implement Kingdom Bond progression and visual island changes.
+- [x] Add first layout-derived Kingdom Bond track (10 provisional points per non-Main-House building; moves do not change score; demolition recalculates from the saved layout).
+- [x] Add four provisional Kingdom Bond stages and server-owned island visuals (grass tint, flowers, crystal accent, banner) refreshed on spawn/place/move/demolition.
+- [x] Show current Kingdom Bond stage, points, and next threshold in the resource HUD.
+- [x] Add KingdomBond pure contract tests (Studio execution pending).
+- [x] Document provisional rules in docs/game-systems/KINGDOM_BOND.md.
+- [ ] Playtest Bond thresholds and visuals in Studio; replace blockout decorations with approved original art.
 - [ ] Make farming and production meaningfully contribute to progression.
 
 ## Stage 4 — Pet Collection
