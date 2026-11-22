@@ -86,3 +86,8 @@ When the panel is open and the preview API reports a next level, the client draw
 ## Stable model identity
 
 Every successful live refresh retains the canonical model name `Island_<userId>`. This keeps client systems, including the local expansion hologram lookup, attached to the same stable world path across repeated expansions. Studio integration assertions cover both refresh levels.
+
+
+## Expansion completion effect
+
+After a successful persisted-profile world replacement, the server creates a short replicated effect: neon ribbons pulse along the newly added perimeter and a particle burst plays from a transient attachment. The effect folder is automatically removed after 3.5 seconds. It does not alter terrain geometry, collisions, profile data, or save state. Failed world generation emits no success effect.
