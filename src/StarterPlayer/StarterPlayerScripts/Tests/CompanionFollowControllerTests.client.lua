@@ -100,7 +100,15 @@ pets[1]:SetAttribute("OwnerUserId", 123456)
 controllers[1].interactionState = nil
 controllers[1].nextEnvironmentScan = 0
 controllers[1]:update(1 / 60)
-expect("Bunny notices a nearby available wood node", controllers[1].animation.state == "curious")
+expect("lead Bunny starts walking toward a nearby resource", controllers[1].investigatePosition ~= nil and controllers[1].animation.state == "walk")
+local investigationTarget = controllers[1].investigatePosition
+assert(investigationTarget ~= nil)
+pets[1]:PivotTo(CFrame.new(investigationTarget))
+controllers[1]:update(1 / 60)
+expect("Bunny inspects the resource after approaching it", controllers[1].animation.state == "curious")
+controllers[1].investigateUntil = os.clock() - 1
+controllers[1]:update(1 / 60)
+expect("Bunny returns to its normal follow formation after inspection", controllers[1].investigatePosition == nil)
 islands:Destroy()
 
 local invalidController, invalidStatus = CompanionFollowController.new(pets[1], target, { slotIndex = 4 })
