@@ -651,3 +651,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Calculate catch-up animation from owner formation distance rather than a nearby path waypoint; avoid walking animation when a blocked path holds the companion in place.
 - [x] Add a Studio regression case checking a single exponential interpolation step using a safe, isolated stand-in mesh.
 - [ ] Run the new Luau tests and inspect formation turns, obstacles, cliffs, and mobile framerate in Roblox Studio.
+
+### Companion terrain-edge safety (2026-11-22)
+
+- [x] Sample ground support along direct companion routes so clear horizontal raycasts cannot send a pet through a cliff edge or large height discontinuity.
+- [x] Recheck navigation waypoints for streamed-out ground or steep steps before moving, and retry pathfinding after a blocked terrain segment.
+- [x] Project emergency teleport recovery onto the local ground surface using the pet-specific pivot offset.
+- [x] Add Studio-only cliff-gap regression test using isolated test geometry.
+- [ ] Run the companion tests in Roblox Studio and verify real island edges, stairs, slopes, streaming, and mobile performance.
