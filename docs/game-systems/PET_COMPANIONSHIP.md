@@ -21,10 +21,11 @@ No food/inventory action is added because an approved food catalogue and resourc
 - Each pet stores bondXp, bondLevel, and lastInteractionAt.
 - Bond starts at level 1.
 - Every 50 accumulated Bond XP grants one level.
-- Maximum Bond level is provisionally 10.
+- Maximum Bond level is provisionally 10; maximum stored XP is capped at 450 (9 level-ups × 50 XP). XP does not continue accumulating after the cap.
 - XP and cooldown timestamp are persisted in the existing pet collection DataStore record.
 - Old collection records without these optional fields remain valid and normalize to 0 XP, level 1, and timestamp 0 when cloned.
 - Bond level is per pet; it is not the same as the island-wide Kingdom Bond stage.
+- Validation enforces integer XP/timestamps and requires the stored level to match the level derived from XP. Inconsistent or over-cap records are rejected rather than silently accepted.
 
 ## Security and persistence
 
@@ -32,6 +33,7 @@ No food/inventory action is added because an approved food catalogue and resourc
 - Client-supplied XP, level, timestamps, or cooldown values are never accepted.
 - A one-second per-player request throttle protects the DataStore path; the per-pet cooldown is persisted and enforced inside the pure data mutation.
 - The collection revision increments on successful interactions to prevent stale concurrent mutations.
+- Max-level interactions remain available but do not exceed the XP cap.
 - No currencies or consumables are charged.
 
 ## Implementation
