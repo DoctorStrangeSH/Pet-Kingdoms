@@ -99,3 +99,8 @@ Added a Studio-only profile round-trip test for the integrated gathering transac
 ## Quest completion vs durable claim state
 
 Quest journal snapshots now distinguish quest completion from reward receipt state. The server supplies the durable claim ledger to `QuestProgressData.snapshot`; the snapshot exposes `rewardClaimed` only for a completed quest with a structurally valid receipt. The client journal renders completed-but-unclaimed tasks as `ВЫПОЛНЕНО` and tasks with a durable receipt as `НАГРАДА ПОЛУЧЕНА`. Reward issuance remains disabled until economy values, progression thresholds, and pet recipient policy are approved. No claim RemoteFunction/UI was introduced.
+
+
+## Pet progression catalog and collection display hardening
+
+The server-owned progression catalog now rejects non-finite/unsafe version IDs and validates every configured 50-level threshold curve before returning it. The catalog intentionally remains empty until the XP balance is approved. Contract tests cover invalid version identifiers and fail-closed behavior; resolver tests cover lifetime XP beyond the level cap. The pet collection detail panel now displays the saved level and lifetime XP without displaying a fabricated next-level requirement.
