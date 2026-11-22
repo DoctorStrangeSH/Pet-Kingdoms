@@ -20,6 +20,17 @@ local claimed, claimCode = QuestRewardOutboxData.recordClaim(
 )
 expect("first quest claim is recorded", claimed ~= nil and claimCode == "CLAIM_RECORDED")
 expect("claim recording does not mutate source ledger", claims.gather_wood == nil)
+local revisionClaim, revisionClaimCode = QuestRewardOutboxData.recordClaim(
+	claims, "gather_wood", "quest:gather_wood:revision:v1", 100, 7
+)
+expect("claim receipt records its committing island revision",
+	revisionClaim ~= nil and revisionClaimCode == "CLAIM_RECORDED"
+		and revisionClaim.gather_wood.revision == 7)
+local invalidRevisionClaims = {
+	gather_wood = { rewardId = "bad-revision", claimedAt = 100, revision = 0 },
+}
+local invalidRevisionClaimsOk = QuestRewardOutboxData.validateClaims(invalidRevisionClaims)
+expect("claim receipt with invalid island revision is rejected", not invalidRevisionClaimsOk)
 local duplicateClaim, duplicateClaimCode = QuestRewardOutboxData.recordClaim(
 	claimed, "gather_wood", "quest:gather_wood:reward:v1", 101
 )
@@ -77,6 +88,26 @@ local duplicateDelivery, duplicateDeliveryCode =
 	QuestRewardOutboxData.markDelivered(delivered, record.rewardId, 111)
 expect("delivery acknowledgement is idempotent",
 	duplicateDelivery == nil and duplicateDeliveryCode == "ALREADY_DELIVERED")
+expect("delivered receipt awaits source acknowledgement",
+	#QuestRewardOutboxData.listAwaitingAcknowledgement(delivered) == 1)
+local prematureAcknowledgement, prematureAcknowledgementCode =
+	QuestRewardOutboxData.markAcknowledged(queued, record.rewardId, 111)
+expect("pet receipt cannot be acknowledged before delivery is durable",
+	prematureAcknowledgement == nil and prematureAcknowledgementCode == "NOT_DELIVERED")
+local acknowledged, acknowledgedCode =
+	QuestRewardOutboxData.markAcknowledged(delivered, record.rewardId, 120)
+expect("source acknowledgement is persisted after pet-side acknowledgement",
+	acknowledged ~= nil and acknowledgedCode == "ACKNOWLEDGED"
+		and #QuestRewardOutboxData.listAwaitingAcknowledgement(acknowledged) == 0)
+local duplicateAcknowledgement, duplicateAcknowledgementCode =
+	QuestRewardOutboxData.markAcknowledged(acknowledged, record.rewardId, 121)
+expect("source acknowledgement is idempotent",
+	duplicateAcknowledgement == nil and duplicateAcknowledgementCode == "ALREADY_ACKNOWLEDGED")
+local invalidAcknowledgement = table.clone(delivered)
+invalidAcknowledgement[1] = table.clone(delivered[1])
+invalidAcknowledgement[1].acknowledgedAt = 119
+local invalidAcknowledgementOk = QuestRewardOutboxData.validateOutbox(invalidAcknowledgement)
+expect("source acknowledgement before delivery timestamp is rejected", not invalidAcknowledgementOk)
 local unknownDelivery, unknownDeliveryCode =
 	QuestRewardOutboxData.markDelivered(delivered, "missing-reward", 111)
 expect("unknown delivery cannot mutate outbox",
