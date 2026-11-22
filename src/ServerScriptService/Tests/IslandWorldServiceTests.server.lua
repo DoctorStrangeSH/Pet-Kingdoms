@@ -92,6 +92,33 @@ local ok, failure = pcall(function()
 	assert(petHousePrompt.ActionText == "Открыть коллекцию", "pet house prompt must have localized action text")
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(secondUserId)), "second world model must exist")
 
+	local originalHousePivot = mainHouse:GetPivot()
+	IslandWorldService.remove(firstUserId)
+	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
+
+	local expandedProfile = profileFor(firstUserId)
+	expandedProfile.boundsWidth = 32
+	expandedProfile.boundsDepth = 32
+	expandedProfile.expansionLevel = 1
+	for _, building in ipairs(expandedProfile.buildings) do
+		building.x += 4
+		building.z += 4
+	end
+	local expandedOk, expandedCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, expandedProfile)
+	assert(expandedOk and expandedCode == "SPAWNED", "expanded island profile must render")
+	table.insert(spawnedUsers, firstUserId)
+	local expandedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	assert(expandedWorld and expandedWorld:GetAttribute("GridWidth") == 32 and expandedWorld:GetAttribute("GridDepth") == 32,
+		"expanded world must expose persisted 32x32 bounds")
+	local expandedGrass = expandedWorld and expandedWorld:FindFirstChild("Island_GrassTop")
+	assert(expandedGrass and expandedGrass:IsA("BasePart")
+		and expandedGrass.Size.X == 256 and expandedGrass.Size.Z == 256,
+		"expanded terrain must render at the persisted grid dimensions")
+	local expandedHouse = expandedWorld and expandedWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
+	assert(expandedHouse and expandedHouse:IsA("Model"), "expanded world must retain the saved main house")
+	assert((expandedHouse:GetPivot().Position - originalHousePivot.Position).Magnitude < 0.01,
+		"expansion coordinate shift must preserve existing building world position")
+
 	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
 
