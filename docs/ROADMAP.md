@@ -616,3 +616,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Keep resource markers hidden during node cooldown.
 - [ ] Verify first-time gathering on desktop and mobile in Studio.
 - [ ] Replace placeholder tree/ore models with curated production assets.
+
+
+### Pet companion grounding (2026-11-22)
+
+- [x] Calculate the vertical ground lift from each companion's actual model pivot and bounding-box bottom.
+- [x] Remove the hard-coded universal 0.28-stud offset so imported center-pivot meshes do not sink into or float above the island.
+- [x] Add a Studio test using a 4-stud external mesh stand-in with a centered pivot.
+- [ ] Verify actual imported pet assets, slopes, obstacles, streaming, and multiplayer presentation in Roblox Studio.
