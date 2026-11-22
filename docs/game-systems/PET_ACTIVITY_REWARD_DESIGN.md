@@ -66,3 +66,13 @@ Pet progression XP is distinct from Kingdom Bond XP. Bond XP represents relation
 - No recipient selection rule.
 - No combat/interaction reward endpoint.
 - No client-triggered reward request.
+
+
+## Existing Bond interaction implementation audit (2026-11-22)
+
+- The current collection supports only two interaction intents: `pet` and `play`. `feed` remains rejected until a food inventory/cost contract exists.
+- These actions award Bond XP only, using the existing per-pet cooldown. They do not award pet progression XP.
+- The server validates ownership through the persisted profile, checks the expected collection revision, rate-limits mutation requests, and writes through the collection DataStore session fence.
+- Pet IDs are now constrained to the same bounded safe identifier alphabet used by server-generated collection IDs. Expected revisions must be finite, non-negative safe integers.
+- Pure data tests now cover the exact cooldown boundary, rollback attempts, selected-pet isolation, progression XP/Bond separation, and malformed identifiers.
+- Personality-specific preferences, feeding, consumable costs, and progression XP for interactions remain unimplemented/open; do not invent these behaviors.
