@@ -17,6 +17,7 @@ local RETRY_DELAY_SECONDS = 15
 type RecoveryRun = { player: Player, token: {} }
 local activeRuns: { [number]: RecoveryRun } = {}
 local warnedStates: { [number]: { [string]: boolean } } = {}
+local warnOnce: (Player, string, string) -> ()
 
 local function isCurrentRun(player: Player, token: {}): boolean
 	local run = activeRuns[player.UserId]
@@ -43,7 +44,7 @@ local function waitForPlayerData(player: Player, token: {}): boolean
 	return false
 end
 
-local function warnOnce(player: Player, key: string, message: string)
+warnOnce = function(player: Player, key: string, message: string)
 	local byUser = warnedStates[player.UserId]
 	if byUser == nil then
 		byUser = {}
