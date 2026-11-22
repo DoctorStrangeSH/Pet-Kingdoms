@@ -713,3 +713,10 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Pause preview updates and reject duplicate confirmation or edit actions while the server submission is in progress.
 - [ ] Verify the exact grid cell seen on preview matches the saved object after pressing Confirm on desktop and touch.
 - [ ] Investigate GUI-inset and landscape touch coordinates in Roblox Studio Device Emulator.
+
+### Gathering rejoin and modal-flight safety (2026-11-22)
+
+- [x] Reject untrusted/incorrect resource prompts; the gathering handler now only accepts the server-owned `GatherPrompt` under the invisible `GatherAnchor` directly inside an authorized resource node.
+- [x] Add Studio integration checks for persisted resource cooldown: a rejoined player's tree starts hidden, the gather prompt is disabled, the invisible anchor remains hidden, and custom mesh alpha is preserved for later respawn.
+- [x] Preserve an in-flight construction request when another modal takes focus, then close construction cleanly when its server response returns.
+- [ ] Execute these tests in Roblox Studio and verify cooldown expiry, resuming resource availability, and multiple clicks/touch switches while a build request is pending.
