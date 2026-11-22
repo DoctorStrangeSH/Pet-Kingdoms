@@ -177,6 +177,75 @@ local progressionOverflowReward, progressionOverflowStatus =
 	PetCollectionData.grantExperienceWithProgress(progressionOverflow, "starter-bunny", 10, progressionThresholds)
 expect("progression reward rejects XP overflow", not progressionOverflowReward and progressionOverflowStatus == "XP_OVERFLOW")
 
+
+-- Idempotency tests use a fixed timestamp and stable server-generated reward IDs.
+local rewardNow = 1_800_000_000
+local once, onceStatus, onceProfile, onceSummary =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		profile, "starter-bunny", 250, progressionThresholds, "quest:chapter_01:reward_001", rewardNow
+	)
+expect("first reward ID is applied", once and onceStatus == "UPDATED" and onceProfile ~= nil and onceSummary ~= nil)
+assert(onceProfile ~= nil)
+expect("first reward receipt is persisted", #onceProfile.rewardReceipts == 1 and onceProfile.rewardReceipts[1].rewardId == "quest:chapter_01:reward_001")
+
+local duplicate, duplicateStatus, duplicateProfile, duplicateReceipt =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		onceProfile, "starter-bunny", 250, progressionThresholds, "quest:chapter_01:reward_001", rewardNow + 1
+	)
+expect("same reward ID and payload is not applied twice", not duplicate and duplicateStatus == "ALREADY_PROCESSED" and duplicateProfile == nil)
+expect("duplicate reward returns its receipt", duplicateReceipt ~= nil and duplicateReceipt.rewardId == "quest:chapter_01:reward_001")
+expect("duplicate reward does not increment XP or revision", onceProfile.owned[1].xp == 250 and onceProfile.revision == profile.revision + 1)
+
+local conflict, conflictStatus =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		onceProfile, "starter-bunny", 300, progressionThresholds, "quest:chapter_01:reward_001", rewardNow + 1
+	)
+expect("reused reward ID with different amount is rejected", not conflict and conflictStatus == "REWARD_ID_CONFLICT")
+
+local invalidRewardId, invalidRewardIdStatus =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		profile, "starter-bunny", 10, progressionThresholds, "invalid reward id", rewardNow
+	)
+expect("malformed reward ID is rejected", not invalidRewardId and invalidRewardIdStatus == "INVALID_REWARD_ID")
+
+local expiredReceiptProfile = PetCollectionData.clone(onceProfile)
+local afterRetention = rewardNow + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+local reusedAfterExpiry, reusedAfterExpiryStatus, reusedAfterExpiryProfile =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		expiredReceiptProfile, "starter-bunny", 250, progressionThresholds, "quest:chapter_01:reward_001", afterRetention
+	)
+expect("expired reward receipt is pruned according to retention policy", reusedAfterExpiry and reusedAfterExpiryStatus == "UPDATED" and reusedAfterExpiryProfile ~= nil)
+expect("expired receipt is replaced by a fresh receipt", reusedAfterExpiryProfile ~= nil and #reusedAfterExpiryProfile.rewardReceipts == 1)
+
+local ledgerFullProfile = PetCollectionData.clone(profile)
+ledgerFullProfile.rewardReceipts = {}
+for index = 1, PetCollectionData.MAX_REWARD_RECEIPTS do
+	ledgerFullProfile.rewardReceipts[index] = {
+		rewardId = "daily:reward_" .. tostring(index),
+		petId = "starter-bunny",
+		amount = 1,
+		processedAt = rewardNow,
+	}
+end
+local ledgerFull, ledgerFullStatus =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		ledgerFullProfile, "starter-bunny", 10, progressionThresholds, "daily:new_reward", rewardNow
+	)
+expect("full unexpired reward ledger rejects new rewards safely", not ledgerFull and ledgerFullStatus == "REWARD_LEDGER_FULL")
+
+local malformedLedgerProfile = PetCollectionData.clone(profile)
+malformedLedgerProfile.rewardReceipts = {
+	{ rewardId = "duplicate:id", petId = "starter-bunny", amount = 1, processedAt = rewardNow },
+	{ rewardId = "duplicate:id", petId = "starter-bunny", amount = 1, processedAt = rewardNow },
+}
+expect("duplicate reward receipts invalidate profile", not PetCollectionData.validate(malformedLedgerProfile, 12345))
+
+local invalidReceiptTimeProfile = PetCollectionData.clone(profile)
+invalidReceiptTimeProfile.rewardReceipts = {
+	{ rewardId = "bad:time", petId = "starter-bunny", amount = 1, processedAt = math.huge },
+}
+expect("non-finite receipt timestamp invalidates profile", not PetCollectionData.validate(invalidReceiptTimeProfile, 12345))
+
 local equipped, equipStatus, updated = PetCollectionData.setEquipped(profile, { "starter-bunny" })
 expect("owned pet can be equipped", equipped and equipStatus == "UPDATED" and updated ~= nil)
 assert(updated ~= nil)
