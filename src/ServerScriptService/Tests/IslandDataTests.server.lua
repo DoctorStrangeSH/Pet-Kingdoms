@@ -11,6 +11,7 @@ local Catalog = require(services:WaitForChild("BuildingCatalog"))
 local IslandData = require(services:WaitForChild("IslandData"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
+local QuestRewardOutboxData = require(services:WaitForChild("QuestRewardOutboxData"))
 
 local function expect(name: string, condition: boolean)
 	assert(condition, name .. " failed")
@@ -129,6 +130,25 @@ futureReceiptProfile.buildingOperations = {
 local futureReceiptOk, futureReceiptCode = IslandData.validate(futureReceiptProfile, 1001, Catalog)
 expect("building receipt ahead of saved profile revision is rejected",
 	not futureReceiptOk and futureReceiptCode == "INVALID_BUILDING_LEDGER:REVISION_AHEAD")
+
+expect("new profile starts with empty durable quest reward ledgers",
+	type(profile.questRewardClaims) == "table" and next(profile.questRewardClaims) == nil
+		and type(profile.questRewardOutbox) == "table" and #profile.questRewardOutbox == 0)
+local legacyRewardProfile = IslandData.create(1001, 10, 10)
+legacyRewardProfile.questRewardClaims = nil
+legacyRewardProfile.questRewardOutbox = nil
+local legacyRewardValid = IslandData.validate(legacyRewardProfile, 1001, Catalog)
+expect("legacy schema-v1 profile without quest reward ledgers remains valid", legacyRewardValid)
+local invalidClaimsProfile = IslandData.create(1001, 10, 10)
+invalidClaimsProfile.questRewardClaims = { fake_quest = { rewardId = "bad", claimedAt = 100 } }
+local invalidClaimsOk, invalidClaimsCode = IslandData.validate(invalidClaimsProfile, 1001, Catalog)
+expect("unknown quest claim receipt rejected",
+	not invalidClaimsOk and string.find(invalidClaimsCode, "INVALID_QUEST_CLAIMS:", 1, true) == 1)
+local invalidOutboxProfile = IslandData.create(1001, 10, 10)
+invalidOutboxProfile.questRewardOutbox = { { rewardId = "bad" } }
+local invalidOutboxOk, invalidOutboxCode = IslandData.validate(invalidOutboxProfile, 1001, Catalog)
+expect("malformed quest reward outbox rejected",
+	not invalidOutboxOk and string.find(invalidOutboxCode, "INVALID_QUEST_OUTBOX:", 1, true) == 1)
 
 expect("new profile receives provisional starter wallet", profile.resources.wood == 2 and profile.resources.stone == 1)
 local invalidWalletProfile = IslandData.create(1001, 10, 10)
