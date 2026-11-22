@@ -6,6 +6,7 @@ if not RunService:IsStudio() then
 end
 
 local Workspace = game:GetService("Workspace")
+local ServerStorage = game:GetService("ServerStorage")
 local services = script.Parent.Parent:WaitForChild("Services")
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 
@@ -57,6 +58,33 @@ local function profileFor(userId: number)
 	}
 end
 
+-- Isolate a temporary approved-style art template for the runtime contract.
+-- Gameplay prompts and rewards must remain server-owned regardless of art.
+local existingTemplates = ServerStorage:FindFirstChild("ResourceNodeModels")
+local temporaryTemplates: Folder? = nil
+local temporaryWood: Model? = nil
+if existingTemplates == nil then
+	temporaryTemplates = Instance.new("Folder")
+	temporaryTemplates.Name = "ResourceNodeModels"
+	temporaryTemplates.Parent = ServerStorage
+	existingTemplates = temporaryTemplates
+end
+if existingTemplates:FindFirstChild("wood") == nil then
+	temporaryWood = Instance.new("Model")
+	temporaryWood.Name = "wood"
+	local treeMesh = Instance.new("Part")
+	treeMesh.Name = "TestMesh"
+	treeMesh.Anchored = true
+	treeMesh.Size = Vector3.new(3, 5, 3)
+	treeMesh.Transparency = 0.35
+	treeMesh.Parent = temporaryWood
+	temporaryWood.PrimaryPart = treeMesh
+	local unsafeScript = Instance.new("Script")
+	unsafeScript.Name = "UntrustedScript"
+	unsafeScript.Parent = temporaryWood
+	temporaryWood.Parent = existingTemplates
+end
+
 local firstUserId = 987654321
 local secondUserId = 987654322
 local thirdUserId = 987654323
@@ -67,6 +95,8 @@ local function cleanup()
 		IslandWorldService.remove(userId)
 	end
 	Workspace:SetAttribute("IslandGridCellSize", previousCellSize)
+	if temporaryWood then temporaryWood:Destroy() end
+	if temporaryTemplates then temporaryTemplates:Destroy() end
 end
 
 local ok, failure = pcall(function()
@@ -91,6 +121,29 @@ local ok, failure = pcall(function()
 	local worldFolder = Workspace:FindFirstChild("PlayerIslands")
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId)), "first world model must exist")
 	local firstWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local resources = firstWorld and firstWorld:FindFirstChild("ResourceNodes")
+	local wood = resources and resources:FindFirstChild("WoodNode_A")
+	assert(wood and wood:IsA("Model"), "wood resource must spawn")
+	local gatherPrompt = wood:FindFirstChild("GatherPrompt", true)
+	local gatherAnchor = wood:FindFirstChild("GatherAnchor")
+	assert(gatherPrompt and gatherPrompt:IsA("ProximityPrompt")
+		and gatherAnchor and gatherAnchor:IsA("BasePart")
+		and gatherPrompt.Parent == gatherAnchor,
+		"resource prompt must be attached to the trusted invisible anchor")
+	assert(gatherAnchor.Transparency == 1 and not gatherAnchor.CanCollide,
+		"invisible resource anchor must not obstruct movement")
+	if temporaryWood then
+		local model = wood:FindFirstChild("Visual")
+		assert(model and model:IsA("Model")
+			and model:GetAttribute("IsCustomResourceVisual") == true,
+			"approved resource template must replace fallback geometry")
+		assert(model:FindFirstChild("UntrustedScript", true) == nil,
+			"resource template must not retain executable Script descendants")
+		local visiblePart = model:FindFirstChild("TestMesh", true)
+		assert(visiblePart and visiblePart:IsA("BasePart")
+			and math.abs(visiblePart.Transparency - 0.35) < 0.01,
+			"custom resource detail transparency must be retained")
+	end
 	local mainHouse = firstWorld and firstWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
 	assert(mainHouse and mainHouse:IsA("Model"), "saved main house must be rendered")
 	local mainHousePrompt = mainHouse and mainHouse:FindFirstChild("MainHousePrompt", true)
