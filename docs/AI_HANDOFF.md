@@ -427,3 +427,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Timestamp validation uses the safe integer range rather than a currency cap.
 - Studio-only `IslandHatchLedgerDataTests.server.lua` covers prepare idempotency, cost conflict, atomic debit, repeated debit, grant acknowledgement, insufficient funds, duplicate IDs, and invalid states. Tests are committed but not executed in Roblox Studio.
 - Important limitation: these are pure profile transformations only. No service currently persists a PREPARED/CHARGED/GRANTED transition synchronously or returns a durable commit acknowledgement. Do not connect a paid hatch remote yet. Next step is a serialized IslandSessionService transaction API that durably saves each transition and recovers incomplete records before allowing new hatches.
+
+
+## Durable island hatch mutation API (2026-11-22)
+
+- Added `IslandSessionService.applyHatchOperation(userId, operation, transactionId, record?)`. Supported operations are PREPARE, CHARGE, GRANT; PREPARE requires the supplied record transactionId to match the explicit transactionId argument.
+- Hatch transitions are serialized per island session with `hatchMutationBusy`. Each pure journal transform is applied without yielding, installed as the live profile, and assigned a new profile revision.
+- Sessions track `persistedRevision`, initialized from the claimed profile revision and advanced only after `IslandStore.save(snapshot)` confirms the exact revision. The API loops through serialized saves until the target revision is persisted and the session is clean, with a 30-second deadline. A timeout does not roll back the in-memory journal; callers must retry using the same transaction ID, and autosave continues to retry dirty profiles.
+- The save loop accounts for unrelated profile mutations that occur while a DataStore save yields: if the live revision advances beyond the saved snapshot, it stays dirty and another save is required before acknowledging the hatch operation.
+- Added `PetCollectionService.isReady(player)` as a read-only readiness check for future recovery orchestration.
+- No hatch remote or player-facing hatch endpoint is exposed. No production egg/cost/species definitions exist. This API is infrastructure only and still requires Studio/DataStore fault-injection verification before paid use.
