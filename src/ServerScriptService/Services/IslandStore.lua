@@ -71,6 +71,9 @@ function IslandStore.load(userId: number): (boolean, any, string)
 	if data.questProgress == nil then
 		data.questProgress = QuestProgressData.create()
 	end
+	if data.trackedQuestId == nil then
+		data.trackedQuestId = "gather_wood"
+	end
 	return true, data, "LOADED"
 end
 
@@ -100,6 +103,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 	end
 	if seed.questProgress == nil then
 		seed.questProgress = QuestProgressData.create()
+	end
+	if seed.trackedQuestId == nil then
+		seed.trackedQuestId = "gather_wood"
 	end
 	-- Claim only if the generation observed during load is still current.
 	-- This prevents a delayed loader from superseding a newer session.
@@ -135,6 +141,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 			end
 			if nextProfile.questProgress == nil then
 				nextProfile.questProgress = QuestProgressData.create()
+			end
+			if nextProfile.trackedQuestId == nil then
+				nextProfile.trackedQuestId = "gather_wood"
 			end
 			local currentGeneration = nextProfile.sessionGeneration or 0
 			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
