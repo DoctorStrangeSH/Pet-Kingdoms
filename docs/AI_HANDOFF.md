@@ -1272,3 +1272,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added a shared PlayerGui.PetKingdomsActiveModal ownership convention to the construction and pet collection controllers. Opening one hides the other instead of leaving stacked modals.
 - This is a code/packaging change only. Roblox Studio interaction testing, safe-area validation, and actual mobile device verification remain pending.
 - Next player-facing work: gathering affordance/onboarding, visible in-world companion verification, and explicit interaction cooldown countdown/lock feedback.
+
+
+## Pet interaction cooldown feedback (2026-11-22)
+
+- PetCollectionUI now reads the persisted `lastInteractionAt` field and uses `Workspace:GetServerTimeNow()` with the shared `PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS` constant.
+- While the per-pet cooldown is active, both Pet and Play buttons are disabled and show a lock plus live MM:SS countdown. When the timer expires they restore their normal labels and active state.
+- This is presentation only. The server's `PetCollectionData.interact` check remains authoritative and still rejects early requests.
+- Studio verification remains pending.
