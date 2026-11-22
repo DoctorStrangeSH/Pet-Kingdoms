@@ -110,9 +110,40 @@ local ok, failure = pcall(function()
 	local duplicateOk, duplicateCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, profileFor(firstUserId))
 	assert(duplicateOk and duplicateCode == "ALREADY_SPAWNED", "duplicate spawn must not create a second island")
 
-	local secondOk, secondCode = IslandWorldService.spawn({ UserId = secondUserId } :: any, profileFor(secondUserId))
+	local waitingProfile = profileFor(secondUserId)
+	local cooldownNow = os.time()
+	waitingProfile.resourceNodes = {
+		{
+			nodeId = "WoodNode_A",
+			resourceId = "wood",
+			lastGatheredAt = cooldownNow - 20,
+			availableAt = cooldownNow + 40,
+		},
+	}
+	local secondOk, secondCode = IslandWorldService.spawn({ UserId = secondUserId } :: any, waitingProfile)
 	assert(secondOk and secondCode == "SPAWNED", "second player island must spawn")
 	table.insert(spawnedUsers, secondUserId)
+
+	local secondWorld = Workspace:FindFirstChild("PlayerIslands")
+	local secondIsland = secondWorld and secondWorld:FindFirstChild("Island_" .. tostring(secondUserId))
+	local secondResources = secondIsland and secondIsland:FindFirstChild("ResourceNodes")
+	local coolingWood = secondResources and secondResources:FindFirstChild("WoodNode_A")
+	assert(coolingWood and coolingWood:IsA("Model"),
+		"persisted cooldown resource must exist after rejoin")
+	local coolingPrompt = coolingWood:FindFirstChild("GatherPrompt", true)
+	local coolingAnchor = coolingWood:FindFirstChild("GatherAnchor")
+	assert(coolingPrompt and coolingPrompt:IsA("ProximityPrompt") and not coolingPrompt.Enabled,
+		"persisted cooldown must disable resource gathering immediately")
+	assert(coolingAnchor and coolingAnchor:IsA("BasePart") and coolingAnchor.Transparency == 1,
+		"cooldown must not reveal the trusted invisible anchor")
+	if temporaryWood then
+		local coolingVisual = coolingWood:FindFirstChild("Visual")
+		local hiddenMesh = coolingVisual and coolingVisual:FindFirstChild("TestMesh", true)
+		assert(hiddenMesh and hiddenMesh:IsA("BasePart")
+			and hiddenMesh.Transparency == 1
+			and math.abs(hiddenMesh:GetAttribute("GatherBaseTransparency") - 0.35) < 0.01,
+			"cooldown must preserve imported transparency for respawn")
+	end
 
 	local secondArrival = IslandWorldService.getArrivalCFrame(secondUserId)
 	assert(secondArrival ~= nil, "second player must receive an arrival CFrame")
