@@ -319,3 +319,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This deliberately does not define or assume a growth curve, rarity multiplier, modifier ordering, or stat balance. Until those decisions are approved, the resolver is an explicit dependency and there is no default formula.
 - Added Studio-only tests for valid identity resolution, level/rarity boundaries, missing resolver, resolver exceptions, invalid output, unknown stats, and input/result isolation. Tests are committed but not executed in Studio.
 - The calculator is not yet wired to collection persistence, combat, or a concrete species catalog.
+
+
+## Exact resolved pet stat snapshot contract (2026-11-22)
+
+- Hardened `PetStatsData.validate` to reject every top-level field except `level`, `rarityTier`, and `stats`.
+- This keeps identity, ownership, runtime metadata, or unapproved progression fields out of the resolved stat value object; those belong in their own domain records, not inside the stat snapshot.
+- Added regression coverage for injected `ownerUserId` and missing stats. The existing five-stat exact-key validation remains unchanged.
+- No balance rules or modifier semantics were introduced. Roblox Studio test execution remains pending.
