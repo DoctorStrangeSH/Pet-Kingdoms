@@ -43,6 +43,9 @@ export type FollowController = {
 	idleActionState: string,
 	interactionState: string?,
 	interactionUntil: number,
+	environmentState: string?,
+	environmentUntil: number,
+	nextEnvironmentScan: number,
 	interactionConnection: RBXScriptConnection?,
 	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
@@ -132,6 +135,9 @@ function CompanionFollowController.new(
 		idleActionState = "idle",
 		interactionState = nil,
 		interactionUntil = 0,
+		environmentState = nil,
+		environmentUntil = 0,
+		nextEnvironmentScan = 0,
 		interactionConnection = nil,
 	}, CompanionFollowController)
 
@@ -211,6 +217,40 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.idleActionState = "idle"
 		self.nextIdleActionAt = math.random(35, 65) / 10
 	end
+	-- Nearby resource nodes can catch a resting Bunny's attention. This is
+	-- cosmetic only: gathering rewards and prompt validation stay server-owned.
+	if os.clock() >= self.nextEnvironmentScan then
+		self.nextEnvironmentScan = os.clock() + 1
+		local ownerUserId = self.model:GetAttribute("OwnerUserId")
+		local islands = Workspace:FindFirstChild("PlayerIslands")
+		local ownerIsland = nil
+		if type(ownerUserId) == "number" and islands then
+			for _, island in ipairs(islands:GetChildren()) do
+				if island:GetAttribute("OwnerUserId") == ownerUserId then
+					ownerIsland = island
+					break
+				end
+			end
+		end
+		local nodes = ownerIsland and ownerIsland:FindFirstChild("ResourceNodes")
+		local nearestDistance = 9
+		local nearestNode = nil
+		if nodes then
+			for _, node in ipairs(nodes:GetChildren()) do
+				if node:IsA("Model") and node:GetAttribute("AvailableAt") ~= nil then
+					local distance = (node:GetPivot().Position - currentPosition).Magnitude
+					if distance < nearestDistance then
+						nearestDistance = distance
+						nearestNode = node
+					end
+				end
+			end
+		end
+		if nearestNode and speed < self.walkSpeed and self.interactionState == nil then
+			self.environmentState = if nearestNode:GetAttribute("ResourceId") == "wood" then "curious" else "sniff"
+			self.environmentUntil = os.clock() + 1.4
+		end
+	end
 	-- Player-triggered affection/play reactions take priority over autonomous idle actions.
 	-- Movement states still win so an interaction never freezes a moving companion.
 	if speed < self.walkSpeed and self.interactionState ~= nil then
@@ -219,6 +259,12 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		else
 			self.interactionState = nil
 		end
+	end
+	if speed < self.walkSpeed and self.interactionState == nil
+		and self.environmentState ~= nil and os.clock() < self.environmentUntil then
+		state = self.environmentState
+	elseif self.environmentState ~= nil and os.clock() >= self.environmentUntil then
+		self.environmentState = nil
 	end
 	if self.animation then
 		self.animation:setState(state)
