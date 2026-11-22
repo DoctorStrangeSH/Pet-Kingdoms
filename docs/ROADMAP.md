@@ -102,6 +102,7 @@
 - [ ] Complete persistent personal home islands (profile lifecycle and MemoryStore lease code are committed; world spawning and Studio verification remain).
 - [x] Add cross-server MemoryStore coordination lease with acquire, renewal, release, and fail-closed handling (Studio verification pending; DataStore fencing is implemented separately).
 - [x] Add DataStore-side fencing/session generation checked atomically inside every profile UpdateAsync write, using compare-and-swap claims to reject delayed loaders (Studio integration test committed; execution pending).
+- [x] Treat a same-generation DataStore revision that is already equal/newer than the retry snapshot as durable success; this makes lost UpdateAsync acknowledgements idempotent without overwriting newer data (Studio integration test committed; execution pending).
 - [x] Add MemoryStore lease integration smoke coverage for ownership, stale tokens, release, and reacquisition (execution pending).
 - [x] Harden profile validation against unknown building unlock IDs.
 - [x] Reject non-numeric lease owner IDs before MemoryStore calls.
