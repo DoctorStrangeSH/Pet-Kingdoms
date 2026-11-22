@@ -238,7 +238,7 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 
 - [x] Prevent a newly added pet from reusing a petId already present in the retained acquisition receipt ledger, even if the original pet was deleted.
 - [x] Add a regression test that acquires, removes, and attempts to recreate a pet with the same ID.
-- [ ] Review acquisition receipt retention and capacity policy before treating pet IDs as permanent lifetime identities; the current bounded ledger retains receipts for the configured retention window.
+- [x] Review acquisition receipt retention and capacity policy: unresolved receipts are permanent; acknowledged receipts are compacted seven days after durable completion; the ledger remains bounded and fails closed at capacity.
 - [ ] Add cross-system audit correlation for hatch transaction IDs, acquisition IDs, and stable pet IDs when evolution transactions are implemented.
 
 
@@ -246,9 +246,9 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 
 - [x] Found and fixed a cross-ledger failure: hatch slot reservation previously reserved collection capacity but did not reserve a bounded acquisition-receipt slot. Other rewards could fill the receipt ledger after currency charge, leaving a charged hatch unable to grant its pet.
 - [x] Reserve one acquisition-receipt slot together with each pending hatch reservation. Enforce `retained receipts + pending reservations <= MAX_ACQUISITION_RECEIPTS`.
-- [x] Prune expired acquisition receipts during reservation using the same seven-day retention window as acquisition completion.
+- [x] Prune only acknowledged acquisition receipts during reservation, using seven days from durable completion; unresolved receipts never expire.
 - [x] Consume the reserved receipt capacity atomically when the matching hatch grant completes; account for other pending reservations when processing a grant.
-- [x] Apply the documented receipt retention window to the pet-ID reuse guard; expired receipts no longer block an ID forever.
+- [x] Apply completion-based receipt retention to the pet-ID reuse guard; unresolved acquisition IDs remain reserved indefinitely.
 - [x] Add regression tests for final receipt-slot reservation, rejection of an additional pending hatch, successful receipt-slot consumption, expiry pruning, and pet-ID reuse after expiry.
 - [x] Synchronize the newest validated DataStore snapshot into the in-memory cache when an idempotent XP retry returns `ALREADY_PROCESSED`.
 - [ ] Run Studio pure-data tests and DataStore concurrency/fault-injection tests. Verify a reservation remains grantable when other reward sources execute concurrently.
@@ -312,7 +312,7 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Cancel recovery cleanly when lease ownership is lost or the player disconnects; journal remains durable for later retry.
 - [x] Add a Studio-only test asserting that recovery's readiness window exceeds the collection readiness window.
 - [ ] Run controlled Studio tests for delayed collection loading, rapid disconnect/rejoin, lease loss during CHARGED recovery and DataStore write acknowledgement loss.
-- [ ] Audit cross-store idempotency for CHARGED transactions older than the seven-day acquisition-receipt retention window; do not enable live paid eggs until this is resolved.
+- [x] Resolve the seven-day dedupe gap for CHARGED transactions: unresolved receipts persist until the island journal is durably GRANTED and the collection receipt is acknowledged. Studio fault-injection is still required before live paid eggs.
 
 
 ### Hatch recovery retry during an active session
@@ -321,7 +321,7 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Retry unfinished PREPARED/CHARGED hatch transactions every 15 seconds while the same Player owns a writable island lease and the pet collection is ready.
 - [x] Stop retrying when no pending transactions remain, the Player leaves, the lease becomes non-writable, or collection readiness is lost.
 - [ ] Run Studio/MemoryStore/DataStore fault-injection covering transient save failures, disappearing lease, CHARGED journal recovery, and a blocked transaction that becomes resolvable without rejoining.
-- [ ] Reconcile acquisition receipt expiry with long-lived CHARGED hatch journals before enabling live egg purchase; the seven-day receipt window is not a permanent proof of grant.
+- [x] Reconcile acquisition receipt expiry with long-lived CHARGED hatch journals using transaction-bound completion acknowledgement; live paid hatching still awaits Studio fault-injection.
 
 
 ### Durable hatch acquisition deduplication
@@ -335,3 +335,5 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add tests for beyond-seven-day pending receipts, transaction-ID mismatch, acknowledgement idempotency, completed-receipt compaction, legacy reservation upgrade, and granted-journal idempotency.
 - [ ] Run Roblox Studio/DataStore fault injection across the exact sequence: pet grant persisted -> server crash -> journal GRANTED -> receipt acknowledgement lost -> rejoin -> acknowledgement retry.
 - [ ] Monitor the bounded 128-entry receipt ledger; capacity reservation fails closed before charging, but high-volume acquisition patterns may require a compacted external dedupe index.
+
+- [x] Upgrade legacy acquisition receipts and pending reservations with the transaction ID from their matching durable hatch journal before completing recovery.
