@@ -71,3 +71,8 @@ After the expansion profile revision is durable, `IslandSessionService.commitIsl
 ## Read-only preview API
 
 `IslandExpansionService` exposes `ReplicatedStorage/Remotes/GetIslandExpansionPreview`. It validates the caller's active writable session and canonical profile bounds, then returns current and next dimensions, level cap, and `purchaseAvailable = false` with `ECONOMY_NOT_APPROVED`. Calls are rate-limited. The preview endpoint does not mutate the profile or invoke the expansion commit.
+
+
+## Client preview panel
+
+The client `IslandExpansionUI.client.lua` opens a compact responsive panel and requests the read-only `GetIslandExpansionPreview` response. It displays current and next island dimensions and the maximum-level state. The panel explicitly communicates that purchase is unavailable until economy approval. Manual refresh is supported; no client-side profile mutation or purchase action exists.
