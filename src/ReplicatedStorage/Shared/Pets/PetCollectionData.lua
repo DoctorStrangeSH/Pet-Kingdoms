@@ -466,7 +466,7 @@ function PetCollectionData.reservePetSlotOnce(
 	for _, reservation in ipairs(profile.reservedAcquisitions or {}) do
 		if reservation.acquisitionId == acquisitionId then
 			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier
-				or (transactionId ~= nil and reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
+				or (reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
 				return false, "RESERVATION_CONFLICT", nil
 			end
 			if transactionId ~= nil and reservation.transactionId == nil then
@@ -538,7 +538,7 @@ function PetCollectionData.addPetOnce(
 	for index, reservation in ipairs(reservations) do
 		if reservation.acquisitionId == acquisitionId then
 			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier
-				or (transactionId ~= nil and reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
+				or (reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
 				return false, "RESERVATION_CONFLICT", nil
 			end
 			reservationIndex = index
