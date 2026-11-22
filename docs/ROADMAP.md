@@ -222,3 +222,13 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [ ] Approve actual species/forms, evolution branches, levels, item/currency costs, and eligibility requirements in game design before adding production catalog entries.
 - [ ] Add persisted evolution history and idempotent server-side evolution transactions only after requirements and target species are approved.
 - [ ] Add Studio/DataStore integration and interruption tests before enabling evolution.
+
+
+### Pet evolution transition preparation
+
+- [x] Add stable-ID lookup for a validated evolution definition.
+- [x] Add a pure transition-preparation function that checks the pet's current species against the definition source.
+- [x] Preserve the same petId and all unrelated pet fields while preparing only the speciesId change (level, XP, bond, rarity, lock, favorite, and other metadata remain intact).
+- [x] Add tests for definition lookup, successful transition preparation, stable identity, progression/metadata preservation, original-record immutability, wrong-source rejection, malformed records, and unknown evolution IDs.
+- [ ] Do not add a production evolution service or persistence transaction until the species registry and at least one real target form are approved; the current collection schema only accepts `bunny`.
+- [ ] Once target species are approved, extend the species registry and add bounded evolution history/receipts plus an idempotent UpdateAsync transaction with expected-revision checks.
