@@ -7,6 +7,7 @@ local services = script.Parent
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
 local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
+local ResourceNodeVisibility = require(services:WaitForChild("ResourceNodeVisibility"))
 
 local IslandGatheringService = {}
 local MAX_DISTANCE = 18
@@ -28,26 +29,7 @@ local function getNode(prompt: ProximityPrompt): Model?
 	return node
 end
 
-local function setNodeVisible(node: Model, visible: boolean)
-	for _, descendant in ipairs(node:GetDescendants()) do
-		if descendant:IsA("BasePart") then
-			-- Do not turn a resource's invisible prompt anchor (or transparent
-			-- accents on imported art) into a visible solid cube on respawn.
-			local baseTransparency = descendant:GetAttribute("GatherBaseTransparency")
-			if type(baseTransparency) ~= "number" then
-				baseTransparency = descendant.Transparency
-				descendant:SetAttribute("GatherBaseTransparency", baseTransparency)
-			end
-			descendant.Transparency = if visible then baseTransparency else 1
-			descendant.CanCollide = false
-			descendant.CanTouch = false
-		elseif descendant:IsA("ProximityPrompt") then
-			descendant.Enabled = visible
-		elseif descendant:IsA("BillboardGui") then
-			descendant.Enabled = visible
-		end
-	end
-end
+local setNodeVisible = ResourceNodeVisibility.setVisible
 
 local function scheduleRespawn(node: Model, availableAt: number)
 	activeNodes[node] = true
