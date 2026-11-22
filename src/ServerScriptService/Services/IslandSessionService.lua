@@ -13,6 +13,7 @@ local IslandStore = require(services:WaitForChild("IslandStore"))
 local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandHatchLedgerData = require(services:WaitForChild("IslandHatchLedgerData"))
+local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
 
 local IslandSessionService = {}
 
@@ -25,6 +26,7 @@ type Session = {
 	saving: boolean,
 	persistedRevision: number,
 	hatchMutationBusy: boolean,
+	buildingMutationBusy: boolean,
 	saveFinished: BindableEvent,
 	closing: boolean,
 	playerLeaving: boolean,
@@ -82,6 +84,68 @@ local saveSession: (number, Session) -> boolean
 -- Applies one hatch journal transition to the live island profile and waits
 -- until a DataStore save has persisted at least that revision before returning success.
 -- The transform is performed without yielding; the per-session guard serializes hatch transitions.
+-- Commits a building result and its idempotency receipt in the same island
+-- profile revision, then waits for DataStore durability before acknowledging it.
+function IslandSessionService.commitBuildingOperation(
+	userId: number,
+	player: Player,
+	requestId: string,
+	fingerprint: string,
+	action: string,
+	result: any
+): (boolean, string)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY" end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE"
+	end
+	if session.buildingMutationBusy then return false, "BUILDING_OPERATION_BUSY" end
+
+	session.buildingMutationBusy = true
+	local nextLedger, journalCode = IslandBuildingJournalData.append(
+		session.profile.buildingOperations or {},
+		requestId,
+		fingerprint,
+		action,
+		result,
+		os.time()
+	)
+	if nextLedger == nil then
+		session.buildingMutationBusy = false
+		return false, journalCode
+	end
+	if journalCode == "ALREADY_RECORDED" then
+		session.buildingMutationBusy = false
+		return true, journalCode
+	end
+
+	local previousLedger = session.profile.buildingOperations
+	session.profile.buildingOperations = nextLedger
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.buildingOperations = previousLedger
+		session.buildingMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE"
+	end
+
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision or session.dirty do
+		if not IslandSessionService.canWrite(userId, player) or sessions[userId] ~= session then
+			session.buildingMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE"
+		end
+		if os.clock() >= deadline then
+			session.buildingMutationBusy = false
+			return false, "PERSIST_TIMEOUT"
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+
+	session.buildingMutationBusy = false
+	return true, "DURABLE"
+end
+
 function IslandSessionService.applyHatchOperation(
 	userId: number,
 	operation: string,
@@ -173,6 +237,12 @@ local function cloneProfile(profile: any): any
 	end
 	copy.unlockedBuildingIds = table.clone(profile.unlockedBuildingIds)
 	copy.resources = table.clone(profile.resources or { wood = 2, stone = 1, gold = 0, gems = 0 })
+	copy.buildingOperations = {}
+	for index, record in ipairs(profile.buildingOperations or {}) do
+		local clonedRecord = table.clone(record)
+		clonedRecord.result = table.clone(record.result)
+		copy.buildingOperations[index] = clonedRecord
+	end
 	copy.hatchTransactions = {}
 	for index, record in ipairs(profile.hatchTransactions or {}) do
 		local clonedRecord = table.clone(record)
@@ -330,6 +400,7 @@ local function loadPlayer(player: Player)
 		saving = false,
 		persistedRevision = profile.revision,
 		hatchMutationBusy = false,
+		buildingMutationBusy = false,
 		saveFinished = Instance.new("BindableEvent"),
 		closing = false,
 		playerLeaving = false,
