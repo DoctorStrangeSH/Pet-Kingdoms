@@ -60,6 +60,21 @@ for _ = 1, 900 do
 end
 expect("stationary Bunny performs an autonomous personality action", observedIdlePersonality)
 
+-- A direct player interaction must override an autonomous idle animation already in progress.
+controllers[1].idleActionState = "sniff"
+controllers[1].idleActionRemaining = 1
+pets[1]:SetAttribute("InteractionEmotion", "happy")
+pets[1]:SetAttribute("InteractionSequence", 1)
+task.wait()
+controllers[1]:update(1 / 60)
+expect("player interaction overrides autonomous idle action", controllers[1].animation.state == "happy")
+
+-- Movement remains the higher-priority state while an interaction reaction is active.
+target.AssemblyLinearVelocity = Vector3.new(0, 0, -10)
+controllers[1]:update(1 / 60)
+expect("movement animation overrides interaction reaction", controllers[1].animation.state == "walk")
+target.AssemblyLinearVelocity = Vector3.zero
+
 local invalidController, invalidStatus = CompanionFollowController.new(pets[1], target, { slotIndex = 4 })
 expect("fourth active slot is rejected", invalidController == nil and invalidStatus == "INVALID_SLOT_INDEX")
 
