@@ -112,7 +112,7 @@ The approved economy direction includes:
 - A complete free progression path.
 - Optional purchases that do not create pay-to-win advantages.
 
-Exact earning rates, prices, inventory limits, shop catalogue, and monetization products remain open until an economy balance sheet is approved. Pet egg prices, hatch costs, and drop-rate tables are also unapproved; the codebase currently provides only a reusable weighted-selection data contract.
+Exact earning rates, prices, inventory limits, shop catalogue, and monetization products remain open until an economy balance sheet is approved. Pet egg prices, hatch costs, and drop-rate tables are also unapproved; the codebase currently provides only a reusable weighted-selection data contract. Paid hatching must use a recoverable idempotent transaction across the island wallet and pet collection DataStores; a simple sequential spend-then-grant is not acceptable.
 
 ## 7. Building and kingdom
 
