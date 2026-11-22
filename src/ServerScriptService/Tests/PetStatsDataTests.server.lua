@@ -100,7 +100,14 @@ local missingStatCountValid, missingStatCountStatus = PetStatsData.validate(miss
 expect("incomplete stat count is rejected", not missingStatCountValid and missingStatCountStatus == "INVALID_STAT_COUNT")
 
 local clone = PetStatsData.clone(validSnapshot)
+assert(clone ~= nil)
 clone.stats.health = 999
 expect("cloned stat snapshot does not mutate source", validSnapshot.stats.health == 0)
+
+local nilClone, nilCloneStatus = PetStatsData.clone(nil)
+expect("clone rejects nil snapshot safely", nilClone == nil and nilCloneStatus == "SNAPSHOT_NOT_TABLE")
+
+local malformedClone, malformedCloneStatus = PetStatsData.clone({ level = 1 })
+expect("clone rejects malformed snapshot safely", malformedClone == nil and malformedCloneStatus == "INVALID_RARITY_TIER")
 
 print("[PetKingdoms Test] PetStatsData smoke tests completed.")
