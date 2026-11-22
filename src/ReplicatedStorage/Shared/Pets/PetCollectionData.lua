@@ -403,7 +403,8 @@ function PetCollectionData.reservePetSlotOnce(
 	acquisitionId: string,
 	speciesId: string,
 	rarityTier: number,
-	now: number
+	now: number,
+	transactionId: string?
 ): (boolean, string, any?)
 	local valid, reason = validateMutationProfile(profile)
 	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
@@ -419,6 +420,10 @@ function PetCollectionData.reservePetSlotOnce(
 		return false, "INVALID_RARITY_TIER", nil
 	end
 	if not isNonNegativeInteger(now) then return false, "INVALID_TIMESTAMP", nil end
+	if transactionId ~= nil and (type(transactionId) ~= "string" or #transactionId < 1
+		or #transactionId > 128 or string.match(transactionId, "^[%w][%w:_%-]*$") == nil) then
+		return false, "INVALID_TRANSACTION_ID", nil
+	end
 
 	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
@@ -426,7 +431,8 @@ function PetCollectionData.reservePetSlotOnce(
 		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
 			table.insert(retainedReceipts, receipt)
 			if receipt.acquisitionId == acquisitionId then
-				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier then
+				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier
+					or (transactionId ~= nil and receipt.transactionId ~= transactionId) then
 					return false, "ACQUISITION_ID_CONFLICT", nil
 				end
 				return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
