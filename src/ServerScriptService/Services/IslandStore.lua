@@ -50,6 +50,10 @@ function IslandStore.load(userId: number): (boolean, any, string)
 		warn(string.format("[PetKingdoms] Invalid island profile for user %d: %s", userId, reason))
 		return false, nil, "INVALID_SAVED_PROFILE:" .. reason
 	end
+	if data.expansionLevel == nil then
+		-- Legacy schema-v1 islands start at the original, unexpanded plot.
+		data.expansionLevel = 0
+	end
 	if data.resources == nil then
 		-- Backward-compatible migration for schema-v1 islands created before
 		-- the wallet field existed. claimSession persists this migrated value.
@@ -78,6 +82,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 
 	local key = makeKey(profile.ownerUserId)
 	local seed = table.clone(profile)
+	if seed.expansionLevel == nil then
+		seed.expansionLevel = 0
+	end
 	if seed.resources == nil then
 		seed.resources = IslandResources.create()
 	end
@@ -107,6 +114,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 				nextProfile = table.clone(current)
 			end
 
+			if nextProfile.expansionLevel == nil then
+				nextProfile.expansionLevel = 0
+			end
 			if nextProfile.resources == nil then
 				nextProfile.resources = IslandResources.create()
 			end
