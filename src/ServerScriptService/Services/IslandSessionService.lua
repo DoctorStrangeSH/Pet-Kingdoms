@@ -12,6 +12,7 @@ local IslandData = require(services:WaitForChild("IslandData"))
 local IslandStore = require(services:WaitForChild("IslandStore"))
 local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
+local IslandHatchLedgerData = require(services:WaitForChild("IslandHatchLedgerData"))
 
 local IslandSessionService = {}
 
@@ -21,6 +22,8 @@ type Session = {
 	profile: any,
 	dirty: boolean,
 	saving: boolean,
+	persistedRevision: number,
+	hatchMutationBusy: boolean,
 	saveFinished: BindableEvent,
 	closing: boolean,
 	playerLeaving: boolean,
@@ -62,6 +65,88 @@ function IslandSessionService.markDirty(userId: number): boolean
 	return true
 end
 
+-- Applies one hatch journal transition to the live island profile and waits
+-- until a DataStore save has persisted at least that revision before returning success.
+-- The transform is performed without yielding; the per-session guard serializes hatch transitions.
+function IslandSessionService.applyHatchOperation(
+	userId: number,
+	operation: string,
+	transactionId: string,
+	record: any?
+): (boolean, string)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY" end
+	if shuttingDown or session.closing or not session.leaseValid then
+		return false, "SESSION_NOT_WRITABLE"
+	end
+	if session.hatchMutationBusy then return false, "HATCH_OPERATION_BUSY" end
+	if operation ~= "PREPARE" and operation ~= "CHARGE" and operation ~= "GRANT" then
+		return false, "UNKNOWN_HATCH_OPERATION"
+	end
+
+	session.hatchMutationBusy = true
+	local nextProfile: any = nil
+	local status: string
+	if operation == "PREPARE" then
+		nextProfile, status = IslandHatchLedgerData.prepare(session.profile, record, os.time())
+	elseif operation == "CHARGE" then
+		nextProfile, status = IslandHatchLedgerData.charge(session.profile, transactionId)
+	else
+		nextProfile, status = IslandHatchLedgerData.markGranted(session.profile, transactionId)
+	end
+
+	if nextProfile == nil then
+		session.hatchMutationBusy = false
+		return false, status
+	end
+	if status == "ALREADY_PREPARED" or status == "ALREADY_CHARGED" or status == "ALREADY_GRANTED" then
+		-- An idempotent retry still verifies that the referenced state is durable.
+		local targetRecord = nil
+		for _, entry in ipairs(nextProfile.hatchTransactions or {}) do
+			if entry.transactionId == transactionId then
+				targetRecord = entry
+				break
+			end
+		end
+		if operation == "PREPARE" and record ~= nil then
+			for _, entry in ipairs(nextProfile.hatchTransactions or {}) do
+				if entry.transactionId == record.transactionId then
+					targetRecord = entry
+					break
+				end
+			end
+		end
+		if targetRecord == nil then
+			session.hatchMutationBusy = false
+			return false, "TRANSACTION_NOT_FOUND"
+		end
+	else
+		nextProfile.revision = session.profile.revision + 1
+		session.profile = nextProfile
+		session.dirty = true
+	end
+
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision or session.dirty do
+		if not session.leaseValid or session.closing or sessions[userId] ~= session then
+			session.hatchMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE"
+		end
+		if os.clock() >= deadline then
+			session.hatchMutationBusy = false
+			return false, "PERSIST_TIMEOUT"
+		end
+		local saved = saveSession(userId, session)
+		if not saved then
+			task.wait(0.5)
+		end
+	end
+
+	session.hatchMutationBusy = false
+	return true, status
+end
+
 local function cloneProfile(profile: any): any
 	local copy = table.clone(profile)
 	copy.buildings = table.clone(profile.buildings)
@@ -101,9 +186,12 @@ local function saveSession(userId: number, session: Session): boolean
 	session.saveFinished:Fire()
 
 	if ok then
+		session.persistedRevision = math.max(session.persistedRevision, snapshot.revision)
 		-- Keep dirty if any mutation happened while the DataStore call yielded.
 		if session.profile.revision == snapshot.revision then
 			session.dirty = false
+		else
+			session.dirty = true
 		end
 		print(string.format("[PetKingdoms] Island saved for %d (%s)", userId, code))
 		return true
@@ -221,6 +309,8 @@ local function loadPlayer(player: Player)
 		profile = profile,
 		dirty = false,
 		saving = false,
+		persistedRevision = profile.revision,
+		hatchMutationBusy = false,
 		saveFinished = Instance.new("BindableEvent"),
 		closing = false,
 		playerLeaving = false,
