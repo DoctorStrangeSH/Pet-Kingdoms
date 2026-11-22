@@ -3,6 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
@@ -292,6 +293,11 @@ local function refresh()
 end
 
 local function setOpen(value: boolean)
+	if value then
+		playerGui:SetAttribute("PetKingdomsActiveModal", "expansion")
+	elseif playerGui:GetAttribute("PetKingdomsActiveModal") == "expansion" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 	opened = value
 	panel.Visible = value
 	shade.Visible = value
@@ -307,6 +313,32 @@ local function setOpen(value: boolean)
 		end)
 	end
 end
+
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if opened and owner ~= "expansion" then
+		setOpen(false)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not opened then return end
+	if input.KeyCode == Enum.KeyCode.Escape then setOpen(false) end
+end)
+
+-- Full-screen backdrop is a touch-friendly close target.
+shade.InputBegan:Connect(function(input)
+	if not opened then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local position = input.Position
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if position.X < origin.X or position.X > origin.X + size.X
+		or position.Y < origin.Y or position.Y > origin.Y + size.Y then
+		setOpen(false)
+	end
+end)
 
 openButton.Activated:Connect(function() setOpen(not opened) end)
 closeButton.Activated:Connect(function() setOpen(false) end)
