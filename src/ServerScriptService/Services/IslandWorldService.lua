@@ -126,7 +126,7 @@ local function refreshKingdomBondVisuals(world: Model, profile: any)
 
 	local previous = world:FindFirstChild("KingdomBondDecor")
 	if previous then previous:Destroy() end
-	if bond.buildingCount == 0 then return end
+	if bond.stageId == "quiet" then return end
 
 	local decor = Instance.new("Folder")
 	decor.Name = "KingdomBondDecor"
@@ -144,17 +144,17 @@ local function refreshKingdomBondVisuals(world: Model, profile: any)
 	local edgeX = size.X * 0.34
 	local edgeZ = size.Z * 0.34
 	local groundY = center.Position.Y + size.Y * 0.5 + 0.12
-	if bond.buildingCount >= 1 then
+	if bond.stageId == "cozy" or bond.stageId == "blooming" or bond.stageId == "thriving" then
 		for index, offset in ipairs({ Vector3.new(-edgeX, 0, -edgeZ), Vector3.new(edgeX, 0, edgeZ), Vector3.new(-edgeX, 0, edgeZ) }) do
 			accent("Kingdom_Flower_" .. index, center.Position + offset + Vector3.new(0, groundY - center.Position.Y, 0),
 				Vector3.new(0.65, 0.9, 0.65), Color3.fromRGB(255, 190, 215), Enum.Material.Neon, Enum.PartType.Ball)
 		end
 	end
-	if bond.buildingCount >= 3 then
+	if bond.stageId == "blooming" or bond.stageId == "thriving" then
 		accent("Kingdom_Crystal", center.Position + Vector3.new(edgeX * 0.35, groundY - center.Position.Y + 1.1, -edgeZ * 0.2),
 			Vector3.new(1.1, 2.2, 1.1), Color3.fromRGB(115, 220, 231), Enum.Material.Neon, Enum.PartType.Ball)
 	end
-	if bond.buildingCount >= 6 then
+	if bond.stageId == "thriving" then
 		local banner = accent("Kingdom_Banner", center.Position + Vector3.new(-edgeX * 0.2, groundY - center.Position.Y + 2.1, edgeZ * 0.45),
 			Vector3.new(0.35, 4.2, 0.35), Color3.fromRGB(255, 207, 123), Enum.Material.Metal)
 		accent("Kingdom_BannerCloth", banner.Position + Vector3.new(0.9, 0.7, 0),
