@@ -1,0 +1,54 @@
+name: Roblox project build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "default.project.json"
+      - "rokit.toml"
+      - ".github/workflows/roblox-project-build.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "default.project.json"
+      - "rokit.toml"
+      - ".github/workflows/roblox-project-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rojo-build:
+    name: Build Roblox place with pinned Rojo
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rokit
+        uses: CompeyDev/setup-rokit@v0.1.2
+        with:
+          version: "v1.1.0"
+
+      - name: Install pinned project tools
+        run: rokit install
+
+      - name: Verify Rojo version
+        run: rojo --version
+
+      - name: Build place file
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          rojo build default.project.json --output build/PetKingdoms.rbxlx
+          test -s build/PetKingdoms.rbxlx
+
+      - name: Upload Studio-ready place
+        uses: actions/upload-artifact@v4
+        with:
+          name: pet-kingdoms-studio-build
+          path: build/PetKingdoms.rbxlx
+          if-no-files-found: error
+          retention-days: 14
