@@ -720,6 +720,7 @@ function PetCollectionData.removePet(profile: any, petId: string): (boolean, str
 	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
 	if not canIncrementRevision(profile) then return false, "REVISION_OVERFLOW", nil end
 	if type(petId) ~= "string" or petId == "" then return false, "INVALID_PET_ID", nil end
+	if petId == "starter-bunny" then return false, "STARTER_PET_PROTECTED", nil end
 	if #profile.owned <= 1 then return false, "LAST_PET_PROTECTED", nil end
 
 	local selectedIndex = nil
