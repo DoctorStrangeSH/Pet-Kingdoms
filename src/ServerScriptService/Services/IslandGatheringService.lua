@@ -5,6 +5,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local services = script.Parent
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
+local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
 
 local IslandGatheringService = {}
 local RESPAWN_SECONDS = 60
@@ -30,6 +31,7 @@ local function setNodeVisible(node: Model, visible: boolean)
 end
 
 local function onPromptTriggered(prompt: ProximityPrompt, player: Player)
+	if not IslandSessionService.canWrite(player.UserId, player) then return end
 	local node = getNode(prompt)
 	if node == nil or activeNodes[node] then return end
 
