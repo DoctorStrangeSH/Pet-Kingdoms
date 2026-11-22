@@ -70,6 +70,12 @@ local function cloneProfile(profile: any): any
 	end
 	copy.unlockedBuildingIds = table.clone(profile.unlockedBuildingIds)
 	copy.resources = table.clone(profile.resources or { wood = 2, stone = 1, gold = 0, gems = 0 })
+	copy.hatchTransactions = {}
+	for index, record in ipairs(profile.hatchTransactions or {}) do
+		local clonedRecord = table.clone(record)
+		clonedRecord.costs = table.clone(record.costs)
+		copy.hatchTransactions[index] = clonedRecord
+	end
 	return copy
 end
 
