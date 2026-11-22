@@ -14,6 +14,7 @@ local PetCollectionService = require(services:WaitForChild("PetCollectionService
 local IslandGatheringService = require(services:WaitForChild("IslandGatheringService"))
 local PetHatchingRecoveryService = require(services:WaitForChild("PetHatchingRecoveryService"))
 local IslandExpansionService = require(services:WaitForChild("IslandExpansionService"))
+local QuestService = require(services:WaitForChild("QuestService"))
 
 local worldConfigured, worldConfigCode = IslandWorldConfig.configure()
 if not worldConfigured then
@@ -26,5 +27,6 @@ PetCollectionService.start()
 IslandGatheringService.start()
 PetHatchingRecoveryService.start()
 IslandExpansionService.start()
+QuestService.start()
 
 print("[PetKingdoms] Server bootstrap loaded.")
