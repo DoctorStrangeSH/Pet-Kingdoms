@@ -801,3 +801,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed a client/server event contract mismatch in IslandResourceHUD: IslandGatheringService publishes the success code `GATHERED`, while the HUD previously accepted only `GRANTED`. The wallet snapshot was updated, but the successful gather toast was silently discarded.
 - HUD now displays the existing localized reward toast for the authoritative `GATHERED` event. No reward authority or economy logic changed.
 - Verify in the dedicated Roblox Studio test Experience: gather one Wood node and one Stone node; confirm the wallet count and matching +3/+2 toast; gather a depleted node and confirm no success toast or duplicate reward.
+
+
+## Building retry idempotency fix (2026-11-22)
+
+- Placement/move UI previously cleared its pending request ID for every successful RemoteFunction transport response, including server-level transient results such as PERSIST_TIMEOUT or BUILDING_OPERATION_IN_PROGRESS.
+- It now uses the same shouldKeepPendingRequest predicate as demolition and retains the request ID for transient/in-progress outcomes. This allows the server's idempotency cache and durable building journal to recognize a retry as the same logical operation instead of creating a new charge/place request.
+- Transport failures already retained the request ID and remain unchanged.
+- Verify with Studio fault injection: force a transient persistence result, retry the same placement, and assert exactly one building record and one resource charge. Also verify definitive errors clear the pending request key.
