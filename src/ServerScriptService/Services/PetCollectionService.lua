@@ -192,6 +192,54 @@ local function loadPlayer(player: Player)
 	print("[PetKingdoms] Pet collection ready for", player.Name)
 end
 
+-- Persist a collection slot reservation before a hatch transaction is charged.
+-- Repeated calls with the same acquisition ID are idempotent.
+function PetCollectionService.reservePetSlot(
+	player: Player,
+	speciesId: string,
+	rarityTier: number,
+	acquisitionId: string
+): (boolean, string)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false, "INVALID_PLAYER"
+	end
+	local state = collections[player.UserId]
+	if state == nil or state.loading or state.profile == nil then
+		return false, "COLLECTION_NOT_READY"
+	end
+	local processedAt = os.time()
+	local mutationStatus = "NOT_UPDATED"
+	local ok, result = updateWithRetry(player.UserId, function(current)
+		if type(current) ~= "table" then
+			mutationStatus = "PROFILE_MISSING"
+			return current
+		end
+		local valid, reason = PetCollectionData.validate(current, player.UserId)
+		if not valid then
+			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+			return current
+		end
+		local changed, status, nextProfile = PetCollectionData.reservePetSlotOnce(
+			current, acquisitionId, speciesId, rarityTier, processedAt
+		)
+		mutationStatus = status
+		if not changed then return current end
+		return nextProfile
+	end)
+	if not ok then return false, "DATASTORE_UNAVAILABLE" end
+	if mutationStatus == "ALREADY_RESERVED" or mutationStatus == "ALREADY_ACQUIRED" then
+		if type(result) == "table" then syncProfileIfNewer(state, result) end
+		return true, mutationStatus
+	end
+	if mutationStatus ~= "RESERVED" or type(result) ~= "table" then
+		return false, mutationStatus
+	end
+	local valid, reason = PetCollectionData.validate(result, player.UserId)
+	if not valid then return false, "INVALID_SAVE_RESULT:" .. reason end
+	syncProfileIfNewer(state, result)
+	return true, "RESERVED"
+end
+
 function PetCollectionService.isReady(player: Player): boolean
 	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
 		return false
@@ -539,8 +587,18 @@ function PetCollectionService.grantPet(
 			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
 			return current
 		end
+		local reserved, reserveStatus, reservedProfile =
+			PetCollectionData.reservePetSlotOnce(current, acquisitionId, speciesId, rarityTier, acquiredAt)
+		if reserveStatus == "ALREADY_ACQUIRED" then
+			mutationStatus = "ALREADY_ACQUIRED"
+			return current
+		end
+		if not reserved or reservedProfile == nil then
+			mutationStatus = reserveStatus
+			return current
+		end
 		local changed, status, nextProfile =
-			PetCollectionData.addPetOnce(current, petId, speciesId, rarityTier, acquiredAt, acquisitionId)
+			PetCollectionData.addPetOnce(reservedProfile, petId, speciesId, rarityTier, acquiredAt, acquisitionId)
 		mutationStatus = status
 		if not changed then
 			return current
