@@ -1218,3 +1218,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14761139196 is available until 2026-12-06 16:05 UTC.
 - The artifact includes the quest claim-state snapshot tests and UI changes. This verifies packaging only; Studio-only Luau execution remains pending.
+
+
+## Pet progression safety and collection UI (2026-11-22)
+
+- Hardened `PetProgressionCatalog.getThresholds`: version IDs must be finite positive safe integers, and every configured curve is validated through shared `PetProgressionData.validateThresholds` before it can be used by the XP recovery worker.
+- Added catalog contract cases for NaN, infinity, unsafe versions, the intentionally empty/unapproved catalog, and fail-closed lookup for version 1.
+- Extended progression resolver tests for XP beyond the level-50 threshold: level remains capped at 50 while lifetime XP continues to be represented.
+- Updated `PetCollectionUI.client.lua` to show each selected pet's persisted level and lifetime XP. The UI deliberately does not invent a next-level bar or XP requirement while the production curve remains unapproved.
+- Existing client snapshot cloning uses the canonical PetCollectionData clone, which preserves level/xp; no new client authority or RemoteFunction was added.
+- Studio test execution and desktop/mobile visual inspection remain pending. No production progression curve has been enabled.
