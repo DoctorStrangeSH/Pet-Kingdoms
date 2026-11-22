@@ -230,3 +230,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio tests for level 50, zero/over-cap/fractional levels, negative/fractional/NaN/Infinity XP, and legacy normalization.
 - This is a storage/validation foundation, not a playable progression system: no XP awarding, level-up calculation, stat values, rarity multipliers, skills, or equipment behavior has been added.
 - Do not implement XP thresholds or base stat values until they are approved in the project spec.
+
+
+## Trusted pet XP reward API (2026-11-22)
+
+- Added `PetCollectionData.grantExperience(profile, petId, amount)`: validates the existing profile, requires an owned pet and a positive finite integer amount, increments only the pet's ordinary `xp`, and increments collection revision. Bond XP/level are untouched.
+- Added `PetCollectionService.grantExperience(player, petId, amount)`: server-module API that persists the reward through the pet collection DataStore `UpdateAsync`, validates the saved result, and refreshes the in-memory profile.
+- This API is deliberately not wired to any RemoteEvent/RemoteFunction. Client payloads cannot choose reward amounts through this method. Future combat/quest/interaction server systems must derive the amount from trusted server state and call this API directly.
+- XP thresholds, level-up calculation, source-specific amounts, reward idempotency policy, and actual gameplay callers remain open/not implemented. Do not award XP from the existing client-triggered collection interaction until an approved reward value and anti-replay policy are defined.
+- Added Studio pure-data tests for valid reward, revision increment, level/Bond isolation, invalid amount (zero/fractional/NaN/Infinity), and unowned pet rejection. Tests are committed, not executed in Studio.
