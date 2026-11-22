@@ -9,7 +9,7 @@ The approved project specification says Kingdom Bond changes the personal island
 ## Current MVP rule
 
 - The Main House is the starting landmark and does not grant Bond.
-- Every currently placed non-Main-House building/decor item contributes 10 provisional Bond points.
+- Every distinct non-Main-House building/decor type contributes 10 provisional Bond points once. Repeating the same type does not farm additional Bond.
 - Points are derived from profile.buildings; they are not a second persisted currency and cannot be farmed by repeatedly placing/removing the same object.
 - Removing a building reduces the derived score and can lower the visible stage. No demolition refund is granted by this system.
 - Moves do not change the score because the building count does not change.
@@ -21,7 +21,7 @@ The approved project specification says Kingdom Bond changes the personal island
 | 0 | 0 | Тихий остров |
 | 1–2 | 10–20 | Уютное королевство |
 | 3–5 | 30–50 | Цветущее королевство |
-| 6+ | 60+ | Процветающее королевство |
+| 5+ distinct types | 50+ | Процветающее королевство |
 
 These thresholds are deliberately simple for the first playable loop. They must be playtested and balanced; do not treat them as approved economy values.
 
@@ -34,7 +34,7 @@ IslandWorldService derives the stage when the island spawns and whenever a build
 - creates a small set of stage decorations (flowers, a crystal accent, then a banner);
 - rebuilds only its own KingdomBondDecor folder so repeated refreshes do not duplicate decorations.
 
-The first decorations are blockout geometry, not final production art. They must later be replaced by original assets that match docs/ART_BIBLE.md.
+Visual milestones are keyed to the calculated Bond stage, not raw building count. The first decorations are blockout geometry, not final production art. They must later be replaced by original assets that match docs/ART_BIBLE.md.
 
 ## UI
 
