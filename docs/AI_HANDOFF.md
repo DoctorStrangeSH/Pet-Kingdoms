@@ -490,3 +490,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The function is intentionally pure and does not persist or mutate the supplied record. It is not a production evolution endpoint.
 - Added Studio-only tests for stable ID, preservation of progression and protection metadata, no mutation of the source record, invalid source, malformed record, and unknown evolution ID. Tests are committed but have not been executed in Roblox Studio.
 - Important blocker confirmed in `PetCollectionData.lua`: the authoritative `VALID_SPECIES` registry currently contains only `bunny`. No target form is approved or accepted by persisted collection validation. Do not create a production evolution transaction or invent a target species until game design approves the first form and updates the registry.
+
+
+## Pet identity ledger hardening (2026-11-22)
+
+- `PetCollectionData.addPet` now rejects a petId found in the retained `acquisitionReceipts` ledger with `PET_ID_ALREADY_USED`. This prevents a deleted pet's identity from being reused while its acquisition receipt remains retained.
+- The ledger remains bounded and applies the existing receipt-retention policy; this is not a permanent lifetime tombstone guarantee. Do not claim permanent identity retirement until the retention/capacity policy is explicitly redesigned.
+- Added a regression test that grants a pet through `addPetOnce`, removes it, and verifies that `addPet` cannot recreate the same petId.
+- Test source is committed but not executed in Roblox Studio.
