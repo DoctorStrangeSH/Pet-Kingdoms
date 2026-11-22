@@ -8,6 +8,8 @@ local Workspace = game:GetService("Workspace")
 
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
 local KingdomBond = require(script.Parent:WaitForChild("KingdomBond"))
+local IslandResourceNodeCatalog = require(script.Parent:WaitForChild("IslandResourceNodeCatalog"))
+local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
 local GridMath = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 
 local IslandWorldService = {}
@@ -295,17 +297,23 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 	folder.Name = "ResourceNodes"
 	folder.Parent = world
 
-	local function addNode(nodeId: string, resourceId: string, reward: number, offsetX: number, offsetZ: number)
+	local halfWidth = math.max(3, math.floor(profile.boundsWidth / 2) - 2)
+	local halfDepth = math.max(3, math.floor(profile.boundsDepth / 2) - 2)
+	local now = os.time()
+
+	for _, definition in ipairs(IslandResourceNodeCatalog.getAll()) do
 		local node = Instance.new("Model")
-		node.Name = nodeId
-		node:SetAttribute("ResourceNodeId", nodeId)
-		node:SetAttribute("ResourceId", resourceId)
-		node:SetAttribute("RewardAmount", reward)
+		node.Name = definition.id
+		node:SetAttribute("ResourceNodeId", definition.id)
+		node:SetAttribute("ResourceId", definition.resourceId)
+		node:SetAttribute("RewardAmount", definition.reward)
 		node:SetAttribute("OwnerUserId", profile.ownerUserId)
 		node.Parent = folder
 
+		local offsetX = definition.sideX * halfWidth
+		local offsetZ = definition.sideZ * halfDepth
 		local base = spawnCFrame * CFrame.new(offsetX * cellSize, 0, offsetZ * cellSize)
-		if resourceId == "wood" then
+		if definition.resourceId == "wood" then
 			local trunk = makePart(node, "Trunk", Vector3.new(cellSize * 0.22, cellSize * 1.1, cellSize * 0.22),
 				base * CFrame.new(0, cellSize * 0.55, 0), Color3.fromRGB(116, 77, 48), Enum.Material.Wood)
 			trunk.CanQuery = true
@@ -321,11 +329,12 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 		end
 
 		local promptPart = node:FindFirstChildWhichIsA("BasePart")
+		local prompt: ProximityPrompt? = nil
 		if promptPart then
-			local prompt = Instance.new("ProximityPrompt")
+			prompt = Instance.new("ProximityPrompt")
 			prompt.Name = "GatherPrompt"
-			prompt.ActionText = if resourceId == "wood" then "Собрать дерево" else "Добыть камень"
-			prompt.ObjectText = if resourceId == "wood" then "Дерево" else "Каменная жила"
+			prompt.ActionText = if definition.resourceId == "wood" then "Собрать дерево" else "Добыть камень"
+			prompt.ObjectText = if definition.resourceId == "wood" then "Дерево" else "Каменная жила"
 			prompt.KeyboardKeyCode = Enum.KeyCode.E
 			prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 			prompt.HoldDuration = 0.8
@@ -333,14 +342,20 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			prompt.RequiresLineOfSight = false
 			prompt.Parent = promptPart
 		end
-	end
 
-	local halfWidth = math.max(3, math.floor(profile.boundsWidth / 2) - 2)
-	local halfDepth = math.max(3, math.floor(profile.boundsDepth / 2) - 2)
-	addNode("WoodNode_A", "wood", 3, -halfWidth, -halfDepth)
-	addNode("WoodNode_B", "wood", 3, halfWidth, -halfDepth)
-	addNode("StoneNode_A", "stone", 2, -halfWidth, halfDepth)
-	addNode("StoneNode_B", "stone", 2, halfWidth, halfDepth)
+		local savedState = IslandResourceNodeData.getState(profile.resourceNodes or {}, definition.id)
+		local availableAt = if savedState then savedState.availableAt else 0
+		node:SetAttribute("AvailableAt", availableAt)
+		if availableAt > now then
+			for _, descendant in ipairs(node:GetDescendants()) do
+				if descendant:IsA("BasePart") then
+					descendant.Transparency = 1
+					descendant.CanTouch = false
+				end
+			end
+			if prompt then prompt.Enabled = false end
+		end
+	end
 end
 
 local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
