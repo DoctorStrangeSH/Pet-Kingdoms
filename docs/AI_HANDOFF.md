@@ -527,3 +527,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed a shutdown ordering issue in `IslandSessionService`: `BindToClose` previously attempted to release the island lease even when the final `IslandStore.save` failed.
 - The lease is now released only after `saveSession` confirms the final snapshot persisted. On failure, the server logs the condition and leaves the lease to expire naturally, preventing an immediate new server from loading the stale persisted snapshot while the previous server is shutting down.
 - This trades a temporary rejoin delay (bounded by the lease TTL) for safer persistence ordering. Studio/DataStore fault-injection and immediate-rejoin behavior remain unverified.
+
+
+## Pet collection reconnect isolation (2026-11-22)
+
+- Fixed the async pet collection load path: `loadPlayer` holds a local `ownedState` with the exact `Player` instance. When its UpdateAsync completes, it checks that the currently registered state is still `ownedState` before mutating/clearing anything.
+- `PlayerRemoving` now refuses to clean up a session registered under another `Player` instance with the same UserId; this prevents a delayed leave callback from disconnecting new character listeners or clearing a newer profile.
+- All server entry points handling player-specific collection changes now verify `state.player == player`. The companion spawner and `PetCollectionService.isReady` use the same check, so recovery does not mistake an old session for the new join.
+- This is same-server reconnect fencing only. A separate pet collection DataStore ownership lease/fencing scheme has not yet been implemented; concurrent writes from distinct servers still require integration testing and a stronger protocol if needed.
+- Changes are committed and source-verified; Roblox Studio and controlled DataStore race tests have not been executed.
