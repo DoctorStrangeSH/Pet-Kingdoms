@@ -202,6 +202,10 @@ local function loadPlayer(player: Player)
 	local claimToken = HttpService:GenerateGUID(false)
 	local claimStatus = "NOT_CLAIMED"
 	local ok, result = updateWithRetry(userId, function(current)
+		if collections[userId] ~= ownedState or player.Parent ~= Players then
+			claimStatus = "SESSION_CANCELLED"
+			return nil
+		end
 		local claimed, status = PetCollectionSessionData.claim(
 			current, observed, claimToken, function()
 				return PetCollectionData.createDefault(userId)
