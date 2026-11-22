@@ -123,3 +123,12 @@ The client shows these as hints only. `IslandBuildingService` charges the server
 - Activating the prompt on the owner's own island starts the existing construction placement flow. The normal catalogue, client preview, server-side placement validation, wallet charging, persistence and rollback remain unchanged.
 - The prompt does not directly place a building or grant resources. The player still chooses an item and confirms a valid placement through the existing flow.
 - Keyboard E, gamepad X, zero hold duration, 10-stud activation distance; Roblox ProximityPrompt supplies the touch interaction affordance.
+
+
+## Main House — Kingdom Overview
+
+- Interacting with the owned Main House opens a compact overview instead of dropping directly into placement mode.
+- The panel displays the current Kingdom Bond stage, points, placed building count, and progress to the next stage using server-authored island attributes.
+- The overview refreshes while open as the island's Bond attributes change.
+- The construction button enters the existing placement controller; it does not create a separate or less-secure placement path.
+- The Bond thresholds remain provisional and must be balanced through playtesting. The UI only presents the current progression contract; it does not invent new rewards or unlocks.
