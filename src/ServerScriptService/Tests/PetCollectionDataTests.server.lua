@@ -208,14 +208,33 @@ local invalidRewardId, invalidRewardIdStatus =
 	)
 expect("malformed reward ID is rejected", not invalidRewardId and invalidRewardIdStatus == "INVALID_REWARD_ID")
 
-local expiredReceiptProfile = PetCollectionData.clone(onceProfile)
 local afterRetention = rewardNow + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
-local reusedAfterExpiry, reusedAfterExpiryStatus, reusedAfterExpiryProfile =
+local pendingRetry, pendingRetryStatus =
 	PetCollectionData.grantExperienceWithProgressOnce(
-		expiredReceiptProfile, "starter-bunny", 250, progressionThresholds, "quest:chapter_01:reward_001", afterRetention
+		onceProfile, "starter-bunny", 250, progressionThresholds, "quest:chapter_01:reward_001", afterRetention
 	)
-expect("expired reward receipt is pruned according to retention policy", reusedAfterExpiry and reusedAfterExpiryStatus == "UPDATED" and reusedAfterExpiryProfile ~= nil)
-expect("expired receipt is replaced by a fresh receipt", reusedAfterExpiryProfile ~= nil and #reusedAfterExpiryProfile.rewardReceipts == 1)
+expect("unacknowledged reward receipt never expires", not pendingRetry and pendingRetryStatus == "ALREADY_PROCESSED")
+
+local acknowledged, acknowledgedStatus, acknowledgedProfile =
+	PetCollectionData.acknowledgeExperienceReward(onceProfile, "quest:chapter_01:reward_001", rewardNow + 10)
+expect("source can acknowledge delivered XP receipt",
+	acknowledged and acknowledgedStatus == "ACKNOWLEDGED" and acknowledgedProfile ~= nil)
+assert(acknowledgedProfile ~= nil)
+expect("acknowledgement timestamp is persisted",
+	acknowledgedProfile.rewardReceipts[1].acknowledgedAt == rewardNow + 10)
+local duplicateAcknowledgement, duplicateAcknowledgementStatus =
+	PetCollectionData.acknowledgeExperienceReward(acknowledgedProfile, "quest:chapter_01:reward_001", rewardNow + 11)
+expect("receipt acknowledgement is idempotent",
+	not duplicateAcknowledgement and duplicateAcknowledgementStatus == "ALREADY_ACKNOWLEDGED")
+
+local reusedAfterAcknowledgement, reusedAfterAcknowledgementStatus, reusedAfterAcknowledgementProfile =
+	PetCollectionData.grantExperienceWithProgressOnce(
+		acknowledgedProfile, "starter-bunny", 250, progressionThresholds,
+		"quest:chapter_01:reward_001", afterRetention
+	)
+expect("acknowledged receipt can expire after retention",
+	reusedAfterAcknowledgement and reusedAfterAcknowledgementStatus == "UPDATED"
+		and reusedAfterAcknowledgementProfile ~= nil)
 
 local ledgerFullProfile = PetCollectionData.clone(profile)
 ledgerFullProfile.rewardReceipts = {}
@@ -239,6 +258,14 @@ malformedLedgerProfile.rewardReceipts = {
 	{ rewardId = "duplicate:id", petId = "starter-bunny", amount = 1, processedAt = rewardNow },
 }
 expect("duplicate reward receipts invalidate profile", not PetCollectionData.validate(malformedLedgerProfile, 12345))
+
+local invalidAcknowledgementProfile = PetCollectionData.clone(profile)
+invalidAcknowledgementProfile.rewardReceipts = {
+	{ rewardId = "bad:ack", petId = "starter-bunny", amount = 1,
+		processedAt = rewardNow, acknowledgedAt = rewardNow - 1 },
+}
+expect("acknowledgement timestamp before processing is rejected",
+	not PetCollectionData.validate(invalidAcknowledgementProfile, 12345))
 
 local invalidReceiptTimeProfile = PetCollectionData.clone(profile)
 invalidReceiptTimeProfile.rewardReceipts = {
