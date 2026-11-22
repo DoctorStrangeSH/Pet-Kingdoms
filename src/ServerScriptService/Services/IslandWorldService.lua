@@ -489,6 +489,64 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	return true, "SPAWNED"
 end
 
+-- Rebuilds the current island from a newly persisted profile while keeping
+-- the owner's assigned spawn point and arrival anchor stable.
+function IslandWorldService.refresh(userId: number, player: Player, profile: any): (boolean, string)
+	local currentWorld = worldsByUserId[userId]
+	if currentWorld == nil then return false, "ISLAND_NOT_LOADED" end
+	if type(profile) ~= "table" or profile.ownerUserId ~= userId then
+		return false, "INVALID_PROFILE"
+	end
+
+	local baseWidth = getNumberAttribute("IslandGridWidth")
+	local baseDepth = getNumberAttribute("IslandGridDepth")
+	local cellSize = getNumberAttribute("IslandGridCellSize")
+	if baseWidth == nil or baseDepth == nil then return false, "MISSING_ISLAND_GRID_BOUNDS" end
+	if cellSize == nil then return false, "MISSING_ISLAND_GRID_CELL_SIZE" end
+	if not IslandExpansion.matchesProfileBounds(profile, baseWidth, baseDepth) then
+		return false, "INVALID_EXPANSION_BOUNDS"
+	end
+
+	local spawnPoint: BasePart? = nil
+	for candidate, ownerUserId in pairs(occupiedSpawns) do
+		if ownerUserId == userId and candidate:IsA("BasePart") and candidate.Parent ~= nil then
+			spawnPoint = candidate
+			break
+		end
+	end
+	if spawnPoint == nil then return false, "ISLAND_SPAWN_POINT_MISSING" end
+
+	local worldFolder = currentWorld.Parent
+	if worldFolder == nil then return false, "ISLAND_WORLD_PARENT_MISSING" end
+	local replacement = Instance.new("Model")
+	replacement.Name = currentWorld.Name .. "_Refresh"
+	replacement:SetAttribute("OwnerUserId", userId)
+	replacement:SetAttribute("SchemaVersion", profile.schemaVersion)
+	replacement:SetAttribute("GridWidth", profile.boundsWidth)
+	replacement:SetAttribute("GridDepth", profile.boundsDepth)
+	replacement:SetAttribute("GridCellSize", cellSize)
+
+	local ok, err = pcall(function()
+		createTerrain(replacement, spawnPoint.CFrame, profile.boundsWidth, profile.boundsDepth, cellSize)
+		spawnBuildings(replacement, spawnPoint.CFrame, profile, cellSize)
+		spawnResourceNodes(replacement, spawnPoint.CFrame, profile, cellSize)
+		refreshKingdomBondVisuals(replacement, profile)
+	end)
+	if not ok then
+		replacement:Destroy()
+		warn("[PetKingdoms] Island refresh generation failed:", err)
+		return false, "WORLD_GENERATION_FAILED"
+	end
+
+	-- Parent the fully-built replacement before swapping references. The old
+	-- world remains intact if generation fails at any point above.
+	replacement.Parent = worldFolder
+	worldsByUserId[userId] = replacement
+	currentWorld:Destroy()
+	arrivalCFrames[userId] = spawnPoint.CFrame * CFrame.new(0, 4, (profile.boundsDepth * cellSize) * 0.34)
+	return true, "WORLD_REFRESHED"
+end
+
 function IslandWorldService.removeBuilding(userId: number, instanceId: string, profile: any?): boolean
 	local world = worldsByUserId[userId]
 	if world == nil then return false end
