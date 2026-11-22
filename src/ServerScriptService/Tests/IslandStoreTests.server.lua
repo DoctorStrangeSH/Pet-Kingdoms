@@ -73,5 +73,13 @@ profileB.revision += 1
 local currentSaveOk, currentSaveCode = IslandStore.save(profileB)
 assert(currentSaveOk, "current generation should save: " .. currentSaveCode)
 
+-- A retry may arrive after the same revision was already persisted. It must
+-- be acknowledged without replacing the newer stored profile.
+local alreadyPersistedSnapshot = table.clone(profileB)
+alreadyPersistedSnapshot.revision -= 1
+local alreadyPersistedOk, alreadyPersistedCode = IslandStore.save(alreadyPersistedSnapshot)
+assert(alreadyPersistedOk,
+	"same-generation older snapshot should be acknowledged as already durable: " .. alreadyPersistedCode)
+
 print("[PetKingdoms Test] PASS: DataStore fencing rejects stale session generation and accepts current generation")
 print("[PetKingdoms Test] IslandStore contract tests completed.")
