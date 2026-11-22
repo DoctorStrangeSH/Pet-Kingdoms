@@ -33,6 +33,21 @@ A concept image is a visual reference, not a shippable Roblox asset. Mark an ite
 
 The unsuitable Creator Store Bunny (asset 92070521355583) is REJECTED and removed from the catalog. An original project-owned OBJ mesh and MTL were committed under `assets/pets/bunny/`. A Blender rig/export script and RIG_PIPELINE.md were added; Blender 4.2.0 CI generated the `.blend` and `.fbx`, then reopened the `.blend` to validate the 10-bone armature, body skin modifier/vertex groups, and all four action curves. This verifies file structure, not visual deformation or animation quality. Blender 4.2.0 build passed; `.blend` (3,416,204 bytes) and `.fbx` (1,061,468 bytes) generated. Validator confirmed 10-bone rig, skin modifier/weights, and four action curves. Artifact/run: https://github.com/DoctorStrangeSH/Pet-Kingdoms/actions/runs/44914831260. Roblox Studio import and visual approval remain pending. Studio import, deformation review, animation review, and runtime publishing remain pending. The runtime catalog intentionally has no asset ID until the project-owned mesh is imported and published. Do not mark production art DONE yet. The server pet collection backend now grants a starter Bunny and persists owned/equipped IDs (runtime DataStore verification pending). Equipped Bunny models now replicate from the server and bind to the local follow controller; Studio lifecycle verification is pending. The eight named pets above are the current working list from project discussions. Confirm them against the complete original specification before treating the roster as final.
 
+## Temporary free Creator Store / Toolbox assets
+
+These assets are allowed for prototype playtests only. No specific third-party model is approved or imported by this entry; each candidate must be reviewed and recorded individually before use.
+
+| Asset | Creator Store URL / ID | Creator | License / attribution review | Script audit | Prototype use | Replacement target | Status |
+|---|---|---|---|---|---|---|---|
+| Pending candidate | NOT SELECTED | NOT SELECTED | PENDING | PENDING | Green Valley / home island blockout | Original Pet Kingdoms asset | NOT IMPORTED |
+
+Rules:
+- Free assets are temporary scaffolding, not production approval.
+- Reject obfuscated scripts, unexplained `require(assetId)` calls, unexpected HTTP/remote behavior, and unrelated code.
+- Prefer script-free models; all gameplay interactions remain in project-owned code.
+- Record exact source URL/asset ID, creator, license/attribution, modifications, review date, and replacement target.
+- Keep temporary assets isolated so they can be replaced without touching gameplay logic.
+
 ## Environment kits
 
 | Asset group | Target use | Status |
