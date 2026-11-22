@@ -1080,3 +1080,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - CI build does not execute Studio-only scripts. Studio execution and DataStore fault injection remain pending.
 - No live claim endpoint or reward values are enabled. Do not populate progression thresholds or recipient/reward policy without approval.
 - Known remaining design hardening: the current pet receipt retention clock starts when the pet receipt is acknowledged, before the island source acknowledgement is persisted. If the latter remains unavailable beyond the seven-day receipt window, recovery needs a stronger finalization handshake; resolve before production claims.
+
+
+## Quest XP acknowledgement retention hardening (2026-11-22)
+
+- Reordered the worker handshake: pet XP write -> durable island delivered marker -> durable island source acknowledgement -> pet receipt acknowledgement -> durable island pet-acknowledged marker.
+- Added `petAcknowledgedAt` to outbox validation and compaction rules. An outbox record cannot be compacted after only the source acknowledgement; both markers must be durable.
+- Added `commitQuestRewardPetAcknowledgement` and `getQuestRewardsAwaitingPetAcknowledgement` to IslandSessionService.
+- Recovery now resumes the source-ack and pet-ack phases separately. A missing pet receipt is accepted only after source acknowledgement is already durable, proving the XP write was confirmed before the receipt retention window began.
+- Added contract tests for phase ordering, safe retention, and finalization.
+- This closes the previously documented seven-day source-ack outage window in the intended transaction protocol. Studio execution/fault injection remains pending.
