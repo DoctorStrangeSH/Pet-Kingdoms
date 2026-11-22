@@ -32,9 +32,6 @@ jobs:
         with:
           version: "v1.1.0"
 
-      - name: Install pinned project tools
-        run: rokit install
-
       - name: Verify Rojo version
         run: rojo --version
 
