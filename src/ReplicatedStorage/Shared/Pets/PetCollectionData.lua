@@ -15,13 +15,17 @@ local VALID_SPECIES: { [string]: boolean } = {
 	bunny = true,
 }
 
-local function isPositiveInteger(value: any): boolean
+local function isNonNegativeInteger(value: any): boolean
 	return type(value) == "number"
 		and value == value
 		and value ~= math.huge
 		and value ~= -math.huge
-		and value > 0
+		and value >= 0
 		and value == math.floor(value)
+end
+
+local function isPositiveInteger(value: any): boolean
+	return isNonNegativeInteger(value) and value > 0
 end
 
 function PetCollectionData.createDefault(userId: number): any?
@@ -56,9 +60,7 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	if not isPositiveInteger(expectedUserId) or profile.ownerUserId ~= expectedUserId then
 		return false, "OWNER_MISMATCH"
 	end
-	if type(profile.revision) ~= "number" or profile.revision < 0
-		or profile.revision ~= math.floor(profile.revision)
-		or profile.revision == math.huge or profile.revision ~= profile.revision then
+	if not isNonNegativeInteger(profile.revision) then
 		return false, "INVALID_REVISION"
 	end
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
@@ -80,13 +82,10 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or ownedById[record.petId]
 			or type(record.speciesId) ~= "string"
 			or not VALID_SPECIES[record.speciesId]
-			or type(record.acquiredAt) ~= "number"
-			or record.acquiredAt < 0
-			or record.acquiredAt ~= record.acquiredAt
-			or record.acquiredAt == math.huge
+			or not isNonNegativeInteger(record.acquiredAt)
 			or (record.bondXp ~= nil and (type(record.bondXp) ~= "number" or record.bondXp < 0 or record.bondXp > PetCollectionData.MAX_BOND_XP or record.bondXp ~= math.floor(record.bondXp)))
 			or (record.bondLevel ~= nil and (type(record.bondLevel) ~= "number" or record.bondLevel < 1 or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL or record.bondLevel ~= math.floor(record.bondLevel)))
-			or (record.lastInteractionAt ~= nil and (type(record.lastInteractionAt) ~= "number" or record.lastInteractionAt < 0 or record.lastInteractionAt ~= math.floor(record.lastInteractionAt)))
+			or (record.lastInteractionAt ~= nil and not isNonNegativeInteger(record.lastInteractionAt))
 		then
 			return false, "INVALID_OWNED_RECORD"
 		end
