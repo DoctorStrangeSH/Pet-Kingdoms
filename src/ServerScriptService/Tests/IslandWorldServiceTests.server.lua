@@ -122,6 +122,11 @@ local ok, failure = pcall(function()
 		"expanded world must expose persisted 32x32 bounds")
 	assert(expandedWorld and expandedWorld.Name == "Island_" .. tostring(firstUserId),
 		"refreshed island must preserve its stable player-island model name")
+	local expansionEffect = expandedWorld and expandedWorld:FindFirstChild("ExpansionCompletionEffect")
+	assert(expansionEffect and expansionEffect:IsA("Folder"),
+		"successful size increase must create a transient expansion completion effect")
+	assert(expansionEffect and expansionEffect:FindFirstChildWhichIsA("ParticleEmitter", true) ~= nil,
+		"expansion completion effect must include particles")
 	local expandedGrass = expandedWorld and expandedWorld:FindFirstChild("Island_GrassTop")
 	assert(expandedGrass and expandedGrass:IsA("BasePart")
 		and expandedGrass.Size.X == 256 and expandedGrass.Size.Z == 256,
