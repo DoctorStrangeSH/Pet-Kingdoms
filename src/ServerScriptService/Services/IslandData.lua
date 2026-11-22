@@ -9,6 +9,7 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 	:WaitForChild("GridMath"))
 local IslandHatchLedgerData = require(script.Parent:WaitForChild("IslandHatchLedgerData"))
 local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
+local IslandBuildingJournalData = require(script.Parent:WaitForChild("IslandBuildingJournalData"))
 
 local IslandData = {}
 
@@ -76,6 +77,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		unlockedBuildingIds = {},
 		resources = { wood = 2, stone = 1, gold = 0, gems = 0 },
 		hatchTransactions = {},
+		buildingOperations = {},
 		revision = 0,
 	}
 end
@@ -123,6 +125,15 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 		local validLedger, ledgerReason = IslandHatchLedgerData.validateLedger(profile.hatchTransactions)
 		if not validLedger then
 			return false, "INVALID_HATCH_LEDGER:" .. ledgerReason
+		end
+	end
+
+	-- Older schema-v1 profiles predate durable building-operation receipts.
+	if profile.buildingOperations ~= nil then
+		local validBuildingLedger, buildingLedgerReason =
+			IslandBuildingJournalData.validateLedger(profile.buildingOperations)
+		if not validBuildingLedger then
+			return false, "INVALID_BUILDING_LEDGER:" .. buildingLedgerReason
 		end
 	end
 
