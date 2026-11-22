@@ -923,3 +923,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Panel invokes GetIslandExpansionPreview and displays current level/dimensions, next level/dimensions, max-level state, request errors, and an explicit note that purchase is disabled until economy approval.
 - Added manual refresh, open/close animation, mobile width adjustment, and no client-side profile mutation.
 - Purchase button and boundary hologram are intentionally not included: economy rules and a trustworthy world-space preview locator are not yet defined.
+
+
+## Local holographic expansion preview (2026-11-22)
+
+- Extended IslandExpansionUI.client.lua to create four client-local neon preview strips around the current island's grass surface, sized from server-provided next dimensions and aligned to the existing island CFrame.
+- Preview is only shown while the expansion panel is open and the server reports another level is geometrically available. It uses anchored, non-colliding, non-touching, non-queryable parts and SelectionBox outlines.
+- Preview folder is destroyed when the panel closes or before a new preview is drawn. It does not alter the server world, profile, saved coordinates, or economy.
+- Roblox Studio visual alignment and runtime behavior still require manual verification.
