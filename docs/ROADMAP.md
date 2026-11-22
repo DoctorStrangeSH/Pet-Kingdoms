@@ -88,7 +88,8 @@
 - [x] Add Studio contract tests for independent node cooldowns, duplicate collection prevention, cooldown expiry, invalid node/resource state, profile validation, legacy migration, and DataStore save/load persistence (execution pending).
 - [x] Require the exact current writable Player session for gathering prompts and client wallet snapshot requests.
 - [x] Add client resource HUD for Wood/Stone/Gold/Gems with server snapshot bootstrap, authoritative update event, and gathering reward toast (Studio/device verification pending).
-- [ ] Add gathering feedback animation and final polished art treatment.
+- [x] Align the gathering success toast with the server's authoritative `GATHERED` event (client/server code mismatch fixed; Studio confirmation pending).
+- [ ] Add world-space gathering feedback animation and final polished art treatment.
 - [ ] Verify HUD safe areas, readability, and touch gathering on phone/tablet in Roblox Studio.
 - [ ] Verify multiplayer ownership, prompt interactions, respawn, and persistence in Roblox Studio.
 - [ ] Approve and tune the full economy balance sheet; current construction prices are provisional and must be playtested.
