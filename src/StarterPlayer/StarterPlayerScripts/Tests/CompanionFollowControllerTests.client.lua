@@ -105,6 +105,46 @@ smoothController:destroy()
 smoothPet:Destroy()
 smoothTarget:Destroy()
 
+-- A visible pet must not slide off its island across a terrain gap just
+-- because the direct horizontal raycast happens to be unobstructed.
+local edgeFloor = Instance.new("Part")
+edgeFloor.Name = "CliffEdgeGround"
+edgeFloor.Anchored = true
+edgeFloor.Size = Vector3.new(12, 1, 12)
+edgeFloor.CFrame = CFrame.new(2000, 3, 2000)
+edgeFloor.Parent = folder
+local edgeTarget = Instance.new("Part")
+edgeTarget.Name = "CliffEdgeOwner"
+edgeTarget.Anchored = true
+edgeTarget.CanCollide = false
+edgeTarget.CanQuery = false
+edgeTarget.Position = Vector3.new(2018.4, 5, 2000)
+edgeTarget.Parent = folder
+local edgePet = Instance.new("Model")
+edgePet.Name = "CliffEdgePet"
+edgePet:SetAttribute("SpeciesId", "bunny")
+edgePet:SetAttribute("IsExternalMeshPet", true)
+local edgeRoot = Instance.new("Part")
+edgeRoot.Anchored = true
+edgeRoot.CanCollide = false
+edgeRoot.CanQuery = false
+edgeRoot.Size = Vector3.new(2, 2, 2)
+edgeRoot.Position = Vector3.new(2000, 5, 2000)
+edgeRoot.Parent = edgePet
+edgePet.PrimaryPart = edgeRoot
+edgePet.Parent = folder
+local edgeController = CompanionFollowController.new(edgePet, edgeTarget, { slotIndex = 1 })
+expect("cliff-edge companion controller created", edgeController ~= nil)
+assert(edgeController ~= nil)
+local beforeEdge = edgePet:GetPivot().Position
+edgeController:update(1 / 60)
+expect("companion does not take a direct shortcut into missing ground",
+	(edgePet:GetPivot().Position - beforeEdge).Magnitude < 0.05)
+edgeController:destroy()
+edgePet:Destroy()
+edgeTarget:Destroy()
+edgeFloor:Destroy()
+
 expect("clear follow lane does not allocate a path", controllers[1].path == nil and #controllers[1].pathWaypoints == 0)
 
 local firstPosition = pets[1]:GetPivot().Position
