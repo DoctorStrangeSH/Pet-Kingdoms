@@ -409,3 +409,10 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 
 - [x] Add lead-Bunny resource investigation: approach a nearby available/visible owner-island node, inspect it with Curious/Sniff, then resume the normal formation after a short visit. This is visual-only; gathering remains server-authoritative (Studio verification pending).
 - [ ] Expand ambient reactions to approved points of interest after the first world biome exists.
+
+
+## Economy audit
+
+- [x] Audit current wallet defaults, resource-node rewards/respawn, and server building costs; document theoretical gathering ceilings and explicitly keep expansion prices unapproved until the full balance sheet is decided.
+
+See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current values and open balancing decisions.
