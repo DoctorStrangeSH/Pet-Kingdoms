@@ -931,3 +931,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Preview is only shown while the expansion panel is open and the server reports another level is geometrically available. It uses anchored, non-colliding, non-touching, non-queryable parts and SelectionBox outlines.
 - Preview folder is destroyed when the panel closes or before a new preview is drawn. It does not alter the server world, profile, saved coordinates, or economy.
 - Roblox Studio visual alignment and runtime behavior still require manual verification.
+
+
+## Stable island identity after repeated expansion refresh (2026-11-22)
+
+- Fixed IslandWorldService.refresh to keep the canonical model name `Island_<userId>` instead of appending `_Refresh` to the previous model name on every expansion.
+- This matters because the client hologram locates the active island through `PlayerIslands/Island_<userId>`; the old naming behavior made the world preview disappear after the first refresh.
+- Added Studio integration assertions for the canonical name after both level-1 and level-2 refreshes.
+- Visual effect/animation remains a separate follow-up; Studio execution is pending.
