@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
@@ -578,6 +579,28 @@ local function closeCollection()
 end
 
 openButton.Activated:Connect(openCollection)
+
+local function isOwnedPetHousePrompt(prompt: ProximityPrompt): boolean
+	if prompt.Name ~= "PetHousePrompt" then return false end
+	local foundPetHouse = false
+	local current: Instance? = prompt
+	while current do
+		if current:IsA("Model") and current:GetAttribute("BuildingCatalogId") == "pet_house" then
+			foundPetHouse = true
+		end
+		if current:IsA("Model") and current:GetAttribute("OwnerUserId") == player.UserId then
+			return foundPetHouse
+		end
+		current = current.Parent
+	end
+	return false
+end
+
+ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+	if isOwnedPetHousePrompt(prompt) then
+		openCollection()
+	end
+end)
 closeButton.Activated:Connect(closeCollection)
 equipButton.Activated:Connect(toggleEquip)
 petButton.Activated:Connect(function() interactWithSelected("pet") end)
