@@ -331,9 +331,12 @@ function PetCollectionData.addPet(
 			return false, "DUPLICATE_PET_ID", nil
 		end
 	end
-	-- Prevent reuse while the acquisition receipt is retained in the bounded ledger.
+	-- Prevent reuse while the acquisition receipt is inside its deduplication window.
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
-		if receipt.petId == petId then
+		local age = now - receipt.processedAt
+		if (age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS)
+			and receipt.petId == petId
+		then
 			return false, "PET_ID_ALREADY_USED", nil
 		end
 	end
@@ -384,12 +387,17 @@ function PetCollectionData.reservePetSlotOnce(
 	end
 	if not isNonNegativeInteger(now) then return false, "INVALID_TIMESTAMP", nil end
 
+	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
-		if receipt.acquisitionId == acquisitionId then
-			if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier then
-				return false, "ACQUISITION_ID_CONFLICT", nil
+		local age = now - receipt.processedAt
+		if age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+			table.insert(retainedReceipts, receipt)
+			if receipt.acquisitionId == acquisitionId then
+				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier then
+					return false, "ACQUISITION_ID_CONFLICT", nil
+				end
+				return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
 			end
-			return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
 		end
 	end
 	for _, reservation in ipairs(profile.reservedAcquisitions or {}) do
@@ -403,8 +411,14 @@ function PetCollectionData.reservePetSlotOnce(
 	if #profile.owned + #(profile.reservedAcquisitions or {}) >= PetCollectionData.MAX_OWNED_PETS then
 		return false, "COLLECTION_FULL", nil
 	end
+	-- Reserve receipt-ledger capacity as well as a pet slot. Otherwise a charged
+	-- hatch could become ungrantable if other rewards fill the bounded ledger.
+	if #retainedReceipts + #(profile.reservedAcquisitions or {}) >= PetCollectionData.MAX_ACQUISITION_RECEIPTS then
+		return false, "ACQUISITION_LEDGER_FULL", nil
+	end
 
 	local updated = PetCollectionData.clone(profile)
+	updated.acquisitionReceipts = retainedReceipts
 	table.insert(updated.reservedAcquisitions, {
 		acquisitionId = acquisitionId,
 		speciesId = speciesId,
@@ -462,7 +476,8 @@ function PetCollectionData.addPetOnce(
 			end
 		end
 	end
-	if #retainedReceipts >= PetCollectionData.MAX_ACQUISITION_RECEIPTS then
+	local remainingReservations = #reservations - (if reservationIndex ~= nil then 1 else 0)
+	if #retainedReceipts + remainingReservations >= PetCollectionData.MAX_ACQUISITION_RECEIPTS then
 		return false, "ACQUISITION_LEDGER_FULL", nil
 	end
 
