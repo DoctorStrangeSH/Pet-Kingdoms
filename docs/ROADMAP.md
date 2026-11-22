@@ -119,6 +119,7 @@
 - [ ] Deliver the 20-pet MVP collection.
 - [ ] Implement pet inventory and collection UI.
 - [ ] Implement up to 3 active companions and team management.
+  - [x] Add per-player spawn generations so delayed CharacterAdded/equip spawn tasks cannot re-create stale or duplicate companion models after a newer spawn request; verify respawn/equip races in Studio.
 - [ ] Implement companion states and mobile-safe movement.
   - [x] Reuse one per-companion RaycastParams instance for ground projection instead of allocating a new filter object every RenderStepped update; mobile/terrain verification pending.
 - [ ] Implement actual pet levels (maximum 50), gameplay XP, core stats, skill tree, abilities, equipment, and Bond. Bond is a separate relationship progression; the current Bond prototype is not the pet-level system.
