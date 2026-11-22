@@ -32,7 +32,6 @@ The project specification leaves exact earning rates, prices, upgrade costs, and
 ## Not implemented
 
 - Server-authoritative purchase/unlock transaction, resource debit, durable idempotency receipt, and session mutation lock.
-- Server-authoritative purchase/unlock transaction and idempotency receipt.
 - Terrain/world regeneration and safe handling of occupied edge cells.
 - Expansion preview, confirmation UI, costs, and progression requirements.
 - Save/rejoin, multiplayer, and mobile Studio playtests.
