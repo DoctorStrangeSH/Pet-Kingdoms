@@ -148,6 +148,118 @@ local opened = false
 local loading = false
 local refreshQueued = false
 local lastQuests: { any } = {}
+local trackedQuestId: string? = nil
+
+local tracker = make("Frame", {
+	Name = "TrackedQuestHUD",
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 20, 1, -22),
+	Size = UDim2.fromOffset(260, 78),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 0.06,
+	Visible = false,
+}, screen) :: Frame
+make("UICorner", { CornerRadius = UDim.new(0, 15) }, tracker)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.42, Thickness = 1.2 }, tracker)
+local trackerTitle = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 13, 0, 9),
+	Size = UDim2.new(1, -26, 0, 20),
+	Font = Enum.Font.GothamBold,
+	Text = "ОТСЛЕЖИВАЕМОЕ ЗАДАНИЕ",
+	TextSize = 9,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextColor3 = COLORS.gold,
+}, tracker) :: TextLabel
+local trackerName = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 13, 0, 29),
+	Size = UDim2.new(1, -26, 0, 19),
+	Font = Enum.Font.GothamBold,
+	Text = "",
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextColor3 = COLORS.cream,
+}, tracker) :: TextLabel
+local trackerProgress = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(1, -56, 0, 29),
+	Size = UDim2.fromOffset(43, 19),
+	Font = Enum.Font.GothamBold,
+	Text = "",
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Right,
+	TextColor3 = COLORS.mint,
+}, tracker) :: TextLabel
+local trackerTrack = make("Frame", {
+	Position = UDim2.new(0, 13, 1, -15),
+	Size = UDim2.new(1, -26, 0, 5),
+	BackgroundColor3 = COLORS.track,
+}, tracker) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, trackerTrack)
+local trackerFill = make("Frame", {
+	Size = UDim2.new(0, 0, 1, 0),
+	BackgroundColor3 = COLORS.mint,
+}, trackerTrack) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, trackerFill)
+
+local completionToast = make("TextLabel", {
+	Name = "QuestCompletionToast",
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 132),
+	Size = UDim2.new(0.86, 0, 0, 48),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 1,
+	TextTransparency = 1,
+	Text = "",
+	TextColor3 = COLORS.mint,
+	TextSize = 14,
+	TextWrapped = true,
+	Font = Enum.Font.GothamBold,
+	Visible = false,
+}, screen) :: TextLabel
+make("UICorner", { CornerRadius = UDim.new(0, 14) }, completionToast)
+make("UIStroke", { Color = COLORS.mint, Transparency = 1, Thickness = 1.3 }, completionToast)
+local toastStroke = completionToast:FindFirstChildOfClass("UIStroke") :: UIStroke
+local toastSequence = 0
+
+local function showCompletionToast(name: string)
+	toastSequence += 1
+	local sequence = toastSequence
+	completionToast.Text = "✓  Задание выполнено: " .. name
+	completionToast.Visible = true
+	TweenService:Create(completionToast, TweenInfo.new(0.18), {
+		BackgroundTransparency = 0.05,
+		TextTransparency = 0,
+	}):Play()
+	TweenService:Create(toastStroke, TweenInfo.new(0.18), { Transparency = 0.25 }):Play()
+	task.delay(2.8, function()
+		if sequence ~= toastSequence then return end
+		local fade = TweenService:Create(completionToast, TweenInfo.new(0.22), {
+			BackgroundTransparency = 1,
+			TextTransparency = 1,
+		})
+		TweenService:Create(toastStroke, TweenInfo.new(0.22), { Transparency = 1 }):Play()
+		fade:Play()
+		fade.Completed:Wait()
+		if sequence == toastSequence then completionToast.Visible = false end
+	end)
+end
+
+local function updateTracker(quests: { any })
+	local selected = nil
+	for _, quest in ipairs(quests) do
+		if quest.id == trackedQuestId then selected = quest break end
+	end
+	if selected == nil or selected.completed == true then
+		tracker.Visible = false
+		return
+	end
+	trackerName.Text = selected.name
+	trackerProgress.Text = string.format("%d/%d", selected.count, selected.target)
+	trackerFill.Size = UDim2.new(math.clamp(selected.count / math.max(selected.target, 1), 0, 1), 0, 1, 0)
+	tracker.Visible = true
+end
 
 local function clearCards()
 	for _, child in ipairs(list:GetChildren()) do
@@ -175,17 +287,46 @@ local function render(quests: any)
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
-			Size = UDim2.new(1, -6, 0, 112),
+			Size = UDim2.new(1, -6, 0, 124),
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
 		make("UICorner", { CornerRadius = UDim.new(0, 15) }, card)
+		local trackButton = make("TextButton", {
+			Name = "TrackQuest",
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -10, 0, 9),
+			Size = UDim2.fromOffset(102, 27),
+			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
+			Text = if trackedQuestId == quest.id then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ",
+			TextSize = 8,
+			Font = Enum.Font.GothamBold,
+			TextColor3 = if trackedQuestId == quest.id then COLORS.panel else COLORS.cream,
+			AutoButtonColor = true,
+		}, card) :: TextButton
+		make("UICorner", { CornerRadius = UDim.new(0, 8) }, trackButton)
+		trackButton.Activated:Connect(function()
+			if quest.completed == true then return end
+			trackedQuestId = quest.id
+			updateTracker(lastQuests)
+			for _, sibling in ipairs(list:GetChildren()) do
+				if sibling:IsA("Frame") then
+					local action = sibling:FindFirstChild("TrackQuest")
+					if action and action:IsA("TextButton") then
+						local active = sibling.Name == "Quest_" .. quest.id
+						action.Text = if active then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ"
+						action.BackgroundColor3 = if active then COLORS.mint else COLORS.card
+						action.TextColor3 = if active then COLORS.panel else COLORS.cream
+					end
+				end
+			end
+		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
 
 		make("TextLabel", {
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0, 15, 0, 11),
-			Size = UDim2.new(1, -30, 0, 23),
+			Size = UDim2.new(1, -126, 0, 23),
 			Font = Enum.Font.GothamBold,
 			Text = (if done then "✓  " else "✦  ") .. quest.name,
 			TextSize = 14,
@@ -224,7 +365,7 @@ local function render(quests: any)
 			TextColor3 = COLORS.cream,
 		}, card)
 		local track = make("Frame", {
-			Position = UDim2.new(0, 16, 1, -17),
+			Position = UDim2.new(0, 16, 1, -15),
 			Size = UDim2.new(1, -32, 0, 6),
 			BackgroundColor3 = COLORS.track,
 		}, card) :: Frame
@@ -239,6 +380,22 @@ local function render(quests: any)
 	badge.BackgroundColor3 = if completedCount == #quests and #quests > 0 then COLORS.mint else COLORS.gold
 	status.Text = string.format("Выполнено: %d из %d  •  Награды появятся в следующем этапе", completedCount, #quests)
 	status.TextColor3 = COLORS.muted
+	for _, quest in ipairs(quests) do
+		if quest.completed == true then
+			local wasCompleted = false
+			for _, previous in ipairs(lastQuests) do
+				if previous.id == quest.id and previous.completed == true then wasCompleted = true break end
+			end
+			if not wasCompleted then showCompletionToast(quest.name) end
+		end
+	end
+	if trackedQuestId == nil then
+		for _, quest in ipairs(quests) do
+			if quest.completed ~= true then trackedQuestId = quest.id break end
+		end
+	end
+	updateTracker(quests)
+	lastQuests = quests
 end
 
 local function refresh()
@@ -297,6 +454,8 @@ local function resize()
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
+	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, -12)
+	tracker.Size = UDim2.fromOffset(compact and 220 or 260, 78)
 end
 if workspace.CurrentCamera then
 	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
