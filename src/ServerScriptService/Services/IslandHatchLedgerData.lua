@@ -26,6 +26,16 @@ local function isInteger(value: any): boolean
 		and value == math.floor(value)
 end
 
+local function isTimestamp(value: any): boolean
+	return type(value) == "number"
+		and value == value
+		and value ~= math.huge
+		and value ~= -math.huge
+		and value >= 0
+		and value <= 9_007_199_254_740_991
+		and value == math.floor(value)
+end
+
 local function isToken(value: any, maxLength: number): boolean
 	return type(value) == "string"
 		and #value > 0
@@ -84,7 +94,7 @@ function IslandHatchLedgerData.validateRecord(record: any): (boolean, string)
 	if not isInteger(record.rarityTier) or record.rarityTier < 1 or record.rarityTier > 6 then
 		return false, "INVALID_RARITY_TIER"
 	end
-	if not isInteger(record.createdAt) then return false, "INVALID_CREATED_AT" end
+	if not isTimestamp(record.createdAt) then return false, "INVALID_CREATED_AT" end
 	if record.state ~= "PREPARED" and record.state ~= "CHARGED" and record.state ~= "GRANTED" then
 		return false, "INVALID_STATE"
 	end
@@ -132,7 +142,7 @@ function IslandHatchLedgerData.prepare(profile: any, record: any, now: number): 
 	local validRecord, recordReason = IslandHatchLedgerData.validateRecord(record)
 	if not validRecord then return nil, recordReason end
 	if record.state ~= "PREPARED" then return nil, "NEW_TRANSACTION_MUST_BE_PREPARED" end
-	if not isInteger(now) then return nil, "INVALID_TIMESTAMP" end
+	if not isTimestamp(now) or now < record.createdAt then return nil, "INVALID_TIMESTAMP" end
 
 	local ledger = profile.hatchTransactions or {}
 	local validLedger, ledgerReason = IslandHatchLedgerData.validateLedger(ledger)
