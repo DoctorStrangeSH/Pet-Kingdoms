@@ -37,6 +37,9 @@ end
 
 resourceRequest.OnServerInvoke = function(player: Player, action: any)
 	if action ~= "Get" then return false, "UNKNOWN_ACTION" end
+	if not IslandSessionService.canWrite(player.UserId, player) then
+		return false, "SESSION_NOT_WRITABLE"
+	end
 	local profile = IslandSessionService.getProfile(player.UserId)
 	if profile == nil then return false, "SESSION_NOT_READY" end
 	return true, snapshot(profile), profile.revision
