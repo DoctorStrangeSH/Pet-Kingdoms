@@ -3,27 +3,53 @@
 ## Toolchain
 
 - Roblox Studio
-- Rojo 7.x
+- [Rokit](https://github.com/rojo-rbx/rokit)
+- Rojo version pinned in `rokit.toml`
 - VS Code or another Luau-capable editor
 - Git
+
+Install the pinned tools from the repository root:
+
+```bash
+rokit install
+```
+
+Do not use a different Rojo version for this repository unless the pin is deliberately updated and verified.
 
 ## Build
 
 From the repository root:
 
 ```bash
-rojo build default.project.json -o build/PetKingdoms.rbxlx
+mkdir -p build
+rojo build default.project.json --output build/PetKingdoms.rbxlx
 ```
 
-The output directory may need to be created first.
+Open `build/PetKingdoms.rbxlx` in Roblox Studio.
 
 ## Live sync
+
+From the repository root:
 
 ```bash
 rojo serve default.project.json
 ```
 
-Connect to the running Rojo server with the Rojo Studio plugin.
+Connect to the running Rojo server with the matching Rojo 7 Studio plugin. Keep the CLI and Studio plugin on the same major version.
+
+## Automated build
+
+GitHub Actions runs the full Rojo build on changes to `src/**`, `default.project.json`, `rokit.toml`, and the build workflow itself.
+
+A successful run uploads the generated `PetKingdoms.rbxlx` as the `pet-kingdoms-studio-build` artifact for 14 days:
+
+1. Open the repository's Actions tab.
+2. Select **Roblox project build**.
+3. Open the latest successful run.
+4. Download **pet-kingdoms-studio-build** from Artifacts.
+5. Extract the ZIP and open `PetKingdoms.rbxlx` in Studio.
+
+The CI build validates that Rojo can serialize the complete repository project tree. It does not execute Roblox scripts or prove runtime behavior.
 
 ## Current source checks
 
@@ -39,6 +65,18 @@ Before integrating it into placement gameplay, verify these cases:
 - A footprint extending one cell beyond the island is rejected.
 - Adjacent footprints do not overlap.
 - Footprints sharing any positive-area region do overlap.
+
+## Roblox Studio test checklist
+
+The repository contains Studio-only test scripts under `src/ServerScriptService/Tests` and client test scripts under `src/StarterPlayer/StarterPlayerScripts/Tests`. Run these in a dedicated Studio test place, not against production player data.
+
+For DataStore and MemoryStore scenarios, enable API access only in the dedicated test universe and use test accounts/profiles. Exercise at least:
+- First join, save, leave, and rejoin.
+- Save failure and retry during leave/shutdown.
+- Two-server lease contention and stale-writer rejection.
+- Gathering/building/hatching overlap and retry behavior.
+- Pet collection load delays, disconnect/rejoin, and acquisition recovery.
+- Mobile touch, safe areas, and companion movement.
 
 ## Verification honesty
 
