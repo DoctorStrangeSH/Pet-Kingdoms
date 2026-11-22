@@ -1001,3 +1001,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added completion toast driven only by a server-read quest snapshot after the confirmed gather event. Toast is transition-based and does not replay for already-completed quests on initial load.
 - Client remains read-only: it cannot submit progress or claim rewards.
 - Reward claim flow and persistent tracked-quest preference remain NOT DONE. Studio visual/device verification remains pending.
+
+
+## Persistent tracked quest preference (2026-11-22)
+
+- Added `trackedQuestId` to newly created island profiles, defaulting to `gather_wood`; legacy schema-v1 profiles are migrated to the same default during load/claim.
+- Island profile validation accepts nil for unmigrated legacy records but rejects unknown quest IDs.
+- Added `IslandSessionService.commitTrackedQuest`: validates the selected quest exists and is incomplete, serializes against other profile mutations, increments profile revision, and waits for DataStore durability before success.
+- Added server RemoteFunction `SetTrackedQuest`; request input is type-checked and server-side rate-limited. Snapshot now returns the persisted tracked quest ID.
+- Updated the journal so Track buttons wait for server confirmation and selection survives rejoin. When the selected objective is completed, the UI picks the next incomplete objective and attempts to persist it.
+- Added profile validation tests for default, unknown, and legacy tracked quest IDs.
+- Reward claiming and its idempotent receipt ledger remain NOT DONE. Studio/DataStore runtime verification remains pending.
