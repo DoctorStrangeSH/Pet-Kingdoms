@@ -167,7 +167,7 @@ local integratedNoPolicy, integratedNoPolicyReason = PetStatsCalculator.calculat
 	modifierList,
 	nil
 )
-expect("non-empty modifiers require an application policy", integratedNoPolicy == nil and integratedNoPolicyReason == "BALANCE_RESOLUTION_FAILED")
+expect("non-empty modifiers require an application policy", integratedNoPolicy == nil and integratedNoPolicyReason == "MISSING_MODIFIER_POLICY")
 
 local integratedEmpty, integratedEmptyReason = PetStatsCalculator.calculateWithModifiers(
 	"sample-species",
