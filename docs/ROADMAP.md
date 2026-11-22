@@ -509,3 +509,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Replace hash-table iteration in quest progression/snapshot presentation with an explicit stable order: wood quest first, stone quest second.
 - [x] Add a contract assertion that repeated snapshots preserve the same order.
 - [ ] Execute the updated Luau test in Roblox Studio.
+
+
+### Atomic gathering-to-quest integration (2026-11-22)
+
+- [x] Extract a pure `IslandGatheringTransactionData` transform that composes wallet grant, resource-node cooldown, and quest progress before any live profile mutation.
+- [x] Route `IslandSessionService.commitResourceGathering` through the shared transaction result and persist all three state changes under one island profile revision.
+- [x] Add integration contract tests for wood/stone progression, independent node cooldowns, quest completion, immutable source state, cooldown rejection, wallet-cap rejection, malformed quest state, and unknown nodes.
+- [ ] Execute the new Studio integration suite and existing gathering/quest contract suites in Roblox Studio.
+- [ ] Validate actual DataStore persistence, leave/rejoin, and server restart behavior in a dedicated test place.
