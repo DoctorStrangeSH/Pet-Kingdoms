@@ -263,3 +263,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Walk/run states remain higher priority, so an affection/play reaction does not freeze or replace movement animation.
 - Added client Studio smoke assertions for interaction-over-idle priority and movement-over-interaction priority.
 - Studio execution remains pending.
+
+
+## Pet progression integer precision guard (2026-11-22)
+
+- Added `PetCollectionData.MAX_SAFE_INTEGER = 9007199254740991` (2^53 - 1), the largest integer exactly representable by Luau's number type.
+- The shared non-negative integer validator now rejects counters/timestamps above this bound, including ordinary pet XP and collection revision.
+- `interact`, `setEquipped`, and trusted `grantExperience` reject a mutation when the collection revision cannot be incremented safely (`REVISION_OVERFLOW`).
+- `grantExperience` returns `XP_OVERFLOW` if the resulting XP would exceed safe integer precision; rewards above the bound are rejected as invalid amounts.
+- Added pure Studio test cases for the boundary, unsafe values, XP overflow, and revision overflow in all three mutation paths. Studio execution remains pending.
