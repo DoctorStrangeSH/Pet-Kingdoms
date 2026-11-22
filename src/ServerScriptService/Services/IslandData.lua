@@ -86,6 +86,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		buildingOperations = {},
 		resourceNodes = {},
 		questProgress = QuestProgressData.create(),
+		trackedQuestId = "gather_wood",
 		revision = 0,
 	}
 end
@@ -151,6 +152,13 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 			if receipt.revision > profile.revision then
 				return false, "INVALID_BUILDING_LEDGER:REVISION_AHEAD"
 			end
+		end
+	end
+
+	if profile.trackedQuestId ~= nil then
+		if type(profile.trackedQuestId) ~= "string"
+			or QuestProgressData.DEFINITIONS[profile.trackedQuestId] == nil then
+			return false, "INVALID_TRACKED_QUEST"
 		end
 	end
 
