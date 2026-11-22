@@ -2,6 +2,8 @@
 -- Pure validation and normalization for a player's pet collection.
 local PetCollectionData = {}
 
+local PetProgressionData = require(script.Parent:WaitForChild("PetProgressionData"))
+
 PetCollectionData.SCHEMA_VERSION = 1
 PetCollectionData.MAX_SAFE_INTEGER = 9007199254740991
 PetCollectionData.MAX_OWNED_PETS = 100
@@ -239,6 +241,75 @@ function PetCollectionData.grantExperience(profile: any, petId: string, amount: 
 	selected.xp = nextXp
 	updated.revision += 1
 	return true, "UPDATED", updated
+end
+
+
+-- Atomically add ordinary XP and derive the persisted level from an injected threshold table.
+-- Thresholds are supplied by trusted server game configuration; no curve is defined here.
+function PetCollectionData.grantExperienceWithProgress(
+	profile: any,
+	petId: string,
+	amount: number,
+	thresholds: any
+): (boolean, string, any?, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil, nil
+	end
+	if not canIncrementRevision(profile) then
+		return false, "REVISION_OVERFLOW", nil, nil
+	end
+	if type(petId) ~= "string" or petId == "" then
+		return false, "INVALID_PET_ID", nil, nil
+	end
+	if not isPositiveInteger(amount) then
+		return false, "INVALID_XP_AMOUNT", nil, nil
+	end
+
+	local validThresholds, thresholdReason = PetProgressionData.validateThresholds(thresholds)
+	if not validThresholds then
+		return false, "INVALID_THRESHOLDS:" .. thresholdReason, nil, nil
+	end
+
+	local updated = PetCollectionData.clone(profile)
+	local selected = nil
+	for _, record in ipairs(updated.owned) do
+		if record.petId == petId then
+			selected = record
+			break
+		end
+	end
+	if selected == nil then
+		return false, "PET_NOT_OWNED", nil, nil
+	end
+
+	local previousLevel = selected.level or 1
+	local nextXp = selected.xp + amount
+	if not isNonNegativeInteger(nextXp) then
+		return false, "XP_OVERFLOW", nil, nil
+	end
+
+	local progression, progressionReason = PetProgressionData.getProgress(nextXp, thresholds)
+	if progression == nil then
+		return false, "PROGRESSION_RESOLUTION_FAILED:" .. tostring(progressionReason), nil, nil
+	end
+
+	selected.xp = nextXp
+	selected.level = progression.level
+	updated.revision += 1
+
+	return true, "UPDATED", updated, {
+		petId = petId,
+		previousLevel = previousLevel,
+		level = progression.level,
+		levelsGained = math.max(0, progression.level - previousLevel),
+		totalXp = progression.totalXp,
+		currentLevelXp = progression.currentLevelXp,
+		nextLevelXp = progression.nextLevelXp,
+		xpRequiredForNext = progression.xpRequiredForNext,
+		progress = progression.progress,
+		isMaxLevel = progression.isMaxLevel,
+	}
 end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
