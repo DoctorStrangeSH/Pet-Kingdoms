@@ -684,3 +684,14 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Keep modal panels centered when the screen dimensions change.
 - [ ] Test portrait devices (320×568, 375×667, 390×844) and short landscape windows in Roblox Studio Device Emulator.
 - [ ] Rework the pet collection two-column mobile layout and the building action area separately.
+
+### Mobile pet collection and compact placement mode (2026-11-22)
+
+- [x] Fix pet cooldown UI helper declaration so its local Pet/Play button references exist before the function is defined.
+- [x] On viewports narrower than 650 px, show a full-width pet list and separate full-width pet detail tab rather than unusably narrow desktop columns.
+- [x] Selecting a pet automatically opens its detail tab on mobile; provide explicit list/detail navigation buttons.
+- [x] Reflow mobile search, filters, and scrolling list; compact detail text offsets on short screens and fit the deletion confirmation within the viewport width.
+- [x] Collapse the building catalogue during preview placement, retaining only a compact rotate/confirm/cancel action bar and close button.
+- [x] Restore the full catalogue when placement ends; support resize of both modes.
+- [ ] Validate 320 px/375 px portrait, landscape, mobile touch and native Roblox insets in Studio Device Emulator.
+- [ ] Verify placement controls do not cover terrain target and that cooldown controls work when choosing another pet.
