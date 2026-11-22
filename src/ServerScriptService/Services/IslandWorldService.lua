@@ -4,6 +4,8 @@
 -- are supplied separately in ServerStorage/BuildingModels/<catalogId>.
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 local Workspace = game:GetService("Workspace")
 
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
@@ -489,6 +491,87 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	return true, "SPAWNED"
 end
 
+local function playExpansionCompletionEffect(world: Model, previousSize: Vector3, newSize: Vector3)
+	local grass = world:FindFirstChild("Island_GrassTop")
+	if not grass or not grass:IsA("BasePart") then return end
+
+	local effectFolder = Instance.new("Folder")
+	effectFolder.Name = "ExpansionCompletionEffect"
+	effectFolder.Parent = world
+	Debris:AddItem(effectFolder, 3.5)
+
+	local topY = grass.Size.Y * 0.5 + 0.22
+	local addedX = math.max(0, (newSize.X - previousSize.X) * 0.5)
+	local addedZ = math.max(0, (newSize.Z - previousSize.Z) * 0.5)
+	if addedX <= 0 and addedZ <= 0 then
+		effectFolder:Destroy()
+		return
+	end
+
+	local function pulse(name: string, size: Vector3, offset: CFrame)
+		local ribbon = Instance.new("Part")
+		ribbon.Name = name
+		ribbon.Anchored = true
+		ribbon.CanCollide = false
+		ribbon.CanTouch = false
+		ribbon.CanQuery = false
+		ribbon.CastShadow = false
+		ribbon.Material = Enum.Material.Neon
+		ribbon.Color = Color3.fromRGB(133, 255, 190)
+		ribbon.Transparency = 0.72
+		ribbon.Size = size
+		ribbon.CFrame = grass.CFrame * offset
+		ribbon.Parent = effectFolder
+
+		local glow = Instance.new("PointLight")
+		glow.Color = ribbon.Color
+		glow.Brightness = 1.4
+		glow.Range = 10
+		glow.Parent = ribbon
+
+		local grow = TweenService:Create(ribbon, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Transparency = 0.22,
+		})
+		local fade = TweenService:Create(ribbon, TweenInfo.new(0.85, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.32), {
+			Transparency = 1,
+		})
+		grow:Play()
+		fade:Play()
+		TweenService:Create(glow, TweenInfo.new(1.15), { Brightness = 0 }):Play()
+	end
+
+	if addedZ > 0 then
+		pulse("Expansion_North", Vector3.new(newSize.X, 0.16, math.max(1, addedZ)), CFrame.new(0, topY, -(previousSize.Z * 0.5 + addedZ * 0.5)))
+		pulse("Expansion_South", Vector3.new(newSize.X, 0.16, math.max(1, addedZ)), CFrame.new(0, topY, previousSize.Z * 0.5 + addedZ * 0.5))
+	end
+	if addedX > 0 then
+		pulse("Expansion_West", Vector3.new(math.max(1, addedX), 0.16, previousSize.Z), CFrame.new(-(previousSize.X * 0.5 + addedX * 0.5), topY, 0))
+		pulse("Expansion_East", Vector3.new(math.max(1, addedX), 0.16, previousSize.Z), CFrame.new(previousSize.X * 0.5 + addedX * 0.5, topY, 0))
+	end
+
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "ExpansionParticles"
+	attachment.Position = Vector3.new(0, grass.Size.Y * 0.5 + 0.35, 0)
+	attachment.Parent = grass
+	attachment.Parent = effectFolder:FindFirstChildWhichIsA("BasePart") or grass
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Name = "ExpansionSparkles"
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Color = ColorSequence.new(Color3.fromRGB(184, 255, 210), Color3.fromRGB(255, 220, 145))
+	emitter.LightEmission = 0.8
+	emitter.Lifetime = NumberRange.new(0.55, 1.1)
+	emitter.Speed = NumberRange.new(5, 10)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Rate = 0
+	emitter.RotSpeed = NumberRange.new(-90, 90)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.22),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Parent = attachment
+	emitter:Emit(42)
+end
+
 -- Rebuilds the current island from a newly persisted profile while keeping
 -- the owner's assigned spawn point and arrival anchor stable.
 function IslandWorldService.refresh(userId: number, player: Player, profile: any): (boolean, string)
@@ -518,6 +601,8 @@ function IslandWorldService.refresh(userId: number, player: Player, profile: any
 
 	local worldFolder = currentWorld.Parent
 	if worldFolder == nil then return false, "ISLAND_WORLD_PARENT_MISSING" end
+	local previousGrass = currentWorld:FindFirstChild("Island_GrassTop")
+	local previousSize = if previousGrass and previousGrass:IsA("BasePart") then previousGrass.Size else Vector3.zero
 	local replacement = Instance.new("Model")
 	replacement.Name = "Island_" .. tostring(userId)
 	replacement:SetAttribute("OwnerUserId", userId)
@@ -543,6 +628,10 @@ function IslandWorldService.refresh(userId: number, player: Player, profile: any
 	replacement.Parent = worldFolder
 	worldsByUserId[userId] = replacement
 	currentWorld:Destroy()
+	local newGrass = replacement:FindFirstChild("Island_GrassTop")
+	if newGrass and newGrass:IsA("BasePart") then
+		playExpansionCompletionEffect(replacement, previousSize, newGrass.Size)
+	end
 	arrivalCFrames[userId] = spawnPoint.CFrame * CFrame.new(0, 4, (profile.boundsDepth * cellSize) * 0.34)
 	return true, "WORLD_REFRESHED"
 end
