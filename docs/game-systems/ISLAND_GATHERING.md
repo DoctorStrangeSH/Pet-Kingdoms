@@ -13,7 +13,9 @@ These quantities and timer reuse the provisional baseline in the project specifi
 
 ## Interaction
 
-- Uses Roblox ProximityPrompt; keyboard E and gamepad ButtonX are configured.
+- Uses Roblox ProximityPrompt; keyboard E, gamepad ButtonX, and Roblox touch prompt are supported.
+- Resource nodes show a floating label with the resource name and exact reward (+3 wood / +2 stone). The prompt explicitly says Срубить дерево or Добыть камень.
+- A first-gather hint appears in the resource HUD while the player's wood balance is zero.
 - Prompts are server-observed through ProximityPromptService.
 - The server validates resource ID, integer reward, player ownership, node ancestry, island ownership, character root, and interaction distance.
 - Reward values are node attributes assigned by server-owned island generation, never accepted from the client.
@@ -28,7 +30,7 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 
 ## Explicit limitations
 
-- Nodes currently use temporary procedural blockout geometry, not approved production art.
+- Nodes currently use temporary procedural blockout geometry, not approved production art. Floating markers improve discovery but do not replace final tree/ore meshes.
 - There is no inventory HUD/toast or gathering animation yet.
 - No tools, stamina, skill checks, node tiers, or biome-specific drops.
 - Respawn timers are server-memory timers and are not persisted across server shutdown.
@@ -45,3 +47,13 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 - [ ] Leave/rejoin; balances persist after autosave.
 - [ ] Simulate non-writable session; reward is rejected and node remains available.
 - [ ] Test E and gamepad interaction; verify prompt readability on mobile touch devices.
+
+
+## Gathering discoverability pass (2026-11-22)
+
+- [x] Add readable floating resource markers above each active wood/stone node, showing exact resource yield.
+- [x] Make the wood prompt explicitly say Срубить дерево and show the wood reward; stone prompt shows its reward too.
+- [x] Hide floating markers while the node is on cooldown and restore them on respawn.
+- [x] Show a HUD hint directing new players to a wood node while their wood balance is zero.
+- [ ] Verify marker distance, readability, ProximityPrompt touch behavior, and first-gather flow in Roblox Studio/mobile.
+- [ ] Replace procedural resource blockouts with approved production art assets.
