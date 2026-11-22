@@ -915,3 +915,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Exposes ReplicatedStorage/Remotes/GetIslandExpansionPreview as a RemoteFunction. It requires the exact current writable Player session, validates the profile against configured base bounds, and returns current/next level and dimensions, max level, canExpand, purchaseAvailable=false, and ECONOMY_NOT_APPROVED.
 - Preview calls are rate-limited per user; first request is allowed immediately and per-user limiter state is cleaned on PlayerRemoving.
 - This endpoint is read-only. It does not mutate profile data, charge resources, or invoke commitIslandExpansion. No client UI is wired yet.
+
+
+## Client expansion preview panel (2026-11-22)
+
+- Added StarterPlayerScripts/IslandExpansionUI.client.lua. It creates a responsive island button and a themed panel consistent with the existing resource HUD/pet collection UI.
+- Panel invokes GetIslandExpansionPreview and displays current level/dimensions, next level/dimensions, max-level state, request errors, and an explicit note that purchase is disabled until economy approval.
+- Added manual refresh, open/close animation, mobile width adjustment, and no client-side profile mutation.
+- Purchase button and boundary hologram are intentionally not included: economy rules and a trustworthy world-space preview locator are not yet defined.
