@@ -33,8 +33,8 @@ end
 
 local function handleRequest(player: Player): any
 	local now = os.clock()
-	local previous = lastRequestAt[player.UserId] or 0
-	if now - previous < REQUEST_INTERVAL then
+	local previous = lastRequestAt[player.UserId]
+	if previous ~= nil and now - previous < REQUEST_INTERVAL then
 		return { ok = false, code = "RATE_LIMITED" }
 	end
 	lastRequestAt[player.UserId] = now
