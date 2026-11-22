@@ -108,6 +108,27 @@ local function resolveSurfacePosition(desired: Vector3, params: RaycastParams): 
 	return desired
 end
 
+-- Do not take a direct shortcut over a cliff or a sudden height step.
+-- If the starting point is ungrounded (for example during character spawn),
+-- defer terrain judgement rather than freezing a newly created companion.
+local function isTerrainTraverseSafe(fromPosition: Vector3, destination: Vector3, params: RaycastParams): boolean
+	local startHit = Workspace:Raycast(fromPosition + Vector3.new(0, 8, 0), Vector3.new(0, -32, 0), params)
+	if startHit == nil then return true end
+	local delta = horizontal(destination - fromPosition)
+	if delta.Magnitude < 0.25 then return true end
+	local count = math.clamp(math.ceil(delta.Magnitude / 3), 1, 12)
+	local previousHeight = startHit.Position.Y
+	for i = 1, count do
+		local point = fromPosition:Lerp(destination, i / count)
+		local hit = Workspace:Raycast(point + Vector3.new(0, 8, 0), Vector3.new(0, -32, 0), params)
+		if hit == nil or math.abs(hit.Position.Y - previousHeight) > 2.75 then
+			return false
+		end
+		previousHeight = hit.Position.Y
+	end
+	return true
+end
+
 local function resolveGroundPosition(desired: Vector3, params: RaycastParams, groundLift: number): Vector3
 	local surface = resolveSurfacePosition(desired, params)
 	return Vector3.new(desired.X, surface.Y + groundLift, desired.Z)
@@ -244,6 +265,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	-- server-side character movement is transferred to this path.
 	local navigationGoal = desired
 	local directRouteClear = hasDirectPath(currentPosition, desired, self.groundRaycastParams)
+		and isTerrainTraverseSafe(currentPosition, desired, self.groundRaycastParams)
 	if directRouteClear then
 		if self.path ~= nil or self.pathPending then
 			self.pathGeneration += 1
@@ -336,6 +358,16 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 			navigationGoal = currentPosition
 		end
 	end
+	-- Even valid path waypoints must not be followed blindly across a newly
+	-- streamed-out island edge or an untraversable vertical step.
+	if not isTerrainTraverseSafe(currentPosition, navigationGoal, self.groundRaycastParams) then
+		navigationGoal = currentPosition
+		self.path = nil
+		self.pathGoal = nil
+		table.clear(self.pathWaypoints)
+		self.pathIndex = 1
+		self.pathNextComputeAt = os.clock() + PATH_RETRY_SECONDS
+	end
 	lagDistance = horizontal(navigationGoal - currentPosition).Magnitude
 
 	-- If the player outruns a companion for a while, it should visibly hurry
@@ -351,7 +383,11 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 			else if speed >= self.walkSpeed or lagDistance >= 1.1 then "walk" else "idle"
 
 	if ownerDistance >= self.teleportDistance then
-		local recoveryPosition = desired - horizontal(self.targetRoot.CFrame.LookVector) * 2
+		local recoveryPosition = resolveGroundPosition(
+			desired - horizontal(self.targetRoot.CFrame.LookVector) * 2,
+			self.groundRaycastParams,
+			self.groundLift
+		)
 		self.model:PivotTo(CFrame.lookAt(recoveryPosition, recoveryPosition + horizontal(self.targetRoot.CFrame.LookVector)))
 		current = self.model:GetPivot()
 		currentPosition = current.Position
