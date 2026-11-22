@@ -364,3 +364,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The threshold table is injected. The tests use a clearly synthetic 100-XP-per-level table solely to verify boundary behavior; this is not approved game balance and must not be reused as production configuration.
 - Added Studio-only tests for level 1, below/exact/midway thresholds, level 50, malformed threshold tables, and invalid XP. Tests are committed but not executed in Roblox Studio.
 - This module does not mutate collection records, award XP, save data, or emit level-up events. Existing trusted `PetCollectionService.grantExperience` continues to store XP without changing pet level until the real XP curve is approved.
+
+
+## Atomic pet XP + level progression (2026-11-22)
+
+- Added `PetCollectionData.grantExperienceWithProgress(profile, petId, amount, thresholds)`. It validates the full collection and threshold table, validates reward amount and ownership, computes new cumulative XP, resolves the level using `PetProgressionData`, and writes XP + level + one collection revision increment in the same pure mutation.
+- Returns a progression summary with previous/new level, levels gained (including multiple levels from one reward), current XP within level, next threshold, normalized progress, and max-level state.
+- Added trusted server-only `PetCollectionService.grantExperienceWithProgress(player, petId, amount, thresholds)`, persisted through one DataStore UpdateAsync mutation and synchronized into the in-memory collection. It is not exposed to clients.
+- Thresholds remain injected from trusted server configuration. Studio tests use synthetic 100-XP steps solely to verify behavior; no production curve is approved or configured.
+- Added pure collection tests for XP+level atomic mutation, multi-level gain, level 50, invalid thresholds, unowned pet, overflow, one revision increment, and Bond isolation. Tests are committed but not executed in Studio.
+- Important remaining risk: the existing bounded outer DataStore retry helper can retry a call after an ambiguous network failure. Reward idempotency keys/ledger are not implemented; callers must not blindly replay the same reward after an uncertain result. Define a bounded persisted reward-idempotency policy before wiring this API to combat, quest, or interaction reward sources.
+- No gameplay reward callers or client remotes were added. The legacy `grantExperience` API remains unchanged for XP-only storage when no approved threshold configuration is available.
