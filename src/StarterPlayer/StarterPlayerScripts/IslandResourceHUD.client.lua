@@ -178,7 +178,7 @@ end)
 
 local toastSequence = 0
 local function showToast(resourceId: string?, amount: number?, code: string?)
-	if code ~= "GRANTED" or resourceId == nil or amount == nil then return end
+	if code ~= "GATHERED" or resourceId == nil or amount == nil then return end
 	local item = nil
 	for _, resource in ipairs(RESOURCES) do
 		if resource.id == resourceId then item = resource break end
