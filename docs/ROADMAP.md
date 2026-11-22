@@ -253,3 +253,11 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Synchronize the newest validated DataStore snapshot into the in-memory cache when an idempotent XP retry returns `ALREADY_PROCESSED`.
 - [ ] Run Studio pure-data tests and DataStore concurrency/fault-injection tests. Verify a reservation remains grantable when other reward sources execute concurrently.
 - [ ] Replace or explicitly deprecate non-idempotent XP reward entry points before gameplay reward callers are introduced; use stable reward IDs for retryable sources.
+
+
+### Acquisition receipt integrity
+
+- [x] Reject acquisition ledgers where two retained receipts claim the same petId, even when acquisitionIds differ.
+- [x] Cross-check an owned pet's speciesId and rarityTier against its retained acquisition receipt.
+- [x] Add regression tests for duplicate receipt pet IDs and owned-record/receipt metadata mismatch.
+- [ ] Execute collection tests in Roblox Studio and verify legacy production profiles against the stricter receipt invariants before rollout.
