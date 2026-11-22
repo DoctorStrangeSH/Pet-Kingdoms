@@ -174,21 +174,10 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	local function refundPlacementCost()
-		if chargedCost ~= nil then
-			local refunded, refundCode = false, "NOT_ATTEMPTED"
-			for resourceId, amount in pairs(chargedCost) do
-				local ok, code = IslandResourceService.grant(userId, resourceId, amount)
-				if ok then
-					refunded = true
-				else
-					refundCode = code
-					warn(string.format("[PetKingdoms] CRITICAL: placement rollback refund failed for %d (%s): %s", userId, resourceId, code))
-					break
-				end
-			end
-			if not refunded and refundCode ~= "NOT_ATTEMPTED" then
-				warn(string.format("[PetKingdoms] CRITICAL: placement cost may need recovery for %d", userId))
-			end
+		if chargedCost == nil then return end
+		local refunded, refundCode = IslandResourceService.grantMany(userId, chargedCost)
+		if not refunded then
+			warn(string.format("[PetKingdoms] CRITICAL: placement rollback refund failed for %d: %s", userId, refundCode))
 		end
 	end
 
