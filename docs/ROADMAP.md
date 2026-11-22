@@ -728,3 +728,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Extract resource visibility transitions into `ResourceNodeVisibility` so hide/restore behavior can be tested independently of persistence and live player sessions.
 - [x] Add Studio-only repeat-cycle test verifying original translucent resource alpha, permanently invisible `GatherAnchor`, noncolliding parts and enabled/disabled prompt and markers.
 - [ ] Execute all Studio tests and verify live 60-second respawns, rejoin, multiplayer, and touch-based duplicate submissions.
+
+### Gathering respawn scheduler safety (2026-11-22)
+
+- [x] Track resource cooldown deadlines per node rather than a boolean so repeated reconciliation cannot register duplicate timers for the same deadline.
+- [x] Prevent stale timers from clearing a newer node cooldown or restoring a resource after its deadline changed.
+- [x] Keep resources hidden when the owning session is unavailable; the five-second reconciler makes an expired node visible only once the owner's session is writable.
+- [x] Avoid reapplying all mesh transparency and prompt states every five seconds after an expired node has already become visible.
+- [ ] Run live Studio scenarios: gather -> cooldown -> respawn, reconnect during cooldown, stale timer after island refresh, session not writable -> writable, and overlapping players.
