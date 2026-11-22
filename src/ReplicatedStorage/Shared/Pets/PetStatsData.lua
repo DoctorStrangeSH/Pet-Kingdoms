@@ -43,22 +43,13 @@ function PetStatsData.getStatKeys(): { string }
 	return table.clone(STAT_KEYS)
 end
 
-function PetStatsData.validate(snapshot: any): (boolean, string)
-	if type(snapshot) ~= "table" then
-		return false, "SNAPSHOT_NOT_TABLE"
-	end
-	if not isPositiveInteger(snapshot.level) or snapshot.level > PetStatsData.MAX_PET_LEVEL then
-		return false, "INVALID_LEVEL"
-	end
-	if not isPositiveInteger(snapshot.rarityTier) or snapshot.rarityTier > PetStatsData.RARITY_TIER_COUNT then
-		return false, "INVALID_RARITY_TIER"
-	end
-	if type(snapshot.stats) ~= "table" then
+function PetStatsData.validateStats(stats: any): (boolean, string)
+	if type(stats) ~= "table" then
 		return false, "INVALID_STATS"
 	end
 
 	local statCount = 0
-	for key in pairs(snapshot.stats) do
+	for key in pairs(stats) do
 		if type(key) ~= "string" or not VALID_STAT_KEYS[key] then
 			return false, "UNKNOWN_STAT_KEY"
 		end
@@ -69,12 +60,37 @@ function PetStatsData.validate(snapshot: any): (boolean, string)
 	end
 
 	for _, statKey in ipairs(STAT_KEYS) do
-		if not isFiniteNonNegativeNumber(snapshot.stats[statKey]) then
+		if not isFiniteNonNegativeNumber(stats[statKey]) then
 			return false, "INVALID_STAT:" .. statKey
 		end
 	end
 
 	return true, "VALID"
+end
+
+function PetStatsData.cloneStats(stats: any): (any?, string?)
+	local valid, reason = PetStatsData.validateStats(stats)
+	if not valid then
+		return nil, reason
+	end
+	local copy = {}
+	for _, statKey in ipairs(STAT_KEYS) do
+		copy[statKey] = stats[statKey]
+	end
+	return copy
+end
+
+function PetStatsData.validate(snapshot: any): (boolean, string)
+	if type(snapshot) ~= "table" then
+		return false, "SNAPSHOT_NOT_TABLE"
+	end
+	if not isPositiveInteger(snapshot.level) or snapshot.level > PetStatsData.MAX_PET_LEVEL then
+		return false, "INVALID_LEVEL"
+	end
+	if not isPositiveInteger(snapshot.rarityTier) or snapshot.rarityTier > PetStatsData.RARITY_TIER_COUNT then
+		return false, "INVALID_RARITY_TIER"
+	end
+	return PetStatsData.validateStats(snapshot.stats)
 end
 
 function PetStatsData.clone(snapshot: any): (any?, string?)
@@ -83,10 +99,7 @@ function PetStatsData.clone(snapshot: any): (any?, string?)
 		return nil, reason
 	end
 
-	local stats = {}
-	for _, statKey in ipairs(STAT_KEYS) do
-		stats[statKey] = snapshot.stats[statKey]
-	end
+	local stats = PetStatsData.cloneStats(snapshot.stats)
 	return {
 		level = snapshot.level,
 		rarityTier = snapshot.rarityTier,
