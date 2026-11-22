@@ -81,3 +81,8 @@ The client `IslandExpansionUI.client.lua` opens a compact responsive panel and r
 ## Local holographic preview
 
 When the panel is open and the preview API reports a next level, the client draws four translucent neon strips around the current island's grass surface. Their dimensions come from the server response and their orientation follows the existing grass part CFrame. These are local-only, non-colliding preview parts; they are not actual terrain, do not modify the profile, and are removed when the panel closes.
+
+
+## Stable model identity
+
+Every successful live refresh retains the canonical model name `Island_<userId>`. This keeps client systems, including the local expansion hologram lookup, attached to the same stable world path across repeated expansions. Studio integration assertions cover both refresh levels.
