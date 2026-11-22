@@ -59,6 +59,10 @@ function IslandStore.load(userId: number): (boolean, any, string)
 		-- Legacy profiles start with an empty durable construction receipt ledger.
 		data.buildingOperations = {}
 	end
+	if data.resourceNodes == nil then
+		-- Legacy profiles start with all canonical resource nodes available.
+		data.resourceNodes = {}
+	end
 	return true, data, "LOADED"
 end
 
@@ -79,6 +83,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 	end
 	if seed.buildingOperations == nil then
 		seed.buildingOperations = {}
+	end
+	if seed.resourceNodes == nil then
+		seed.resourceNodes = {}
 	end
 	-- Claim only if the generation observed during load is still current.
 	-- This prevents a delayed loader from superseding a newer session.
@@ -105,6 +112,9 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 			end
 			if nextProfile.buildingOperations == nil then
 				nextProfile.buildingOperations = {}
+			end
+			if nextProfile.resourceNodes == nil then
+				nextProfile.resourceNodes = {}
 			end
 			local currentGeneration = nextProfile.sessionGeneration or 0
 			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
