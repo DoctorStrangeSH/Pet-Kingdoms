@@ -5,6 +5,7 @@ local PetStatsCalculator = {}
 
 local PetStatsData = require(script.Parent:WaitForChild("PetStatsData"))
 local PetSpeciesStatsData = require(script.Parent:WaitForChild("PetSpeciesStatsData"))
+local PetStatModifierPipeline = require(script.Parent:WaitForChild("PetStatModifierPipeline"))
 
 function PetStatsCalculator.calculate(
 	speciesId: any,
@@ -76,6 +77,49 @@ function PetStatsCalculator.calculate(
 	end
 
 	return snapshot
+end
+
+function PetStatsCalculator.calculateWithModifiers(
+	speciesId: any,
+	speciesDefinition: any,
+	level: any,
+	rarityTier: any,
+	resolveStats: any,
+	modifiers: any,
+	applyModifier: any
+): (any?, string?)
+	if type(resolveStats) ~= "function" then
+		return nil, "MISSING_BALANCE_RESOLVER"
+	end
+
+	local function resolveWithModifiers(baseStats, requestedLevel, requestedRarity)
+		local ok, resolvedStats = pcall(resolveStats, baseStats, requestedLevel, requestedRarity)
+		if not ok then
+			error("BALANCE_RESOLUTION_FAILED")
+		end
+
+		local modifiedStats, modifierReason =
+			PetStatModifierPipeline.apply(resolvedStats, modifiers, applyModifier)
+		if modifiedStats == nil then
+			error("MODIFIER_PIPELINE_FAILED:" .. tostring(modifierReason))
+		end
+		return modifiedStats
+	end
+
+	local snapshot, reason = PetStatsCalculator.calculate(
+		speciesId,
+		speciesDefinition,
+		level,
+		rarityTier,
+		resolveWithModifiers
+	)
+	if snapshot == nil and reason == "BALANCE_RESOLUTION_FAILED" then
+		return nil, reason
+	end
+	if snapshot == nil and reason ~= nil and string.find(reason, "INVALID_RESOLVED_STATS:", 1, true) == 1 then
+		return nil, reason
+	end
+	return snapshot, reason
 end
 
 return PetStatsCalculator
