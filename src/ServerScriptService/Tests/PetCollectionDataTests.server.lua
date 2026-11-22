@@ -21,6 +21,57 @@ expect("starter Bunny is equipped", #profile.equipped == 1 and profile.equipped[
 
 local valid, validStatus = PetCollectionData.validate(profile, 12345)
 expect("default collection validates", valid and validStatus == "VALID")
+
+expect("starter pet progression begins at level 1", profile.owned[1].level == 1)
+expect("starter pet progression begins with zero XP", profile.owned[1].xp == 0)
+
+local maxPetLevel = PetCollectionData.clone(profile)
+maxPetLevel.owned[1].level = PetCollectionData.MAX_PET_LEVEL
+local maxPetLevelValid = PetCollectionData.validate(maxPetLevel, 12345)
+expect("pet level 50 is accepted", maxPetLevelValid)
+
+local zeroPetLevel = PetCollectionData.clone(profile)
+zeroPetLevel.owned[1].level = 0
+local zeroPetLevelValid = PetCollectionData.validate(zeroPetLevel, 12345)
+expect("pet level zero is rejected", not zeroPetLevelValid)
+
+local overPetLevel = PetCollectionData.clone(profile)
+overPetLevel.owned[1].level = PetCollectionData.MAX_PET_LEVEL + 1
+local overPetLevelValid = PetCollectionData.validate(overPetLevel, 12345)
+expect("pet level above 50 is rejected", not overPetLevelValid)
+
+local fractionalPetLevel = PetCollectionData.clone(profile)
+fractionalPetLevel.owned[1].level = 1.5
+local fractionalPetLevelValid = PetCollectionData.validate(fractionalPetLevel, 12345)
+expect("fractional pet level is rejected", not fractionalPetLevelValid)
+
+local negativePetXp = PetCollectionData.clone(profile)
+negativePetXp.owned[1].xp = -1
+local negativePetXpValid = PetCollectionData.validate(negativePetXp, 12345)
+expect("negative pet XP is rejected", not negativePetXpValid)
+
+local fractionalPetXp = PetCollectionData.clone(profile)
+fractionalPetXp.owned[1].xp = 12.5
+local fractionalPetXpValid = PetCollectionData.validate(fractionalPetXp, 12345)
+expect("fractional pet XP is rejected", not fractionalPetXpValid)
+
+local infinitePetXp = PetCollectionData.clone(profile)
+infinitePetXp.owned[1].xp = math.huge
+local infinitePetXpValid = PetCollectionData.validate(infinitePetXp, 12345)
+expect("infinite pet XP is rejected", not infinitePetXpValid)
+
+local nanPetXp = PetCollectionData.clone(profile)
+nanPetXp.owned[1].xp = 0 / 0
+local nanPetXpValid = PetCollectionData.validate(nanPetXp, 12345)
+expect("NaN pet XP is rejected", not nanPetXpValid)
+
+local legacyProgression = PetCollectionData.clone(profile)
+legacyProgression.owned[1].level = nil
+legacyProgression.owned[1].xp = nil
+local legacyProgressionValid = PetCollectionData.validate(legacyProgression, 12345)
+expect("legacy pet without progression fields remains valid", legacyProgressionValid)
+local normalizedProgression = PetCollectionData.clone(legacyProgression)
+expect("legacy pet progression defaults safely", normalizedProgression.owned[1].level == 1 and normalizedProgression.owned[1].xp == 0)
 local wrongOwner, ownerStatus = PetCollectionData.validate(profile, 54321)
 expect("wrong owner rejected", not wrongOwner and ownerStatus == "OWNER_MISMATCH")
 
