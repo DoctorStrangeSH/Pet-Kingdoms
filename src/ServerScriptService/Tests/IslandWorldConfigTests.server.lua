@@ -28,6 +28,17 @@ end
 assert(spawnCount >= 1, "at least one valid island spawn point must exist")
 if spawnFolder:GetAttribute("PetKingdomsGenerated") == true then
 	assert(spawnCount == 8, "generated default layout must provide exactly eight spawn points")
+	local seenPositions = {}
+	for index = 1, 8 do
+		local point = spawnFolder:FindFirstChild(string.format("IslandSlot_%02d", index))
+		assert(point and point:IsA("BasePart"), "every generated slot must be a BasePart")
+		assert(point.Anchored, "generated spawn points must be anchored")
+		assert(point.Transparency == 1, "generated spawn points must be invisible")
+		assert(not point.CanCollide and not point.CanTouch and not point.CanQuery, "generated spawn points must not affect gameplay physics or queries")
+		local key = tostring(point.Position.X) .. ":" .. tostring(point.Position.Z)
+		assert(not seenPositions[key], "generated spawn point positions must be unique")
+		seenPositions[key] = true
+	end
 end
 
 local beforeCount = #spawnFolder:GetChildren()
