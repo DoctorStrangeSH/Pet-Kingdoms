@@ -830,3 +830,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandExpansion.expandProfile now rejects negative and fractional saved building grid coordinates instead of accepting any numeric x/z values.
 - Added Studio contract cases for both malformed coordinate classes.
 - This is validation hardening only. It does not add purchase pricing, a purchase remote, wallet debit, or world resizing. Expansion remains geometry/persistence foundation only.
+
+
+## Island expansion non-finite coordinate regression cases (2026-11-22)
+
+- Added Studio contract cases for NaN and positive-infinity saved building coordinates.
+- The expansion transformer rejects both through the non-negative integer coordinate guard.
+- No runtime gameplay or economy behavior changed. Studio execution remains pending.
