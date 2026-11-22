@@ -24,6 +24,28 @@ local valid, code = IslandData.validate(profile, 1001, Catalog)
 expect("empty profile validates", valid and code == "VALID")
 expect("new island profile starts with an empty building operation journal",
 	type(profile.buildingOperations) == "table" and #profile.buildingOperations == 0)
+expect("new island profile starts with no resource cooldowns",
+	type(profile.resourceNodes) == "table" and #profile.resourceNodes == 0)
+
+local malformedResourceNodesProfile = IslandData.create(1001, 10, 10)
+malformedResourceNodesProfile.resourceNodes = {
+	{ nodeId = "WoodNode_A", resourceId = "stone", lastGatheredAt = 10, availableAt = 70 },
+}
+local malformedResourceNodesOk, malformedResourceNodesCode =
+	IslandData.validate(malformedResourceNodesProfile, 1001, Catalog)
+expect("resource node state cannot award a different resource",
+	not malformedResourceNodesOk and malformedResourceNodesCode == "INVALID_RESOURCE_NODES:INVALID_ENTRY")
+
+local duplicateResourceNodesProfile = IslandData.create(1001, 10, 10)
+duplicateResourceNodesProfile.resourceNodes = {
+	{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = 10, availableAt = 70 },
+	{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = 10, availableAt = 70 },
+}
+local duplicateResourceNodesOk, duplicateResourceNodesCode =
+	IslandData.validate(duplicateResourceNodesProfile, 1001, Catalog)
+expect("duplicate resource node states are rejected",
+	not duplicateResourceNodesOk and duplicateResourceNodesCode == "INVALID_RESOURCE_NODES:INVALID_ENTRY")
+
 
 local malformedBuildingJournalProfile = IslandData.create(1001, 10, 10)
 malformedBuildingJournalProfile.buildingOperations = {
