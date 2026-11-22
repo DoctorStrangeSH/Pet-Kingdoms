@@ -753,3 +753,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added localized empty states for filters/search with no matches.
 - No new remote actions or client-authoritative collection mutations were introduced.
 - Still requires Roblox Studio desktop/touch checks, small-screen layout review, and DataStore integration tests.
+
+
+## Companion follow catch-up (2026-11-22)
+
+- CompanionFollowController now derives movement animation from both owner velocity and horizontal distance to the desired formation slot. Pets visibly run when lag exceeds 8 studs and walk when slot error exceeds 1.1 studs.
+- When the horizontal gap reaches 55 studs (e.g. streaming or character reset), the client controller recovers the pet near its owner's formation rather than slowly sliding from far away.
+- Added Studio client smoke assertions for catch-up run state and extreme-gap recovery.
+- This remains client-side visual positioning for server-owned replicated pet models; ownership/equip and collection mutations remain server-authoritative.
+- Still pending: execute the smoke test in Roblox Studio, validate on uneven terrain/mobile, and review multi-pet formation around obstacles.
