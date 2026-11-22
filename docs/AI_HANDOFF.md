@@ -1210,3 +1210,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added QuestProgressData contract tests for valid claim receipt, unclaimed completion, malformed receipt, and a receipt attached to an incomplete quest.
 - No claim RemoteFunction or reward interaction was added. Reward economy/progression/recipient policy remains unapproved and the XP catalog remains intentionally empty.
 - Studio execution remains pending; CI only verifies Rojo packaging.
+
+
+## Quest claim visibility CI verification (2026-11-22)
+
+- GitHub Actions run #164 / run ID 45041866743 passed on commit `03843821215e4ab451dfe95dfbee8e7bfeb78efe`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761139196 is available until 2026-12-06 16:05 UTC.
+- The artifact includes the quest claim-state snapshot tests and UI changes. This verifies packaging only; Studio-only Luau execution remains pending.
