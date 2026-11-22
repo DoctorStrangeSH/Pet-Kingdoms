@@ -890,3 +890,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Removed a second duplicated copy of the IslandExpansion geometry contract test block.
 - Confirmed the Studio test file now has exactly one declaration each for the representative source profile, first-level profile, and second-level profile. Preparation assertions run after those values are constructed.
 - No production service or profile data changed. GitHub Actions packaging check is pending for the cleanup commit.
+
+
+## Server-session expansion commit foundation (2026-11-22)
+
+- Added IslandSessionService.commitIslandExpansion(userId, player, expectedLevel).
+- Requires the exact active Player instance and writable island lease; shares the existing building mutation lock so it cannot overlap building, gathering, or hatch profile mutations.
+- Validates expectedLevel and configured base bounds, prepares one canonical next profile, increments the profile revision, and waits for DataStore persistence before returning EXPANDED.
+- A retry using the same expectedLevel after the in-memory transition returns ALREADY_APPLIED only after the resulting revision is durable; a stale or skipped expected level returns EXPANSION_LEVEL_CONFLICT.
+- This is a server service primitive only: no RemoteEvent/client endpoint, resource cost, wallet debit, durable request receipt, or live IslandWorldService respawn has been wired. Studio and DataStore fault-injection tests remain pending.
