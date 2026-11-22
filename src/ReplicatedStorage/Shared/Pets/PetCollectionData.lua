@@ -380,6 +380,14 @@ function PetCollectionData.addPet(
 	end
 
 	local updated = PetCollectionData.clone(profile)
+	local retainedReceipts = {}
+	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
+		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
+		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS then
+			table.insert(retainedReceipts, receipt)
+		end
+	end
+	updated.acquisitionReceipts = retainedReceipts
 	table.insert(updated.owned, {
 		petId = petId,
 		speciesId = speciesId,
