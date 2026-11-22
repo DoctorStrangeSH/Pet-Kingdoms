@@ -279,37 +279,6 @@ local progressionLabel = make("TextLabel", {
 	TextColor3 = COLORS.mint,
 }, detail) :: TextLabel
 
-local PET_BUTTON_READY_TEXT = "♡ ПОГЛАДИТЬ"
-local PLAY_BUTTON_READY_TEXT = "✦ ПОИГРАТЬ"
-local function formatCooldown(seconds: number): string
-	local safeSeconds = math.max(0, math.ceil(seconds))
-	return string.format("%02d:%02d", math.floor(safeSeconds / 60), safeSeconds % 60)
-end
-
-local function applyInteractionCooldown(record: PetRecord?)
-	local remaining = 0
-	if record and type(record.lastInteractionAt) == "number" then
-		local elapsed = Workspace:GetServerTimeNow() - record.lastInteractionAt
-		remaining = math.max(0, PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS - elapsed)
-	end
-	local coolingDown = remaining > 0
-	local enabled = not coolingDown and not busy and record ~= nil
-	petButton.Active = enabled
-	playButton.Active = enabled
-	petButton.AutoButtonColor = enabled
-	playButton.AutoButtonColor = enabled
-	petButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
-	playButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
-	if coolingDown then
-		local timer = formatCooldown(remaining)
-		petButton.Text = "🔒 ПОГЛАДИТЬ " .. timer
-		playButton.Text = "🔒 ПОИГРАТЬ " .. timer
-	else
-		petButton.Text = PET_BUTTON_READY_TEXT
-		playButton.Text = PLAY_BUTTON_READY_TEXT
-	end
-end
-
 local bondLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 16, 0.55, 127),
@@ -350,6 +319,37 @@ local playButton = make("TextButton", {
 	AutoButtonColor = true,
 }, interactionRow) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
+
+local PET_BUTTON_READY_TEXT = "♡ ПОГЛАДИТЬ"
+local PLAY_BUTTON_READY_TEXT = "✦ ПОИГРАТЬ"
+local function formatCooldown(seconds: number): string
+	local safeSeconds = math.max(0, math.ceil(seconds))
+	return string.format("%02d:%02d", math.floor(safeSeconds / 60), safeSeconds % 60)
+end
+
+local function applyInteractionCooldown(record: PetRecord?)
+	local remaining = 0
+	if record and type(record.lastInteractionAt) == "number" then
+		local elapsed = Workspace:GetServerTimeNow() - record.lastInteractionAt
+		remaining = math.max(0, PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS - elapsed)
+	end
+	local coolingDown = remaining > 0
+	local enabled = not coolingDown and not busy and record ~= nil
+	petButton.Active = enabled
+	playButton.Active = enabled
+	petButton.AutoButtonColor = enabled
+	playButton.AutoButtonColor = enabled
+	petButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	playButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	if coolingDown then
+		local timer = formatCooldown(remaining)
+		petButton.Text = "🔒 ПОГЛАДИТЬ " .. timer
+		playButton.Text = "🔒 ПОИГРАТЬ " .. timer
+	else
+		petButton.Text = PET_BUTTON_READY_TEXT
+		playButton.Text = PLAY_BUTTON_READY_TEXT
+	end
+end
 
 local equipButton = make("TextButton", {
 	Position = UDim2.new(0, 14, 1, -58),
