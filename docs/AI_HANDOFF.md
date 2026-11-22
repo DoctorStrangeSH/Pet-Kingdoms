@@ -963,3 +963,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Confirmed current starter wallet (2 Wood, 1 Stone) plus one Wood gather and one Stone gather covers the currently coded Pet House cost (5 Wood, 2 Stone).
 - No expansion prices or unlock requirements were invented. Project spec keeps the complete economy and expansion balance open pending explicit approval.
 - No gameplay code or economy values were changed in this audit.
+
+
+## Economy source coverage checks (2026-11-22)
+
+- Extended `IslandResourceNodeDataTests.server.lua` with contract assertions for exactly four canonical starter gathering nodes, the 60-second cooldown, and each node's resource/reward mapping.
+- Reconfirmed there is no quest, reward, or shop service in the current server Services directory. Gold and Gems exist in the wallet schema but no earning source is implemented in the inspected gathering catalog.
+- Updated the economy audit and roadmap to distinguish implemented wallet support from missing income sources. No new currency rates or prices were invented.
+- Studio execution of these tests is still pending.
