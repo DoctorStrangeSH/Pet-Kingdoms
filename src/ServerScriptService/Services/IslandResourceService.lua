@@ -67,6 +67,29 @@ function IslandResourceService.grant(userId: number, resourceId: string, amount:
 	return true, code, balance
 end
 
+function IslandResourceService.grantMany(userId: number, rewards: any): (boolean, string, { [string]: number }?)
+	local profile = IslandSessionService.getProfile(userId)
+	if profile == nil then return false, "SESSION_NOT_READY", nil end
+	if type(rewards) ~= "table" then return false, "INVALID_REWARDS", nil end
+	local before = table.clone(profile.resources)
+	for resourceId, amount in pairs(rewards) do
+		local granted, code = IslandResources.grant(profile.resources, resourceId, amount)
+		if not granted then
+			profile.resources = before
+			return false, code, nil
+		end
+	end
+	if not IslandSessionService.markDirty(userId) then
+		profile.resources = before
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local player = Players:GetPlayerByUserId(userId)
+	if player then
+		resourceUpdate:FireClient(player, snapshot(profile), nil, nil, "GRANTED")
+	end
+	return true, "GRANTED", snapshot(profile)
+end
+
 function IslandResourceService.spend(userId: number, costs: any): (boolean, string, { [string]: number }?)
 	local profile = IslandSessionService.getProfile(userId)
 	if profile == nil then return false, "SESSION_NOT_READY", nil end
