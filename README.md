@@ -59,7 +59,7 @@ See [docs/BUILD_AND_TEST.md](docs/BUILD_AND_TEST.md) for the workflow and testin
 
 ## Current implementation snapshot
 
-The repository contains an initial playable-systems scaffold, including:
+The repository contains an initial playable-systems scaffold and a server-gated island-first join flow, including:
 
 - Server-authoritative pet collection, equip, and companionship Bond interactions.
 - A test-only procedural Bunny blockout, animation controller, and follow behavior (not used as the live collection visual).
@@ -67,7 +67,7 @@ The repository contains an initial playable-systems scaffold, including:
 - Server-authoritative building placement, movement, and demolition prototypes.
 - Kingdom Bond island progression and a starter resource HUD.
 
-**Important:** this is not a production-ready game release. Many systems are prototypes awaiting Roblox Studio verification. The Bunny is not approved production art, the Green Valley biome and complete 20-pet collection are not finished, and live DataStore, multiplayer, mobile, and visual acceptance checks remain outstanding. The authoritative status is always [docs/ROADMAP.md](docs/ROADMAP.md). Successful CI builds also publish a downloadable Studio-ready `.rbxlx` artifact.
+**Important:** this is not a production-ready game release. Many systems are prototypes awaiting Roblox Studio verification. Character creation is now deferred until the personal island is generated, with a localized loading screen; the island itself is still procedural blockout geometry rather than the finished art-directed world. The Bunny is not approved production art, the Green Valley biome and complete 20-pet collection are not finished, and live DataStore, multiplayer, mobile, and visual acceptance checks remain outstanding. The authoritative status is always [docs/ROADMAP.md](docs/ROADMAP.md). Successful CI builds also publish a downloadable Studio-ready `.rbxlx` artifact.
 
 ## Quality rule
 
