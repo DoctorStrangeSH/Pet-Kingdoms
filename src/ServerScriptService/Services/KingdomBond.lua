@@ -9,7 +9,7 @@ KingdomBond.STAGES = {
 	{ id = "quiet", name = "Тихий остров", minimumPoints = 0 },
 	{ id = "cozy", name = "Уютное королевство", minimumPoints = 10 },
 	{ id = "blooming", name = "Цветущее королевство", minimumPoints = 30 },
-	{ id = "thriving", name = "Процветающее королевство", minimumPoints = 60 },
+	{ id = "thriving", name = "Процветающее королевство", minimumPoints = 50 },
 }
 
 function KingdomBond.calculate(profile: any): any
@@ -17,13 +17,17 @@ function KingdomBond.calculate(profile: any): any
 		return nil
 	end
 	local count = 0
+	local seenCatalogIds: { [string]: boolean } = {}
 	for _, record in ipairs(profile.buildings) do
 		if type(record) == "table" and type(record.catalogId) == "string"
 			and record.catalogId ~= "main_house" then
 			count += 1
+			seenCatalogIds[record.catalogId] = true
 		end
 	end
-	local points = count * KingdomBond.POINTS_PER_BUILDING
+	local varietyCount = 0
+	for _ in pairs(seenCatalogIds) do varietyCount += 1 end
+	local points = varietyCount * KingdomBond.POINTS_PER_BUILDING
 	local stage = KingdomBond.STAGES[1]
 	local nextStage = nil
 	for index, candidate in ipairs(KingdomBond.STAGES) do
@@ -37,6 +41,7 @@ function KingdomBond.calculate(profile: any): any
 	return {
 		points = points,
 		buildingCount = count,
+		uniqueBuildingTypes = varietyCount,
 		stageId = stage.id,
 		stageName = stage.name,
 		nextStagePoints = if nextStage then nextStage.minimumPoints else nil,
