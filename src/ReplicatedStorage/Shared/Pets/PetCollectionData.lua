@@ -16,6 +16,7 @@ PetCollectionData.BOND_XP_PER_INTERACTION = 10
 PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS = 30
 PetCollectionData.MAX_REWARD_RECEIPTS = 128
 PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS = 7 * 24 * 60 * 60
+PetCollectionData.MAX_ACQUISITION_RECEIPTS = 128
 
 local VALID_SPECIES: { [string]: boolean } = {
 	bunny = true,
@@ -86,6 +87,41 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	end
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
 		return false, "INVALID_COLLECTIONS"
+	end
+	if profile.acquisitionReceipts ~= nil then
+		if type(profile.acquisitionReceipts) ~= "table" then
+			return false, "INVALID_ACQUISITION_RECEIPTS"
+		end
+		local receiptCount = 0
+		local receiptHighestIndex = 0
+		local seenAcquisitions: { [string]: boolean } = {}
+		for key, receipt in pairs(profile.acquisitionReceipts) do
+			if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
+				return false, "INVALID_ACQUISITION_RECEIPT_LIST"
+			end
+			receiptCount += 1
+			receiptHighestIndex = math.max(receiptHighestIndex, key)
+			if type(receipt) ~= "table"
+				or type(receipt.acquisitionId) ~= "string"
+				or #receipt.acquisitionId < 1
+				or #receipt.acquisitionId > 128
+				or string.match(receipt.acquisitionId, "^[%w][%w:_%-]*$") == nil
+				or seenAcquisitions[receipt.acquisitionId]
+				or type(receipt.petId) ~= "string"
+				or receipt.petId == ""
+				or type(receipt.speciesId) ~= "string"
+				or not VALID_SPECIES[receipt.speciesId]
+				or not isPositiveInteger(receipt.rarityTier)
+				or receipt.rarityTier > 6
+				or not isNonNegativeInteger(receipt.processedAt)
+			then
+				return false, "INVALID_ACQUISITION_RECEIPT"
+			end
+			seenAcquisitions[receipt.acquisitionId] = true
+		end
+		if receiptCount > PetCollectionData.MAX_ACQUISITION_RECEIPTS or receiptHighestIndex ~= receiptCount then
+			return false, "INVALID_ACQUISITION_RECEIPT_COUNT"
+		end
 	end
 	if profile.rewardReceipts ~= nil then
 		if type(profile.rewardReceipts) ~= "table" then
@@ -193,6 +229,10 @@ function PetCollectionData.clone(profile: any): any
 	for index, receipt in ipairs(profile.rewardReceipts or {}) do
 		copy.rewardReceipts[index] = table.clone(receipt)
 	end
+	copy.acquisitionReceipts = {}
+	for index, receipt in ipairs(profile.acquisitionReceipts or {}) do
+		copy.acquisitionReceipts[index] = table.clone(receipt)
+	end
 	for index, record in ipairs(profile.owned) do
 		local clonedRecord = table.clone(record)
 		clonedRecord.level = clonedRecord.level or 1
@@ -266,6 +306,59 @@ function PetCollectionData.addPet(
 	return true, "UPDATED", updated
 end
 
+-- Idempotent acquisition: retries with the same acquisition ID never create a second pet.
+function PetCollectionData.addPetOnce(
+	profile: any,
+	petId: string,
+	speciesId: string,
+	rarityTier: number,
+	now: number,
+	acquisitionId: string
+): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil
+	end
+	if type(acquisitionId) ~= "string" or #acquisitionId < 1 or #acquisitionId > 128
+		or string.match(acquisitionId, "^[%w][%w:_%-]*$") == nil
+	then
+		return false, "INVALID_ACQUISITION_ID", nil
+	end
+	if not isNonNegativeInteger(now) then
+		return false, "INVALID_TIMESTAMP", nil
+	end
+
+	local retainedReceipts = {}
+	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
+		local age = now - receipt.processedAt
+		if age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+			table.insert(retainedReceipts, receipt)
+			if receipt.acquisitionId == acquisitionId then
+				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier then
+					return false, "ACQUISITION_ID_CONFLICT", nil
+				end
+				return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
+			end
+		end
+	end
+	if #retainedReceipts >= PetCollectionData.MAX_ACQUISITION_RECEIPTS then
+		return false, "ACQUISITION_LEDGER_FULL", nil
+	end
+
+	local changed, status, updated = PetCollectionData.addPet(profile, petId, speciesId, rarityTier, now)
+	if not changed or updated == nil then
+		return false, status, nil
+	end
+	table.insert(retainedReceipts, {
+		acquisitionId = acquisitionId,
+		petId = petId,
+		speciesId = speciesId,
+		rarityTier = rarityTier,
+		processedAt = now,
+	})
+	updated.acquisitionReceipts = retainedReceipts
+	return true, "UPDATED", updated
+end
 
 function PetCollectionData.interact(profile: any, petId: string, interactionType: string, now: number): (boolean, string, any?)
 	local valid, reason = validateMutationProfile(profile)
