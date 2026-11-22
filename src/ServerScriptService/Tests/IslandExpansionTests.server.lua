@@ -84,4 +84,20 @@ local negativeResult, negativeCode = IslandExpansion.expandProfile(negativeProfi
 expect("negative saved building coordinates are rejected",
 	negativeResult == nil and negativeCode == "INVALID_BUILDING_RECORD")
 
+local nanProfile = {
+	boundsWidth = 24, boundsDepth = 24, expansionLevel = 0,
+	buildings = {{ instanceId = "bad-nan", catalogId = "main_house", x = 0 / 0, z = 2, rotation = 0 }},
+}
+local nanResult, nanCode = IslandExpansion.expandProfile(nanProfile)
+expect("NaN saved building coordinates are rejected",
+	nanResult == nil and nanCode == "INVALID_BUILDING_RECORD")
+
+local infiniteProfile = {
+	boundsWidth = 24, boundsDepth = 24, expansionLevel = 0,
+	buildings = {{ instanceId = "bad-infinite", catalogId = "main_house", x = math.huge, z = 2, rotation = 0 }},
+}
+local infiniteResult, infiniteCode = IslandExpansion.expandProfile(infiniteProfile)
+expect("infinite saved building coordinates are rejected",
+	infiniteResult == nil and infiniteCode == "INVALID_BUILDING_RECORD")
+
 print("[PetKingdoms Test] IslandExpansion geometry contract tests completed.")
