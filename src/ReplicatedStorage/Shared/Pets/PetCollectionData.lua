@@ -5,6 +5,7 @@ local PetCollectionData = {}
 PetCollectionData.SCHEMA_VERSION = 1
 PetCollectionData.MAX_OWNED_PETS = 100
 PetCollectionData.MAX_EQUIPPED_PETS = 3
+PetCollectionData.MAX_PET_LEVEL = 50
 PetCollectionData.MAX_BOND_LEVEL = 10
 PetCollectionData.BOND_XP_PER_LEVEL = 50
 PetCollectionData.MAX_BOND_XP = (PetCollectionData.MAX_BOND_LEVEL - 1) * PetCollectionData.BOND_XP_PER_LEVEL
@@ -41,6 +42,8 @@ function PetCollectionData.createDefault(userId: number): any?
 				petId = "starter-bunny",
 				speciesId = "bunny",
 				acquiredAt = 0,
+				level = 1,
+				xp = 0,
 				bondXp = 0,
 				bondLevel = 1,
 				lastInteractionAt = 0,
@@ -83,6 +86,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or type(record.speciesId) ~= "string"
 			or not VALID_SPECIES[record.speciesId]
 			or not isNonNegativeInteger(record.acquiredAt)
+			or (record.level ~= nil and (not isPositiveInteger(record.level) or record.level > PetCollectionData.MAX_PET_LEVEL))
+			or (record.xp ~= nil and not isNonNegativeInteger(record.xp))
 			or (record.bondXp ~= nil and (not isNonNegativeInteger(record.bondXp) or record.bondXp > PetCollectionData.MAX_BOND_XP))
 			or (record.bondLevel ~= nil and (not isPositiveInteger(record.bondLevel) or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL))
 			or (record.lastInteractionAt ~= nil and not isNonNegativeInteger(record.lastInteractionAt))
@@ -135,6 +140,8 @@ function PetCollectionData.clone(profile: any): any
 	}
 	for index, record in ipairs(profile.owned) do
 		local clonedRecord = table.clone(record)
+		clonedRecord.level = clonedRecord.level or 1
+		clonedRecord.xp = clonedRecord.xp or 0
 		clonedRecord.bondXp = clonedRecord.bondXp or 0
 		clonedRecord.bondLevel = clonedRecord.bondLevel or 1
 		clonedRecord.lastInteractionAt = clonedRecord.lastInteractionAt or 0
