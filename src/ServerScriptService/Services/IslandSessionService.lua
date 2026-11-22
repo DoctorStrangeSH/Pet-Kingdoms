@@ -239,7 +239,14 @@ function IslandSessionService.commitIslandExpansion(
 		if not saved then task.wait(0.5) end
 	end
 
+	local refreshed, refreshCode = IslandWorldService.refresh(userId, player, session.profile)
 	session.buildingMutationBusy = false
+	if not refreshed then
+		-- The profile revision is already durable. Keep it authoritative; a
+		-- subsequent island reload will render the persisted expanded bounds.
+		warn(string.format("[PetKingdoms] Expansion persisted but live world refresh failed for %d: %s", userId, refreshCode))
+		return true, "PERSISTED_WORLD_REFRESH_PENDING", targetRevision
+	end
 	return true, resultCode, targetRevision
 end
 
