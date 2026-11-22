@@ -4,10 +4,10 @@ local PetCollectionData = {}
 
 PetCollectionData.SCHEMA_VERSION = 1
 PetCollectionData.MAX_OWNED_PETS = 100
-PetCollectionData.MAX_EQUIPPED_PETS = 3,
-	MAX_BOND_LEVEL = 10,
-	BOND_XP_PER_INTERACTION = 10,
-	BOND_INTERACTION_COOLDOWN_SECONDS = 30
+PetCollectionData.MAX_EQUIPPED_PETS = 3
+PetCollectionData.MAX_BOND_LEVEL = 10
+PetCollectionData.BOND_XP_PER_INTERACTION = 10
+PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS = 30
 
 local VALID_SPECIES: { [string]: boolean } = {
 	bunny = true,
