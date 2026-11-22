@@ -23,14 +23,6 @@ local BUILDING_SIZES = {
 	flower_bed = { width = 1, depth = 1 },
 	wooden_fence = { width = 1, depth = 1 },
 }
-local BUILDING_COSTS = {
-	main_house = {},
-	pet_house = { wood = 5, stone = 2 },
-	stone_path = { wood = 1, stone = 1 },
-	garden_lantern = { wood = 2, stone = 1 },
-	flower_bed = { wood = 1 },
-	wooden_fence = { wood = 1 },
-}
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
