@@ -1391,3 +1391,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The reconciliation sweep no longer repeatedly resets visible nodes every 5 seconds: it checks whether the trusted `GatherPrompt` is disabled before restoring.
 - Resource reward timing, the 60-second canonical respawn duration, saved cooldown persistence and visual transparency attributes are unchanged.
 - Rojo packaging does not execute Studio-only tests. Required manual tests: two overlapping timeout revisions, refresh/rejoin mid-cooldown, session read-only transition, and mobile gather/respawn.
+
+## Gathering availability feedback (2026-11-22)
+
+- IslandResourceHUD now displays a compact line beneath the first-wood hint showing available and total wood/stone nodes, plus time until the next respawn. It reads replicated `ResourceNodes` models on the local player's own island once per second and calculates countdown against `Workspace:GetServerTimeNow()`.
+- No new server APIs; clients only observe server-owned `OwnerUserId`, `ResourceId`, and `AvailableAt` attributes. The HUD hides itself before the island is available or after removal; refresh is naturally handled by the next scan.
+- Toast shifted lower to make room. This is an in-code UI feature, not verified in Roblox Studio; test 320/375 px widths, safe-area insets, and whether quest/other overlays obscure it.
