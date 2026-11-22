@@ -354,8 +354,14 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 	if action == "Interact" then
 		if type(payload) ~= "table"
 			or type(payload.petId) ~= "string"
+			or #payload.petId < 1 or #payload.petId > 128
+			or string.match(payload.petId, "^[%w][%w:_%-]*$") == nil
 			or type(payload.interactionType) ~= "string"
 			or type(payload.expectedRevision) ~= "number"
+			or payload.expectedRevision ~= payload.expectedRevision
+			or payload.expectedRevision == math.huge or payload.expectedRevision == -math.huge
+			or payload.expectedRevision < 0
+			or payload.expectedRevision > PetCollectionData.MAX_SAFE_INTEGER
 			or payload.expectedRevision ~= math.floor(payload.expectedRevision)
 		then
 			return false, "INVALID_REQUEST"
