@@ -25,7 +25,15 @@ local function profileFor(userId: number)
 		schemaVersion = 1,
 		boundsWidth = 24,
 		boundsDepth = 24,
-		buildings = {},
+		buildings = {
+			{
+				instanceId = "test-pet-house-" .. tostring(userId),
+				catalogId = "pet_house",
+				x = 10,
+				z = 10,
+				rotation = 0,
+			},
+		},
 		resourceNodes = {},
 	}
 end
@@ -63,6 +71,12 @@ local ok, failure = pcall(function()
 
 	local worldFolder = Workspace:FindFirstChild("PlayerIslands")
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId)), "first world model must exist")
+	local firstWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local petHouse = firstWorld and firstWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(petHouse and petHouse:IsA("Model"), "saved pet house must be rendered")
+	local petHousePrompt = petHouse and petHouse:FindFirstChild("PetHousePrompt", true)
+	assert(petHousePrompt and petHousePrompt:IsA("ProximityPrompt"), "pet house must expose its collection interaction")
+	assert(petHousePrompt.ActionText == "Открыть коллекцию", "pet house prompt must have localized action text")
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(secondUserId)), "second world model must exist")
 
 	IslandWorldService.remove(firstUserId)
