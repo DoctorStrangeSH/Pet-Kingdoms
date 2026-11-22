@@ -762,3 +762,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio client smoke assertions for catch-up run state and extreme-gap recovery.
 - This remains client-side visual positioning for server-owned replicated pet models; ownership/equip and collection mutations remain server-authoritative.
 - Still pending: execute the smoke test in Roblox Studio, validate on uneven terrain/mobile, and review multi-pet formation around obstacles.
+
+
+## Main companion selection (2026-11-22)
+
+- Collection detail now exposes a star control for equipped pets. The first equipped pet is the main companion (FormationSlot 1); choosing another equipped pet moves it to the front while preserving the relative order of the remaining team.
+- Uses the existing server-authoritative Equip remote with expectedRevision; no new mutation endpoint or client-side ownership rule.
+- Main companion selection remains unavailable for pets not currently in the active team.
+- Verify in Studio: switch lead among 1–3 equipped pets, rejoin and confirm order persists, confirm spawned FormationSlot 1 matches the selected lead, and review narrow/mobile layout.
