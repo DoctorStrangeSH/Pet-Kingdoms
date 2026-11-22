@@ -74,6 +74,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		buildings = {},
 		unlockedBuildingIds = {},
 		resources = { wood = 2, stone = 1, gold = 0, gems = 0 },
+		hatchTransactions = {},
 		revision = 0,
 	}
 end
