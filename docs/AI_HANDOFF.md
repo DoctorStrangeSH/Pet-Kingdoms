@@ -471,3 +471,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The client snapshot uses the normalized collection clone, so lock/favorite flags are available to future UI without exposing server-only receipt/reservation ledgers.
 - Added Studio-only pure data tests for protection flags, invalid flags, locked/equipped/starter/last-pet deletion rejection, successful deletion, and capacity release. Tests are committed but not executed in Roblox Studio.
 - Audit fix: `grantPet` now accepts an existing matching reservation returned by `reservePetSlotOnce` and consumes it, rather than incorrectly treating ALREADY_RESERVED as a failed grant.
+
+
+## Pet evolution architecture foundation (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetEvolutionData.lua`. It is deliberately balance-agnostic: it defines no species catalog, evolution outcomes, level gates, costs, currencies, items, or other game rules.
+- Catalog entries have only three required stable identifiers: `evolutionId`, `sourceSpeciesId`, and `targetSpeciesId`.
+- Validation rejects malformed identifiers, duplicate evolution IDs, self-evolution, sparse/oversized catalogs, and directed cycles. Branches and converging paths are supported.
+- `getOptions(catalog, sourceSpeciesId)` returns cloned matching definitions and does not mutate the catalog.
+- Added Studio-only `PetEvolutionDataTests.server.lua` for the catalog contract. Tests are committed but have not been run in Roblox Studio.
+- No production evolution definitions are present; the current owned species registry still contains only `bunny`. Do not invent forms or progression requirements. Persistence, eligibility, and evolution transactions remain NOT DONE until design approves the species/form catalog and rules.
