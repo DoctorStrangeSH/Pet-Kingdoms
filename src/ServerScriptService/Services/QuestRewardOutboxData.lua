@@ -162,8 +162,16 @@ function QuestRewardOutboxData.append(outbox: any, record: any): (any?, string)
 			return nil, "REWARD_ID_CONFLICT"
 		end
 	end
-	if #outbox >= QuestRewardOutboxData.MAX_OUTBOX_ENTRIES then return nil, "OUTBOX_FULL" end
-	local nextOutbox = table.clone(outbox)
+	-- Once the pet-side receipt and this source-side acknowledgement are both
+	-- durable, the outbox copy is no longer needed for recovery. Permanent
+	-- quest claim receipts remain untouched in the separate claims ledger.
+	local nextOutbox = {}
+	for _, existing in ipairs(outbox) do
+		if existing.acknowledgedAt == nil then
+			table.insert(nextOutbox, table.clone(existing))
+		end
+	end
+	if #nextOutbox >= QuestRewardOutboxData.MAX_OUTBOX_ENTRIES then return nil, "OUTBOX_FULL" end
 	table.insert(nextOutbox, table.clone(record))
 	return nextOutbox, "QUEUED"
 end
