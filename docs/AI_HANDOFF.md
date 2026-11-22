@@ -272,3 +272,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `interact`, `setEquipped`, and trusted `grantExperience` reject a mutation when the collection revision cannot be incremented safely (`REVISION_OVERFLOW`).
 - `grantExperience` returns `XP_OVERFLOW` if the resulting XP would exceed safe integer precision; rewards above the bound are rejected as invalid amounts.
 - Added pure Studio test cases for the boundary, unsafe values, XP overflow, and revision overflow in all three mutation paths. Studio execution remains pending.
+
+
+## Pet mutation input validation (2026-11-22)
+
+- Added a shared `validateMutationProfile` guard and call it before any profile field access in `interact`, `setEquipped`, and `grantExperience`.
+- Nil, non-table, malformed, wrong-owner, and otherwise invalid collection profiles now return a structured `INVALID_PROFILE:<reason>` result instead of risking an indexing/runtime error or partially evaluating a mutation.
+- Revision overflow checks still run after profile validation, preserving the distinct `REVISION_OVERFLOW` result for valid profiles at the safe-integer boundary.
+- Added pure Studio test cases for nil and malformed profiles across all mutation paths. Tests are committed but not executed in Roblox Studio.
