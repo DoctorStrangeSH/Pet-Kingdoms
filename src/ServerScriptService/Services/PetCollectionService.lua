@@ -231,6 +231,12 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 			return false, "INVALID_SAVE_RESULT"
 		end
 		state.profile = result
+		local playerFolder = getPlayerPetFolder(player)
+		local petModel = playerFolder:FindFirstChild(payload.petId)
+		if petModel and petModel:IsA("Model") then
+			petModel:SetAttribute("InteractionEmotion", if payload.interactionType == "pet" then "happy" else "curious")
+			petModel:SetAttribute("InteractionSequence", (petModel:GetAttribute("InteractionSequence") or 0) + 1)
+		end
 		return true, cloneForClient(result)
 	end
 
