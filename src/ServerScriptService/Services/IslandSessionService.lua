@@ -402,6 +402,11 @@ saveSession = function(userId: number, session: Session): boolean
 	return false
 end
 
+local function setPlayerLoadState(player: Player, status: string, message: string)
+	player:SetAttribute("PetKingdomsLoadStatus", status)
+	player:SetAttribute("PetKingdomsLoadMessage", message)
+end
+
 local function moveCharacterToIsland(userId: number, character: Model)
 	local arrival = IslandWorldService.getArrivalCFrame(userId)
 	if arrival == nil then
@@ -421,6 +426,10 @@ local function moveCharacterToIsland(userId: number, character: Model)
 		return
 	end
 	character:PivotTo(currentArrival)
+	local player = Players:GetPlayerByUserId(userId)
+	if player and player.Character == character then
+		setPlayerLoadState(player, "Ready", "Остров готов. Приятной игры!")
+	end
 end
 
 local function loadPlayer(player: Player)
@@ -429,10 +438,12 @@ local function loadPlayer(player: Player)
 		return
 	end
 	loading[userId] = true
+	setPlayerLoadState(player, "Loading", "Подключаемся к королевству...")
 
 	local leaseToken = IslandLeaseService.newToken()
 	local leaseAcquired, leaseStatus = IslandLeaseService.acquire(userId, leaseToken)
 	if not leaseAcquired then
+		setPlayerLoadState(player, "Failed", "Не удалось открыть сессию острова.")
 		loading[userId] = nil
 		warn(string.format("[PetKingdoms] Could not acquire island lease for %s: %s", player.Name, leaseStatus))
 		player:Kick("Ваш остров уже загружается на другом сервере. Пожалуйста, попробуйте позже.")
@@ -446,8 +457,10 @@ local function loadPlayer(player: Player)
 		end
 	end
 
+	setPlayerLoadState(player, "Loading", "Загружаем сохранение...")
 	local ok, profile, status = IslandStore.load(userId)
 	if not ok then
+		setPlayerLoadState(player, "Failed", "Не удалось загрузить сохранение.")
 		loading[userId] = nil
 		releaseLoadingLease()
 		warn(string.format("[PetKingdoms] Refusing island session for %s: %s", player.Name, status))
@@ -456,6 +469,7 @@ local function loadPlayer(player: Player)
 	end
 
 	if status == "NOT_FOUND" then
+		setPlayerLoadState(player, "Loading", "Создаём твоё королевство...")
 		local width, depth = getConfiguredBounds()
 		if width == nil or depth == nil then
 			loading[userId] = nil
@@ -477,8 +491,10 @@ local function loadPlayer(player: Player)
 
 	-- Claim a monotonically increasing generation in the same DataStore key.
 	-- Every later save must present this exact generation inside UpdateAsync.
+	setPlayerLoadState(player, "Loading", "Подготавливаем сохранение...")
 	local claimed, claimedProfile, claimCode = IslandStore.claimSession(profile)
 	if not claimed then
+		setPlayerLoadState(player, "Failed", "Не удалось открыть сохранение.")
 		loading[userId] = nil
 		releaseLoadingLease()
 		warn(string.format("[PetKingdoms] Could not claim DataStore session for %s: %s", player.Name, claimCode))
@@ -493,8 +509,10 @@ local function loadPlayer(player: Player)
 		return
 	end
 
+	setPlayerLoadState(player, "Loading", "Строим твой остров...")
 	local worldSpawned, worldStatus = IslandWorldService.spawn(player, profile)
 	if not worldSpawned then
+		setPlayerLoadState(player, "Failed", "Не удалось создать остров.")
 		loading[userId] = nil
 		releaseLoadingLease()
 		warn(string.format("[PetKingdoms] Could not spawn island for %s: %s", player.Name, worldStatus))
@@ -525,9 +543,22 @@ local function loadPlayer(player: Player)
 	}
 	loading[userId] = nil
 
-	if player.Character then
-		task.spawn(moveCharacterToIsland, userId, player.Character)
+	-- CharacterAutoLoads is disabled by the server bootstrap. Create the
+	-- character only after the profile, lease, and island world are ready.
+	setPlayerLoadState(player, "Loading", "Готовим персонажа...")
+	local characterLoaded, characterError = pcall(function()
+		player:LoadCharacterAsync()
+	end)
+	if not characterLoaded then
+		warn(string.format("[PetKingdoms] Character load failed for %d: %s", userId, tostring(characterError)))
+		setPlayerLoadState(player, "Failed", "Не удалось создать персонажа.")
+		player:Kick("Не удалось подготовить персонажа. Пожалуйста, войдите снова.")
+		return
 	end
+	if player.Parent == Players and sessions[userId] ~= nil and player.Character then
+		moveCharacterToIsland(userId, player.Character)
+	end
+
 	task.spawn(function()
 		while sessions[userId] ~= nil and not shuttingDown do
 			task.wait(IslandLeaseService.RENEWAL_WINDOW_SECONDS)
