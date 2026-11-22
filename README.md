@@ -56,7 +56,7 @@ See [docs/BUILD_AND_TEST.md](docs/BUILD_AND_TEST.md) for the workflow and testin
 The repository contains an initial playable-systems scaffold, including:
 
 - Server-authoritative pet collection, equip, and companionship Bond interactions.
-- A procedural Bunny companion prototype, animation states, and follow behavior.
+- A test-only procedural Bunny blockout, animation controller, and follow behavior (not used as the live collection visual).
 - Persistent personal-island profile and resource systems.
 - Server-authoritative building placement, movement, and demolition prototypes.
 - Kingdom Bond island progression and a starter resource HUD.
