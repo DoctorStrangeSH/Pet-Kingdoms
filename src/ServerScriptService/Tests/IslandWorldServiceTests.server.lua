@@ -120,6 +120,8 @@ local ok, failure = pcall(function()
 	assert(originalWorld.Parent == nil, "successful refresh must replace the previous world model")
 	assert(expandedWorld and expandedWorld:GetAttribute("GridWidth") == 32 and expandedWorld:GetAttribute("GridDepth") == 32,
 		"expanded world must expose persisted 32x32 bounds")
+	assert(expandedWorld and expandedWorld.Name == "Island_" .. tostring(firstUserId),
+		"refreshed island must preserve its stable player-island model name")
 	local expandedGrass = expandedWorld and expandedWorld:FindFirstChild("Island_GrassTop")
 	assert(expandedGrass and expandedGrass:IsA("BasePart")
 		and expandedGrass.Size.X == 256 and expandedGrass.Size.Z == 256,
@@ -144,6 +146,8 @@ local ok, failure = pcall(function()
 	assert(previousExpandedWorld and previousExpandedWorld.Parent == nil, "maximum refresh must replace the previous world model")
 	assert(maxExpandedWorld and maxExpandedWorld:GetAttribute("GridWidth") == 40 and maxExpandedWorld:GetAttribute("GridDepth") == 40,
 		"maximum expanded world must expose 40x40 bounds")
+	assert(maxExpandedWorld and maxExpandedWorld.Name == "Island_" .. tostring(firstUserId),
+		"repeated refreshes must not append suffixes to the island model name")
 	local maxExpandedGrass = maxExpandedWorld and maxExpandedWorld:FindFirstChild("Island_GrassTop")
 	assert(maxExpandedGrass and maxExpandedGrass:IsA("BasePart")
 		and maxExpandedGrass.Size.X == 320 and maxExpandedGrass.Size.Z == 320,
