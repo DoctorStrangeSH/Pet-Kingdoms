@@ -324,6 +324,22 @@ function IslandSessionService.commitQuestRewardDelivery(
 		os.time()
 	)
 	if nextOutbox == nil then
+		if status == "ALREADY_DELIVERED" then
+			local targetRevision = session.profile.revision
+			local deadline = os.clock() + 30
+			while session.persistedRevision < targetRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					session.gatheringMutationBusy = false
+					return false, "SESSION_NOT_WRITABLE", targetRevision
+				end
+				if os.clock() >= deadline then
+					session.gatheringMutationBusy = false
+					return false, "PERSIST_PENDING", targetRevision
+				end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
 		session.gatheringMutationBusy = false
 		return status == "ALREADY_DELIVERED", status, session.profile.revision
 	end
@@ -375,6 +391,22 @@ function IslandSessionService.commitQuestRewardAcknowledgement(
 		os.time()
 	)
 	if nextOutbox == nil then
+		if status == "ALREADY_ACKNOWLEDGED" then
+			local targetRevision = session.profile.revision
+			local deadline = os.clock() + 30
+			while session.persistedRevision < targetRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					session.gatheringMutationBusy = false
+					return false, "SESSION_NOT_WRITABLE", targetRevision
+				end
+				if os.clock() >= deadline then
+					session.gatheringMutationBusy = false
+					return false, "PERSIST_PENDING", targetRevision
+				end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
 		session.gatheringMutationBusy = false
 		return status == "ALREADY_ACKNOWLEDGED", status, session.profile.revision
 	end
