@@ -520,3 +520,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added tests for duplicate receipt pet IDs under different acquisition IDs and for a live owned record whose rarity no longer matches its receipt.
 - Compatibility caution: this tightens validation for persisted profiles. Before rollout, run the Studio suite against representative existing profiles and confirm no legitimate migration path changes species/rarity without updating the original acquisition receipt. Evolution should preserve species history rather than rewrite the acquisition receipt.
 - Tests are committed but not executed in Roblox Studio.
+
+
+## Island shutdown persistence fencing (2026-11-22)
+
+- Fixed a shutdown ordering issue in `IslandSessionService`: `BindToClose` previously attempted to release the island lease even when the final `IslandStore.save` failed.
+- The lease is now released only after `saveSession` confirms the final snapshot persisted. On failure, the server logs the condition and leaves the lease to expire naturally, preventing an immediate new server from loading the stale persisted snapshot while the previous server is shutting down.
+- This trades a temporary rejoin delay (bounded by the lease TTL) for safer persistence ordering. Studio/DataStore fault-injection and immediate-rejoin behavior remain unverified.
