@@ -39,6 +39,7 @@ function IslandBuildingJournalData.validateLedger(ledger: any): (boolean, string
 			or #entry.fingerprint > MAX_FINGERPRINT_LENGTH
 			or (entry.action ~= "place" and entry.action ~= "move" and entry.action ~= "demolish")
 			or not isInteger(entry.createdAt) or entry.createdAt < 0
+			or not isInteger(entry.revision) or entry.revision < 1
 			or type(entry.result) ~= "table"
 			or entry.result.ok ~= true
 		then
@@ -55,12 +56,14 @@ function IslandBuildingJournalData.find(
 	ledger: any,
 	requestId: string,
 	fingerprint: string,
-	now: number
+	now: number,
+	persistedRevision: number
 ): (any?, string)
 	local valid = IslandBuildingJournalData.validateLedger(ledger)
 	if not valid then return nil, "INVALID_LEDGER" end
 	for _, entry in ipairs(ledger) do
 		if entry.requestId == requestId then
+			if entry.revision > persistedRevision then return nil, "IN_PROGRESS" end
 			if now - entry.createdAt > RETENTION_SECONDS then
 				return nil, "EXPIRED"
 			end
@@ -79,7 +82,8 @@ function IslandBuildingJournalData.append(
 	fingerprint: string,
 	action: string,
 	result: any,
-	now: number
+	now: number,
+	revision: number
 ): ({ any }?, string)
 	local valid = IslandBuildingJournalData.validateLedger(ledger)
 	if not valid then return nil, "INVALID_LEDGER" end
@@ -88,6 +92,7 @@ function IslandBuildingJournalData.append(
 		or (action ~= "place" and action ~= "move" and action ~= "demolish")
 		or type(result) ~= "table" or result.ok ~= true
 		or not isInteger(now) or now < 0
+		or not isInteger(revision) or revision < 1
 	then
 		return nil, "INVALID_RECEIPT"
 	end
@@ -109,6 +114,7 @@ function IslandBuildingJournalData.append(
 		fingerprint = fingerprint,
 		action = action,
 		createdAt = now,
+		revision = revision,
 		result = cloneResult(result),
 	})
 	return nextLedger, "RECORDED"
