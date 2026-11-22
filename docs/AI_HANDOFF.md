@@ -689,3 +689,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - No new placement path or authority bypass: item selection, client preview, server catalog pricing, validation, persistence and rollback remain as before.
 - Expanded `IslandWorldServiceTests.server.lua` to render both Main House and Pet House and assert each localized prompt exists.
 - Studio execution and actual PC/gamepad/mobile interaction remain pending.
+
+
+## Kingdom overview panel (2026-11-22)
+
+- Changed the owned Main House prompt from immediately entering placement mode to opening a compact Kingdom Overview panel.
+- Panel reads the island model's server-authored attributes: Kingdom Bond stage/name/points, next stage threshold, and placed building count. It refreshes while open when those attributes change.
+- Displays stage progress, remaining points, building count, and a clear button into the existing construction flow.
+- Closing the panel does not alter island state. The build button calls the same existing `beginPlacing()` client preview flow; all actual placement still goes through server validation, server-owned catalog costs, persistence and rollback.
+- Added touch-friendly close/shade and a centered responsive panel; Studio visual/device verification is pending.
