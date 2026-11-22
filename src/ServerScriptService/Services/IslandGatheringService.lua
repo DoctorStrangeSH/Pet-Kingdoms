@@ -39,9 +39,8 @@ local function scheduleRespawn(node: Model, availableAt: number)
 			return
 		end
 		local ownerUserId = node:GetAttribute("OwnerUserId")
-		if type(ownerUserId) ~= "number"
-			or not IslandSessionService.canWrite(ownerUserId, Players:GetPlayerByUserId(ownerUserId) :: Player)
-		then
+		local ownerPlayer = if type(ownerUserId) == "number" then Players:GetPlayerByUserId(ownerUserId) else nil
+		if ownerPlayer == nil or not IslandSessionService.canWrite(ownerUserId, ownerPlayer) then
 			activeNodes[node] = nil
 			return
 		end
@@ -154,7 +153,7 @@ function IslandGatheringService.start()
 							setNodeVisible(child, false)
 							scheduleRespawn(child, availableAt)
 						end
-					elseif activeNodes[child] then
+					else
 						setNodeVisible(child, true)
 						activeNodes[child] = nil
 					end
