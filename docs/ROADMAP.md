@@ -186,3 +186,16 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [ ] Add Studio integration/fault-injection tests for interruption after PREPARED, after CHARGED, after pet collection commit, and before GRANTED acknowledgement.
 - [ ] Add a capacity reservation/overflow policy before enabling paid hatching. A CHARGED transaction must remain pending rather than discard the pet if collection capacity is unavailable.
 - [ ] Add player-facing hatch endpoint only after approved egg catalog/economy configuration and integration verification.
+
+
+### Pet collection capacity reservations
+
+- [x] Add persisted `reservedAcquisitions` to the pet collection profile. Validation enforces unique acquisition IDs, approved species/rarity, valid timestamps, and `owned + reserved <= MAX_OWNED_PETS`.
+- [x] Add idempotent `reservePetSlotOnce` and server API `PetCollectionService.reservePetSlot`. A slot is reserved with the same acquisition ID before an island hatch transaction is charged.
+- [x] Update ordinary `addPet` so non-hatch rewards cannot consume capacity already reserved for a pending hatch.
+- [x] Update `grantPet` to reserve and consume capacity in one collection DataStore UpdateAsync mutation when no prior reservation exists; existing reservations are consumed by the matching acquisition.
+- [x] Update join recovery to reserve collection capacity before resuming PREPARED charge or CHARGED grant. A full collection therefore blocks charging and leaves the transaction pending.
+- [x] Add data tests for reservation idempotency, capacity exhaustion, protection against ordinary rewards, reservation consumption, and acquisition retry.
+- [ ] Run Studio tests and DataStore fault-injection tests; validate simultaneous reserve attempts under concurrent UpdateAsync callbacks.
+- [ ] Define reservation expiry/cancellation policy for abandoned transactions. Do not automatically expire a reservation while its island journal is PREPARED or CHARGED.
+- [ ] Add user-facing overflow/inbox/collection management policy before shipping hatch purchases.
