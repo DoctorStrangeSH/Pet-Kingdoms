@@ -1044,3 +1044,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - These are data/persistence primitives only. There is still no quest claim transaction, client claim remote, XP delivery worker, or live reward configuration.
 - Do not invent reward amounts, XP progression version, or which pet receives quest XP. These decisions remain open in docs/PROJECT_SPEC.md and QUEST_REWARDS_TRANSACTION_DESIGN.md.
 - Next: inspect/implement the server-side durable claim transaction using an approved server-owned reward catalog; then add a recovery worker that delivers the exact stable reward ID, persists island delivery acknowledgement, and only then calls PetCollectionService.acknowledgeExperienceReward. Execute Studio/DataStore fault-injection tests before enabling claims.
+
+
+## Quest outbox CI verification (2026-11-22)
+
+- GitHub Actions run 45039287808 (PR #1, commit 9d287477722727f8c9bb33bbcd50d204b7f1de70) completed successfully: pinned Rojo setup, project build, and Studio-ready artifact upload all PASS.
+- Artifact: pet-kingdoms-studio-build (artifact ID 14760529099), available until 2026-12-06 15:37 UTC.
+- CI validates Rojo packaging only. The new Studio-only Lua tests and live DataStore recovery scenarios have not been executed.
