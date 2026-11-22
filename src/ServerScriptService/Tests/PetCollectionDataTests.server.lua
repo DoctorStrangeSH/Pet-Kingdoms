@@ -75,6 +75,35 @@ expect("legacy pet progression defaults safely", normalizedProgression.owned[1].
 local wrongOwner, ownerStatus = PetCollectionData.validate(profile, 54321)
 expect("wrong owner rejected", not wrongOwner and ownerStatus == "OWNER_MISMATCH")
 
+local unsafePetXp = PetCollectionData.clone(profile)
+unsafePetXp.owned[1].xp = PetCollectionData.MAX_SAFE_INTEGER + 1
+local unsafePetXpValid = PetCollectionData.validate(unsafePetXp, 12345)
+expect("unsafe integer pet XP is rejected", not unsafePetXpValid)
+
+local maxSafePetXp = PetCollectionData.clone(profile)
+maxSafePetXp.owned[1].xp = PetCollectionData.MAX_SAFE_INTEGER
+local maxSafePetXpValid = PetCollectionData.validate(maxSafePetXp, 12345)
+expect("maximum safe integer pet XP is accepted", maxSafePetXpValid)
+
+local overflowingPetXp = PetCollectionData.clone(profile)
+overflowingPetXp.owned[1].xp = PetCollectionData.MAX_SAFE_INTEGER - 10
+local overflowReward, overflowRewardStatus = PetCollectionData.grantExperience(overflowingPetXp, "starter-bunny", 20)
+expect("pet XP reward cannot exceed safe integer precision", not overflowReward and overflowRewardStatus == "XP_OVERFLOW")
+
+local unsafeReward, unsafeRewardStatus = PetCollectionData.grantExperience(profile, "starter-bunny", PetCollectionData.MAX_SAFE_INTEGER + 1)
+expect("unsafe integer XP reward is rejected", not unsafeReward and unsafeRewardStatus == "INVALID_XP_AMOUNT")
+
+local maxRevision = PetCollectionData.clone(profile)
+maxRevision.revision = PetCollectionData.MAX_SAFE_INTEGER
+local maxRevisionValid = PetCollectionData.validate(maxRevision, 12345)
+expect("maximum safe revision is accepted", maxRevisionValid)
+local revisionInteract, revisionInteractStatus = PetCollectionData.interact(maxRevision, "starter-bunny", "pet", 1000)
+expect("interaction cannot overflow collection revision", not revisionInteract and revisionInteractStatus == "REVISION_OVERFLOW")
+local revisionEquip, revisionEquipStatus = PetCollectionData.setEquipped(maxRevision, { "starter-bunny" })
+expect("equip cannot overflow collection revision", not revisionEquip and revisionEquipStatus == "REVISION_OVERFLOW")
+local revisionReward, revisionRewardStatus = PetCollectionData.grantExperience(maxRevision, "starter-bunny", 1)
+expect("XP reward cannot overflow collection revision", not revisionReward and revisionRewardStatus == "REVISION_OVERFLOW")
+
 local xpGranted, xpStatus, xpProfile = PetCollectionData.grantExperience(profile, "starter-bunny", 25)
 expect("server reward grants pet XP", xpGranted and xpStatus == "UPDATED" and xpProfile ~= nil)
 assert(xpProfile ~= nil)
