@@ -899,3 +899,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Validates expectedLevel and configured base bounds, prepares one canonical next profile, increments the profile revision, and waits for DataStore persistence before returning EXPANDED.
 - A retry using the same expectedLevel after the in-memory transition returns ALREADY_APPLIED only after the resulting revision is durable; a stale or skipped expected level returns EXPANSION_LEVEL_CONFLICT.
 - This is a server service primitive only: no RemoteEvent/client endpoint, resource cost, wallet debit, durable request receipt, or live IslandWorldService respawn has been wired. Studio and DataStore fault-injection tests remain pending.
+
+
+## Live island refresh after expansion (2026-11-22)
+
+- Added IslandWorldService.refresh(userId, player, profile). It validates the canonical profile and existing world/spawn ownership, builds a complete replacement world at the same assigned spawn point, and only swaps/destroys the old world after successful generation.
+- IslandSessionService.commitIslandExpansion now calls refresh only after the target profile revision is confirmed durable. If rendering fails after persistence, the operation reports durable success with PERSISTED_WORLD_REFRESH_PENDING and leaves the saved profile authoritative for next load.
+- Updated IslandWorldService Studio integration tests to refresh the active world from 24x24 to 32x32 and then 40x40 without removing/reallocating the island. Tests assert the old model is replaced and existing building world positions remain stable.
+- No client RemoteFunction or purchase endpoint is exposed yet; the economy is not approved, so no free expansion can be triggered by clients. Studio runtime tests remain pending.
