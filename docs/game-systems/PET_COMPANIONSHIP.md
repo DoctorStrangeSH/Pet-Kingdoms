@@ -113,3 +113,7 @@ No food/inventory action is added because an approved food catalogue and resourc
 - If navigation is pending or fails, the companion waits instead of walking through an obstacle. When the direct lane clears, path resources are released.
 - This is a client-side cosmetic movement system. It does not grant the pet gameplay authority or change server-owned island interactions.
 - Studio verification is still required for generated navmesh coverage, narrow paths, stairs, cliffs, streaming, multiplayer presentation, and mobile performance.
+
+## Companion navigation safety follow-up (2026-11-22)
+
+The obstruction raycast helper now has its horizontal-vector dependency declared in lexical scope before use. Recovery from a distant owner is calculated against the actual formation target, not the current path waypoint; teleporting clears pending routes and increments their generation to discard stale asynchronous results. Studio tests cover this interrupted-navigation case, but real obstacle, stairs and mobile traversal remain unverified.
