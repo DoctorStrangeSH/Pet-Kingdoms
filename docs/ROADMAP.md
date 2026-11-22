@@ -597,3 +597,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Apply viewport-aware construction panel sizing and compact action buttons.
 - [ ] Verify construction workflow, collection/building handoff, and 375 px/touch layouts in Roblox Studio.
 - [ ] Continue with gathering onboarding/interaction feedback, pet world presence, and per-action cooldown feedback.
+
+
+### Pet interaction cooldown feedback (2026-11-22)
+
+- [x] Show a lock and live MM:SS countdown on both interaction buttons while the server-owned per-pet cooldown is active.
+- [x] Use the saved lastInteractionAt timestamp and synchronized server time for presentation; server remains authoritative for acceptance.
+- [x] Restore normal button labels and enabled state automatically when cooldown reaches zero.
+- [x] Keep the same cooldown rule for pet/play because the data contract currently defines one shared per-pet interaction cooldown.
+- [ ] Verify timer synchronization and button behavior in Roblox Studio, including selection changes and rapid interaction attempts.
