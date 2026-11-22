@@ -45,6 +45,27 @@ for slot = 1, 3 do
 	expect("pet remains in test world for slot " .. tostring(slot), pet.Parent == folder)
 end
 
+-- Imported meshes often use a center pivot and must be lifted by half their height.
+local externalPet = Instance.new("Model")
+externalPet.Name = "ExternalMeshPivotTest"
+externalPet:SetAttribute("SpeciesId", "bunny")
+externalPet:SetAttribute("IsExternalMeshPet", true)
+local externalMesh = Instance.new("Part")
+externalMesh.Name = "MeshBounds"
+externalMesh.Anchored = true
+externalMesh.CanCollide = false
+externalMesh.Size = Vector3.new(2, 4, 2)
+externalMesh.Position = Vector3.new(12, 10, 0)
+externalMesh.Parent = externalPet
+externalPet.PrimaryPart = externalMesh
+externalPet.Parent = folder
+local externalController, externalStatus = CompanionFollowController.new(externalPet, target, { slotIndex = 3 })
+expect("external mesh with center pivot can follow", externalController ~= nil and externalStatus == "CREATED")
+assert(externalController ~= nil)
+expect("ground lift follows actual imported mesh bounds", math.abs(externalController.groundLift - 2) < 0.05)
+externalController:destroy()
+externalPet:Destroy()
+
 local firstPosition = pets[1]:GetPivot().Position
 local secondPosition = pets[2]:GetPivot().Position
 expect("formation slots produce distinct pet positions", (firstPosition - secondPosition).Magnitude > 0.5)
