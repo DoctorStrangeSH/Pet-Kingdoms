@@ -732,7 +732,8 @@ function PetCollectionService.grantPet(
 	player: Player,
 	speciesId: string,
 	rarityTier: number,
-	acquisitionId: string
+	acquisitionId: string,
+	transactionId: string?
 ): (boolean, string, any?)
 	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
 		return false, "INVALID_PLAYER", nil
@@ -767,7 +768,7 @@ function PetCollectionService.grantPet(
 			return current
 		end
 		local changed, status, nextProfile =
-			PetCollectionData.addPetOnce(reservedProfile, petId, speciesId, rarityTier, acquiredAt, acquisitionId)
+			PetCollectionData.addPetOnce(reservedProfile, petId, speciesId, rarityTier, acquiredAt, acquisitionId, transactionId)
 		mutationStatus = status
 		if not changed then
 			return current
@@ -796,6 +797,48 @@ function PetCollectionService.grantPet(
 	end
 	syncProfileIfNewer(state, result)
 	return true, "UPDATED", cloneForClient(state.profile)
+end
+
+-- Called only after the corresponding island hatch journal is durably GRANTED.
+-- The receipt remains permanent while the transaction is PREPARED/CHARGED;
+-- after this acknowledgement it may be compacted after the journal retention window.
+function PetCollectionService.acknowledgeAcquisition(
+	player: Player,
+	acquisitionId: string,
+	transactionId: string
+): (boolean, string)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false, "INVALID_PLAYER"
+	end
+	local state = collections[player.UserId]
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
+		return false, "COLLECTION_NOT_READY"
+	end
+
+	local mutationStatus = "NOT_UPDATED"
+	local now = os.time()
+	local ok, result = updateWithRetry(player.UserId, function(current)
+		if type(current) ~= "table" then
+			mutationStatus = "PROFILE_MISSING"
+			return current
+		end
+		local changed, status, updated = PetCollectionData.acknowledgeAcquisition(
+			current, acquisitionId, transactionId, now
+		)
+		mutationStatus = status
+		if changed then return updated end
+		return current
+	end)
+	if not ok then return false, "DATASTORE_UNAVAILABLE" end
+	if mutationStatus == "ALREADY_ACKNOWLEDGED" then return true, mutationStatus end
+	if mutationStatus ~= "ACKNOWLEDGED" or type(result) ~= "table" then
+		return false, mutationStatus
+	end
+	local valid, reason = PetCollectionData.validate(result, player.UserId)
+	if not valid then return false, "INVALID_SAVE_RESULT:" .. reason end
+	syncProfileIfNewer(state, result)
+	return true, "ACKNOWLEDGED"
 end
 
 function PetCollectionService.start()
