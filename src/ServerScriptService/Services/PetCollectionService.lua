@@ -190,7 +190,8 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 			return false, "STALE_REVISION"
 		end
 		local nowClock = os.clock()
-		if nowClock - (interactionRequestTimes[player.UserId] or 0) < 1 then
+		local previousRequestAt = interactionRequestTimes[player.UserId]
+		if previousRequestAt ~= nil and nowClock - previousRequestAt < 1 then
 			return false, "REQUEST_RATE_LIMITED"
 		end
 		interactionRequestTimes[player.UserId] = nowClock
