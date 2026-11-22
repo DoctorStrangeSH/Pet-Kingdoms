@@ -61,3 +61,9 @@ No food/inventory action is added because an approved food catalogue and resourc
 - `PetCollectionService.grantExperience(player, petId, amount)` is the trusted server-only persistence entry point. It writes through DataStore `UpdateAsync` and is not exposed through a client remote.
 - Combat, quest, and interaction systems may call this API only after validating their gameplay event on the server. The current collection UI does not directly award ordinary Pet XP.
 - Reward values, level thresholds, level-up math, source callers, and replay/idempotency policy remain undefined; no balance values are assumed here.
+
+
+## Pet collection concurrency safeguard
+
+- Mutation results are synchronized into the in-memory profile only when their revision is not older than the current snapshot. This prevents delayed DataStore responses from regressing the live profile after a newer concurrent mutation has already completed.
+- Verify concurrent Equip, Interact, and server XP reward calls in Studio; persisted DataStore ordering and live in-memory ordering both need integration coverage.
