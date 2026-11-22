@@ -553,3 +553,6 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Display each pet's persisted level and lifetime XP in the collection details panel without inventing a next-level requirement.
 - [ ] Execute progression/catalog/collection contract tests and inspect the collection panel at desktop and mobile sizes in Roblox Studio.
 - [ ] Approve the production 50-level XP curve before enabling quest XP delivery.
+
+
+- [x] Verify pet progression catalog hardening and contract-test packaging in GitHub Actions run #173; Rojo build and Studio artifact upload PASS. Studio test execution remains pending.
