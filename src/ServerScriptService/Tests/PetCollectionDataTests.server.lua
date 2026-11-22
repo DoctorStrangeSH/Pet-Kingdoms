@@ -550,4 +550,59 @@ local conflictReservation, conflictReservationStatus = PetCollectionData.reserve
 )
 expect("reservation cannot be reused for different rarity", not conflictReservation and conflictReservationStatus == "RESERVATION_CONFLICT")
 
+local inventoryProfile = PetCollectionData.clone(profile)
+local petAdded, petAddedStatus, withSecondPet = PetCollectionData.addPet(
+	inventoryProfile, "inventory-test-pet", "bunny", 2, 200
+)
+expect("inventory test pet can be added", petAdded and petAddedStatus == "UPDATED" and withSecondPet ~= nil)
+assert(withSecondPet ~= nil)
+
+local protected, protectedStatus, protectedProfile = PetCollectionData.setPetFlags(
+	withSecondPet, "inventory-test-pet", true, true
+)
+expect("pet can be locked and favorited", protected and protectedStatus == "UPDATED" and protectedProfile ~= nil)
+assert(protectedProfile ~= nil)
+expect("lock and favorite flags persist", protectedProfile.owned[2].isLocked and protectedProfile.owned[2].isFavorite)
+
+local lockedRemoval, lockedRemovalStatus = PetCollectionData.removePet(protectedProfile, "inventory-test-pet")
+expect("locked pet cannot be removed", not lockedRemoval and lockedRemovalStatus == "PET_LOCKED")
+
+local starterRemoval, starterRemovalStatus = PetCollectionData.removePet(withSecondPet, "starter-bunny")
+expect("starter pet cannot be permanently removed", not starterRemoval and starterRemovalStatus == "STARTER_PET_PROTECTED")
+
+local unlocked, unlockedStatus, unlockedProfile = PetCollectionData.setPetFlags(
+	protectedProfile, "inventory-test-pet", false, true
+)
+expect("pet can be unlocked while remaining favorite", unlocked and unlockedStatus == "UPDATED" and unlockedProfile ~= nil)
+assert(unlockedProfile ~= nil)
+
+local equippedCandidate, equippedCandidateStatus, equippedProfile = PetCollectionData.setEquipped(
+	unlockedProfile, { "starter-bunny", "inventory-test-pet" }
+)
+expect("pet can be equipped for deletion protection test", equippedCandidate and equippedCandidateStatus == "UPDATED" and equippedProfile ~= nil)
+assert(equippedProfile ~= nil)
+
+local equippedRemoval, equippedRemovalStatus = PetCollectionData.removePet(equippedProfile, "inventory-test-pet")
+expect("equipped pet cannot be removed", not equippedRemoval and equippedRemovalStatus == "PET_EQUIPPED")
+
+local unequipped, unequippedStatus, unequippedProfile = PetCollectionData.setEquipped(
+	equippedProfile, { "starter-bunny" }
+)
+expect("pet can be unequipped before deletion", unequipped and unequippedStatus == "UPDATED" and unequippedProfile ~= nil)
+assert(unequippedProfile ~= nil)
+
+local removed, removedStatus, removedProfile = PetCollectionData.removePet(unequippedProfile, "inventory-test-pet")
+expect("unlocked unequipped pet can be removed", removed and removedStatus == "REMOVED" and removedProfile ~= nil)
+assert(removedProfile ~= nil)
+expect("deletion frees one collection slot", #removedProfile.owned == 1)
+expect("deletion does not disturb equipped starter", #removedProfile.equipped == 1 and removedProfile.equipped[1] == "starter-bunny")
+
+local lastRemoval, lastRemovalStatus = PetCollectionData.removePet(profile, "starter-bunny")
+expect("last owned pet cannot be removed", not lastRemoval and lastRemovalStatus == "STARTER_PET_PROTECTED")
+
+local invalidFlags, invalidFlagsStatus = PetCollectionData.setPetFlags(
+	withSecondPet, "inventory-test-pet", 1 :: any, false
+)
+expect("non-boolean protection flags are rejected", not invalidFlags and invalidFlagsStatus == "INVALID_PET_FLAGS")
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
