@@ -20,6 +20,7 @@ local IslandWorldService = {}
 local SPAWN_FOLDER_NAME = "IslandSpawnPoints"
 local WORLD_FOLDER_NAME = "PlayerIslands"
 local BUILDING_FOLDER_NAME = "BuildingModels"
+local RESOURCE_FOLDER_NAME = "ResourceNodeModels"
 local ROCK_COLOR = Color3.fromRGB(105, 105, 111)
 local GRASS_COLOR = Color3.fromRGB(103, 166, 91)
 local DIRT_COLOR = Color3.fromRGB(119, 83, 58)
@@ -296,6 +297,37 @@ local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
 	return createFallbackBuilding(catalogId, cellSize)
 end
 
+-- Resource art is optional and independent of the trusted gathering rules.
+-- Templates are project-reviewed Models under ServerStorage/ResourceNodeModels.
+-- Strip script descendants so a visual-only asset cannot execute code.
+local function getResourceTemplate(resourceId: string, base: CFrame): Model?
+	local templates = ServerStorage:FindFirstChild(RESOURCE_FOLDER_NAME)
+	local source = templates and templates:FindFirstChild(resourceId)
+	if source == nil or not source:IsA("Model") then return nil end
+	local model = source:Clone()
+	local foundPart = false
+	for _, child in ipairs(model:GetDescendants()) do
+		if child:IsA("LuaSourceContainer") then
+			child:Destroy()
+		elseif child:IsA("ProximityPrompt") or child:IsA("BillboardGui") then
+			child:Destroy()
+		elseif child:IsA("BasePart") then
+			foundPart = true
+			child.Anchored = true
+			child.CanCollide = false
+			child.CanTouch = false
+		end
+	end
+	if not foundPart then
+		model:Destroy()
+		warn("[PetKingdoms] Resource template contains no parts:", resourceId)
+		return nil
+	end
+	model:PivotTo(base)
+	model:SetAttribute("IsCustomResourceVisual", true)
+	return model
+end
+
 local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
 	local folder = Instance.new("Folder")
 	folder.Name = "ResourceNodes"
@@ -317,22 +349,34 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 		local offsetX = definition.sideX * halfWidth
 		local offsetZ = definition.sideZ * halfDepth
 		local base = spawnCFrame * CFrame.new(offsetX * cellSize, 0, offsetZ * cellSize)
-		if definition.resourceId == "wood" then
-			local trunk = makePart(node, "Trunk", Vector3.new(cellSize * 0.22, cellSize * 1.1, cellSize * 0.22),
-				base * CFrame.new(0, cellSize * 0.55, 0), Color3.fromRGB(116, 77, 48), Enum.Material.Wood)
-			trunk.CanQuery = true
-			makePart(node, "Canopy", Vector3.new(cellSize * 0.95, cellSize * 0.85, cellSize * 0.95),
-				base * CFrame.new(0, cellSize * 1.3, 0), Color3.fromRGB(76, 145, 78), Enum.Material.Grass, Enum.PartType.Ball)
+		local resourceVisual = getResourceTemplate(definition.resourceId, base)
+		if resourceVisual then
+			resourceVisual.Name = "Visual"
+			resourceVisual.Parent = node
 		else
-			makePart(node, "Ore", Vector3.new(cellSize * 0.72, cellSize * 0.62, cellSize * 0.72),
-				base * CFrame.new(0, cellSize * 0.31, 0) * CFrame.Angles(0, math.rad(18), math.rad(8)),
-				Color3.fromRGB(123, 133, 145), Enum.Material.Slate, Enum.PartType.Ball)
-			makePart(node, "OreHighlight", Vector3.new(cellSize * 0.2, cellSize * 0.13, cellSize * 0.16),
-				base * CFrame.new(-cellSize * 0.13, cellSize * 0.55, -cellSize * 0.12),
-				Color3.fromRGB(178, 194, 207), Enum.Material.Rock, Enum.PartType.Ball)
+			if definition.resourceId == "wood" then
+				makePart(node, "Trunk", Vector3.new(cellSize * 0.22, cellSize * 1.1, cellSize * 0.22),
+					base * CFrame.new(0, cellSize * 0.55, 0), Color3.fromRGB(116, 77, 48), Enum.Material.Wood)
+				makePart(node, "Canopy", Vector3.new(cellSize * 0.95, cellSize * 0.85, cellSize * 0.95),
+					base * CFrame.new(0, cellSize * 1.3, 0), Color3.fromRGB(76, 145, 78), Enum.Material.Grass, Enum.PartType.Ball)
+			else
+				makePart(node, "Ore", Vector3.new(cellSize * 0.72, cellSize * 0.62, cellSize * 0.72),
+					base * CFrame.new(0, cellSize * 0.31, 0) * CFrame.Angles(0, math.rad(18), math.rad(8)),
+					Color3.fromRGB(123, 133, 145), Enum.Material.Slate, Enum.PartType.Ball)
+				makePart(node, "OreHighlight", Vector3.new(cellSize * 0.2, cellSize * 0.13, cellSize * 0.16),
+					base * CFrame.new(-cellSize * 0.13, cellSize * 0.55, -cellSize * 0.12),
+					Color3.fromRGB(178, 194, 207), Enum.Material.Rock, Enum.PartType.Ball)
+			end
 		end
 
-		local promptPart = node:FindFirstChildWhichIsA("BasePart")
+		-- Gameplay prompt is hosted by a trusted invisible anchor, never by
+		-- an arbitrary part inside a free model (which may have an odd pivot).
+		local promptPart = makePart(node, "GatherAnchor", Vector3.new(1, 1, 1),
+			base * CFrame.new(0, 1.5, 0), Color3.new(1, 1, 1), Enum.Material.SmoothPlastic)
+		promptPart.Transparency = 1
+		promptPart.CanCollide = false
+		promptPart.CanTouch = false
+		promptPart.CanQuery = false
 		local prompt: ProximityPrompt? = nil
 		if promptPart then
 			prompt = Instance.new("ProximityPrompt")
@@ -349,13 +393,15 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			prompt.Parent = promptPart
 		end
 
-		local displayPart = node:FindFirstChild("Canopy") or node:FindFirstChild("Ore")
+		local displayPart = if resourceVisual
+			then resourceVisual.PrimaryPart or resourceVisual:FindFirstChildWhichIsA("BasePart", true)
+			else node:FindFirstChild("Canopy") or node:FindFirstChild("Ore")
 		if displayPart and displayPart:IsA("BasePart") then
 			local marker = Instance.new("BillboardGui")
 			marker.Name = "ResourceMarker"
 			marker.Adornee = displayPart
 			marker.Size = UDim2.fromOffset(164, 38)
-			marker.StudsOffset = Vector3.new(0, cellSize * 0.85, 0)
+			marker.StudsOffset = Vector3.new(0, if resourceVisual then 3 else cellSize * 0.85, 0)
 			marker.AlwaysOnTop = true
 			marker.LightInfluence = 0
 			marker.MaxDistance = 72
@@ -387,12 +433,20 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			stroke.Parent = label
 		end
 
+		for _, descendant in ipairs(node:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				descendant:SetAttribute("GatherBaseTransparency", descendant.Transparency)
+			end
+		end
 		local savedState = IslandResourceNodeData.getState(profile.resourceNodes or {}, definition.id)
 		local availableAt = if savedState then savedState.availableAt else 0
 		node:SetAttribute("AvailableAt", availableAt)
 		if availableAt > now then
 			for _, descendant in ipairs(node:GetDescendants()) do
 				if descendant:IsA("BasePart") then
+					if descendant:GetAttribute("GatherBaseTransparency") == nil then
+						descendant:SetAttribute("GatherBaseTransparency", descendant.Transparency)
+					end
 					descendant.Transparency = 1
 					descendant.CanTouch = false
 				end
