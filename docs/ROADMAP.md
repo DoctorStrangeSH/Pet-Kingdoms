@@ -676,3 +676,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] When a second major panel opens, hide the previous one instead of layering several backdrops and close buttons.
 - [ ] Verify keyboard, mouse and touch close controls and one-window-only behavior in Roblox Studio.
 - [ ] Rework viewport constraints for narrow screens (especially 320-375 px) and conduct a real responsive UI pass.
+
+### Small viewport dialog sizing (2026-11-22)
+
+- [x] Make quest journal and island expansion panel widths follow the actual viewport with bounded minimum/maximum dimensions.
+- [x] Apply a shared proportional UIScale to each fixed-height dialog on short viewports rather than allowing its bottom/close controls to overflow.
+- [x] Keep modal panels centered when the screen dimensions change.
+- [ ] Test portrait devices (320×568, 375×667, 390×844) and short landscape windows in Roblox Studio Device Emulator.
+- [ ] Rework the pet collection two-column mobile layout and the building action area separately.
