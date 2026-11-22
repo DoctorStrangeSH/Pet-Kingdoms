@@ -2,6 +2,7 @@
 -- Client-side companion follow controller.
 -- One controller per equipped pet; slotIndex 1..3 provides deterministic formation spacing.
 local Players = game:GetService("Players")
+local PathfindingService = game:GetService("PathfindingService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -53,11 +54,37 @@ export type FollowController = {
 	interactionConnection: RBXScriptConnection?,
 	groundRaycastParams: RaycastParams,
 	groundLift: number,
+	path: Path?,
+	pathWaypoints: { PathWaypoint },
+	pathIndex: number,
+	pathPending: boolean,
+	pathGeneration: number,
+	pathNextComputeAt: number,
+	pathGoal: Vector3?,
+	pathBlockedConnection: RBXScriptConnection?,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
 }
 
 local MAX_ACTIVE_SLOTS = 3
+local PATH_RETRY_SECONDS = 1.1
+local PATH_GOAL_REUSE_DISTANCE = 5
+local WAYPOINT_REACHED_DISTANCE = 2.2
+
+local function hasDirectPath(
+	fromPosition: Vector3,
+	toPosition: Vector3,
+	params: RaycastParams
+): boolean
+	local direction = horizontal(toPosition - fromPosition)
+	if direction.Magnitude < 1 then
+		return true
+	end
+	local origin = fromPosition + Vector3.new(0, 0.9, 0)
+	local upperOrigin = fromPosition + Vector3.new(0, 2.4, 0)
+	return Workspace:Raycast(origin, direction, params) == nil
+		and Workspace:Raycast(upperOrigin, direction, params) == nil
+end
 
 local function horizontal(vector: Vector3): Vector3
 	return Vector3.new(vector.X, 0, vector.Z)
@@ -130,6 +157,14 @@ function CompanionFollowController.new(
 		targetRoot = targetRoot,
 		groundRaycastParams = groundRaycastParams,
 		groundLift = groundLift,
+		path = nil,
+		pathWaypoints = {},
+		pathIndex = 1,
+		pathPending = false,
+		pathGeneration = 0,
+		pathNextComputeAt = 0,
+		pathGoal = nil,
+		pathBlockedConnection = nil,
 		slotIndex = slotIndex,
 		followDistance = math.clamp(settings.followDistance or 4.5, 3, 8),
 		sideSpacing = math.clamp(settings.sideSpacing or 2.4, 1.5, 4),
@@ -197,6 +232,100 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local current = self.model:GetPivot()
 	local currentPosition = current.Position
 	local lagDistance = horizontal(desired - currentPosition).Magnitude
+
+	-- Use Roblox navigation data only when an obstacle blocks the direct route.
+	-- Pets remain client-driven cosmetic companions; no gameplay authority or
+	-- server-side character movement is transferred to this path.
+	local navigationGoal = desired
+	local directRouteClear = hasDirectPath(currentPosition, desired, self.groundRaycastParams)
+	if directRouteClear then
+		if self.pathBlockedConnection then
+			self.pathBlockedConnection:Disconnect()
+			self.pathBlockedConnection = nil
+		end
+		self.path = nil
+		table.clear(self.pathWaypoints)
+		self.pathIndex = 1
+		self.pathGoal = nil
+	elseif self.path == nil
+		or self.pathGoal == nil
+		or (horizontal(desired - self.pathGoal)).Magnitude >= PATH_GOAL_REUSE_DISTANCE
+	then
+		if not self.pathPending and os.clock() >= self.pathNextComputeAt then
+			self.pathPending = true
+			self.pathNextComputeAt = os.clock() + PATH_RETRY_SECONDS
+			self.pathGeneration += 1
+			local generation = self.pathGeneration
+			local startPosition = currentPosition
+			local goalPosition = desired
+			task.spawn(function()
+				local computedPath = PathfindingService:CreatePath({
+					AgentRadius = 1.25,
+					AgentHeight = 3.2,
+					AgentCanJump = true,
+					AgentCanClimb = true,
+					WaypointSpacing = 3,
+				})
+				local success = pcall(function()
+					computedPath:ComputeAsync(startPosition, goalPosition)
+				end)
+				if self.destroyed or generation ~= self.pathGeneration then
+					return
+				end
+				self.pathPending = false
+				if success and computedPath.Status == Enum.PathStatus.Success then
+					if self.pathBlockedConnection then
+						self.pathBlockedConnection:Disconnect()
+					end
+					self.path = computedPath
+					self.pathWaypoints = computedPath:GetWaypoints()
+					self.pathIndex = math.min(2, #self.pathWaypoints)
+					self.pathGoal = goalPosition
+					self.pathBlockedConnection = computedPath.Blocked:Connect(function(blockedIndex)
+						if blockedIndex >= self.pathIndex then
+							self.pathGeneration += 1
+							self.path = nil
+							table.clear(self.pathWaypoints)
+							self.pathNextComputeAt = 0
+						end
+					end)
+				else
+					self.path = nil
+					table.clear(self.pathWaypoints)
+					self.pathGoal = goalPosition
+				end
+			end)
+		end
+	end
+
+	if not directRouteClear then
+		local waypoint = self.pathWaypoints[self.pathIndex]
+		if waypoint then
+			local waypointPosition = resolveGroundPosition(
+				waypoint.Position, self.groundRaycastParams, self.groundLift
+			)
+			if horizontal(waypointPosition - currentPosition).Magnitude <= WAYPOINT_REACHED_DISTANCE then
+				self.pathIndex += 1
+				waypoint = self.pathWaypoints[self.pathIndex]
+			end
+			if waypoint then
+				navigationGoal = resolveGroundPosition(
+					waypoint.Position, self.groundRaycastParams, self.groundLift
+				)
+			else
+				-- A completed route is recomputed if the direct ray still sees an obstacle.
+				self.path = nil
+				table.clear(self.pathWaypoints)
+				self.pathGoal = nil
+				self.pathNextComputeAt = 0
+				navigationGoal = currentPosition
+			end
+		else
+			-- Never walk straight through a wall while pathfinding is pending or failed.
+			navigationGoal = currentPosition
+		end
+	end
+	lagDistance = horizontal(navigationGoal - currentPosition).Magnitude
 
 	-- If the player outruns a companion for a while, it should visibly hurry
 	-- instead of sliding with an idle animation. Very large gaps can happen
@@ -329,7 +458,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	end
 
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
-	local nextPosition = currentPosition:Lerp(desired, alpha)
+	local nextPosition = currentPosition:Lerp(navigationGoal, alpha)
 	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing)
 	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
 	if self.animation then
@@ -350,6 +479,13 @@ function CompanionFollowController.destroy(self: FollowController)
 		self.interactionConnection:Disconnect()
 		self.interactionConnection = nil
 	end
+	self.pathGeneration += 1
+	if self.pathBlockedConnection then
+		self.pathBlockedConnection:Disconnect()
+		self.pathBlockedConnection = nil
+	end
+	self.path = nil
+	table.clear(self.pathWaypoints)
 	if self.animation then
 		self.animation:destroy()
 	end
