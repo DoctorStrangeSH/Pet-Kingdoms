@@ -606,3 +606,13 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Restore normal button labels and enabled state automatically when cooldown reaches zero.
 - [x] Keep the same cooldown rule for pet/play because the data contract currently defines one shared per-pet interaction cooldown.
 - [ ] Verify timer synchronization and button behavior in Roblox Studio, including selection changes and rapid interaction attempts.
+
+
+### Gathering onboarding feedback (2026-11-22)
+
+- [x] Add floating labels to wood/stone resource nodes with explicit reward values.
+- [x] Clarify the wood interaction as Срубить дерево and show the amount gained.
+- [x] Show a first-wood hint while the wallet has zero wood.
+- [x] Keep resource markers hidden during node cooldown.
+- [ ] Verify first-time gathering on desktop and mobile in Studio.
+- [ ] Replace placeholder tree/ore models with curated production assets.
