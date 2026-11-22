@@ -4,7 +4,7 @@ A colorful, child-friendly Roblox adventure about collecting, bonding with, and 
 
 ## Product direction
 
-- Original, polished stylized-fantasy visuals; prefer custom-created assets over random Toolbox models.
+- Original, polished stylized-fantasy production visuals; vetted free Creator Store/Toolbox assets are allowed as clearly tracked temporary playtest placeholders.
 - Clear, welcoming UX that children can understand, with PC and mobile support.
 - A persistent, expandable home island connected to shared exploration spaces.
 - Pet collection, companionship, progression, exploration, and meaningful kingdom building.
