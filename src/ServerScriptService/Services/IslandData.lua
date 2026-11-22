@@ -10,6 +10,7 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 local IslandHatchLedgerData = require(script.Parent:WaitForChild("IslandHatchLedgerData"))
 local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 local IslandBuildingJournalData = require(script.Parent:WaitForChild("IslandBuildingJournalData"))
+local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
 
 local IslandData = {}
 
@@ -79,6 +80,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		resources = { wood = 2, stone = 1, gold = 0, gems = 0 },
 		hatchTransactions = {},
 		buildingOperations = {},
+		resourceNodes = {},
 		revision = 0,
 	}
 end
@@ -140,6 +142,14 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 			if receipt.revision > profile.revision then
 				return false, "INVALID_BUILDING_LEDGER:REVISION_AHEAD"
 			end
+		end
+	end
+
+	-- Legacy schema-v1 profiles predate persisted resource-node cooldowns.
+	if profile.resourceNodes ~= nil then
+		local validNodes, nodeReason = IslandResourceNodeData.validate(profile.resourceNodes)
+		if not validNodes then
+			return false, "INVALID_RESOURCE_NODES:" .. nodeReason
 		end
 	end
 
