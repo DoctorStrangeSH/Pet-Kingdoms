@@ -602,6 +602,16 @@ function PetCollectionService.grantExperienceWithProgressOnce(
 		return false, "DATASTORE_UNAVAILABLE", nil
 	end
 	if mutationStatus == "ALREADY_PROCESSED" then
+		-- UpdateAsync may have observed a newer persisted snapshot than this
+		-- server's cache even though the reward itself was already processed.
+		if type(result) == "table" then
+			local valid, reason = PetCollectionData.validate(result, player.UserId)
+			if not valid then
+				warn("[PetKingdoms] Duplicate XP reward snapshot invalid:", player.UserId, reason)
+				return false, "INVALID_SAVE_RESULT", nil
+			end
+			syncProfileIfNewer(state, result)
+		end
 		return true, "ALREADY_PROCESSED", nil
 	end
 	if mutationStatus ~= "UPDATED" or type(result) ~= "table" then
