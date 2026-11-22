@@ -69,7 +69,9 @@
 - [x] Add pure Studio contract tests for resource validation, grants, and atomic spending (execution pending).
 - [x] Spawn two Wood and two Stone gathering nodes on each personal island using server-owned reward values.
 - [x] Add server-authoritative ProximityPrompt gathering with ownership/distance checks, duplicate-trigger protection, wallet grant, and 60-second node respawn (Studio verification pending).
-- [ ] Add inventory HUD/toast and gathering feedback animations.
+- [x] Add client resource HUD for Wood/Stone/Gold/Gems with server snapshot bootstrap, authoritative update event, and gathering reward toast (Studio/device verification pending).
+- [ ] Add gathering feedback animation and final polished art treatment.
+- [ ] Verify HUD safe areas, readability, and touch gathering on phone/tablet in Roblox Studio.
 - [ ] Verify multiplayer ownership, prompt interactions, respawn, and persistence in Roblox Studio.
 - [ ] Approve economy balance sheet and define building costs/refunds before enabling resource charges in building transactions.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
