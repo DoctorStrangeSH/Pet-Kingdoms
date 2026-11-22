@@ -109,7 +109,7 @@ end
 local toast = Instance.new("TextLabel")
 toast.Name = "GatherToast"
 toast.AnchorPoint = Vector2.new(0.5, 0)
-toast.Position = UDim2.new(0.5, 0, 0, 106)
+toast.Position = UDim2.new(0.5, 0, 0, 146)
 toast.Size = UDim2.fromOffset(250, 38)
 toast.BackgroundColor3 = COLORS.panel
 toast.BackgroundTransparency = 1
@@ -176,6 +176,27 @@ task.spawn(function()
 	folder.ChildAdded:Connect(bindKingdomBond)
 end)
 
+local gatherHint = Instance.new("TextLabel")
+gatherHint.Name = "GatheringHint"
+gatherHint.AnchorPoint = Vector2.new(0.5, 0)
+gatherHint.Position = UDim2.new(0.5, 0, 0, 106)
+gatherHint.Size = UDim2.new(0.94, 0, 0, 32)
+gatherHint.BackgroundColor3 = COLORS.panel
+gatherHint.BackgroundTransparency = 0.08
+gatherHint.BorderSizePixel = 0
+gatherHint.Text = "НАЙДИ ДЕРЕВО  •  E / НАЖМИ «СРYБИТЬ»"
+gatherHint.TextColor3 = COLORS.mint
+gatherHint.TextSize = 11
+gatherHint.Font = Enum.Font.GothamBold
+gatherHint.TextWrapped = true
+gatherHint.Visible = false
+gatherHint.Parent = screen
+Instance.new("UICorner", gatherHint).CornerRadius = UDim.new(0, 10)
+local gatherHintStroke = Instance.new("UIStroke")
+gatherHintStroke.Color = COLORS.mint
+gatherHintStroke.Transparency = 0.45
+gatherHintStroke.Parent = gatherHint
+
 local toastSequence = 0
 local function showToast(resourceId: string?, amount: number?, code: string?)
 	if code ~= "GATHERED" or resourceId == nil or amount == nil then return end
@@ -215,6 +236,9 @@ local function applySnapshot(snapshot: any)
 		if type(value) == "number" and value >= 0 and value == math.floor(value) then
 			amountLabels[resource.id].Text = tostring(value)
 		end
+	end
+	if type(snapshot.wood) == "number" then
+		gatherHint.Visible = snapshot.wood == 0
 	end
 end
 
