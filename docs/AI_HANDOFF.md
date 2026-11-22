@@ -1369,3 +1369,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `IslandBuildingController.client.lua` now skips preview updates when pointer is within the open action panel and freezes the selected catalog/grid/rotation/move-ID fields before invoking the server.
 - `placementSubmitting` guards duplicate clicks, rotating, catalogue edits, stop, and RenderStepped preview updates until the request completes. The existing idempotency request ID is derived from the same immutable snapshot used in the server payload.
 - Rojo package validation is not Studio interaction validation. Manual test: choose ground cell, move mouse/touch to Confirm, verify preview holds; confirm, verify saved GridX/GridZ exactly; test server errors and retries.
+
+## Resource rejoin and construction modal-flight safety (2026-11-22)
+
+- IslandGatheringService now validates that `prompt.Name == "GatherPrompt"`, `prompt.Enabled`, and its direct BasePart parent is named `GatherAnchor` within a `ResourceNodes` model. Other imported/template prompts cannot trigger gathering just by being descendants.
+- IslandWorldServiceTests adds a persisted WoodNode_A cooldown fixture on the second test island: checks disabled prompt, hidden visual and invisible trusted anchor, with retained original 0.35 alpha attribute for future respawn.
+- IslandBuildingController prevents another modal from tearing down its active preview mid-`InvokeServer`; when the server call returns, it closes the stale build menu if another modal owns focus. This avoids destroying request state during a yielding remote call.
+- Rojo build validates only project packaging. In-Studio resource cooldown expiry and actual modal-switch UI behavior remain unverified.
