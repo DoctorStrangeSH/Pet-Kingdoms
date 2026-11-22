@@ -481,3 +481,14 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Verify quest XP recovery worker and final acknowledgement handshake in GitHub Actions run #127 (Rojo build + Studio artifact upload PASS); Studio script execution remains pending.
 
 - [x] Harden recovery worker startup against duplicate PlayerAdded/initial-player enumeration and keep waiting through slow profile loads instead of abandoning recovery after a fixed timeout.
+
+
+### Quest reward recovery protocol fault injection (2026-11-22)
+
+- [x] Extract cross-DataStore transaction ordering into a shared protocol used by the production recovery worker.
+- [x] Add deterministic fault-injection tests for lost responses after each durable write boundary.
+- [x] Assert stable reward ID retry and exactly-once XP application across all five interrupted boundaries.
+- [x] Assert delivered-record resume never calls the XP grant again.
+- [x] Assert missing pet receipt is accepted only after durable source acknowledgement.
+- [ ] Run the Studio-only protocol suite and all existing data contract suites in Roblox Studio.
+- [ ] Run live DataStore outage/rejoin/server-restart scenarios in a dedicated test environment.
