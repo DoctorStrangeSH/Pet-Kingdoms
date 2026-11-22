@@ -102,11 +102,7 @@ function PetStatsCalculator.calculateWithModifiers(
 	end
 
 	local function resolveWithModifiers(baseStats, requestedLevel, requestedRarity)
-		local ok, resolvedStats = pcall(resolveStats, baseStats, requestedLevel, requestedRarity)
-		if not ok then
-			error("BALANCE_RESOLUTION_FAILED")
-		end
-
+		local resolvedStats = resolveStats(baseStats, requestedLevel, requestedRarity)
 		local modifiedStats, modifierReason =
 			PetStatModifierPipeline.apply(resolvedStats, modifiers, applyModifier)
 		if modifiedStats == nil then
@@ -122,12 +118,6 @@ function PetStatsCalculator.calculateWithModifiers(
 		rarityTier,
 		resolveWithModifiers
 	)
-	if snapshot == nil and reason == "BALANCE_RESOLUTION_FAILED" then
-		return nil, reason
-	end
-	if snapshot == nil and reason ~= nil and string.find(reason, "INVALID_RESOLVED_STATS:", 1, true) == 1 then
-		return nil, reason
-	end
 	return snapshot, reason
 end
 
