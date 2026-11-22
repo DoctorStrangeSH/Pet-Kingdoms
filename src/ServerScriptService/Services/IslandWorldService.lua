@@ -347,6 +347,44 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			prompt.Parent = promptPart
 		end
 
+		local displayPart = node:FindFirstChild("Canopy") or node:FindFirstChild("Ore")
+		if displayPart and displayPart:IsA("BasePart") then
+			local marker = Instance.new("BillboardGui")
+			marker.Name = "ResourceMarker"
+			marker.Adornee = displayPart
+			marker.Size = UDim2.fromOffset(164, 38)
+			marker.StudsOffset = Vector3.new(0, cellSize * 0.85, 0)
+			marker.AlwaysOnTop = true
+			marker.LightInfluence = 0
+			marker.MaxDistance = 72
+			marker.Parent = node
+			local label = Instance.new("TextLabel")
+			label.Name = "Label"
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundColor3 = Color3.fromRGB(35, 39, 53)
+			label.BackgroundTransparency = 0.12
+			label.BorderSizePixel = 0
+			label.Font = Enum.Font.GothamBold
+			label.Text = if definition.resourceId == "wood"
+				then string.format("ДРЕВЕСИНА  +%d", definition.reward)
+				else string.format("КАМЕНЬ  +%d", definition.reward)
+			label.TextColor3 = if definition.resourceId == "wood"
+				then Color3.fromRGB(187, 231, 167)
+				else Color3.fromRGB(211, 222, 237)
+			label.TextSize = 13
+			label.Parent = marker
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = label
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = if definition.resourceId == "wood"
+				then Color3.fromRGB(137, 190, 112)
+				else Color3.fromRGB(151, 173, 197)
+			stroke.Transparency = 0.2
+			stroke.Thickness = 1.2
+			stroke.Parent = label
+		end
+
 		local savedState = IslandResourceNodeData.getState(profile.resourceNodes or {}, definition.id)
 		local availableAt = if savedState then savedState.availableAt else 0
 		node:SetAttribute("AvailableAt", availableAt)
@@ -358,6 +396,8 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 				end
 			end
 			if prompt then prompt.Enabled = false end
+			local marker = node:FindFirstChild("ResourceMarker")
+			if marker and marker:IsA("BillboardGui") then marker.Enabled = false end
 		end
 	end
 end
