@@ -6,6 +6,29 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Keep the first island view at a useful third-person distance even if the
+-- Studio camera was previously zoomed far out during editing.
+player.CameraMinZoomDistance = 8
+player.CameraMaxZoomDistance = 28
+
+local function bindCamera(character: Model)
+	local humanoid = character:WaitForChild("Humanoid", 10)
+	if humanoid and humanoid:IsA("Humanoid") then
+		local camera = workspace.CurrentCamera
+		if camera then
+			camera.CameraType = Enum.CameraType.Custom
+			camera.CameraSubject = humanoid
+		end
+	end
+end
+
+player.CharacterAdded:Connect(function(character)
+	task.spawn(bindCamera, character)
+end)
+if player.Character then
+	task.spawn(bindCamera, player.Character)
+end
+
 local COLORS = {
 	background = Color3.fromRGB(22, 25, 39),
 	panel = Color3.fromRGB(39, 44, 65),
