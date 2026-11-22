@@ -20,6 +20,9 @@ QuestProgressData.DEFINITIONS = {
 	},
 }
 
+-- Stable presentation and progression order; never depend on hash-table iteration.
+local QUEST_ORDER = { "gather_wood", "gather_stone" }
+
 local function isCount(value: any): boolean
 	return type(value) == "number" and value == value
 		and value ~= math.huge and value ~= -math.huge
@@ -56,7 +59,8 @@ function QuestProgressData.recordGather(state: any, resourceId: string): (any?, 
 	if not valid then return nil, nil, reason end
 	local nextState = table.clone(state)
 	local completed = {}
-	for questId, definition in pairs(QuestProgressData.DEFINITIONS) do
+	for _, questId in ipairs(QUEST_ORDER) do
+		local definition = QuestProgressData.DEFINITIONS[questId]
 		if definition.resourceId == resourceId then
 			local previous = state[questId]
 			if previous.count < definition.target then
@@ -79,7 +83,8 @@ function QuestProgressData.snapshot(state: any): { any }
 	local valid = QuestProgressData.validate(source)
 	if not valid then return {} end
 	local result = {}
-	for questId, definition in pairs(QuestProgressData.DEFINITIONS) do
+	for _, questId in ipairs(QUEST_ORDER) do
+		local definition = QuestProgressData.DEFINITIONS[questId]
 		local entry = source[questId]
 		table.insert(result, {
 			id = definition.id,
