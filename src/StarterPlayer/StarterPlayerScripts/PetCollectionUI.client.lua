@@ -24,7 +24,7 @@ local COLORS = {
 	danger = Color3.fromRGB(255, 135, 135),
 }
 
-type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
+type PetRecord = { petId: string, speciesId: string, acquiredAt: number, level: number?, xp: number?, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
 
 local collection: Collection? = nil
@@ -266,9 +266,21 @@ local teamLabel = make("TextLabel", {
 }, detail) :: TextLabel
 
 
-local bondLabel = make("TextLabel", {
+local progressionLabel = make("TextLabel", {
+	Name = "PetProgression",
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 16, 0.55, 103),
+	Size = UDim2.new(1, -32, 0, 20),
+	Font = Enum.Font.GothamBold,
+	Text = "УРОВЕНЬ 1 • 0 XP ВСЕГО",
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextColor3 = COLORS.mint,
+}, detail) :: TextLabel
+
+local bondLabel = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 16, 0.55, 127),
 	Size = UDim2.new(1, -32, 0, 22),
 	Font = Enum.Font.GothamBold,
 	Text = "ДРУЖБА • УРОВЕНЬ 1",
@@ -476,6 +488,8 @@ local function updateDetail()
 		petName.Text = "Пока пусто"
 		petRarity.Text = "КОЛЛЕКЦИЯ"
 		petDescription.Text = "Исследуй мир, чтобы найти новых друзей!"
+		progressionLabel.Text = "УРОВЕНЬ — • XP —"
+		bondLabel.Text = "ДРУЖБА —"
 		equipButton.Visible = false
 		preview:ClearAllChildren()
 		return
@@ -484,6 +498,9 @@ local function updateDetail()
 	petName.Text = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
 	petRarity.Text = "ОБЫЧНЫЙ • " .. string.upper(selected.speciesId)
 	petDescription.Text = "Твой верный спутник. Впереди ждёт много приключений!"
+	local petLevel = selected.level or 1
+	local petXp = selected.xp or 0
+	progressionLabel.Text = string.format("УРОВЕНЬ %d  •  %s XP ВСЕГО", petLevel, tostring(petXp))
 	local bondLevel = selected.bondLevel or 1
 	local bondXp = selected.bondXp or 0
 	bondLabel.Text = if bondLevel >= 10
