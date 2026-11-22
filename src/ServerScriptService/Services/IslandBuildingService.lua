@@ -10,6 +10,7 @@ local BuildingCatalog = require(services:WaitForChild("BuildingCatalog"))
 local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
+local IslandResources = require(services:WaitForChild("IslandResources"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -97,6 +98,9 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	local userId = player.UserId
+	if not IslandSessionService.canWrite(userId, player) then
+		return fail("SESSION_NOT_WRITABLE")
+	end
 	local cache = resultsByUserId[userId]
 	if cache and cache[request.requestId] then
 		return cache[request.requestId]
@@ -166,24 +170,6 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	local definition = BuildingCatalog[validation.catalogId :: string]
-	local chargedCost: { [string]: number }? = nil
-	if not isMoving and definition.cost ~= nil then
-		local paid, paymentCode = IslandResourceService.spend(userId, definition.cost)
-		if not paid then
-			local result = fail(paymentCode)
-			remember(userId, request.requestId, result)
-			return result
-		end
-		chargedCost = table.clone(definition.cost)
-	end
-
-	local function refundPlacementCost()
-		if chargedCost == nil then return end
-		local refunded, refundCode = IslandResourceService.grantMany(userId, chargedCost)
-		if not refunded then
-			warn(string.format("[PetKingdoms] CRITICAL: placement rollback refund failed for %d: %s", userId, refundCode))
-		end
-	end
 
 	local record
 	local previousRecord: any = nil
@@ -216,6 +202,20 @@ local function handleRequest(player: Player, request: any): any
 		}
 	end
 
+	-- Charge and building record are committed under one profile revision.
+	-- No yielding operation occurs between these mutations and markDirty.
+	local resourcesBefore = table.clone(profile.resources)
+	local charged = false
+	if not isMoving and definition.cost ~= nil then
+		local paid, paymentCode = IslandResources.spend(profile.resources, definition.cost)
+		if not paid then
+			local result = fail(paymentCode)
+			remember(userId, request.requestId, result)
+			return result
+		end
+		charged = true
+	end
+
 	if movingIndex then
 		profile.buildings[movingIndex] = record
 	else
@@ -235,7 +235,7 @@ local function handleRequest(player: Player, request: any): any
 		else
 			table.remove(profile.buildings, #profile.buildings)
 		end
-		refundPlacementCost()
+		if charged then profile.resources = resourcesBefore end
 		return fail(syncCode)
 	end
 
@@ -247,7 +247,7 @@ local function handleRequest(player: Player, request: any): any
 			table.remove(profile.buildings, #profile.buildings)
 			IslandWorldService.removeBuilding(userId, record.instanceId)
 		end
-		refundPlacementCost()
+		if charged then profile.resources = resourcesBefore end
 		return fail("SESSION_NOT_WRITABLE")
 	end
 
@@ -260,6 +260,9 @@ local function handleRequest(player: Player, request: any): any
 		z = record.z,
 		rotation = record.rotation,
 	}
+	if charged then
+		IslandResourceService.publishSnapshot(userId, "SPENT")
+	end
 	remember(userId, request.requestId, result)
 	return result
 end
