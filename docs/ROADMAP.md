@@ -540,3 +540,6 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add contract coverage for claimed, unclaimed, malformed-receipt, and premature-receipt snapshots.
 - [ ] Execute quest data and UI behavior tests in Roblox Studio.
 - [ ] Approve reward economy and pet recipient policy before enabling a claim interaction.
+
+
+- [x] Verify quest completion/claim-state visibility tests and UI packaging in GitHub Actions run #164 (Rojo build + Studio artifact upload PASS); Studio execution remains pending.
