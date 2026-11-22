@@ -18,13 +18,16 @@ Status: server-side persistence and recovery-worker scaffolding implemented. Rew
    - a permanent quest-claim receipt keyed by quest ID;
    - if pet XP is part of the reward, an outbox record with a stable reward ID, the exact pet ID, amount, and progression configuration version.
 4. The island revision must become durable before the server acknowledges the claim.
-5. An outbox worker delivers pet XP through `grantExperienceWithProgressOnce`.
+5. An outbox worker delivers pet XP through `grantExperienceWithProgressOnce` using the exact persisted reward ID.
 6. The worker marks the outbox record delivered in a later durable island revision.
-7. If the worker crashes after pet XP commits but before the island acknowledgement, it retries the same reward ID. The pet collection must return an idempotent duplicate result without applying XP again.
+7. The worker persists a source acknowledgement in another durable island revision. This proves the pet XP write was confirmed before the pet receipt retention clock starts.
+8. The worker acknowledges the pet-side receipt. If the receipt is already absent after the source acknowledgement is durable, it is safe to finalize: the source marker proves the XP write had already succeeded, and unacknowledged pet receipts never expire.
+9. The worker persists a final pet-receipt acknowledgement marker in the island outbox. Only records with this final marker may be compacted on a later enqueue.
+10. If the worker crashes at any boundary, it resumes from the corresponding outbox phase. XP delivery retries always reuse the same reward ID.
 
 ## Retention and recovery invariant
 
-The pet-side idempotency receipt must remain available for at least as long as its corresponding island outbox can be retried. Implemented: unacknowledged receipts are retained indefinitely; a trusted source acknowledgement records acknowledgedAt, after which the seven-day retention window applies. The island outbox must call this acknowledgement only after its own delivered state is durable. Until that caller integration exists, receipts remain unacknowledged and do not expire.
+The pet-side idempotency receipt must remain available until the island source acknowledgement is durable. Implemented ordering: the island first persists `deliveredAt`, then persists `acknowledgedAt`; only then does the worker call the pet receipt acknowledgement that starts the seven-day retention window. Finally, the island persists `petAcknowledgedAt`. The outbox record is compactable only after this final marker. If the worker resumes after the pet receipt has already expired, a missing receipt is accepted only when the source acknowledgement is already durable. Unacknowledged receipts remain retained indefinitely.
 
 Quest claim receipts in the island profile must be retained for the lifetime of the quest claim (or represented by a permanent claimed flag). They must not be evicted by a rolling short-term ledger.
 
@@ -54,17 +57,19 @@ Do not enable a live claim button until the economy values and pet recipient rul
 - `IslandSessionService.commitQuestRewardClaim` verifies server-side quest completion and commits the permanent claim receipt plus pet XP outbox record in one island profile revision. It accepts only an internal server-resolved reward plan; no RemoteFunction or client-supplied reward data is exposed.
 - Claim receipts record the island revision that must be durable before the claim can be acknowledged. Retries wait for that revision and return the original receipt.
 - `commitQuestRewardDelivery` records pet-side XP delivery in a later durable island revision. Duplicate delivery calls also verify persistence before returning success.
-- `commitQuestRewardAcknowledgement` records the source-side acknowledgement only after the caller has durably acknowledged the pet-side XP receipt. `getPendingQuestRewards` and `getQuestRewardsAwaitingAcknowledgement` expose separate recovery phases to trusted server code.
-- Fully acknowledged outbox records may be compacted on a later enqueue. Pending and delivered-but-unacknowledged records are never evicted; permanent quest claim receipts are retained separately.
+- `commitQuestRewardAcknowledgement` records the source-side acknowledgement after durable pet XP delivery and before pet receipt acknowledgement. `commitQuestRewardPetAcknowledgement` records the final pet receipt acknowledgement in another durable island revision.
+- `getPendingQuestRewards`, `getQuestRewardsAwaitingAcknowledgement`, and `getQuestRewardsAwaitingPetAcknowledgement` expose the three recovery phases to trusted server code.
+- Outbox records are compactable only after both source acknowledgement and final pet acknowledgement are durable. Pending, delivered-but-unacknowledged, and source-acknowledged-but-not-finalized records are never evicted; permanent quest claim receipts are retained separately.
 - Still NOT DONE: reward catalog/balance approval, recipient selection, XP threshold configuration, worker integration, live claim remote/UI, and cross-DataStore fault-injection tests.
 
 
 ## Recovery worker implementation (2026-11-22)
 
 - Added `QuestRewardRecoveryService`, started by the server bootstrap. It waits for the exact Player's writable island session and ready pet collection before processing.
-- For pending records it resolves the exact stored progression version, calls `grantExperienceWithProgressOnce` with the stable reward ID and stored pet ID/amount, persists the island delivery transition, acknowledges the pet receipt, and finally persists the island source acknowledgement.
-- For delivered-but-unacknowledged records it resumes at the receipt acknowledgement phase. DataStore failures, unavailable targets, and configuration gaps fail closed and retry without changing or dropping the outbox record.
+- For pending records it resolves the exact stored progression version, calls `grantExperienceWithProgressOnce` with the stable reward ID and stored pet ID/amount, persists island delivery, persists source acknowledgement, acknowledges the pet receipt, and persists a final pet acknowledgement marker.
+- For delivered-but-unacknowledged records it resumes at source acknowledgement. For source-acknowledged-but-not-finalized records it resumes at pet receipt acknowledgement. The source marker is persisted before the pet receipt retention clock starts, so prolonged source-store outages cannot expire the only deduplication receipt.
+- DataStore failures, unavailable targets, and configuration gaps fail closed and retry without changing or dropping the outbox record.
 - Added `PetProgressionCatalog` as a versioned server-owned registry. It is intentionally empty until XP thresholds are approved; unknown versions return `PROGRESSION_VERSION_NOT_CONFIGURED`. This prevents the worker from inventing a progression curve or delivering a reward with the wrong curve.
 - Added Studio-only catalog contract tests and started the worker from `Bootstrap.server.lua`.
 - The worker is infrastructure only while the catalog is empty: no quest reward can be delivered until a progression version is explicitly configured and a trusted claim catalog creates valid outbox records.
-- Remaining: resolve the pet-receipt/source-ack retry retention edge case under prolonged DataStore outage, add service-level fault-injection tests, run Studio tests, and approve progression/reward/recipient policy.
+- Remaining: add service-level fault-injection tests for every transaction boundary, run Studio tests, and approve progression/reward/recipient policy.
