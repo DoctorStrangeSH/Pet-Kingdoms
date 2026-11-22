@@ -206,6 +206,7 @@
 
 - [ ] Implement the approved combat loop.
 - [ ] Implement quests and rewards.
+  - [x] Add persistent server-authoritative introductory gathering quest progress for Wood/Stone, with a read-only snapshot endpoint and profile migration; reward claiming/UI remain NOT DONE.
 - [ ] Implement exploration interactions and pet abilities.
 - [ ] Implement Gold, Gems, biome resources, shops, and balanced upgrade costs.
   - [x] Lock current gathering-node count, canonical IDs, rewards, and 60-second cooldown in Studio contract tests; gold/gem, quest, and shop income remain NOT DONE.
