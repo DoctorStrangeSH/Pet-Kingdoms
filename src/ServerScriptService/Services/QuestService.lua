@@ -9,7 +9,7 @@ local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
 
 local QuestService = {}
 local REQUEST_INTERVAL = 0.5
-local lastRequestAt: { [number]: number } = {}
+local lastRequestAt: { [string]: { [number]: number } } = {}
 
 local function getRemote(name: string): RemoteFunction
 	local folder = ReplicatedStorage:FindFirstChild("Remotes")
@@ -29,11 +29,16 @@ local function getRemote(name: string): RemoteFunction
 	return existing
 end
 
-local function allowRequest(player: Player): boolean
+local function allowRequest(player: Player, bucket: string): boolean
+	local bucketTimes = lastRequestAt[bucket]
+	if bucketTimes == nil then
+		bucketTimes = {}
+		lastRequestAt[bucket] = bucketTimes
+	end
 	local now = os.clock()
-	local previous = lastRequestAt[player.UserId]
+	local previous = bucketTimes[player.UserId]
 	if previous ~= nil and now - previous < REQUEST_INTERVAL then return false end
-	lastRequestAt[player.UserId] = now
+	bucketTimes[player.UserId] = now
 	return true
 end
 
@@ -42,7 +47,7 @@ function QuestService.start()
 	local trackingRemote = getRemote("SetTrackedQuest")
 
 	snapshotRemote.OnServerInvoke = function(player: Player)
-		if not allowRequest(player) then return { ok = false, code = "RATE_LIMITED" } end
+		if not allowRequest(player, "snapshot") then return { ok = false, code = "RATE_LIMITED" } end
 		if not IslandSessionService.canWrite(player.UserId, player) then
 			return { ok = false, code = "SESSION_NOT_WRITABLE" }
 		end
@@ -57,7 +62,7 @@ function QuestService.start()
 	end
 
 	trackingRemote.OnServerInvoke = function(player: Player, questId: any)
-		if not allowRequest(player) then return { ok = false, code = "RATE_LIMITED" } end
+		if not allowRequest(player, "tracking") then return { ok = false, code = "RATE_LIMITED" } end
 		if questId ~= nil and type(questId) ~= "string" then
 			return { ok = false, code = "INVALID_QUEST_ID" }
 		end
@@ -70,7 +75,7 @@ function QuestService.start()
 	end
 
 	Players.PlayerRemoving:Connect(function(player)
-		lastRequestAt[player.UserId] = nil
+		for _, bucketTimes in pairs(lastRequestAt) do bucketTimes[player.UserId] = nil end
 	end)
 end
 
