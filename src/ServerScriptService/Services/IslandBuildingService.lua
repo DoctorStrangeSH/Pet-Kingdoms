@@ -1,6 +1,6 @@
 --!strict
 -- Server-authoritative building placement/move transaction endpoint.
--- Resource costs are intentionally absent until economy values are approved.
+-- New placements pay server-owned catalog costs; moves remain free.
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -160,8 +160,12 @@ local function handleRequest(player: Player, request: any): any
 		return result
 	end
 
-	local definition = BuildingCatalog[validation.catalogId :: string]
 	local isMoving = request.movingInstanceId ~= nil
+	if not isMoving and #profile.buildings >= 256 then
+		return fail("BUILDING_LIMIT_REACHED")
+	end
+
+	local definition = BuildingCatalog[validation.catalogId :: string]
 	local chargedCost: { [string]: number }? = nil
 	if not isMoving and definition.cost ~= nil then
 		local paid, paymentCode = IslandResourceService.spend(userId, definition.cost)
@@ -215,9 +219,6 @@ local function handleRequest(player: Player, request: any): any
 	if movingIndex then
 		profile.buildings[movingIndex] = record
 	else
-		if #profile.buildings >= 256 then
-			return fail("BUILDING_LIMIT_REACHED")
-		end
 		table.insert(profile.buildings, record)
 	end
 
