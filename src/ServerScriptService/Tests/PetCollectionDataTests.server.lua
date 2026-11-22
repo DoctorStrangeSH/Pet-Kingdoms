@@ -703,6 +703,35 @@ local expiredLedgerReserved, expiredLedgerStatus = PetCollectionData.reservePetS
 )
 expect("acknowledged receipts are pruned after retention", expiredLedgerReserved and expiredLedgerStatus == "RESERVED")
 
+local transactionReservationProfile = PetCollectionData.createDefault(98764)
+assert(transactionReservationProfile ~= nil)
+local transactionReserved, transactionReserveStatus, transactionReservedProfile =
+	PetCollectionData.reservePetSlotOnce(
+		transactionReservationProfile, "hatch:bound-reservation", "bunny", 2, 100, "hatch:tx-bound-a"
+	)
+expect("hatch reservation stores its transaction identity",
+	transactionReserved and transactionReserveStatus == "RESERVED" and transactionReservedProfile ~= nil)
+assert(transactionReservedProfile ~= nil)
+local conflictingTransactionReservation, conflictingTransactionReservationStatus =
+	PetCollectionData.reservePetSlotOnce(
+		transactionReservedProfile, "hatch:bound-reservation", "bunny", 2, 101, "hatch:tx-bound-b"
+	)
+expect("reservation cannot be claimed by a different transaction",
+	not conflictingTransactionReservation and conflictingTransactionReservationStatus == "RESERVATION_CONFLICT")
+
+local legacyReservationProfile = PetCollectionData.createDefault(98763)
+assert(legacyReservationProfile ~= nil)
+local legacyReserved, _, legacyReservedProfile = PetCollectionData.reservePetSlotOnce(
+	legacyReservationProfile, "hatch:legacy-reservation", "bunny", 1, 100
+)
+assert(legacyReserved and legacyReservedProfile ~= nil)
+local upgradedLegacyReservation, upgradedLegacyStatus, upgradedLegacyProfile =
+	PetCollectionData.reservePetSlotOnce(
+		legacyReservedProfile, "hatch:legacy-reservation", "bunny", 1, 101, "hatch:legacy-tx"
+	)
+expect("legacy reservation upgrades with its transaction identity",
+	upgradedLegacyReservation and upgradedLegacyStatus == "RESERVED" and upgradedLegacyProfile ~= nil)
+
 local pendingHatchProfile = PetCollectionData.createDefault(98765)
 assert(pendingHatchProfile ~= nil)
 local pendingHatchAdded, pendingHatchStatus, pendingHatchOwned = PetCollectionData.addPetOnce(
