@@ -95,6 +95,7 @@
 - [ ] Approve and tune the full economy balance sheet; current construction prices are provisional and must be playtested.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
+- [x] Remove the unused duplicated client-side building-price table; the server-owned BuildingCatalog remains the sole source of construction costs (no gameplay behavior changed).
 - [ ] Implement island expansion and validated building placement.
   - [x] Add a pure expansion geometry contract: level 0 preserves the current plot, each of two provisional levels adds 8 grid cells per axis, and invalid/max levels are rejected. No purchase costs or unlock conditions are invented before economy approval.
   - [x] Add Studio-only geometry contract tests for starter/expanded dimensions, maximum level, and invalid inputs (execution pending).
