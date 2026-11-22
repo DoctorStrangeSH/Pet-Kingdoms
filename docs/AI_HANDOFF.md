@@ -511,3 +511,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Tests are committed but have not been run in Roblox Studio. Multi-server concurrency and DataStore failure injection remain NOT DONE.
 - Additional cache consistency fix: when `grantExperienceWithProgressOnce` returns `ALREADY_PROCESSED`, it now validates and synchronizes the current DataStore snapshot into the in-memory cache if its revision is newer. A duplicate reward retry can therefore still refresh stale local state without applying XP twice.
 - Audit note: `PetCollectionService.grantExperience` and `grantExperienceWithProgress` are non-idempotent trusted APIs. They have no confirmed gameplay callers in the current audit; retryable reward sources must use `grantExperienceWithProgressOnce` with a stable server-generated reward ID. Do not wire retryable gameplay rewards to the non-idempotent methods.
+
+
+## Acquisition receipt integrity (2026-11-22)
+
+- `PetCollectionData.validate` now enforces one retained acquisition receipt per petId, in addition to unique acquisitionIds.
+- When an owned record still has a retained acquisition receipt, validation checks that its speciesId and rarityTier match the original acquisition metadata. A mismatch returns `ACQUISITION_RECEIPT_PET_MISMATCH`.
+- Added tests for duplicate receipt pet IDs under different acquisition IDs and for a live owned record whose rarity no longer matches its receipt.
+- Compatibility caution: this tightens validation for persisted profiles. Before rollout, run the Studio suite against representative existing profiles and confirm no legitimate migration path changes species/rarity without updating the original acquisition receipt. Evolution should preserve species history rather than rewrite the acquisition receipt.
+- Tests are committed but not executed in Roblox Studio.
