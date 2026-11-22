@@ -732,6 +732,22 @@ local upgradedLegacyReservation, upgradedLegacyStatus, upgradedLegacyProfile =
 expect("legacy reservation upgrades with its transaction identity",
 	upgradedLegacyReservation and upgradedLegacyStatus == "RESERVED" and upgradedLegacyProfile ~= nil)
 
+local legacyReceiptProfile = PetCollectionData.createDefault(98762)
+assert(legacyReceiptProfile ~= nil)
+local legacyReceiptAdded, _, legacyReceiptOwned = PetCollectionData.addPetOnce(
+	legacyReceiptProfile, "legacy-receipt-pet", "bunny", 2, 100, "hatch:legacy-acq"
+)
+assert(legacyReceiptAdded and legacyReceiptOwned ~= nil)
+local legacyReceiptBound, legacyReceiptBoundStatus, legacyReceiptBoundProfile =
+	PetCollectionData.reservePetSlotOnce(
+		legacyReceiptOwned, "hatch:legacy-acq", "bunny", 2, 101, "hatch:legacy-source-tx"
+	)
+expect("legacy acquisition receipt binds to matching recovery transaction",
+	legacyReceiptBound and legacyReceiptBoundStatus == "RECEIPT_BOUND" and legacyReceiptBoundProfile ~= nil)
+assert(legacyReceiptBoundProfile ~= nil)
+expect("legacy receipt persists the recovered transaction ID",
+	legacyReceiptBoundProfile.acquisitionReceipts[1].transactionId == "hatch:legacy-source-tx")
+
 local pendingHatchProfile = PetCollectionData.createDefault(98765)
 assert(pendingHatchProfile ~= nil)
 local pendingHatchAdded, pendingHatchStatus, pendingHatchOwned = PetCollectionData.addPetOnce(
