@@ -94,3 +94,8 @@ A Studio-only integration contract suite covers successful wood/stone gathering,
 ## Gathering persistence and reload contract (2026-11-22)
 
 Added a Studio-only profile round-trip test for the integrated gathering transaction. It serializes a canonical island profile through HttpService JSON, restores and validates it using `IslandData.validate`, then checks resource balance, resource-node cooldown, quest progress, and revision. The restored cooldown must reject a duplicate gather while a different node advances the quest once. This is a DataStore-shaped serialization contract, not a live DataStore or server-restart test.
+
+
+## Quest completion vs durable claim state
+
+Quest journal snapshots now distinguish quest completion from reward receipt state. The server supplies the durable claim ledger to `QuestProgressData.snapshot`; the snapshot exposes `rewardClaimed` only for a completed quest with a structurally valid receipt. The client journal renders completed-but-unclaimed tasks as `ВЫПОЛНЕНО` and tasks with a durable receipt as `НАГРАДА ПОЛУЧЕНА`. Reward issuance remains disabled until economy values, progression thresholds, and pet recipient policy are approved. No claim RemoteFunction/UI was introduced.
