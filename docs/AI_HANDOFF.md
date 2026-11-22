@@ -1097,3 +1097,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - GitHub Actions run #127 / run ID 45040309791 completed successfully on code commit 159ac9f57068bcd8edea928c65794fb6f20530eb. Pinned Rokit setup, Rojo version check, project build, and Studio artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14760942790 is available until 2026-12-06 15:48 UTC.
 - The run includes the recovery worker, versioned catalog, source-before-pet acknowledgement ordering, final pet acknowledgement marker, and updated outbox contract tests. CI still does not execute Studio-only tests or live DataStore fault injection.
+
+
+## Recovery worker readiness hardening (2026-11-22)
+
+- Prevent duplicate recovery loops for the same live Player instance. This closes the narrow PlayerAdded / initial GetPlayers overlap window.
+- Player data readiness no longer gives up after 120 seconds. It logs one warning after the threshold and keeps waiting while the same player session remains active; recovery cannot silently remain skipped for a long but valid profile load.
+- Clear the readiness warning once both island and pet collection data become writable.
+- Validation: latest GitHub Actions run is pending/not yet visible in the PR-filtered commit-run listing. Previous run #127 passed Rojo build and Studio artifact upload; this latest hardening still requires a fresh CI result.
