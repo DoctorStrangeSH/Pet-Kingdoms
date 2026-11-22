@@ -28,6 +28,7 @@ Read these files first:
 9. docs/BUILD_AND_TEST.md
 10. docs/ASSET_TRACKER.md
 11. docs/game-systems/PET_ART_PIPELINE.md
+12. docs/game-systems/PET_COMPANIONSHIP.md
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
