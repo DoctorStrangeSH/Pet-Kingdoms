@@ -1138,3 +1138,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed `QuestProgressData.snapshot(nil)` to build a zero-progress default snapshot without mutating the saved profile.
 - Added Studio-only assertions for legacy nil progress and malformed progress being excluded from client snapshots.
 - Studio execution is still pending.
+
+
+## Quest journal compatibility CI verification (2026-11-22)
+
+- GitHub Actions run #141 / run ID 45041007006 completed successfully on commit `f3e0503533b17ed9176b1ffefc0559dd7991af3f`.
+- Pinned Rokit setup, Rojo version check, full place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761577784 is available until 2026-12-06 15:56 UTC.
+- CI confirms the compatibility fix and its Studio test are packaged. It does not execute Studio-only Luau tests.
