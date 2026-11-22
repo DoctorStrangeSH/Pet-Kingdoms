@@ -64,6 +64,18 @@ expect("new island profile starts with no resource cooldowns",
 expect("new island profile starts with introductory quest progress",
 	type(profile.questProgress) == "table" and profile.questProgress.gather_wood.count == 0
 		and profile.questProgress.gather_stone.count == 0)
+expect("new island profile tracks the first introductory quest",
+	profile.trackedQuestId == "gather_wood")
+local invalidTrackedQuestProfile = table.clone(profile)
+invalidTrackedQuestProfile.trackedQuestId = "unknown_quest"
+local invalidTrackedQuestOk, invalidTrackedQuestCode =
+	IslandData.validate(invalidTrackedQuestProfile, 1001, Catalog)
+expect("unknown tracked quest ID is rejected",
+	not invalidTrackedQuestOk and invalidTrackedQuestCode == "INVALID_TRACKED_QUEST")
+local legacyTrackedQuestProfile = table.clone(profile)
+legacyTrackedQuestProfile.trackedQuestId = nil
+local legacyTrackedQuestOk = IslandData.validate(legacyTrackedQuestProfile, 1001, Catalog)
+expect("legacy profile without tracked quest remains valid", legacyTrackedQuestOk)
 local legacyQuestProfile = table.clone(profile)
 legacyQuestProfile.questProgress = nil
 local legacyQuestValid = IslandData.validate(legacyQuestProfile, 1001, Catalog)
