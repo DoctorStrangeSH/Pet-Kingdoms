@@ -86,6 +86,7 @@ function IslandResourceService.grantMany(userId: number, rewards: any): (boolean
 	local profile = IslandSessionService.getProfile(userId)
 	if profile == nil then return false, "SESSION_NOT_READY", nil end
 	if type(rewards) ~= "table" then return false, "INVALID_REWARDS", nil end
+	if next(rewards) == nil then return false, "EMPTY_REWARDS", nil end
 	local before = table.clone(profile.resources)
 	for resourceId, amount in pairs(rewards) do
 		local granted, code = IslandResources.grant(profile.resources, resourceId, amount)
