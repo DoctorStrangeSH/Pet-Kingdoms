@@ -117,6 +117,7 @@
 ## Stage 4 — Pet Collection
 
 - [ ] Deliver the 20-pet MVP collection.
+  - [x] Add validated `PetCollectionData.addPet` and trusted server-only `PetCollectionService.grantPet` foundation with server-generated pet IDs, neutral rarity tier 1–6, level 1 defaults, capacity checks, and atomic DataStore persistence. No egg tables, drop rates, species additions, or client endpoint are defined.
 - [ ] Implement pet inventory and collection UI.
 - [ ] Implement up to 3 active companions and team management.
   - [x] Add unique per-player spawn tokens so delayed CharacterAdded/equip spawn tasks cannot re-create stale or duplicate companion models after a newer spawn request; verify respawn/equip races in Studio.
@@ -133,6 +134,7 @@
   - [x] Add `PetProgressionData` to validate a complete monotonic 50-level cumulative-XP threshold table and resolve level/progress with binary search. Threshold values remain external and unapproved; this is not yet connected to persisted XP awards.
   - [x] Add `PetCollectionData.grantExperienceWithProgress` and trusted `PetCollectionService.grantExperienceWithProgress` to atomically persist XP plus its derived level using caller-supplied approved thresholds; return a level-up summary and support multi-level gains. No production threshold curve or gameplay caller is configured.
   - [x] Add a bounded persisted reward-receipt ledger and trusted `grantExperienceWithProgressOnce` API: duplicate reward IDs are idempotent, mismatched payload reuse is rejected, and receipts are retained for seven days (max 128; new rewards fail closed when full). No client remote or gameplay reward caller is added.
+  - [x] Add a separate bounded acquisition-receipt ledger and `PetCollectionData.addPetOnce` / trusted `PetCollectionService.grantPet` path. Reusing an acquisition ID returns the existing collection without a second pet; conflicting rarity/species is rejected. Seven-day retention, 128 entries, fail-closed when full.
   - [x] Enforce an exact five-key stat map and reject unknown/non-string stat keys and incomplete stat maps; added regression tests.
   - [x] Make `PetStatsData.clone` validate its input first and return a structured failure for nil/malformed snapshots instead of indexing invalid data; added regression tests.
   - [x] Add a trusted server-only `PetCollectionService.grantExperience(player, petId, amount)` API backed by DataStore UpdateAsync and a pure validated `PetCollectionData.grantExperience` mutation. It rejects invalid amounts and unowned pets. It is not exposed to clients; no XP reward amounts, level thresholds, or gameplay source callers are defined yet.
