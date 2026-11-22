@@ -202,3 +202,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The cached exclusion filter contains the pet model and the target character, so the ground ray continues to ignore both.
 - This is a small allocation reduction for each active companion (up to three); it does not change follow distances, formation, movement smoothing, or ground offset.
 - Roblox Studio verification is still required for terrain, slopes, water, respawn, and mobile performance.
+
+
+## Companion spawn race protection (2026-11-22)
+
+- `PetCollectionService.spawnEquippedPets` now increments a per-player generation for every spawn request.
+- After waiting for `HumanoidRootPart` and after each potentially yielding `PetAssetLoader.create`, the task verifies that it is still the newest generation and the same character is active.
+- A stale task destroys any model it just loaded and exits instead of parenting it into the player's folder. This prevents delayed CharacterAdded/equip tasks from reintroducing obsolete or duplicate companion models.
+- PlayerRemoving invalidates in-flight generations and clears their state.
+- Verify rapid respawn + equip changes, slow asset loading, and PlayerRemoving during asset loading in Roblox Studio. No Studio execution was performed in this code pass.
