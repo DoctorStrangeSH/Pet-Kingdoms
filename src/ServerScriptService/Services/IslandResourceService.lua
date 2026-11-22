@@ -52,13 +52,15 @@ local IslandResourceService = {}
 -- mutate balances or increment the profile revision.
 function IslandResourceService.publishSnapshot(
 	userId: number,
-	code: string
+	code: string,
+	resourceId: string?,
+	amount: number?
 ): boolean
 	local profile = IslandSessionService.getProfile(userId)
 	if profile == nil then return false end
 	local player = Players:GetPlayerByUserId(userId)
 	if player == nil or not IslandSessionService.canWrite(userId, player) then return false end
-	resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
+	resourceUpdate:FireClient(player, snapshot(profile), resourceId, amount, code)
 	return true
 end
 
