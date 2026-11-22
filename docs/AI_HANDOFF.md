@@ -1376,3 +1376,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandWorldServiceTests adds a persisted WoodNode_A cooldown fixture on the second test island: checks disabled prompt, hidden visual and invisible trusted anchor, with retained original 0.35 alpha attribute for future respawn.
 - IslandBuildingController prevents another modal from tearing down its active preview mid-`InvokeServer`; when the server call returns, it closes the stale build menu if another modal owns focus. This avoids destroying request state during a yielding remote call.
 - Rojo build validates only project packaging. In-Studio resource cooldown expiry and actual modal-switch UI behavior remain unverified.
+
+## Resource visibility cycle and building receipt hotfix (2026-11-22)
+
+- Fixed IslandBuildingController: a completed `PlaceBuilding:InvokeServer` request now clears its pending GUID before checking whether another panel took `PetKingdomsActiveModal` ownership. Previously this early exit could keep a completed GUID and cause subsequent placements with the same payload to be treated as duplicates. Retriable results still retain the GUID per existing policy.
+- Success labels now use the frozen submitted catalog/move ID, not potentially changed selection values after the remote yields.
+- Added `Services/ResourceNodeVisibility.lua` to preserve per-part `GatherBaseTransparency`, prohibit collidable resource parts, toggle resource markers and prompts, and keep `GatherAnchor` invisible across cooldowns. `IslandGatheringService` delegates to it.
+- Added `Tests/ResourceNodeVisibilityTests.server.lua`, Studio-only, covering hide, restoration and repeated hide/restore cycles. It is not executed by Rojo packaging CI; manual Studio playtest is pending.
