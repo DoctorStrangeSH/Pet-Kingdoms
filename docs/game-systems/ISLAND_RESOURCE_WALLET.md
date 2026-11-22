@@ -91,3 +91,10 @@ This module does not itself write DataStore. Until a serialized session API dura
 ## Durable session mutation acknowledgement
 
 `IslandSessionService.applyHatchOperation` now applies a single journal transition under a per-session hatch guard and waits for the exact profile revision to be confirmed by `IslandStore.save`. A timeout leaves the in-memory profile dirty so the existing autosave loop can retry; a later retry must reuse the same transaction ID. This provides a durable island-side acknowledgement, but does not yet orchestrate recovery or reconcile the separate pet collection DataStore.
+
+
+## Recovery after player rejoin
+
+`PetHatchingRecoveryService` waits until both the island session and pet collection are loaded. It resumes PREPARED transactions by charging the persisted cost snapshot, resumes CHARGED transactions by calling the idempotent pet grant with the stored acquisition ID, and only then marks the island journal GRANTED. A retry after a successful pet DataStore write but a lost response returns the existing acquisition receipt rather than creating another pet.
+
+If the pet collection is full or either datastore is unavailable, the transaction remains pending; it is not silently discarded. The recovery worker retries on a later join. A capacity reservation or overflow/inbox policy is still required before paid hatching is enabled.
