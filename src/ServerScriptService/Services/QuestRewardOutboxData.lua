@@ -9,15 +9,22 @@ QuestRewardOutboxData.MAX_OUTBOX_ENTRIES = 256
 QuestRewardOutboxData.MAX_REWARD_ID_LENGTH = 128
 QuestRewardOutboxData.MAX_PET_ID_LENGTH = 64
 QuestRewardOutboxData.MAX_REWARD_AMOUNT = 2_000_000_000
+QuestRewardOutboxData.MAX_SAFE_INTEGER = 9007199254740991
 
 local function isInteger(value: any): boolean
 	return type(value) == "number" and value == value
 		and value ~= math.huge and value ~= -math.huge
-		and value >= 0 and value == math.floor(value)
+		and value >= 0 and value <= QuestRewardOutboxData.MAX_SAFE_INTEGER
+		and value == math.floor(value)
 end
 
 local function isNonEmptyString(value: any, maxLength: number): boolean
 	return type(value) == "string" and #value > 0 and #value <= maxLength
+end
+
+local function isValidRewardId(value: any): boolean
+	return isNonEmptyString(value, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
+		and string.match(value, "^[%w][%w:_%-]*$") ~= nil
 end
 
 local function isValidTimestamp(value: any): boolean
@@ -39,7 +46,7 @@ function QuestRewardOutboxData.validateClaims(claims: any): (boolean, string)
 	for questId, receipt in pairs(claims) do
 		if type(questId) ~= "string" or QuestProgressData.DEFINITIONS[questId] == nil
 			or type(receipt) ~= "table"
-			or not isNonEmptyString(receipt.rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
+			or not isValidRewardId(receipt.rewardId)
 			or not isValidTimestamp(receipt.claimedAt)
 			or (receipt.revision ~= nil and (not isInteger(receipt.revision) or receipt.revision < 1)) then
 			return false, "INVALID_CLAIM_RECEIPT"
@@ -68,7 +75,7 @@ function QuestRewardOutboxData.recordClaim(
 	if type(questId) ~= "string" or QuestProgressData.DEFINITIONS[questId] == nil then
 		return nil, "UNKNOWN_QUEST"
 	end
-	if not isNonEmptyString(rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
+	if not isValidRewardId(rewardId)
 		or not isValidTimestamp(claimedAt)
 		or (claimRevision ~= nil and (not isInteger(claimRevision) or claimRevision < 1)) then
 		return nil, "INVALID_CLAIM_RECEIPT"
@@ -90,7 +97,7 @@ end
 
 local function validateOutboxRecord(record: any): (boolean, string)
 	if type(record) ~= "table"
-		or not isNonEmptyString(record.rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
+		or not isValidRewardId(record.rewardId)
 		or type(record.questId) ~= "string"
 		or QuestProgressData.DEFINITIONS[record.questId] == nil
 		or not isNonEmptyString(record.petId, QuestRewardOutboxData.MAX_PET_ID_LENGTH)
