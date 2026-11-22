@@ -32,6 +32,19 @@ expect("second reward identity cannot replace a claim receipt",
 local invalidClaim = { fake_quest = { rewardId = "bad", claimedAt = 100 } }
 local invalidClaimOk = QuestRewardOutboxData.validateClaims(invalidClaim)
 expect("unknown quest claim IDs are rejected", not invalidClaimOk)
+local duplicateRewardClaims = {
+	gather_wood = { rewardId = "shared-reward", claimedAt = 100 },
+	gather_stone = { rewardId = "shared-reward", claimedAt = 100 },
+}
+local duplicateRewardClaimsOk, duplicateRewardClaimsCode =
+	QuestRewardOutboxData.validateClaims(duplicateRewardClaims)
+expect("claim ledger rejects reward IDs reused across quests",
+	not duplicateRewardClaimsOk and duplicateRewardClaimsCode == "DUPLICATE_CLAIM_REWARD_ID")
+local reusedClaim, reusedClaimCode = QuestRewardOutboxData.recordClaim(
+	claimed, "gather_stone", "quest:gather_wood:reward:v1", 103
+)
+expect("one reward ID cannot be claimed for two quests",
+	reusedClaim == nil and reusedClaimCode == "CLAIM_REWARD_ID_REUSED")
 
 local outbox = QuestRewardOutboxData.createOutbox()
 local record = {
@@ -77,5 +90,19 @@ local invalidTimestamp = table.clone(record)
 invalidTimestamp.deliveredAt = 99
 local timestampLedgerOk = QuestRewardOutboxData.validateOutbox({ invalidTimestamp })
 expect("delivery before enqueue time is rejected", not timestampLedgerOk)
+
+local fullOutbox = QuestRewardOutboxData.createOutbox()
+for index = 1, QuestRewardOutboxData.MAX_OUTBOX_ENTRIES do
+	local fullRecord = table.clone(record)
+	fullRecord.rewardId = "capacity-reward-" .. tostring(index)
+	local nextOutbox, status = QuestRewardOutboxData.append(fullOutbox, fullRecord)
+	assert(nextOutbox ~= nil and status == "QUEUED", "outbox capacity setup failed")
+	fullOutbox = nextOutbox
+end
+local overflowRecord = table.clone(record)
+overflowRecord.rewardId = "capacity-overflow"
+local overflow, overflowCode = QuestRewardOutboxData.append(fullOutbox, overflowRecord)
+expect("full outbox rejects new entries without evicting pending rewards",
+	overflow == nil and overflowCode == "OUTBOX_FULL" and #fullOutbox == QuestRewardOutboxData.MAX_OUTBOX_ENTRIES)
 
 print("[PetKingdoms Test] QuestRewardOutboxData tests completed.")
