@@ -22,6 +22,40 @@ expect("server grant adds resources", granted and grantCode == "GRANTED" and new
 local spent, spendCode = IslandResources.spend(wallet, { wood = 2, stone = 1 })
 expect("multi-resource spend succeeds atomically", spent and spendCode == "SPENT" and wallet.wood == 3 and wallet.stone == 0)
 
+local grantManyBefore = table.clone(wallet)
+local grantManyOk, grantManyCode, grantManyBalances =
+	IslandResources.grantMany(wallet, { wood = 2, stone = 3, gold = 1 })
+expect("multi-resource grant succeeds atomically",
+	grantManyOk and grantManyCode == "GRANTED" and grantManyBalances ~= nil
+		and wallet.wood == grantManyBefore.wood + 2
+		and wallet.stone == grantManyBefore.stone + 3
+		and wallet.gold == grantManyBefore.gold + 1)
+
+local beforeInvalidGrant = table.clone(wallet)
+local invalidMultiGrant, invalidMultiGrantCode = IslandResources.grantMany(
+	wallet, { wood = 1, dragon_scale = 1 }
+)
+expect("invalid multi-resource grant changes no balances",
+	not invalidMultiGrant and invalidMultiGrantCode == "UNKNOWN_RESOURCE"
+		and wallet.wood == beforeInvalidGrant.wood
+		and wallet.stone == beforeInvalidGrant.stone
+		and wallet.gold == beforeInvalidGrant.gold
+		and wallet.gems == beforeInvalidGrant.gems)
+
+local emptyMultiGrant, emptyMultiGrantCode = IslandResources.grantMany(wallet, {})
+expect("empty multi-resource grant is rejected",
+	not emptyMultiGrant and emptyMultiGrantCode == "EMPTY_REWARDS")
+
+local cappedMultiGrantWallet = {
+	wood = 2_000_000_000, stone = 0, gold = 0, gems = 0,
+}
+local cappedMultiGrant, cappedMultiGrantCode = IslandResources.grantMany(
+	cappedMultiGrantWallet, { wood = 1, stone = 1 }
+)
+expect("multi-resource grant cap failure is atomic",
+	not cappedMultiGrant and cappedMultiGrantCode == "RESOURCE_CAP_REACHED"
+		and cappedMultiGrantWallet.stone == 0)
+
 local beforeWood = wallet.wood
 local insufficient, insufficientCode = IslandResources.spend(wallet, { wood = 2, stone = 1 })
 expect("insufficient multi-resource spend changes nothing", not insufficient and insufficientCode == "INSUFFICIENT_RESOURCES" and wallet.wood == beforeWood and wallet.stone == 0)
