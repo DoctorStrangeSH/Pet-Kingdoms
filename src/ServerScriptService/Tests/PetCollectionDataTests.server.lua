@@ -291,6 +291,49 @@ local invalidAcquiredAt, invalidAcquiredAtStatus =
 	PetCollectionData.addPet(profile, "pet_test_004", "bunny", 1, math.huge)
 expect("invalid acquisition timestamp is rejected", not invalidAcquiredAt and invalidAcquiredAtStatus == "INVALID_TIMESTAMP")
 
+
+-- Idempotent acquisition: repeated calls with the same stable ID cannot add another pet.
+local acquiredOnce, acquiredOnceStatus, acquiredOnceProfile =
+	PetCollectionData.addPetOnce(profile, "pet_acq_001", "bunny", 2, 1_800_000_000, "egg:opening_001")
+expect("first acquisition ID adds a pet", acquiredOnce and acquiredOnceStatus == "UPDATED" and acquiredOnceProfile ~= nil)
+assert(acquiredOnceProfile ~= nil)
+expect("first acquisition stores its receipt", #acquiredOnceProfile.acquisitionReceipts == 1)
+
+local acquiredDuplicate, acquiredDuplicateStatus, duplicateAcquisitionProfile =
+	PetCollectionData.addPetOnce(acquiredOnceProfile, "pet_acq_new_retry", "bunny", 2, 1_800_000_001, "egg:opening_001")
+expect("repeated acquisition ID does not add a second pet", not acquiredDuplicate and acquiredDuplicateStatus == "ALREADY_ACQUIRED")
+expect("repeated acquisition preserves the original pet", duplicateAcquisitionProfile ~= nil and #duplicateAcquisitionProfile.owned == #acquiredOnceProfile.owned)
+expect("repeated acquisition does not increment revision", duplicateAcquisitionProfile ~= nil and duplicateAcquisitionProfile.revision == acquiredOnceProfile.revision)
+
+local acquisitionConflict, acquisitionConflictStatus =
+	PetCollectionData.addPetOnce(acquiredOnceProfile, "pet_acq_conflict", "bunny", 3, 1_800_000_001, "egg:opening_001")
+expect("acquisition ID cannot be reused with another rarity", not acquisitionConflict and acquisitionConflictStatus == "ACQUISITION_ID_CONFLICT")
+
+local invalidAcquisitionId, invalidAcquisitionIdStatus =
+	PetCollectionData.addPetOnce(profile, "pet_acq_bad", "bunny", 1, 1_800_000_000, "invalid acquisition id")
+expect("malformed acquisition ID is rejected", not invalidAcquisitionId and invalidAcquisitionIdStatus == "INVALID_ACQUISITION_ID")
+
+local fullAcquisitionLedger = PetCollectionData.clone(profile)
+fullAcquisitionLedger.acquisitionReceipts = {}
+for index = 1, PetCollectionData.MAX_ACQUISITION_RECEIPTS do
+	fullAcquisitionLedger.acquisitionReceipts[index] = {
+		acquisitionId = "egg:opening_" .. tostring(index),
+		petId = "pet_existing_" .. tostring(index),
+		speciesId = "bunny",
+		rarityTier = 1,
+		processedAt = 1_800_000_000,
+	}
+end
+local ledgerFullAcquisition, ledgerFullAcquisitionStatus =
+	PetCollectionData.addPetOnce(fullAcquisitionLedger, "pet_acq_full", "bunny", 1, 1_800_000_000, "egg:opening_new")
+expect("full acquisition ledger rejects new acquisitions safely", not ledgerFullAcquisition and ledgerFullAcquisitionStatus == "ACQUISITION_LEDGER_FULL")
+
+local expiredAcquisitionProfile = PetCollectionData.clone(acquiredOnceProfile)
+local acquisitionAfterRetention = 1_800_000_000 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+local reacquired, reacquiredStatus, reacquiredProfile =
+	PetCollectionData.addPetOnce(expiredAcquisitionProfile, "pet_acq_after_expiry", "bunny", 2, acquisitionAfterRetention, "egg:opening_001")
+expect("expired acquisition receipt follows retention policy", reacquired and reacquiredStatus == "UPDATED" and reacquiredProfile ~= nil)
+
 local equipped, equipStatus, updated = PetCollectionData.setEquipped(profile, { "starter-bunny" })
 expect("owned pet can be equipped", equipped and equipStatus == "UPDATED" and updated ~= nil)
 assert(updated ~= nil)
