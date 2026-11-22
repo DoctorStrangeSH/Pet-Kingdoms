@@ -102,3 +102,14 @@ No food/inventory action is added because an approved food catalogue and resourc
 - Ground placement no longer assumes a universal 0.28-stud root offset. This supports the procedural Bunny rig and imported mesh pets with center-based pivots and different heights.
 - Added a Studio client test with a 4-stud imported-mesh stand-in whose pivot is centered; the expected ground lift is 2 studs.
 - This corrects vertical placement only. Obstacle navigation, slope limits, multiplayer replication behavior, and mobile performance still require Studio verification.
+
+
+## Companion obstacle navigation foundation (2026-11-22)
+
+- CompanionFollowController performs two horizontal obstacle raycasts (low and upper body) before moving directly toward its formation target.
+- If the direct lane is blocked, it requests a Roblox PathfindingService route using a 1.25-stud agent radius, 3.2-stud agent height, and jump/climb support.
+- Path computation runs asynchronously and is reused while the target remains nearby; blocked waypoints invalidate the route and trigger a retry.
+- Waypoint positions are projected onto the island surface and lifted by the companion's measured pivot-to-bounds-bottom offset.
+- If navigation is pending or fails, the companion waits instead of walking through an obstacle. When the direct lane clears, path resources are released.
+- This is a client-side cosmetic movement system. It does not grant the pet gameplay authority or change server-owned island interactions.
+- Studio verification is still required for generated navmesh coverage, narrow paths, stairs, cliffs, streaming, multiplayer presentation, and mobile performance.
