@@ -109,7 +109,7 @@ end
 local toast = Instance.new("TextLabel")
 toast.Name = "GatherToast"
 toast.AnchorPoint = Vector2.new(0.5, 0)
-toast.Position = UDim2.new(0.5, 0, 0, 146)
+toast.Position = UDim2.new(0.5, 0, 0, 178)
 toast.Size = UDim2.fromOffset(250, 38)
 toast.BackgroundColor3 = COLORS.panel
 toast.BackgroundTransparency = 1
@@ -197,6 +197,76 @@ gatherHintStroke.Color = COLORS.mint
 gatherHintStroke.Transparency = 0.45
 gatherHintStroke.Parent = gatherHint
 
+-- Read-only gathering feedback. Nodes expose their server-owned cooldown
+-- deadline as a replicated attribute; no client request can change rewards.
+local gatheringAvailability = Instance.new("TextLabel")
+gatheringAvailability.Name = "ResourceAvailability"
+gatheringAvailability.AnchorPoint = Vector2.new(0.5, 0)
+gatheringAvailability.Position = UDim2.new(0.5, 0, 0, 142)
+gatheringAvailability.Size = UDim2.new(0.94, 0, 0, 28)
+gatheringAvailability.BackgroundColor3 = COLORS.panel
+gatheringAvailability.BackgroundTransparency = 0.12
+gatheringAvailability.BorderSizePixel = 0
+gatheringAvailability.Text = ""
+gatheringAvailability.TextColor3 = COLORS.muted
+gatheringAvailability.Font = Enum.Font.GothamMedium
+gatheringAvailability.TextSize = 12
+gatheringAvailability.Visible = false
+gatheringAvailability.Parent = screen
+Instance.new("UICorner", gatheringAvailability).CornerRadius = UDim.new(0, 10)
+
+local function updateGatheringAvailability()
+	local worlds = Workspace:FindFirstChild("PlayerIslands")
+	local ownWorld = worlds and worlds:FindFirstChild("Island_" .. tostring(player.UserId))
+	local nodes = ownWorld and ownWorld:FindFirstChild("ResourceNodes")
+	if nodes == nil then
+		gatheringAvailability.Visible = false
+		return
+	end
+
+	local availableWood, availableStone = 0, 0
+	local totalWood, totalStone = 0, 0
+	local nextReady: number? = nil
+	local now = Workspace:GetServerTimeNow()
+	for _, node in ipairs(nodes:GetChildren()) do
+		if not node:IsA("Model") or node:GetAttribute("OwnerUserId") ~= player.UserId then continue end
+		local resourceId = node:GetAttribute("ResourceId")
+		local availableAt = node:GetAttribute("AvailableAt")
+		if resourceId ~= "wood" and resourceId ~= "stone" then continue end
+		local ready = type(availableAt) == "number" and availableAt <= now
+		if resourceId == "wood" then
+			totalWood += 1
+			if ready then availableWood += 1 end
+		else
+			totalStone += 1
+			if ready then availableStone += 1 end
+		end
+		if type(availableAt) == "number" and availableAt > now then
+			nextReady = if nextReady then math.min(nextReady, availableAt) else availableAt
+		end
+	end
+	if totalWood + totalStone == 0 then
+		gatheringAvailability.Visible = false
+		return
+	end
+	local upcoming = ""
+	if nextReady then
+		local remaining = math.max(1, math.ceil(nextReady - now))
+		upcoming = string.format("  •  ещё через %02d:%02d", math.floor(remaining / 60), remaining % 60)
+	end
+	gatheringAvailability.Text = string.format(
+		"🌲 %d/%d  •  🪨 %d/%d%s", availableWood, totalWood, availableStone, totalStone, upcoming
+	)
+	gatheringAvailability.Visible = true
+end
+
+task.spawn(function()
+	while screen.Parent ~= nil do
+		updateGatheringAvailability()
+		task.wait(1)
+	end
+end)
+
 local toastSequence = 0
 local function showToast(resourceId: string?, amount: number?, code: string?)
 	if code ~= "GATHERED" or resourceId == nil or amount == nil then return end
@@ -260,6 +330,7 @@ local function resize()
 		label.TextSize = compact and 14 or 17
 	end
 	gatherHint.TextSize = compact and 9 or 11
+	gatheringAvailability.TextSize = compact and 10 or 12
 end
 
 if Workspace.CurrentCamera then
