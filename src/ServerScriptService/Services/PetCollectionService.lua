@@ -323,6 +323,69 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 		return true, cloneForClient(state.profile)
 	end
 
+	if action == "Protect" or action == "Delete" then
+		if type(payload) ~= "table"
+			or type(payload.petId) ~= "string"
+			or type(payload.expectedRevision) ~= "number"
+			or payload.expectedRevision ~= math.floor(payload.expectedRevision)
+		then
+			return false, "INVALID_REQUEST"
+		end
+		if payload.expectedRevision ~= state.profile.revision then
+			return false, "STALE_REVISION"
+		end
+		if action == "Protect" and (type(payload.isLocked) ~= "boolean" or type(payload.isFavorite) ~= "boolean") then
+			return false, "INVALID_REQUEST"
+		end
+		local nowClock = os.clock()
+		local previousRequestAt = mutationRequestTimes[player.UserId]
+		if previousRequestAt ~= nil and nowClock - previousRequestAt < 1 then
+			return false, "REQUEST_RATE_LIMITED"
+		end
+		mutationRequestTimes[player.UserId] = nowClock
+
+		local mutationStatus = "NOT_UPDATED"
+		local ok, result = updateWithRetry(player.UserId, function(current)
+			if type(current) ~= "table" then
+				mutationStatus = "PROFILE_MISSING"
+				return current
+			end
+			local valid, reason = PetCollectionData.validate(current, player.UserId)
+			if not valid then
+				mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+				return current
+			end
+			if current.revision ~= payload.expectedRevision then
+				mutationStatus = "STALE_REVISION"
+				return current
+			end
+			local changed, status, nextProfile
+			if action == "Protect" then
+				changed, status, nextProfile = PetCollectionData.setPetFlags(
+					current, payload.petId, payload.isLocked, payload.isFavorite
+				)
+			else
+				changed, status, nextProfile = PetCollectionData.removePet(current, payload.petId)
+			end
+			mutationStatus = status
+			if not changed then return current end
+			return nextProfile
+		end)
+
+		if not ok then return false, "DATASTORE_UNAVAILABLE" end
+		if mutationStatus ~= "UPDATED" and mutationStatus ~= "REMOVED" then
+			return false, mutationStatus
+		end
+		if type(result) ~= "table" then return false, "INVALID_SAVE_RESULT" end
+		local valid, reason = PetCollectionData.validate(result, player.UserId)
+		if not valid then
+			warn("[PetKingdoms] Pet collection mutation result invalid:", player.UserId, reason)
+			return false, "INVALID_SAVE_RESULT"
+		end
+		syncProfileIfNewer(state, result)
+		return true, cloneForClient(state.profile)
+	end
+
 	if action ~= "Equip" then
 		return false, "UNKNOWN_ACTION"
 	end
