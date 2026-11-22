@@ -73,7 +73,7 @@
 - [ ] Add gathering feedback animation and final polished art treatment.
 - [ ] Verify HUD safe areas, readability, and touch gathering on phone/tablet in Roblox Studio.
 - [ ] Verify multiplayer ownership, prompt interactions, respawn, and persistence in Roblox Studio.
-- [ ] Approve economy balance sheet and define building costs/refunds before enabling resource charges in building transactions.
+- [ ] Approve and tune the full economy balance sheet; current construction prices are provisional and must be playtested.
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
@@ -89,7 +89,11 @@
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [x] Add server-authoritative placement/move/demolition transaction endpoint with idempotency and world/profile rollback (Studio integration verification pending).
   - [x] Add per-player token-bucket rate limiting to the building RemoteFunction (12-request burst, refill 4/sec; Studio spam test pending).
-- [ ] Add server transaction handling for resource charging (economy values remain unapproved).
+- [x] Add server transaction handling for new placement resource charging from server-owned provisional catalog prices; move remains free; rollback refund is atomic across resource types (Studio transaction/failure-injection verification pending).
+- [x] Show provisional resource costs in the client construction catalogue and localize insufficient-resource/placement errors.
+- [x] Add Studio catalog economy contract tests for resource IDs and positive integer prices (execution pending).
+- [ ] Add durable transaction journal for crash-safe charge/placement recovery.
+- [ ] Decide and implement demolition refund policy after economy balance approval.
 - [ ] Complete persistent personal home islands (profile lifecycle and MemoryStore lease code are committed; world spawning and Studio verification remain).
 - [x] Add cross-server MemoryStore coordination lease with acquire, renewal, release, and fail-closed handling (Studio verification pending; DataStore fencing is implemented separately).
 - [x] Add DataStore-side fencing/session generation checked atomically inside every profile UpdateAsync write, using compare-and-swap claims to reject delayed loaders (Studio integration test committed; execution pending).
