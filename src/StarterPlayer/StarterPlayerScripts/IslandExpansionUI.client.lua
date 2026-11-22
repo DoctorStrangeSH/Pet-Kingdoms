@@ -66,8 +66,9 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 370), MaxSize = Vector2.new(440, 390) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(290, 300), MaxSize = Vector2.new(500, 440) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
 local title = make("TextLabel", {
@@ -347,10 +348,18 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	-- Fit the entire dialogue in portrait and short landscape viewports.
+	-- Scale fixed internal offsets together so the close control stays reachable.
+	local baseHeight = 390
+	local width = math.clamp(viewport.X - 24, 290, 440)
+	local scale = math.min(1, math.max(0.6, (viewport.Y - 40) / baseHeight))
+	panelScale.Scale = scale
+	panel.Size = UDim2.fromOffset(width, baseHeight)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	openButton.Position = UDim2.new(1, compact and -12 or -22, 0.70, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
 end
 if Workspace.CurrentCamera then
 	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
