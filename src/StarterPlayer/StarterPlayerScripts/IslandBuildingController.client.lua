@@ -95,7 +95,7 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(300, 300), MaxSize = Vector2.new(420, 340) }, panel)
+local panelSizeConstraint = make("UISizeConstraint", { MinSize = Vector2.new(300, 130), MaxSize = Vector2.new(420, 340) }, panel) :: UISizeConstraint
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -536,6 +536,28 @@ end)
 woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
+-- Keep the preview stage compact so the placement controls no longer
+-- obscure the world. Reopen the catalogue at its normal height when needed.
+local function updateBuildPanelMode()
+	local currentCamera = Workspace.CurrentCamera
+	if currentCamera == nil then return end
+	local viewport = currentCamera.ViewportSize
+	local compact = viewport.X < 370
+	local width = math.clamp(viewport.X - 24, 300, 420)
+	local height = if placing then 136 else math.clamp(viewport.Y - 48, 300, 340)
+	panel.Size = UDim2.fromOffset(width, height)
+	panel.Position = UDim2.new(0.5, 0, 1, -16)
+	catalogRow.Visible = not placing
+	buttons.Position = UDim2.fromOffset(0, if placing then 66 else 244)
+	rotateButton.Size = UDim2.fromOffset(if compact then 78 else 94, 48)
+	confirmButton.Size = UDim2.fromOffset(if compact then 96 else 104, 48)
+	cancelButton.Size = UDim2.fromOffset(if compact then 68 else 78, 48)
+	status.TextSize = if compact then 11 else 13
+	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+		button.TextSize = if compact then 11 else 13
+	end
+end
+
 local function beginMoveSelected()
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
@@ -554,6 +576,7 @@ local function beginMoveSelected()
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
 	buildMenuOpen = true
+	updateBuildPanelMode()
 	panel.Visible = true
 	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
@@ -589,6 +612,7 @@ local function stopPlacing()
 	placing = false
 	buildMenuOpen = false
 	movingInstanceId = nil
+	updateBuildPanelMode()
 	panel.Visible = false
 	if playerGui:GetAttribute("PetKingdomsActiveModal") == "building" then playerGui:SetAttribute("PetKingdomsActiveModal", nil) end
 	clearPreview()
@@ -611,6 +635,7 @@ local function beginPlacing()
 	rotation = 0
 	placing = false
 	buildMenuOpen = true
+	updateBuildPanelMode()
 	panel.Visible = true
 	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
@@ -624,11 +649,13 @@ end
 local function beginPlacementPreview()
 	if not buildMenuOpen or placing then return end
 	placing = true
+	updateBuildPanelMode()
 	confirmButton.Text = "ПОДТВЕРДИТЬ"
 	setStatus("Перемещай предпросмотр. Нажми «Подтвердить», когда место подходит")
 	createPreview()
 	if currentPreview == nil then
 		placing = false
+		updateBuildPanelMode()
 		confirmButton.Text = "ВЫБРАТЬ МЕСТО"
 		return
 	end
@@ -648,6 +675,7 @@ playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
 		placing = false
 		buildMenuOpen = false
 		movingInstanceId = nil
+		updateBuildPanelMode()
 		panel.Visible = false
 		clearPreview()
 		mainHouseButton.Active = true
@@ -769,28 +797,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 local function resizeBuildingPanel()
-	local currentCamera = Workspace.CurrentCamera
-	if currentCamera == nil then return end
-	local viewport = currentCamera.ViewportSize
-	local width = math.clamp(viewport.X - 24, 300, 420)
-	local height = math.clamp(viewport.Y - 48, 300, 340)
-	panel.Size = UDim2.fromOffset(width, height)
-	panel.Position = UDim2.new(0.5, 0, 1, -16)
-	local compact = viewport.X < 370
-	rotateButton.Size = UDim2.fromOffset(if compact then 78 else 94, 48)
-	confirmButton.Size = UDim2.fromOffset(if compact then 96 else 104, 48)
-	cancelButton.Size = UDim2.fromOffset(if compact then 68 else 78, 48)
-	if compact then
-		status.TextSize = 11
-		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
-			button.TextSize = 11
-		end
-	else
-		status.TextSize = 13
-		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
-			button.TextSize = 13
-		end
-	end
+	updateBuildPanelMode()
 end
 
 if Workspace.CurrentCamera then
