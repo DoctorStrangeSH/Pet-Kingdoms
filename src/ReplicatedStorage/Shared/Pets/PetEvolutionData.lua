@@ -69,6 +69,54 @@ function PetEvolutionData.validateCatalog(catalog: any): (boolean, string)
 	return true, "VALID"
 end
 
+function PetEvolutionData.getDefinition(catalog: any, evolutionId: string): (any?, string?)
+	if not isIdentifier(evolutionId) then return nil, "INVALID_EVOLUTION_ID" end
+	local valid, reason = PetEvolutionData.validateCatalog(catalog)
+	if not valid then return nil, reason end
+	for _, definition in ipairs(catalog) do
+		if definition.evolutionId == evolutionId then
+			return table.clone(definition), nil
+		end
+	end
+	return nil, "EVOLUTION_NOT_FOUND"
+end
+
+-- Prepare a non-persistent transformation while preserving the pet's stable identity
+-- and every unrelated field (level, XP, bond, rarity, equipment metadata, protection flags).
+-- Persistence and eligibility remain the responsibility of a server transaction service.
+function PetEvolutionData.prepareTransition(definition: any, petRecord: any): (any?, string?)
+	if type(definition) ~= "table"
+		or not isIdentifier(definition.evolutionId)
+		or not isIdentifier(definition.sourceSpeciesId)
+		or not isIdentifier(definition.targetSpeciesId)
+	then
+		return nil, "INVALID_DEFINITION"
+	end
+	if definition.sourceSpeciesId == definition.targetSpeciesId then
+		return nil, "SELF_EVOLUTION"
+	end
+	if type(petRecord) ~= "table"
+		or type(petRecord.petId) ~= "string"
+		or petRecord.petId == ""
+		or type(petRecord.speciesId) ~= "string"
+	then
+		return nil, "INVALID_PET_RECORD"
+	end
+	if petRecord.speciesId ~= definition.sourceSpeciesId then
+		return nil, "SOURCE_SPECIES_MISMATCH"
+	end
+
+	local evolvedRecord = table.clone(petRecord)
+	evolvedRecord.speciesId = definition.targetSpeciesId
+	return {
+		evolutionId = definition.evolutionId,
+		petId = petRecord.petId,
+		sourceSpeciesId = definition.sourceSpeciesId,
+		targetSpeciesId = definition.targetSpeciesId,
+		petRecord = evolvedRecord,
+	}, nil
+end
+
 function PetEvolutionData.getOptions(catalog: any, sourceSpeciesId: string): ({ any }?, string?)
 	if not isIdentifier(sourceSpeciesId) then return nil, "INVALID_SPECIES_ID" end
 	local valid, reason = PetEvolutionData.validateCatalog(catalog)
