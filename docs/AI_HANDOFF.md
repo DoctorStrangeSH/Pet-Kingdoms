@@ -1021,3 +1021,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Specified a durable island claim receipt + XP outbox + stable pet reward ID protocol. Retries must be idempotent if pet XP commits but island acknowledgement fails.
 - Identified a retention mismatch to resolve before enabling cross-store rewards: pet reward receipts currently have bounded seven-day retention, while an outbox could remain pending longer. The receipt must outlive all retries or be reconciled safely.
 - No reward values, XP amounts, pet recipient rule, or live claim endpoint were invented. Reward implementation and UI remain NOT DONE.
+
+
+## Pet XP receipt acknowledgement hardening (2026-11-22)
+
+- Changed `PetCollectionData.grantExperienceWithProgressOnce`: unacknowledged reward receipts are retained indefinitely and continue to deduplicate retries regardless of age.
+- Added `acknowledgedAt` validation and `PetCollectionData.acknowledgeExperienceReward`; only a trusted source acknowledgement starts the seven-day retention window.
+- Added `PetCollectionService.acknowledgeExperienceReward`, a server-only DataStore-backed operation. It validates the current collection snapshot, updates through UpdateAsync retry, syncs the resulting revision, and is idempotent.
+- Added Studio data tests for unacknowledged receipts surviving beyond seven days, acknowledgement persistence, duplicate acknowledgement, expiry only after acknowledgement, and invalid acknowledgement timestamps.
+- Important: this is the pet-side safety primitive only. The island XP outbox and caller integration are NOT DONE, so no live quest reward claims are enabled.
