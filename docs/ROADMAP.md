@@ -290,3 +290,15 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add pure tests for claim retry, concurrent observation, stale writers, token validation, metadata preservation and partial metadata rejection.
 - [ ] Run Roblox Studio unit and integration tests with two simulated servers, deliberately delayed `GetAsync` / `UpdateAsync`, and lost acknowledgements.
 - [ ] Consider MemoryStore lease and session-heartbeat gating if user-presence exclusivity is required; persisted fencing only prevents stale writes, not new-session takeover while a prior session still exists.
+
+
+### Shared island lease gating for pet collection
+
+- [x] Use the existing island MemoryStore lease as the authority for collection loading and writes; avoid a second independent lease whose ownership could disagree with the island.
+- [x] Expose `IslandSessionService.canWrite(userId, player)`, which checks exact Player identity, active island session, lease validity, and leave/close/shutdown state.
+- [x] Wait for the writable island session before claiming the pet collection writer generation; fail closed and disconnect if the island session remains unavailable for 120 seconds.
+- [x] Check island session write eligibility in every post-load pet collection DataStore UpdateAsync callback, plus client/server mutation entry points, companion spawn, and hatch recovery readiness.
+- [x] Abort a pending pet collection claim when its island lease becomes non-writable.
+- [x] Fix a Luau forward-reference bug: `IslandSessionService.applyHatchOperation` now captures the locally declared `saveSession` implementation instead of an unresolved global.
+- [ ] Run Roblox Studio DataStore/MemoryStore integration tests for lease loss during a pending collection write, leave during claim, same-user rejoin, and hatch recovery after a CHARGED transaction.
+- [ ] Ensure grant callbacks return deterministic conflict/lease-lost statuses and audit remaining time-of-check/time-of-use windows.
