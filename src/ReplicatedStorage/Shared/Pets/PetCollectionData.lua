@@ -445,8 +445,19 @@ function PetCollectionData.reservePetSlotOnce(
 			table.insert(retainedReceipts, receipt)
 			if receipt.acquisitionId == acquisitionId then
 				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier
-					or (transactionId ~= nil and receipt.transactionId ~= transactionId) then
+					or (transactionId ~= nil and receipt.transactionId ~= nil and receipt.transactionId ~= transactionId) then
 					return false, "ACQUISITION_ID_CONFLICT", nil
+				end
+				if transactionId ~= nil and receipt.transactionId == nil then
+					local upgraded = PetCollectionData.clone(profile)
+					for _, upgradedReceipt in ipairs(upgraded.acquisitionReceipts) do
+						if upgradedReceipt.acquisitionId == acquisitionId then
+							upgradedReceipt.transactionId = transactionId
+							break
+						end
+					end
+					upgraded.revision += 1
+					return true, "RECEIPT_BOUND", upgraded
 				end
 				return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
 			end
