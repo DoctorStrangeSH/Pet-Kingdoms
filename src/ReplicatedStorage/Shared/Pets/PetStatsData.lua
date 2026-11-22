@@ -15,6 +15,11 @@ local STAT_KEYS = {
 	"criticalChance",
 }
 
+local VALID_STAT_KEYS: { [string]: boolean } = {}
+for _, statKey in ipairs(STAT_KEYS) do
+	VALID_STAT_KEYS[statKey] = true
+end
+
 local function isFiniteNonNegativeNumber(value: any): boolean
 	return type(value) == "number"
 		and value == value
@@ -50,6 +55,17 @@ function PetStatsData.validate(snapshot: any): (boolean, string)
 	end
 	if type(snapshot.stats) ~= "table" then
 		return false, "INVALID_STATS"
+	end
+
+	local statCount = 0
+	for key in pairs(snapshot.stats) do
+		if type(key) ~= "string" or not VALID_STAT_KEYS[key] then
+			return false, "UNKNOWN_STAT_KEY"
+		end
+		statCount += 1
+	end
+	if statCount ~= #STAT_KEYS then
+		return false, "INVALID_STAT_COUNT"
 	end
 
 	for _, statKey in ipairs(STAT_KEYS) do
