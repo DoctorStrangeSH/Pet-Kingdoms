@@ -14,6 +14,9 @@ local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandHatchLedgerData = require(services:WaitForChild("IslandHatchLedgerData"))
 local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
+local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
+local IslandResourceNodeData = require(services:WaitForChild("IslandResourceNodeData"))
+local IslandResources = require(services:WaitForChild("IslandResources"))
 
 local IslandSessionService = {}
 
@@ -27,6 +30,7 @@ type Session = {
 	persistedRevision: number,
 	hatchMutationBusy: boolean,
 	buildingMutationBusy: boolean,
+	gatheringMutationBusy: boolean,
 	saveFinished: BindableEvent,
 	closing: boolean,
 	playerLeaving: boolean,
@@ -86,6 +90,75 @@ local saveSession: (number, Session) -> boolean
 -- The transform is performed without yielding; the per-session guard serializes hatch transitions.
 -- Commits a building result and its idempotency receipt in the same island
 -- profile revision, then waits for DataStore durability before acknowledging it.
+-- Atomically grants one canonical resource node reward and advances its
+-- cooldown in the same island profile revision. The reward is acknowledged
+-- only after that revision is confirmed in DataStore.
+function IslandSessionService.commitResourceGathering(
+	userId: number,
+	player: Player,
+	nodeId: string,
+	now: number
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy then return false, "GATHERING_BUSY", nil end
+
+	local definition = IslandResourceNodeCatalog.get(nodeId)
+	if definition == nil then return false, "UNKNOWN_NODE", nil end
+	session.gatheringMutationBusy = true
+
+	local nextStates, availableAt, stateCode = IslandResourceNodeData.recordGather(
+		session.profile.resourceNodes or {},
+		nodeId,
+		now
+	)
+	if nextStates == nil then
+		session.gatheringMutationBusy = false
+		return false, stateCode, availableAt
+	end
+
+	local previousResources = table.clone(session.profile.resources)
+	local granted, grantCode = IslandResources.grant(
+		session.profile.resources,
+		definition.resourceId,
+		definition.reward
+	)
+	if not granted then
+		session.gatheringMutationBusy = false
+		return false, grantCode, nil
+	end
+
+	local previousStates = session.profile.resourceNodes
+	session.profile.resourceNodes = nextStates
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.resources = previousResources
+		session.profile.resourceNodes = previousStates
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", availableAt
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", availableAt
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+
+	session.gatheringMutationBusy = false
+	return true, "GATHERED", availableAt
+end
+
 function IslandSessionService.findBuildingOperation(
 	userId: number,
 	requestId: string,
@@ -258,6 +331,10 @@ local function cloneProfile(profile: any): any
 	end
 	copy.unlockedBuildingIds = table.clone(profile.unlockedBuildingIds)
 	copy.resources = table.clone(profile.resources or { wood = 2, stone = 1, gold = 0, gems = 0 })
+	copy.resourceNodes = {}
+	for index, state in ipairs(profile.resourceNodes or {}) do
+		copy.resourceNodes[index] = table.clone(state)
+	end
 	copy.buildingOperations = {}
 	for index, record in ipairs(profile.buildingOperations or {}) do
 		local clonedRecord = table.clone(record)
@@ -422,6 +499,7 @@ local function loadPlayer(player: Player)
 		persistedRevision = profile.revision,
 		hatchMutationBusy = false,
 		buildingMutationBusy = false,
+		gatheringMutationBusy = false,
 		saveFinished = Instance.new("BindableEvent"),
 		closing = false,
 		playerLeaving = false,
