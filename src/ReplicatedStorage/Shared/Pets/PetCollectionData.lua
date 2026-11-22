@@ -3,6 +3,7 @@
 local PetCollectionData = {}
 
 PetCollectionData.SCHEMA_VERSION = 1
+PetCollectionData.MAX_SAFE_INTEGER = 9007199254740991
 PetCollectionData.MAX_OWNED_PETS = 100
 PetCollectionData.MAX_EQUIPPED_PETS = 3
 PetCollectionData.MAX_PET_LEVEL = 50
@@ -22,7 +23,13 @@ local function isNonNegativeInteger(value: any): boolean
 		and value ~= math.huge
 		and value ~= -math.huge
 		and value >= 0
+		and value <= PetCollectionData.MAX_SAFE_INTEGER
 		and value == math.floor(value)
+end
+
+local function canIncrementRevision(profile: any): boolean
+	return isNonNegativeInteger(profile.revision)
+		and profile.revision < PetCollectionData.MAX_SAFE_INTEGER
 end
 
 local function isPositiveInteger(value: any): boolean
@@ -151,6 +158,9 @@ function PetCollectionData.clone(profile: any): any
 end
 
 function PetCollectionData.interact(profile: any, petId: string, interactionType: string, now: number): (boolean, string, any?)
+	if not canIncrementRevision(profile) then
+		return false, "REVISION_OVERFLOW", nil
+	end
 	if type(petId) ~= "string" or petId == "" then
 		return false, "INVALID_PET_ID", nil
 	end
@@ -185,6 +195,9 @@ end
 -- This pure mutation is intended for trusted server-side reward systems only.
 -- The caller must derive amount from validated server gameplay state, never client payloads.
 function PetCollectionData.grantExperience(profile: any, petId: string, amount: number): (boolean, string, any?)
+	if type(profile) == "table" and not canIncrementRevision(profile) then
+		return false, "REVISION_OVERFLOW", nil
+	end
 	if type(petId) ~= "string" or petId == "" then
 		return false, "INVALID_PET_ID", nil
 	end
@@ -221,6 +234,9 @@ function PetCollectionData.grantExperience(profile: any, petId: string, amount: 
 end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
+	if type(profile) == "table" and not canIncrementRevision(profile) then
+		return false, "REVISION_OVERFLOW", nil
+	end
 	if type(petIds) ~= "table" then
 		return false, "INVALID_EQUIPPED_COUNT", nil
 	end
