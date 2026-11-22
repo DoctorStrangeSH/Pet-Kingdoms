@@ -524,8 +524,7 @@ local function renderList()
 	end)
 	for index, record in ipairs(visibleRecords) do
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
-		if true then
-			local equipped = isEquipped(record.petId)
+		local equipped = isEquipped(record.petId)
 			local button = make("TextButton", {
 				Name = "Pet_" .. record.petId,
 				Size = UDim2.new(1, -8, 0, 68),
@@ -570,12 +569,26 @@ local function renderList()
 				TextColor3 = if equipped then COLORS.mint else COLORS.muted,
 			}, button)
 			cardButtons[record.petId] = button
-			button.Activated:Connect(function()
-				selectedPetId = record.petId
-				renderList()
-				updateDetail()
-			end)
-		end
+		button.Activated:Connect(function()
+			selectedPetId = record.petId
+			renderList()
+			updateDetail()
+		end)
+	end
+	if #visibleRecords == 0 then
+		local empty = make("TextLabel", {
+			Name = "EmptyFilterState",
+			Size = UDim2.new(1, -8, 0, 64),
+			BackgroundTransparency = 1,
+			Text = if activeFilter == "favorites" then "Пока нет избранных питомцев"
+				elseif activeFilter == "team" then "В команде пока никого нет"
+				else "Ничего не найдено",
+			TextWrapped = true,
+			TextColor3 = COLORS.muted,
+			TextSize = 12,
+			Font = Enum.Font.Gotham,
+			LayoutOrder = 1,
+		}, list)
 	end
 	list.CanvasPosition = Vector2.zero
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
