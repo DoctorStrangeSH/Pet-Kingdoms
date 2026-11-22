@@ -35,6 +35,7 @@ export type IslandProfile = {
 	unlockedBuildingIds: { [string]: boolean },
 	resources: { [string]: number },
 	buildingOperations: { any },
+	resourceNodes: { any },
 	revision: number,
 	sessionGeneration: number?,
 }
