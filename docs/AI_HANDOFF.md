@@ -547,3 +547,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `PetCollectionData.clone` now preserves both session fencing fields. Validation accepts legacy profiles with neither field but rejects incomplete or malformed pairs. Thus pure data mutations cannot drop fencing metadata.
 - Added Studio-only test file `PetCollectionSessionDataTests.server.lua` and collection mutation/validation regression tests. Source reviewed; tests have NOT been executed in Roblox Studio.
 - Remaining limitations: no cross-server MemoryStore lease/heartbeat for exclusive presence, no mocked DataStore concurrency test, and no end-to-end cross-store hatch fault-injection verification. Observational GetAsync caching can cause a safe but inconvenient stale-claim rejection; retry behavior/UI needs design.
+
+
+## Shared island lease gates pet collection writes (2026-11-22)
+
+- `IslandSessionService` now retains the exact owning Player instance and exposes `canWrite(userId, player)`, requiring a live session with matching Player, valid lease and no closing/leaving/shutdown.
+- `PetCollectionService.loadPlayer` waits (up to 120 s) for that writable island session before observing or claiming the collection's DataStore writer generation. This prevents an otherwise-new collection generation from taking ownership while the same user's island lease belongs to another server.
+- Both trusted server and client collection operations check `canWrite`, and the shared UpdateAsync wrapper checks it again inside the DataStore transform. Failure aborts the transform; no stale write is intentionally committed.
+- Collection `isReady` and equipped pet spawning also require an active writable island session, so hatch recovery will not proceed on a stale island lease.
+- Fixed a pre-existing Luau lexical forward-reference issue in `IslandSessionService.applyHatchOperation`: `saveSession` is now forward-declared as a local typed function and assigned later. Without this, the transaction persistence loop could attempt to call a missing global.
+- Scope: this is code-level verification only; Roblox Studio/MemoryStore integration and failure injection remain NOT DONE. Neither two DataStores nor the lease can form one atomic cross-store transaction; journal-based recovery and idempotent acquisition receipts remain necessary.
