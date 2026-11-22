@@ -128,6 +128,7 @@
 - [x] Fix failed PlayerRemoving save lifecycle: mark the session as leaving, retry the final save on autosave, then release the MemoryStore lease and destroy the island world/spawn reservation only after save and lease release succeed (forced-failure Studio integration test pending).
 - [x] Add first layout-derived Kingdom Bond track (10 provisional points per distinct non-Main-House building type; duplicates do not farm points; moves do not change score; demolition recalculates from the saved layout).
 - [x] Add four provisional Kingdom Bond stages and server-owned island visuals (grass tint, flowers, crystal accent, banner) refreshed on spawn/place/move/demolition; visuals follow the stage ID, not raw building count.
+- [x] Separate the Bond-eligible improvement count from the total placed-building count (including Main House); calculate overview progress from stable stage IDs rather than localized labels.
 - [x] Show current Kingdom Bond stage, points, and next threshold in the resource HUD.
 - [x] Add KingdomBond pure contract tests (Studio execution pending).
 - [x] Document provisional rules in docs/game-systems/KINGDOM_BOND.md.
