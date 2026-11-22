@@ -460,3 +460,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `PetHatchingRecoveryService` reserves capacity before CHARGE/GRANT. If the collection is full, it defers the transaction before any PREPARED transaction is charged. If already acquired, the idempotent receipt is accepted.
 - Added reservation scenarios to `PetCollectionDataTests.server.lua`. Tests are committed but not executed in Roblox Studio. Multi-server concurrency and DataStore fault injection remain NOT DONE.
 - Reservations are not automatically expired. A reservation must not be released while its corresponding island transaction can still be PREPARED or CHARGED. A future cancellation flow must coordinate both profiles and prove the transaction has not been charged before release.
+
+
+## Pet inventory management foundation (2026-11-22)
+
+- Pet records now persist optional `isLocked` and `isFavorite` booleans. Validation rejects non-boolean values; clone normalization defaults missing legacy values to false.
+- Added pure `PetCollectionData.setPetFlags` and `PetCollectionData.removePet`.
+- Deletion rejects the permanent starter pet (`starter-bunny`), any locked pet, any currently equipped pet, and the last remaining pet. A successful removal increments revision and validates the resulting profile; capacity is freed immediately.
+- Added RemoteFunction actions `Protect` and `Delete`. Both require a current expectedRevision, pass through the per-player mutation rate limit, validate the persisted profile inside UpdateAsync, and return the latest safe client snapshot.
+- The client snapshot uses the normalized collection clone, so lock/favorite flags are available to future UI without exposing server-only receipt/reservation ledgers.
+- Added Studio-only pure data tests for protection flags, invalid flags, locked/equipped/starter/last-pet deletion rejection, successful deletion, and capacity release. Tests are committed but not executed in Roblox Studio.
+- Audit fix: `grantPet` now accepts an existing matching reservation returned by `reservePetSlotOnce` and consumes it, rather than incorrectly treating ALREADY_RESERVED as a failed grant.
