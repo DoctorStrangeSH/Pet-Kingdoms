@@ -390,5 +390,5 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 
 ### Companion environment awareness
 
-- [x] Add cosmetic Bunny curiosity/sniff reactions when an available, visible wood/stone node on the owner's island is nearby; movement and player-triggered interaction retain higher priority (Studio verification pending).
+- [x] Add lead-Bunny resource investigation: approach a nearby available/visible owner-island node, inspect it with Curious/Sniff, then resume the normal formation after a short visit. This is visual-only; gathering remains server-authoritative (Studio verification pending).
 - [ ] Expand ambient reactions to approved points of interest after the first world biome exists.
