@@ -1051,3 +1051,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - GitHub Actions run 45039287808 (PR #1, commit 9d287477722727f8c9bb33bbcd50d204b7f1de70) completed successfully: pinned Rojo setup, project build, and Studio-ready artifact upload all PASS.
 - Artifact: pet-kingdoms-studio-build (artifact ID 14760529099), available until 2026-12-06 15:37 UTC.
 - CI validates Rojo packaging only. The new Studio-only Lua tests and live DataStore recovery scenarios have not been executed.
+
+
+## Quest claim transaction primitives (2026-11-22)
+
+- Added server-only `IslandSessionService.commitQuestRewardClaim(userId, player, questId, rewardPlan)`. It verifies the quest is complete, then writes the permanent claim receipt and pet XP outbox record in one profile revision. `rewardPlan` must be resolved by trusted server code; no client remote was added.
+- Claim receipts now optionally carry the exact island revision. The transaction writes this revision and retries wait until it is persisted before acknowledging the receipt.
+- Added `commitQuestRewardDelivery` and `commitQuestRewardAcknowledgement`, each persisting its state transition and checking durability even on duplicate retries.
+- Added server-side read helpers `getPendingQuestRewards` and `getQuestRewardsAwaitingAcknowledgement` so a future worker can recover both sides of the two-phase protocol.
+- Outbox records in `acknowledgedAt` state are compacted only when appending a later record. Pending and delivered-but-unacknowledged records are retained. Permanent claim receipts remain in the separate claims map.
+- Extended pure Studio tests for claim revision binding, acknowledgement ordering/idempotency, and safe outbox compaction.
+- Still no recovery worker, reward catalog, XP threshold table, recipient-selection rule, claim RemoteFunction, or claim UI. Do not activate claims or invent economy values until those are approved.
