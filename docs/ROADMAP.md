@@ -107,6 +107,7 @@
   - [x] Add Studio world-renderer integration coverage for a level-1 expanded profile: 32x32 terrain and unchanged saved-building world position (execution pending).
 - [x] Extend renderer integration coverage to maximum level 2: 40x40 terrain and unchanged main-house world position after cumulative coordinate offset (execution pending).
 - [x] Validate that persisted island bounds exactly match the configured base bounds and expansion level before rendering; reject mismatched or unsupported profile geometry.
+- [x] Add a pure canonical next-level preparation boundary that validates current and resulting profile bounds without mutating the source profile.
 - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
