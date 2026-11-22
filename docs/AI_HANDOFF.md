@@ -586,3 +586,5 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Legacy pending reservations with no transaction ID can be upgraded to the transaction ID supplied by the current recovery record. Conflicting transaction IDs are rejected.
 - The acquisition receipt ledger remains bounded at 128 entries. The code reserves capacity before charging; if full, it fails closed rather than charging a hatch that cannot be durably deduplicated. High-volume long-term operation may need a separate compacted dedupe index.
 - Studio tests were added/updated but have NOT been executed in Roblox Studio. Cross-store fault injection remains NOT DONE.
+
+- Legacy hatch recovery compatibility: when a matching acquisition receipt predates transaction binding, `reservePetSlotOnce` binds it to the exact transaction ID from the durable island journal and persists the upgrade before recovery continues. A conflicting pre-existing transaction ID is rejected. Legacy reservations are upgraded the same way.
