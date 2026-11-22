@@ -70,3 +70,7 @@ The building catalogue is visible while choosing a building. Once the player ent
 ## Placement confirmation fidelity (2026-11-22)
 
 The client no longer repositions its preview when the pointer crosses its visible action bar, and an in-flight placement request freezes catalog ID, grid coordinates, rotation, and moving-instance ID. The idempotent request ID and server payload use the same snapshot. This protects the currently selected world cell from being shifted by mouse movement/touch over Confirm or by RenderStepped updates during the server call. Roblox Studio desktop/touch gameplay verification remains pending.
+
+## In-flight modal switching (2026-11-22)
+
+When a request is pending, switching to another major window defers construction cleanup until the remote returns. The response handler then closes the now-inactive build panel without clearing the new window's modal ownership. Tests and touch interaction verification in Roblox Studio remain pending.
