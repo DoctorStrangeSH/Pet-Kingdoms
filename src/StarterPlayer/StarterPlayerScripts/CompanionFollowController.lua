@@ -46,6 +46,10 @@ export type FollowController = {
 	environmentState: string?,
 	environmentUntil: number,
 	nextEnvironmentScan: number,
+	investigatePosition: Vector3?,
+	investigateUntil: number,
+	lastInvestigatedNode: Instance?,
+	lastInvestigatedAt: number,
 	interactionConnection: RBXScriptConnection?,
 	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
@@ -138,6 +142,10 @@ function CompanionFollowController.new(
 		environmentState = nil,
 		environmentUntil = 0,
 		nextEnvironmentScan = 0,
+		investigatePosition = nil,
+		investigateUntil = 0,
+		lastInvestigatedNode = nil,
+		lastInvestigatedAt = 0,
 		interactionConnection = nil,
 	}, CompanionFollowController)
 
@@ -258,9 +266,32 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 				end
 			end
 		end
-		if nearestNode and speed < self.walkSpeed and self.interactionState == nil then
+		if nearestNode and speed < self.walkSpeed and self.interactionState == nil
+			and self.slotIndex == 1
+			and (nearestNode ~= self.lastInvestigatedNode or os.clock() - self.lastInvestigatedAt >= 12)
+		then
+			local nodePosition = nearestNode:GetPivot().Position
+			local away = horizontal(currentPosition - nodePosition)
+			if away.Magnitude < 0.1 then away = -horizontal(self.targetRoot.CFrame.LookVector) end
+			local approachPosition = nodePosition + away.Unit * 2.8
+			self.investigatePosition = resolveGroundPosition(self.model, approachPosition, self.groundRaycastParams)
+			self.investigateUntil = os.clock() + 4
+			self.lastInvestigatedNode = nearestNode
+			self.lastInvestigatedAt = os.clock()
 			self.environmentState = if nearestNode:GetAttribute("ResourceId") == "wood" then "curious" else "sniff"
-			self.environmentUntil = os.clock() + 1.4
+			self.environmentUntil = self.investigateUntil
+		end
+	end
+
+	-- The lead Bunny briefly leaves formation to inspect a nearby resource,
+	-- then naturally resumes its normal follow slot. Other companions keep formation.
+	if self.investigatePosition ~= nil then
+		if os.clock() < self.investigateUntil and speed < self.walkSpeed then
+			desired = self.investigatePosition
+			lagDistance = horizontal(desired - currentPosition).Magnitude
+			state = if lagDistance > 1.2 then "walk" else (self.environmentState or "idle")
+		else
+			self.investigatePosition = nil
 		end
 	end
 	-- Player-triggered affection/play reactions take priority over autonomous idle actions.
