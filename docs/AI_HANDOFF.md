@@ -679,3 +679,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - No new remote or authority boundary was added. Equip, protect, delete, and pet interaction continue through the existing server-validated collection remote.
 - Extended `IslandWorldServiceTests.server.lua` with a saved Pet House record and assertions that the model and localized prompt are rendered.
 - CI Rojo build validates serialization only; execute the Studio test and check PC/gamepad/mobile prompt behavior, owner filtering, and custom-template fallback.
+
+
+## Main House kingdom interaction (2026-11-22)
+
+- Extended the shared server-side building interaction helper to add `MainHousePrompt` on rendered `main_house` models, alongside the existing Pet House prompt.
+- Main House prompt text: "Управлять королевством" / "Главный дом"; keyboard E, gamepad X, no hold, 10-stud distance. It uses the Door or a safe BasePart fallback.
+- `IslandBuildingController.client.lua` listens for the prompt and starts the existing `beginPlacing()` flow only when the prompt is inside a main_house model under the local player's island model.
+- No new placement path or authority bypass: item selection, client preview, server catalog pricing, validation, persistence and rollback remain as before.
+- Expanded `IslandWorldServiceTests.server.lua` to render both Main House and Pet House and assert each localized prompt exists.
+- Studio execution and actual PC/gamepad/mobile interaction remain pending.
