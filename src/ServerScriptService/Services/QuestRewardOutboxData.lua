@@ -35,6 +35,7 @@ end
 
 function QuestRewardOutboxData.validateClaims(claims: any): (boolean, string)
 	if type(claims) ~= "table" then return false, "INVALID_CLAIMS" end
+	local seenRewardIds: { [string]: boolean } = {}
 	for questId, receipt in pairs(claims) do
 		if type(questId) ~= "string" or QuestProgressData.DEFINITIONS[questId] == nil
 			or type(receipt) ~= "table"
@@ -42,6 +43,8 @@ function QuestRewardOutboxData.validateClaims(claims: any): (boolean, string)
 			or not isValidTimestamp(receipt.claimedAt) then
 			return false, "INVALID_CLAIM_RECEIPT"
 		end
+		if seenRewardIds[receipt.rewardId] then return false, "DUPLICATE_CLAIM_REWARD_ID" end
+		seenRewardIds[receipt.rewardId] = true
 		for key in pairs(receipt) do
 			if key ~= "rewardId" and key ~= "claimedAt" then
 				return false, "INVALID_CLAIM_RECEIPT"
@@ -72,6 +75,9 @@ function QuestRewardOutboxData.recordClaim(
 	if existing ~= nil then
 		if existing.rewardId == rewardId then return nil, "ALREADY_CLAIMED" end
 		return nil, "CLAIM_RECEIPT_CONFLICT"
+	end
+	for _, receipt in pairs(claims) do
+		if receipt.rewardId == rewardId then return nil, "CLAIM_REWARD_ID_REUSED" end
 	end
 
 	local nextClaims = table.clone(claims)
