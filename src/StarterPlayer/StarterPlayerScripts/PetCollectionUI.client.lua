@@ -875,6 +875,7 @@ local function bindViewportCamera()
 end
 
 local function openCollection()
+	playerGui:SetAttribute("PetKingdomsActiveModal", "pets")
 	shade.Visible = true
 	panel.Visible = true
 	resize()
@@ -888,7 +889,32 @@ end
 local function closeCollection()
 	panel.Visible = false
 	shade.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "pets" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 end
+
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if owner ~= nil and owner ~= "pets" then
+		panel.Visible = false
+		shade.Visible = false
+		confirmPanel.Visible = false
+		pendingDeletePetId = nil
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not panel.Visible then return end
+	if input.KeyCode == Enum.KeyCode.Escape then
+		if confirmPanel.Visible then
+			confirmPanel.Visible = false
+			pendingDeletePetId = nil
+		else
+			closeCollection()
+		end
+	end
+end)
 
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
