@@ -778,3 +778,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A nearby wood node triggers a short curious reaction; a stone node triggers a short sniff reaction. Reactions are cosmetic and never grant resources, trigger prompts, or bypass IslandGatheringService server validation.
 - Movement remains higher priority; direct player interaction remains higher priority than ambient curiosity.
 - Added a Studio client smoke assertion for a nearby available wood node. Execute it in Roblox Studio; also verify hidden/depleted nodes are ignored and check mobile frame cost with three active pets.
+
+
+## Lead Bunny resource investigation (2026-11-22)
+
+- The lead companion (slot 1) can now briefly leave formation to approach the nearest available, visible resource node within its scan radius.
+- It chooses a ground-resolved approach point roughly 2.8 studs from the node, walks toward it, performs Curious for wood or Sniff for stone when close, then resumes its regular follow slot after up to four seconds.
+- A per-node 12-second re-investigation cooldown avoids repeatedly selecting the same node. Secondary companions remain in formation.
+- Investigation is cosmetic only. It does not activate ProximityPrompts, mutate profiles, or grant resources; IslandGatheringService remains the sole gathering authority.
+- Studio smoke coverage now checks approach, inspection reaction, and return to formation. Studio runtime, uneven terrain, StreamingEnabled and mobile behavior remain unverified.
