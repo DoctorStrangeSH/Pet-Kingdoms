@@ -76,3 +76,11 @@ No food/inventory action is added because an approved food catalogue and resourc
 
 - Player-triggered Pet/Play emotion cues override autonomous idle personality animations while the pet is stationary, so a user interaction is visible immediately instead of waiting for a random idle action to finish.
 - Walk/run states remain dominant during movement. Client Studio tests cover both priority rules; execution is pending.
+
+
+## Integer precision and overflow protection
+
+- Collection integer fields use the exact-integer ceiling of Luau numbers: `2^53 - 1`. Values beyond this boundary are rejected rather than silently losing precision.
+- Pet XP rewards that would exceed the safe integer ceiling return `XP_OVERFLOW`; rewards outside the accepted positive integer range return `INVALID_XP_AMOUNT`.
+- Equip, Pet/Play, and XP reward mutations reject a collection revision that cannot be incremented safely (`REVISION_OVERFLOW`).
+- Boundary and overflow test cases are committed; Roblox Studio execution remains pending.
