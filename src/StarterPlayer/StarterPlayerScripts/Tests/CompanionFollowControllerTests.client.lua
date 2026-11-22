@@ -94,7 +94,7 @@ woodNode.Parent = nodes
 local woodPart = Instance.new("Part")
 woodPart.Anchored = true
 woodPart.CanCollide = false
-woodPart.Position = pets[1]:GetPivot().Position + Vector3.new(2, 0, 0)
+woodPart.Position = pets[1]:GetPivot().Position + Vector3.new(5, 0, 0)
 woodPart.Parent = woodNode
 pets[1]:SetAttribute("OwnerUserId", 123456)
 controllers[1].interactionState = nil
