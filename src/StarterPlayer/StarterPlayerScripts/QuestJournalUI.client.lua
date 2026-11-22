@@ -149,6 +149,7 @@ local loading = false
 local refreshQueued = false
 local lastQuests: { any } = {}
 local trackedQuestId: string? = nil
+local hasLoadedSnapshot = false
 
 local tracker = make("Frame", {
 	Name = "TrackedQuestHUD",
@@ -273,7 +274,6 @@ local function render(quests: any)
 		status.TextColor3 = COLORS.rose
 		return
 	end
-	lastQuests = quests
 	clearCards()
 	local completedCount = 0
 	for index, quest in ipairs(quests) do
@@ -386,16 +386,22 @@ local function render(quests: any)
 			for _, previous in ipairs(lastQuests) do
 				if previous.id == quest.id and previous.completed == true then wasCompleted = true break end
 			end
-			if not wasCompleted then showCompletionToast(quest.name) end
+			if hasLoadedSnapshot and not wasCompleted then showCompletionToast(quest.name) end
 		end
 	end
-	if trackedQuestId == nil then
+	local trackedIsComplete = true
+	for _, quest in ipairs(quests) do
+		if quest.id == trackedQuestId and quest.completed ~= true then trackedIsComplete = false break end
+	end
+	if trackedQuestId == nil or trackedIsComplete then
+		trackedQuestId = nil
 		for _, quest in ipairs(quests) do
 			if quest.completed ~= true then trackedQuestId = quest.id break end
 		end
 	end
 	updateTracker(quests)
 	lastQuests = quests
+	hasLoadedSnapshot = true
 end
 
 local function refresh()
