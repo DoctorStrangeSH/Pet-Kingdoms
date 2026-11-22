@@ -358,6 +358,32 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 	end
 end
 
+local function attachBuildingInteraction(model: Model, catalogId: string)
+	if catalogId ~= "pet_house" or model:FindFirstChild("PetHousePrompt", true) ~= nil then
+		return
+	end
+
+	local promptPart = model:FindFirstChild("Door", true)
+	if promptPart == nil or not promptPart:IsA("BasePart") then
+		promptPart = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	end
+	if promptPart == nil or not promptPart:IsA("BasePart") then
+		warn("[PetKingdoms] Pet house has no BasePart for its interaction prompt:", model:GetFullName())
+		return
+	end
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "PetHousePrompt"
+	prompt.ActionText = "Открыть коллекцию"
+	prompt.ObjectText = "Домик питомцев"
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = promptPart
+end
+
 local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
 	for _, record in ipairs(profile.buildings) do
 		local clone = getBuildingTemplate(record.catalogId, cellSize)
@@ -375,6 +401,7 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
+		attachBuildingInteraction(clone, record.catalogId)
 	end
 end
 
@@ -500,6 +527,7 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 		end
 	end
 	clone.Parent = world
+	attachBuildingInteraction(clone, record.catalogId)
 	refreshKingdomBondVisuals(world, profile)
 	return true, "BUILDING_SYNCED"
 end
