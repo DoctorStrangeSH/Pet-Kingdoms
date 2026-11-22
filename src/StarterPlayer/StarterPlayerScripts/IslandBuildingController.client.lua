@@ -58,6 +58,14 @@ local function clearPendingRequestId(operationKey: string)
 	pendingRequestIds[operationKey] = nil
 end
 
+local function shouldKeepPendingRequest(response: any): boolean
+	if type(response) ~= "table" then return false end
+	return response.code == "BUILDING_OPERATION_IN_PROGRESS"
+		or response.code == "BUILDING_OPERATION_BUSY"
+		or response.code == "PERSIST_TIMEOUT"
+		or response.code == "SESSION_NOT_WRITABLE"
+end
+
 local COLORS = {
 	panel = Color3.fromRGB(35, 31, 59),
 	panelLight = Color3.fromRGB(54, 47, 86),
@@ -288,7 +296,7 @@ demolishButton.Activated:Connect(function()
 	demolishButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
-	if ok then clearPendingRequestId(operationKey) end
+	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
