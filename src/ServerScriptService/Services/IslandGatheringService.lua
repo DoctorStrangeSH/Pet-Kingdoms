@@ -127,7 +127,12 @@ local function onPromptTriggered(prompt: ProximityPrompt, player: Player)
 	end
 	node:SetAttribute("AvailableAt", availableAt)
 	setNodeVisible(node, false)
-	IslandResourceService.publishSnapshot(player.UserId, "GATHERED")
+	IslandResourceService.publishSnapshot(
+		player.UserId,
+		"GATHERED",
+		definition.resourceId,
+		definition.reward
+	)
 	scheduleRespawn(node, availableAt)
 end
 
