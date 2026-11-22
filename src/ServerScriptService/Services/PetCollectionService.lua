@@ -287,7 +287,8 @@ function PetCollectionService.reservePetSlot(
 	player: Player,
 	speciesId: string,
 	rarityTier: number,
-	acquisitionId: string
+	acquisitionId: string,
+	transactionId: string?
 ): (boolean, string)
 	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
 		return false, "INVALID_PLAYER"
@@ -310,7 +311,7 @@ function PetCollectionService.reservePetSlot(
 			return current
 		end
 		local changed, status, nextProfile = PetCollectionData.reservePetSlotOnce(
-			current, acquisitionId, speciesId, rarityTier, processedAt
+			current, acquisitionId, speciesId, rarityTier, processedAt, transactionId
 		)
 		mutationStatus = status
 		if not changed then return current end
@@ -758,7 +759,7 @@ function PetCollectionService.grantPet(
 			return current
 		end
 		local reserved, reserveStatus, reservedProfile =
-			PetCollectionData.reservePetSlotOnce(current, acquisitionId, speciesId, rarityTier, acquiredAt)
+			PetCollectionData.reservePetSlotOnce(current, acquisitionId, speciesId, rarityTier, acquiredAt, transactionId)
 		if reserveStatus == "ALREADY_ACQUIRED" then
 			mutationStatus = "ALREADY_ACQUIRED"
 			return current
