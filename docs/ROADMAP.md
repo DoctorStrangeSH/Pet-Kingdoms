@@ -644,3 +644,10 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Invalidate pending path computations and disconnect blocked-path listeners after owner teleport recovery.
 - [x] Add a Studio client regression scenario for teleporting while path computation is pending.
 - [ ] Run the updated companion tests and actual wall/stair/slope navigation scenarios in Roblox Studio.
+
+### Companion formation responsiveness (2026-11-22)
+
+- [x] Remove duplicate interpolation that applied smoothing alpha twice to pet translation and caused excessive lag during turns and formation rearrangement.
+- [x] Calculate catch-up animation from owner formation distance rather than a nearby path waypoint; avoid walking animation when a blocked path holds the companion in place.
+- [x] Add a Studio regression case checking a single exponential interpolation step using a safe, isolated stand-in mesh.
+- [ ] Run the new Luau tests and inspect formation turns, obstacles, cliffs, and mobile framerate in Roblox Studio.
