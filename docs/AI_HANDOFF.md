@@ -1245,3 +1245,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Removed `PetCollectionService.grantExperience` and `PetCollectionService.grantExperienceWithProgress`. The only service-level XP DataStore write method is now `grantExperienceWithProgressOnce`, which requires a stable server-generated reward ID.
 - Pure `PetCollectionData` mutations remain available for deterministic unit tests; they are not exposed as service-level DataStore write APIs.
 - Next activity-source integrations must define approved reward amount, progression version, and deterministic pet recipient policy, and should use a durable source outbox where cross-DataStore delivery is involved.
+
+
+## Pet activity reward contract (2026-11-22)
+
+- Added `PetCollectionServiceApiTests.server.lua`, a Studio-only, no-DataStore API boundary test. It asserts the two non-idempotent service XP methods are absent and `grantExperienceWithProgressOnce` is the sole XP write entry point.
+- Added `docs/game-systems/PET_ACTIVITY_REWARD_DESIGN.md`. It maps the project-spec XP sources (combat, quests, interactions) to server-authoritative invariants and stable reward IDs, distinguishes progression XP from Bond XP, and records all unapproved decisions.
+- Do not wire XP rewards to a speculative event, amount, or recipient. Combat does not yet have an approved runtime event model; interaction Bond XP is a separate system; quest outbox is implemented but issuance remains disabled pending amount/version/recipient approval.
+- Next implementation should begin only after an authoritative source event model exists; cross-profile sources must use durable outbox recovery.
