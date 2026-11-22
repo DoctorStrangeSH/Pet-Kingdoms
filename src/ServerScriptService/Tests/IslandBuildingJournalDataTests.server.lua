@@ -51,8 +51,8 @@ expect("expired receipt is never replayed as a new successful operation",
 	expired == nil and expiredCode == "EXPIRED")
 
 local invalidLedgerOk = Journal.validateLedger({
-	{ requestId = "duplicate", fingerprint = "a", action = "place", createdAt = now, result = result },
-	{ requestId = "duplicate", fingerprint = "b", action = "move", createdAt = now, result = result },
+	{ requestId = "duplicate", fingerprint = "a", action = "place", createdAt = now, revision = 1, result = result },
+	{ requestId = "duplicate", fingerprint = "b", action = "move", createdAt = now, revision = 2, result = result },
 })
 expect("duplicate receipt IDs are rejected in saved profile", not invalidLedgerOk)
 
