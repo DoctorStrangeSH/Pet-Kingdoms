@@ -1,6 +1,6 @@
 # Bunny — original Pet Kingdoms mesh v1
 
-**Status: original mesh and Blender rig/animation outputs built and CI-validated; Roblox Studio import, visual review, and runtime integration pending.**
+**Status: REJECTED AS CURRENT VISUAL; retained as project-owned source/prototype only. Blender rig/animation outputs pass structural CI validation. Roblox Studio import found bone/material discrepancies; do not ship or enable this asset.**
 
 The unsuitable Creator Store Bunny candidate (asset `92070521355583`) is rejected and must not be used in Pet Kingdoms.
 
@@ -18,11 +18,11 @@ The unsuitable Creator Store Bunny candidate (asset `92070521355583`) is rejecte
 - Main body/head/ears/cheeks/legs/tail are one smooth implicit-surface mesh; face and woodland accent meshes are separately named.
 - Visual direction: Green Valley woodland explorer, warm ivory coat, large expressive dark eyes, rose inner ears, sage leaf mantle, acorn charm.
 
-This is a first custom mesh draft, not yet accepted production art. The source OBJ is static; the separate generated Blender/FBX outputs contain a first-pass 10-bone rig, skin weights, and four clips. None have yet been visually approved or imported into Roblox Studio.
+This is the first custom mesh draft. The owner rejected its current appearance; it is not an improved/approved production Bunny. Keep it only as editable source and pipeline test input until a replacement sculpt is accepted. The source OBJ is static; the separate generated Blender/FBX outputs contain a first-pass 10-bone rig, skin weights, and four clips. None have yet been visually approved or imported into Roblox Studio.
 
 ## Rigging pipeline
 
-A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions. GitHub Actions now installs Blender, executes the build, validates the generated .blend/.fbx, and uploads both as a 30-day workflow artifact. The full Blender 4.2.0 build passes in GitHub Actions. The validator reopens the .blend, imports the .fbx into a clean scene, and verifies the 10-bone armature, 13 mesh objects, and real keyed motion for each of the four required clips (Idle/Walk/Hop/Happy). Latest successful round-trip run: https://github.com/DoctorStrangeSH/Pet-Kingdoms/actions/runs/44915841762. This is structural validation only, not visual approval. The first actual Roblox Studio import report found 7 Bones (not the expected 10), 13 Motor6D, 13 MeshParts, and Plastic as the enum material for every MeshPart. The owner rejected the current appearance and deferred visual polish. Treat the FBX as a technical prototype, not production art; investigate the missing ear bones and import-generated Motor6D joints before runtime integration.
+A reproducible Blender script is available at `build_bunny_rig.py`; see `RIG_PIPELINE.md`. It defines a first-pass 10-bone rig and Idle/Walk/Hop/Happy actions. GitHub Actions now installs Blender, executes the build, validates the generated .blend/.fbx, and uploads both as a 30-day workflow artifact. The full Blender 4.2.0 build passes in GitHub Actions. The validator reopens the .blend, imports the .fbx into a clean scene, and verifies the 10-bone armature, 13 mesh objects, and real keyed motion for each of the four required clips (Idle/Walk/Hop/Happy). Latest successful round-trip run: https://github.com/DoctorStrangeSH/Pet-Kingdoms/actions/runs/44915841762. This is structural validation only, not visual approval. The first actual Roblox Studio import report found 7 Bones (not the expected 10), 13 Motor6D, 13 MeshParts, and Plastic as the enum material for every MeshPart. The owner rejected the current appearance and deferred visual polish. Treat the FBX as a technical prototype, not production art; investigate the missing ear bones, material fidelity, and import-generated Motor6D joints before any runtime integration.
 
 ## Automated source validation
 
