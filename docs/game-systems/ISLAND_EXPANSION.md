@@ -44,3 +44,8 @@ The IslandWorldService integration test now includes a level-1 expanded profile 
 
 
 The renderer integration test now covers both expansion levels: 32x32 / 256x256 studs and 40x40 / 320x320 studs. At each level it asserts that the main-house world pivot remains unchanged after the corresponding saved-grid offset. Test execution is pending in Roblox Studio.
+
+
+## Persisted bounds validation
+
+Before rendering, IslandWorldService checks the profile's saved bounds against the configured starter dimensions and its persisted expansion level through IslandExpansion.matchesProfileBounds. A legacy profile without an expansionLevel is interpreted as level 0. Inconsistent dimensions are rejected before a spawn slot is allocated, preventing a corrupted or unsupported profile from creating oversized or mismatched terrain.
