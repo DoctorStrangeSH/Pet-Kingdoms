@@ -44,6 +44,21 @@ end
 
 local IslandResourceService = {}
 
+-- Publish a snapshot after another server-side service commits a larger
+-- profile transaction that already includes the wallet mutation. This does not
+-- mutate balances or increment the profile revision.
+function IslandResourceService.publishSnapshot(
+	userId: number,
+	code: string
+): boolean
+	local profile = IslandSessionService.getProfile(userId)
+	if profile == nil then return false end
+	local player = Players:GetPlayerByUserId(userId)
+	if player == nil or not IslandSessionService.canWrite(userId, player) then return false end
+	resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
+	return true
+end
+
 function IslandResourceService.getBalance(userId: number, resourceId: string): number?
 	local profile = IslandSessionService.getProfile(userId)
 	if profile == nil then return nil end
