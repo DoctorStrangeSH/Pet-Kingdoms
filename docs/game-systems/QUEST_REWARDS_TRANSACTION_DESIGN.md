@@ -1,6 +1,6 @@
 # Quest Rewards — Transaction and Recovery Design
 
-Status: design baseline only. No reward amounts or live claim endpoint are approved by this document.
+Status: partially implemented server-side persistence primitives. No reward amounts, reward catalog entries, delivery worker, or live claim endpoint are approved by this document.
 
 ## Existing storage boundaries
 
@@ -47,3 +47,13 @@ Quest claim receipts in the island profile must be retained for the lifetime of 
 - Any claim UI or reward animation.
 
 Do not enable a live claim button until the economy values and pet recipient rule are approved and the cross-DataStore recovery tests pass.
+
+
+## Implemented server-side transaction primitives (2026-11-22)
+
+- `IslandSessionService.commitQuestRewardClaim` verifies server-side quest completion and commits the permanent claim receipt plus pet XP outbox record in one island profile revision. It accepts only an internal server-resolved reward plan; no RemoteFunction or client-supplied reward data is exposed.
+- Claim receipts record the island revision that must be durable before the claim can be acknowledged. Retries wait for that revision and return the original receipt.
+- `commitQuestRewardDelivery` records pet-side XP delivery in a later durable island revision. Duplicate delivery calls also verify persistence before returning success.
+- `commitQuestRewardAcknowledgement` records the source-side acknowledgement only after the caller has durably acknowledged the pet-side XP receipt. `getPendingQuestRewards` and `getQuestRewardsAwaitingAcknowledgement` expose separate recovery phases to trusted server code.
+- Fully acknowledged outbox records may be compacted on a later enqueue. Pending and delivered-but-unacknowledged records are never evicted; permanent quest claim receipts are retained separately.
+- Still NOT DONE: reward catalog/balance approval, recipient selection, XP threshold configuration, worker integration, live claim remote/UI, and cross-DataStore fault-injection tests.
