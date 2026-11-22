@@ -705,3 +705,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add Studio-only world contract checks for a temporary custom resource template and trusted prompt.
 - [ ] Curate and approve actual tree/ore assets with source/license/review; no third-party model imported in this pass.
 - [ ] Execute Roblox Studio resource respawn, gathering, art pivot and streaming tests.
+
+### Construction confirmation position safety (2026-11-22)
+
+- [x] Ignore preview pointer positions over the visible building action panel so pressing Confirm/Rotate/Cancel cannot move the selected world cell.
+- [x] Freeze requested catalog ID, grid X/Z, rotation, and moving instance ID before the yielding server call.
+- [x] Pause preview updates and reject duplicate confirmation or edit actions while the server submission is in progress.
+- [ ] Verify the exact grid cell seen on preview matches the saved object after pressing Confirm on desktop and touch.
+- [ ] Investigate GUI-inset and landscape touch coordinates in Roblox Studio Device Emulator.
