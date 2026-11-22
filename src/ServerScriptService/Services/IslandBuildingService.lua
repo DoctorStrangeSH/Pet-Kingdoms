@@ -133,7 +133,7 @@ local function handleRequest(player: Player, request: any): any
 			return fail("MAIN_HOUSE_PROTECTED")
 		end
 		table.remove(profileForRemoval.buildings, removeIndex)
-		IslandWorldService.removeBuilding(userId, removedRecord.instanceId)
+		IslandWorldService.removeBuilding(userId, removedRecord.instanceId, profileForRemoval)
 		if not IslandSessionService.markDirty(userId) then
 			table.insert(profileForRemoval.buildings, removeIndex, removedRecord)
 			IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
