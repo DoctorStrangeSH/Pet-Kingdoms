@@ -182,6 +182,41 @@ function PetCollectionData.interact(profile: any, petId: string, interactionType
 	return true, "UPDATED", updated
 end
 
+-- This pure mutation is intended for trusted server-side reward systems only.
+-- The caller must derive amount from validated server gameplay state, never client payloads.
+function PetCollectionData.grantExperience(profile: any, petId: string, amount: number): (boolean, string, any?)
+	if type(petId) ~= "string" or petId == "" then
+		return false, "INVALID_PET_ID", nil
+	end
+	if not isPositiveInteger(amount) then
+		return false, "INVALID_XP_AMOUNT", nil
+	end
+	local valid, reason = PetCollectionData.validate(profile, profile.ownerUserId)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil
+	end
+
+	local updated = PetCollectionData.clone(profile)
+	local selected = nil
+	for _, record in ipairs(updated.owned) do
+		if record.petId == petId then
+			selected = record
+			break
+		end
+	end
+	if selected == nil then
+		return false, "PET_NOT_OWNED", nil
+	end
+
+	local nextXp = selected.xp + amount
+	if not isNonNegativeInteger(nextXp) then
+		return false, "XP_OVERFLOW", nil
+	end
+	selected.xp = nextXp
+	updated.revision += 1
+	return true, "UPDATED", updated
+end
+
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
 	if type(petIds) ~= "table" then
 		return false, "INVALID_EQUIPPED_COUNT", nil
