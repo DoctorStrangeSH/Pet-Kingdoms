@@ -1169,3 +1169,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14761219905 is available until 2026-12-06 15:59 UTC.
 - This verifies Rojo packaging only; Studio-only Luau tests still require execution in Roblox Studio.
+
+
+## Atomic gathering-to-quest integration (2026-11-22)
+
+- Added `IslandGatheringTransactionData.lua` as a pure composition of canonical node cooldown, wallet grant, and quest progress. It returns a complete candidate result and never mutates the supplied profile.
+- Refactored `IslandSessionService.commitResourceGathering` to calculate the full transaction first, then assign resources + node cooldown + quest progress together and mark one profile revision dirty. On a pre-commit writeability failure it restores the previous profile fields.
+- Added `IslandGatheringTransactionDataTests.server.lua` covering successful wood/stone integration, quest completion, source immutability, per-node cooldown, resource cap, invalid quest state, and unknown nodes.
+- Studio-only tests are authored but not executed yet. CI will verify Rojo packaging, not runtime behavior or live DataStore durability.
