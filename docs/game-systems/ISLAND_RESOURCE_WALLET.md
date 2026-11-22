@@ -86,3 +86,8 @@ Before paid hatching ships, add a persisted transaction journal/debit receipt in
 Island profiles now support an optional `hatchTransactions` array (new profiles initialize it empty). Each record fixes the egg ID, selected species, rarity tier, costs, acquisition ID, timestamp, and transaction state. `IslandHatchLedgerData` provides pure prepare/debit/complete transformations. The debit and CHARGED state are changed together in one profile snapshot, and repeated debit attempts are idempotent.
 
 This module does not itself write DataStore. Until a serialized session API durably saves each transition and recovery handles PREPARED/CHARGED records across server restarts, it is not safe to acknowledge paid hatching to players or expose a hatch endpoint.
+
+
+## Durable session mutation acknowledgement
+
+`IslandSessionService.applyHatchOperation` now applies a single journal transition under a per-session hatch guard and waits for the exact profile revision to be confirmed by `IslandStore.save`. A timeout leaves the in-memory profile dirty so the existing autosave loop can retry; a later retry must reuse the same transaction ID. This provides a durable island-side acknowledgement, but does not yet orchestrate recovery or reconcile the separate pet collection DataStore.
