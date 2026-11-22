@@ -1263,3 +1263,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Expanded PetCollectionData tests for Bond/progression XP isolation, exact cooldown boundary, clock rollback, selected-pet-only mutation, oversized IDs, and malformed IDs.
 - No new client authority, reward endpoint, consumable, XP amount, or personality preference was invented.
 - Studio execution and live RemoteFunction/DataStore checks remain pending.
+
+
+## Player-facing UX correction pass (2026-11-22)
+
+- Updated IslandBuildingController.client.lua: opening construction now shows the catalogue first; selecting an item only selects it; ВЫБРАТЬ МЕСТО starts the ghost preview; ПОДТВЕРДИТЬ commits the exact current grid position. This removes the previous mixed selection/placement flow.
+- Added an always-visible construction close button and Escape cancellation. Added viewport-aware panel sizing and compact button widths for narrow screens.
+- Added a shared PlayerGui.PetKingdomsActiveModal ownership convention to the construction and pet collection controllers. Opening one hides the other instead of leaving stacked modals.
+- This is a code/packaging change only. Roblox Studio interaction testing, safe-area validation, and actual mobile device verification remain pending.
+- Next player-facing work: gathering affordance/onboarding, visible in-world companion verification, and explicit interaction cooldown countdown/lock feedback.
