@@ -302,3 +302,14 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Fix a Luau forward-reference bug: `IslandSessionService.applyHatchOperation` now captures the locally declared `saveSession` implementation instead of an unresolved global.
 - [ ] Run Roblox Studio DataStore/MemoryStore integration tests for lease loss during a pending collection write, leave during claim, same-user rejoin, and hatch recovery after a CHARGED transaction.
 - [ ] Ensure grant callbacks return deterministic conflict/lease-lost statuses and audit remaining time-of-check/time-of-use windows.
+
+
+### Hatch recovery readiness and reconnect hardening
+
+- [x] Align hatch recovery readiness timeout (150 seconds) with the pet collection's 120-second island lease readiness wait, instead of timing out after 45 seconds.
+- [x] Track each in-progress hatch recovery by exact Player instance and run token; stale PlayerRemoving callbacks cannot cancel a newer player's run.
+- [x] Keep the initial recovery readiness poll independent of lease readiness; once ready, require valid island lease and collection on every pending transaction iteration.
+- [x] Cancel recovery cleanly when lease ownership is lost or the player disconnects; journal remains durable for later retry.
+- [x] Add a Studio-only test asserting that recovery's readiness window exceeds the collection readiness window.
+- [ ] Run controlled Studio tests for delayed collection loading, rapid disconnect/rejoin, lease loss during CHARGED recovery and DataStore write acknowledgement loss.
+- [ ] Audit cross-store idempotency for CHARGED transactions older than the seven-day acquisition-receipt retention window; do not enable live paid eggs until this is resolved.
