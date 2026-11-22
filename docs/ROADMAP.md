@@ -437,6 +437,7 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add the claim/outbox fields to newly created island profiles, preserve compatibility with legacy schema-v1 profiles, and deep-clone the ledgers before DataStore saves.
 - [x] Add Studio-only contract tests for claim receipts, enqueue deduplication, payload conflicts, pending lookup, delivery acknowledgement, malformed records, and profile compatibility.
 - [ ] Execute the new Studio tests in Roblox Studio.
+- [x] Verify the full Rojo build and Studio artifact upload in GitHub Actions run 45039287808 (PASS); Studio script execution remains separate and pending.
 - [ ] Integrate the durable quest claim transaction into IslandSessionService; no client claim endpoint is exposed.
 - [ ] Add an outbox recovery worker that retries the same reward ID, durably marks delivery, then acknowledges the pet-side receipt.
 - [ ] Decide approved reward amounts, XP progression configuration, and deterministic pet recipient policy before enabling claims. No economy values or recipient rule were invented.
