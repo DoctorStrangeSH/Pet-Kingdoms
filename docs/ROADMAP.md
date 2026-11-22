@@ -530,3 +530,13 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 
 
 - [x] Verify gathering serialization/reload contract packaging in GitHub Actions run #157 (Rojo build + Studio artifact upload PASS); Studio execution and live DataStore testing remain pending.
+
+
+### Quest completion vs reward claim visibility (2026-11-22)
+
+- [x] Include durable claim receipt state in server quest snapshots without conflating it with completion.
+- [x] Expose `rewardClaimed` only when the quest is complete and a structurally valid receipt exists.
+- [x] Update Quest Journal cards to distinguish `ВЫПОЛНЕНО` from `НАГРАДА ПОЛУЧЕНА` and show the total claimed count.
+- [x] Add contract coverage for claimed, unclaimed, malformed-receipt, and premature-receipt snapshots.
+- [ ] Execute quest data and UI behavior tests in Roblox Studio.
+- [ ] Approve reward economy and pet recipient policy before enabling a claim interaction.
