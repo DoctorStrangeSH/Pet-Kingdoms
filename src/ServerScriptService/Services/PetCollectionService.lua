@@ -19,6 +19,7 @@ local store = DataStoreService:GetDataStore(STORE_NAME)
 type PlayerCollection = {
 	profile: any,
 	loading: boolean,
+	player: Player,
 }
 
 local collections: { [number]: PlayerCollection } = {}
@@ -151,7 +152,8 @@ local function loadPlayer(player: Player)
 	if collections[userId] then
 		return
 	end
-	collections[userId] = { profile = nil, loading = true }
+	local ownedState: PlayerCollection = { profile = nil, loading = true, player = player }
+	collections[userId] = ownedState
 
 	local ok, result = updateWithRetry(userId, function(current)
 		if current == nil then
@@ -160,11 +162,15 @@ local function loadPlayer(player: Player)
 		return current
 	end)
 
-	local state = collections[userId]
-	if state == nil or player.Parent ~= Players then
-		collections[userId] = nil
+	-- A prior Player instance may finish loading after a disconnect and
+	-- rejoin. Never let that stale callback discard the new session.
+	if collections[userId] ~= ownedState or player.Parent ~= Players then
+		if collections[userId] == ownedState then
+			collections[userId] = nil
+		end
 		return
 	end
+	local state = ownedState
 	if not ok or type(result) ~= "table" then
 		collections[userId] = nil
 		warn("[PetKingdoms] Pet collection unavailable for", player.Name)
@@ -720,6 +726,10 @@ function PetCollectionService.start()
 		task.spawn(loadPlayer, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
+		local activeState = collections[player.UserId]
+		if activeState == nil or activeState.player ~= player then
+			return
+		end
 		if characterConnections[player.UserId] then
 			characterConnections[player.UserId]:Disconnect()
 			characterConnections[player.UserId] = nil
