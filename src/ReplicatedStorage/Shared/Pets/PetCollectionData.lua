@@ -95,6 +95,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 		local receiptCount = 0
 		local receiptHighestIndex = 0
 		local seenAcquisitions: { [string]: boolean } = {}
+		local seenAcquiredPetIds: { [string]: boolean } = {}
+		local acquisitionByPetId: { [string]: any } = {}
 		for key, receipt in pairs(profile.acquisitionReceipts) do
 			if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
 				return false, "INVALID_ACQUISITION_RECEIPT_LIST"
@@ -109,6 +111,7 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 				or seenAcquisitions[receipt.acquisitionId]
 				or type(receipt.petId) ~= "string"
 				or receipt.petId == ""
+				or seenAcquiredPetIds[receipt.petId]
 				or type(receipt.speciesId) ~= "string"
 				or not VALID_SPECIES[receipt.speciesId]
 				or not isPositiveInteger(receipt.rarityTier)
@@ -118,6 +121,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 				return false, "INVALID_ACQUISITION_RECEIPT"
 			end
 			seenAcquisitions[receipt.acquisitionId] = true
+			seenAcquiredPetIds[receipt.petId] = true
+			acquisitionByPetId[receipt.petId] = receipt
 		end
 		if receiptCount > PetCollectionData.MAX_ACQUISITION_RECEIPTS or receiptHighestIndex ~= receiptCount then
 			return false, "INVALID_ACQUISITION_RECEIPT_COUNT"
@@ -191,6 +196,13 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 		)
 		if bondLevel ~= expectedBondLevel then
 			return false, "BOND_LEVEL_XP_MISMATCH"
+		end
+		local acquisitionReceipt = acquisitionByPetId[record.petId]
+		if acquisitionReceipt ~= nil
+			and (acquisitionReceipt.speciesId ~= record.speciesId
+				or acquisitionReceipt.rarityTier ~= (record.rarityTier or 1))
+		then
+			return false, "ACQUISITION_RECEIPT_PET_MISMATCH"
 		end
 		ownedById[record.petId] = true
 	end
