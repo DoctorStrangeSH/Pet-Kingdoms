@@ -787,3 +787,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A per-node 12-second re-investigation cooldown avoids repeatedly selecting the same node. Secondary companions remain in formation.
 - Investigation is cosmetic only. It does not activate ProximityPrompts, mutate profiles, or grant resources; IslandGatheringService remains the sole gathering authority.
 - Studio smoke coverage now checks approach, inspection reaction, and return to formation. Studio runtime, uneven terrain, StreamingEnabled and mobile behavior remain unverified.
+
+
+## First successful Roblox Studio launch (2026-11-22)
+
+- Owner confirmed the project now gets past the localized loading screen and enters a Play session in the dedicated private test Experience after enabling Studio API access.
+- Treat this as a successful first-join smoke check only. The personal island's visual quality, resource gathering, construction, collection UI, pet companion behavior, save/rejoin, respawn, multi-server leases, and mobile controls still need individual verification.
+- Next development priority: turn the currently separate gathering/building/companion systems into a repeatable first-session gameplay loop, while testing each system in Studio before expanding scope.
