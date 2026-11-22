@@ -327,3 +327,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This keeps identity, ownership, runtime metadata, or unapproved progression fields out of the resolved stat value object; those belong in their own domain records, not inside the stat snapshot.
 - Added regression coverage for injected `ownerUserId` and missing stats. The existing five-stat exact-key validation remains unchanged.
 - No balance rules or modifier semantics were introduced. Roblox Studio test execution remains pending.
+
+
+## Declarative pet stat modifier contract (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetStatModifiersData.lua` with strict modifier records: `id`, `sourceType`, `sourceId`, `stat`, `operation`, and `value`.
+- Accepted source categories are equipment, skill, and ability. Supported data operation labels are `flat` and `percent`; values must be finite and within the safe numeric range. Negative values are allowed in the data contract so future design can represent penalties.
+- Modifier lists are capped at 128, must be dense arrays, reject duplicate modifier IDs, invalid array keys, malformed entries, and unknown fields. Defensive clone helpers are included.
+- This is a data contract only. It does not define percentage units, operation order, stacking/refresh rules, source ownership checks, duration semantics, or how modifiers affect combat. No modifiers are applied by `PetStatsCalculator` yet.
+- Added Studio-only tests for valid equipment/skill/ability records, invalid source/stat/operation/value, extra fields, duplicate IDs, sparse/invalid lists, and clone isolation. Tests are committed but not executed in Roblox Studio.
