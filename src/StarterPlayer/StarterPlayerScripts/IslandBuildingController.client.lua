@@ -27,6 +27,7 @@ local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
 local placing = false
+local buildMenuOpen = false
 local currentCellX: number? = nil
 local currentCellZ: number? = nil
 local currentIsland: Model? = nil
@@ -94,7 +95,7 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 340), MaxSize = Vector2.new(420, 340) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(300, 300), MaxSize = Vector2.new(420, 340) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -107,13 +108,27 @@ make("UIPadding", {
 make("TextLabel", {
 	Name = "Title",
 	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 0, 28),
+	Size = UDim2.new(1, -48, 0, 28),
 	Font = Enum.Font.GothamBold,
 	Text = "СТРОИТЕЛЬСТВО",
 	TextColor3 = COLORS.gold,
 	TextSize = 18,
 	TextXAlignment = Enum.TextXAlignment.Left,
 }, panel)
+
+local closeBuildButton = make("TextButton", {
+	Name = "Close",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, 0, 0, -2),
+	Size = UDim2.fromOffset(34, 34),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "×",
+	TextColor3 = COLORS.text,
+	TextSize = 24,
+}, panel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, closeBuildButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -499,7 +514,8 @@ local function setSelectedBuilding(catalogId: string)
 		flower_bed = "Выбрана цветочная клумба",
 		wooden_fence = "Выбран деревянный забор",
 	}
-	setStatus(labels[catalogId] or "Выбран объект")
+	setStatus((labels[catalogId] or "Выбран объект") .. " — нажми «Выбрать место»")
+	if buildMenuOpen and not placing then confirmButton.Text = "ВЫБРАТЬ МЕСТО" end
 end
 
 mainHouseButton.Activated:Connect(function()
@@ -537,7 +553,9 @@ local function beginMoveSelected()
 	setSelectedBuilding(catalogId)
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
+	buildMenuOpen = true
 	panel.Visible = true
+	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
@@ -569,8 +587,10 @@ moveButton.Activated:Connect(beginMoveSelected)
 
 local function stopPlacing()
 	placing = false
+	buildMenuOpen = false
 	movingInstanceId = nil
 	panel.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "building" then playerGui:SetAttribute("PetKingdomsActiveModal", nil) end
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
@@ -588,23 +608,31 @@ end
 
 local function beginPlacing()
 	movingInstanceId = nil
-	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
-	placing = true
+	placing = false
+	buildMenuOpen = true
 	panel.Visible = true
+	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
 	demolishButton.Visible = false
+	clearPreview()
+	confirmButton.Text = "ВЫБРАТЬ МЕСТО"
+	confirmButton.Active = true
+	setStatus("1. Выбери постройку  2. Нажми «Выбрать место»")
+end
+
+local function beginPlacementPreview()
+	if not buildMenuOpen or placing then return end
+	placing = true
+	confirmButton.Text = "ПОДТВЕРДИТЬ"
+	setStatus("Перемещай предпросмотр. Нажми «Подтвердить», когда место подходит")
 	createPreview()
 	if currentPreview == nil then
 		placing = false
-		panel.Visible = false
-		if selectedBuildingModel and selectedBuildingModel.Parent then
-			moveButton.Visible = true
-			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
-		end
+		confirmButton.Text = "ВЫБРАТЬ МЕСТО"
 		return
 	end
-	setStatus("Наведи на траву и выбери место")
+	updatePreview(pointerPosition)
 end
 
 rotateButton.Activated:Connect(function()
@@ -613,8 +641,23 @@ rotateButton.Activated:Connect(function()
 end)
 
 cancelButton.Activated:Connect(stopPlacing)
+closeBuildButton.Activated:Connect(stopPlacing)
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if owner ~= nil and owner ~= "building" and buildMenuOpen then
+		placing = false
+		buildMenuOpen = false
+		movingInstanceId = nil
+		panel.Visible = false
+		clearPreview()
+	end
+end)
 
 confirmButton.Activated:Connect(function()
+	if buildMenuOpen and not placing then
+		beginPlacementPreview()
+		return
+	end
 	if not placing or not currentValid or currentCellX == nil or currentCellZ == nil then
 		setStatus("Сначала выбери подходящее место", false)
 		return
@@ -686,7 +729,10 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		selectBuilding(if hit then findBuildingModel(hit.Instance) else nil)
 		return
 	end
-	if not placing then return end
+	if not placing then
+		if input.KeyCode == Enum.KeyCode.Escape and buildMenuOpen then stopPlacing() end
+		return
+	end
 	if input.KeyCode == Enum.KeyCode.R then
 		rotation = (rotation + 90) % 360
 	elseif input.KeyCode == Enum.KeyCode.Escape then
@@ -714,6 +760,38 @@ RunService.RenderStepped:Connect(function()
 		updatePreview(pointerPosition)
 	end
 end)
+
+local function resizeBuildingPanel()
+	local currentCamera = Workspace.CurrentCamera
+	if currentCamera == nil then return end
+	local viewport = currentCamera.ViewportSize
+	local width = math.clamp(viewport.X - 24, 300, 420)
+	local height = math.clamp(viewport.Y - 48, 300, 340)
+	panel.Size = UDim2.fromOffset(width, height)
+	panel.Position = UDim2.new(0.5, 0, 1, -16)
+	if viewport.X < 390 then
+		status.TextSize = 11
+		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+			button.TextSize = 11
+		end
+	else
+		status.TextSize = 13
+		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+			button.TextSize = 13
+		end
+	end
+end
+
+if Workspace.CurrentCamera then
+	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	if Workspace.CurrentCamera then
+		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+		resizeBuildingPanel()
+	end
+end)
+resizeBuildingPanel()
 
 local function addBuildEntry()
 	if gui:FindFirstChild("OpenBuildButton") then return end
