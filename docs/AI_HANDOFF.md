@@ -220,3 +220,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio tests for negative/fractional/NaN/infinite interaction timestamps and non-finite Bond XP/level values.
 - This closes a gap where positive infinity could pass the pure interaction timestamp check and only be rejected later by full profile validation.
 - Roblox Studio execution remains pending.
+
+
+## Pet progression data foundation (2026-11-22)
+
+- Per-pet records now support optional `level` and `xp` fields. New starter records default to level 1 and 0 XP.
+- Validation accepts levels 1–50 only and requires XP to be a finite non-negative integer. There is intentionally no XP cap because the approved XP curve/threshold table is not yet defined.
+- `PetCollectionData.clone` normalizes legacy records that lack both fields to level 1 / 0 XP. The fields are optional in validation to keep existing DataStore records loadable without a schema-version bump.
+- Added Studio tests for level 50, zero/over-cap/fractional levels, negative/fractional/NaN/Infinity XP, and legacy normalization.
+- This is a storage/validation foundation, not a playable progression system: no XP awarding, level-up calculation, stat values, rarity multipliers, skills, or equipment behavior has been added.
+- Do not implement XP thresholds or base stat values until they are approved in the project spec.
