@@ -31,6 +31,7 @@ local function setNodeVisible(node: Model, visible: boolean)
 end
 
 local function scheduleRespawn(node: Model, availableAt: number)
+	activeNodes[node] = true
 	local delaySeconds = math.max(0, availableAt - os.time())
 	task.delay(delaySeconds, function()
 		if node.Parent == nil or node:GetAttribute("AvailableAt") ~= availableAt then
@@ -133,6 +134,34 @@ end
 
 function IslandGatheringService.start()
 	ProximityPromptService.PromptTriggered:Connect(onPromptTriggered)
+
+	-- Resource nodes are spawned after the island profile loads. Reconcile
+	-- their persisted cooldown timestamps so offline time counts toward regen.
+	task.spawn(function()
+		while true do
+			task.wait(5)
+			local worlds = workspace:FindFirstChild("PlayerIslands")
+			if worlds == nil then continue end
+			for _, island in ipairs(worlds:GetChildren()) do
+				local nodes = island:FindFirstChild("ResourceNodes")
+				if nodes == nil then continue end
+				for _, child in ipairs(nodes:GetChildren()) do
+					if not child:IsA("Model") then continue end
+					local availableAt = child:GetAttribute("AvailableAt")
+					if type(availableAt) ~= "number" or availableAt <= 0 then continue end
+					if availableAt > os.time() then
+						if not activeNodes[child] then
+							setNodeVisible(child, false)
+							scheduleRespawn(child, availableAt)
+						end
+					elseif activeNodes[child] then
+						setNodeVisible(child, true)
+						activeNodes[child] = nil
+					end
+				end
+			end
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		for node in pairs(activeNodes) do
 			if node:GetAttribute("OwnerUserId") == player.UserId then
