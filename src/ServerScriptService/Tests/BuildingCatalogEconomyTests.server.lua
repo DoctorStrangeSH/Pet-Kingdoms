@@ -20,6 +20,7 @@ check("wooden fence uses wood", catalog.wooden_fence.cost.wood == 1)
 for buildingId, definition in pairs(catalog) do
 	check(buildingId .. " catalog key matches stable ID", definition.id == buildingId)
 	if definition.cost then
+		check(buildingId .. " cost is not empty", next(definition.cost) ~= nil)
 		local valid, code = resources.validate(definition.cost)
 		check(buildingId .. " cost uses valid resource IDs and positive integer balances", valid and code == "VALID")
 		for _, amount in pairs(definition.cost) do
