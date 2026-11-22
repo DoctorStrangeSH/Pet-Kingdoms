@@ -30,7 +30,7 @@
   - [x] Run Blender 4.2.0 rig build in CI and generate `.blend` + `.fbx` outputs (both validated and uploaded as a workflow artifact).
   - [ ] Visually review skin weights, silhouette, and all four actions in Blender/Roblox Studio; fix deformations before production approval.
   - [ ] Approve silhouette, materials, scale, and gameplay-camera appearance in Green Valley.
-  - [x] Commit Bunny procedural rig factory v1 and its Studio smoke test (execution pending; this remains the current runtime prototype until the imported mesh is approved).
+  - [x] Commit Bunny procedural Part-based rig factory v1 and its Studio smoke test (test blockout only; live collection service does not use it).
   - [x] Add first expressive face-detail pass to Bunny (eye catchlights, mouth, forehead tuft, six whiskers) and extend the factory smoke test; still prototype geometry, Studio review pending.
   - [x] Add procedural Bunny state-pose controller for idle, walk, run, happy, curious, sniff, alert, and combat; Studio animation smoke test committed (execution pending).
   - [x] Add autonomous idle personality moments (sniff, curious look, happy hop) with randomized pauses; movement interrupts idle actions. Client smoke coverage committed (Studio execution pending).
