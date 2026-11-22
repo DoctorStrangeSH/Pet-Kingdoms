@@ -187,7 +187,9 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.idleActionState = "idle"
 		self.nextIdleActionAt = math.random(35, 65) / 10
 	end
-	if state == "idle" and self.interactionState ~= nil then
+	-- Player-triggered affection/play reactions take priority over autonomous idle actions.
+	-- Movement states still win so an interaction never freezes a moving companion.
+	if speed < self.walkSpeed and self.interactionState ~= nil then
 		if os.clock() < self.interactionUntil then
 			state = self.interactionState
 		else
