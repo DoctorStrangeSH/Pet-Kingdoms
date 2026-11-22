@@ -454,3 +454,5 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Add the recovery worker and call the pet XP idempotent grant/acknowledgement APIs in the prescribed order.
 - [ ] Approve reward values, progression thresholds/version, and deterministic pet recipient policy.
 - [ ] Execute Roblox Studio DataStore failure/rejoin/server-restart tests before enabling any claim remote or UI.
+
+- [x] Verify the latest Rojo build and Studio artifact upload in GitHub Actions run #115 (PASS); Studio script execution remains separate and pending.
