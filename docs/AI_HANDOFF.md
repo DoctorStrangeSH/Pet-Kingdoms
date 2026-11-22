@@ -794,3 +794,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Owner confirmed the project now gets past the localized loading screen and enters a Play session in the dedicated private test Experience after enabling Studio API access.
 - Treat this as a successful first-join smoke check only. The personal island's visual quality, resource gathering, construction, collection UI, pet companion behavior, save/rejoin, respawn, multi-server leases, and mobile controls still need individual verification.
 - Next development priority: turn the currently separate gathering/building/companion systems into a repeatable first-session gameplay loop, while testing each system in Studio before expanding scope.
+
+
+## Gathering reward toast event alignment (2026-11-22)
+
+- Fixed a client/server event contract mismatch in IslandResourceHUD: IslandGatheringService publishes the success code `GATHERED`, while the HUD previously accepted only `GRANTED`. The wallet snapshot was updated, but the successful gather toast was silently discarded.
+- HUD now displays the existing localized reward toast for the authoritative `GATHERED` event. No reward authority or economy logic changed.
+- Verify in the dedicated Roblox Studio test Experience: gather one Wood node and one Stone node; confirm the wallet count and matching +3/+2 toast; gather a depleted node and confirm no success toast or duplicate reward.
