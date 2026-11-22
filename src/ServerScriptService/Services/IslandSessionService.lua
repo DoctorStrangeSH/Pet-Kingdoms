@@ -506,6 +506,14 @@ local function cloneProfile(profile: any): any
 	for questId, state in pairs(profile.questProgress or QuestProgressData.create()) do
 		copy.questProgress[questId] = table.clone(state)
 	end
+	copy.questRewardClaims = {}
+	for questId, receipt in pairs(profile.questRewardClaims or {}) do
+		copy.questRewardClaims[questId] = table.clone(receipt)
+	end
+	copy.questRewardOutbox = {}
+	for index, record in ipairs(profile.questRewardOutbox or {}) do
+		copy.questRewardOutbox[index] = table.clone(record)
+	end
 	copy.buildingOperations = {}
 	for index, record in ipairs(profile.buildingOperations or {}) do
 		local clonedRecord = table.clone(record)
