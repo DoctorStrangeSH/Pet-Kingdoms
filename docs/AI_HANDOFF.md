@@ -876,3 +876,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added contract tests for prepareNextProfile rejection at maximum level, invalid saved building coordinates, and mismatched configured base dimensions.
 - These tests complement the success and source-immutability cases and ensure invalid requests fail before any future transaction can mutate or persist a profile.
 - No purchase, resource debit, durable receipt, or live world resize was introduced. Studio execution remains pending.
+
+
+## Expansion test execution-order fix (2026-11-22)
+
+- Corrected IslandExpansionTests.server.lua so the representative source profile and its derived second-level profile are declared before the preparation assertions that consume them.
+- This fixes a Studio runtime test-script ordering defect; no production gameplay code or save data changed.
+- GitHub Actions Rojo build passed for commit bd463c062ba24a8099d271a47d0704f99e9cd175. This validates project packaging, not execution of Studio-only tests.
