@@ -278,3 +278,15 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Reject stale Player-instance collection requests and mutations; require matching ownership for equipped-pet spawning and hatch recovery readiness.
 - [ ] Test slow DataStore load + disconnect + immediate rejoin and overlapping server operations in Studio with mocked delays; current verification is static only.
 - [ ] Add stronger cross-server pet collection session fencing if overlapping Player sessions prove possible; DataStore revision checks alone are not ownership leases.
+
+
+### Pet collection cross-server writer fencing
+
+- [x] Add `PetCollectionSessionData`: atomic claim uses an observed revision/generation/token tuple and returns a monotonically incremented generation plus server-generated session token. Claim retries with the same token are idempotent; stale observations fail closed.
+- [x] On load, observe and validate the collection, then claim its next writer generation via the same collection DataStore key using `UpdateAsync` before enabling client/server collection requests.
+- [x] Check generation and token inside every post-load collection `UpdateAsync` callback; stale instances cannot persist mutations after a newer session claims the key.
+- [x] Preserve and validate optional fencing metadata through collection clones and pure data mutations; legacy profiles without these fields remain readable.
+- [x] Abort in-flight claims when the Player instance disconnects or is superseded.
+- [x] Add pure tests for claim retry, concurrent observation, stale writers, token validation, metadata preservation and partial metadata rejection.
+- [ ] Run Roblox Studio unit and integration tests with two simulated servers, deliberately delayed `GetAsync` / `UpdateAsync`, and lost acknowledgements.
+- [ ] Consider MemoryStore lease and session-heartbeat gating if user-presence exclusivity is required; persisted fencing only prevents stale writes, not new-session takeover while a prior session still exists.
