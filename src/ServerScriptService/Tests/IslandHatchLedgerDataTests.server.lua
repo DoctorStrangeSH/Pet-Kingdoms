@@ -60,6 +60,15 @@ assert(granted ~= nil)
 local grantedAgain, grantedAgainStatus = Ledger.markGranted(granted, record.transactionId)
 expect("grant acknowledgement is idempotent", grantedAgain ~= nil and grantedAgainStatus == "ALREADY_GRANTED")
 
+local repeatedGrantedPrepare, repeatedGrantedPrepareStatus = Ledger.prepare(
+	granted, record, record.createdAt + Ledger.RETENTION_SECONDS + 10
+)
+expect("repeated prepare preserves the durable granted state",
+	repeatedGrantedPrepare ~= nil and repeatedGrantedPrepareStatus == "ALREADY_GRANTED")
+assert(repeatedGrantedPrepare ~= nil)
+expect("repeated prepare cannot regress a granted transaction",
+	repeatedGrantedPrepare.hatchTransactions[1].state == "GRANTED")
+
 local insufficientProfile = table.clone(baseProfile)
 insufficientProfile.resources = { wood = 0, stone = 0, gold = 1, gems = 0 }
 local insufficientPrepared = Ledger.prepare(insufficientProfile, record, record.createdAt)
