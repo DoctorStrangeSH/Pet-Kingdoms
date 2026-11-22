@@ -103,3 +103,12 @@ For DataStore and MemoryStore scenarios, enable API access only in the dedicated
 ## Verification honesty
 
 A successful Rojo build proves the project tree can be serialized; it does not prove the game works in Roblox Studio. Physics, UI, DataStores, replication, mobile controls, and visual quality require Studio playtests. Do not mark those tasks DONE until tested there.
+
+
+## Join and character startup flow
+
+- Server bootstrap disables automatic character spawning. The player is not dropped at the empty default Workspace origin while DataStore/session loading is in progress.
+- IslandSessionService acquires the lease, loads/claims the profile, generates the personal island, installs the session, and only then calls `Player:LoadCharacterAsync()`.
+- Server publishes `PetKingdomsLoadStatus` and `PetKingdomsLoadMessage` attributes during each phase. `IslandLoading.client.lua` shows a localized loading screen and dismisses it only after the character has been moved to the island arrival point.
+- On failure, the player sees a clear failure state before the server kicks them with a localized message.
+- This flow must be playtested in Studio with API access enabled in a dedicated test universe; CI only verifies the project builds.
