@@ -99,6 +99,7 @@
 - [x] Add client move mode for selected buildings using existing server-authoritative move transaction and stable instance IDs (Studio/device verification pending).
 - [x] Add client-side occupied-footprint preview feedback for placement/move; server remains authoritative (Studio verification pending).
 - [x] Add a proximity interaction to the Pet House that opens the existing pet collection UI only on the owner's island; all collection mutations remain server-authoritative (Studio/device verification pending).
+- [x] Add a Main House interaction that starts the existing construction flow only on the owner's island; placement still uses the existing server-authoritative transaction path (Studio/device verification pending).
 - [x] Add initial decor catalogue entries for stone_path and garden_lantern with saved placement, move, and demolition support (Studio verification pending).
 - [x] Expand the starter decor catalogue with flower_bed and wooden_fence blockout models, selection cards, and the shared placement/move/demolition flow (Studio verification pending).
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
