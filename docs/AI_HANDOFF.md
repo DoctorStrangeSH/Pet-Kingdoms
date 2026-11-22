@@ -1062,3 +1062,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Outbox records in `acknowledgedAt` state are compacted only when appending a later record. Pending and delivered-but-unacknowledged records are retained. Permanent claim receipts remain in the separate claims map.
 - Extended pure Studio tests for claim revision binding, acknowledgement ordering/idempotency, and safe outbox compaction.
 - Still no recovery worker, reward catalog, XP threshold table, recipient-selection rule, claim RemoteFunction, or claim UI. Do not activate claims or invent economy values until those are approved.
+
+
+## Quest claim transaction CI verification (2026-11-22)
+
+- GitHub Actions run #115 / run ID 45039658996 completed successfully on commit c804f6d511f6b2b05945d9e62aa4163dab1e1b40. Pinned Rokit setup, Rojo version check, full project build, and artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14760569677 is available until 2026-12-06 15:41 UTC.
+- CI confirms project serialization only. It does not execute Luau tests or live DataStore workflows; Roblox Studio verification remains pending.
