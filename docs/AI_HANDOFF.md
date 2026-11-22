@@ -1289,3 +1289,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandGatheringService toggles the marker together with node visibility, so cooldown nodes do not retain a misleading available marker.
 - IslandResourceHUD shows a first-gather hint while wood balance is zero: find a tree and use E / the Roblox touch prompt.
 - The actual node geometry remains procedural blockout; no external/free Toolbox asset has been imported in this pass. Studio and mobile verification remain pending.
+
+
+## Pet companion grounding correction (2026-11-22)
+
+- CompanionFollowController now measures the model bounding box and pivot at controller creation, storing a per-model ground lift.
+- The ground raycast applies this measured lift rather than a fixed 0.28-stud offset. This accommodates imported meshes whose pivot is centered, while retaining a measured offset for the procedural Bunny rig.
+- Added a client Studio smoke test with a center-pivot 4-stud mesh stand-in; expected lift is 2 studs.
+- No new pet assets or gameplay behavior were added. Obstacle/path navigation, slope handling, real imported asset validation, and multiplayer/mobile testing remain open.
