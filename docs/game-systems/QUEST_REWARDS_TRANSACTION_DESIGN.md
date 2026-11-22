@@ -89,3 +89,8 @@ Do not enable a live claim button until the economy values and pet recipient rul
 The production gathering commit now uses `IslandGatheringTransactionData.apply(profile, nodeId, now)` to compute the complete candidate state before mutating the live session. The pure transform validates the wallet and quest state, records the node cooldown, grants the canonical resource reward, and advances the matching quest. Only when all stages succeed does `IslandSessionService.commitResourceGathering` assign resources, resource-node cooldowns, and quest progress together and persist them under one profile revision.
 
 A Studio-only integration contract suite covers successful wood/stone gathering, independent node cooldowns, wood quest completion, immutable source state, cooldown rejection, wallet-cap rejection, malformed quest state, and unknown nodes. These tests still require execution in Roblox Studio; Rojo CI only verifies project packaging.
+
+
+## Gathering persistence and reload contract (2026-11-22)
+
+Added a Studio-only profile round-trip test for the integrated gathering transaction. It serializes a canonical island profile through HttpService JSON, restores and validates it using `IslandData.validate`, then checks resource balance, resource-node cooldown, quest progress, and revision. The restored cooldown must reject a duplicate gather while a different node advances the quest once. This is a DataStore-shaped serialization contract, not a live DataStore or server-restart test.
