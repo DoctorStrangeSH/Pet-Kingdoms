@@ -208,6 +208,7 @@
 - [ ] Implement quests and rewards.
 - [ ] Implement exploration interactions and pet abilities.
 - [ ] Implement Gold, Gems, biome resources, shops, and balanced upgrade costs.
+  - [x] Lock current gathering-node count, canonical IDs, rewards, and 60-second cooldown in Studio contract tests; gold/gem, quest, and shop income remain NOT DONE.
 - [ ] Verify free progression is complete and optional purchases are non-pay-to-win.
 
 ## Stage 6 — 1.0 Release Gate
