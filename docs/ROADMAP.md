@@ -659,3 +659,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Project emergency teleport recovery onto the local ground surface using the pet-specific pivot offset.
 - [x] Add Studio-only cliff-gap regression test using isolated test geometry.
 - [ ] Run the companion tests in Roblox Studio and verify real island edges, stairs, slopes, streaming, and mobile performance.
+
+### Companion navigation frame-budget pass (2026-11-22)
+
+- [x] Add a 0.12-second cache for direct obstacle+ground checks while companion and formation target move less than 0.5 studs.
+- [x] Recompute direct route immediately on significant target or pet movement; expire cached results rapidly to detect streamed/dynamic obstacle changes.
+- [x] Clear cached positions after emergency teleport recovery.
+- [x] Add Studio regression tests for stationary cache reuse and owner-movement invalidation.
+- [ ] Execute client tests and profile raycasts at 30/60 FPS with 1-3 equipped companions in Roblox Studio/mobile.
