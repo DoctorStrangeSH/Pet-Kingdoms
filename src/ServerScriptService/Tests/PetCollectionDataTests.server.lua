@@ -493,4 +493,61 @@ infiniteBondLevel.owned[1].bondLevel = math.huge
 local infiniteBondLevelValid = PetCollectionData.validate(infiniteBondLevel, 12345)
 expect("infinite Bond level rejected", not infiniteBondLevelValid)
 
+local capacityProfile = PetCollectionData.clone(profile)
+for index = 2, PetCollectionData.MAX_OWNED_PETS - 1 do
+	table.insert(capacityProfile.owned, {
+		petId = "capacity-pet-" .. tostring(index),
+		speciesId = "bunny",
+		acquiredAt = 1,
+		rarityTier = 1,
+		level = 1,
+		xp = 0,
+		bondXp = 0,
+		bondLevel = 1,
+		lastInteractionAt = 0,
+	})
+end
+local capacityValid = PetCollectionData.validate(capacityProfile, 12345)
+expect("collection with one free slot validates", capacityValid)
+
+local reserved, reserveStatus, reservedProfile = PetCollectionData.reservePetSlotOnce(
+	capacityProfile, "hatch:capacity-001", "bunny", 1, 100
+)
+expect("free collection slot can be reserved", reserved and reserveStatus == "RESERVED" and reservedProfile ~= nil)
+assert(reservedProfile ~= nil)
+expect("reservation does not add an owned pet", #reservedProfile.owned == PetCollectionData.MAX_OWNED_PETS - 1)
+expect("reservation consumes the final available capacity", #reservedProfile.reservedAcquisitions == 1)
+
+local secondReserved, secondReserveStatus = PetCollectionData.reservePetSlotOnce(
+	reservedProfile, "hatch:capacity-002", "bunny", 1, 101
+)
+expect("another reservation is rejected when capacity is reserved", not secondReserved and secondReserveStatus == "COLLECTION_FULL")
+
+local ordinaryAdded, ordinaryAddStatus = PetCollectionData.addPet(
+	reservedProfile, "ordinary-reward-pet", "bunny", 1, 102
+)
+expect("ordinary rewards cannot consume reserved capacity", not ordinaryAdded and ordinaryAddStatus == "COLLECTION_FULL")
+
+local reservedAgain, reservedAgainStatus = PetCollectionData.reservePetSlotOnce(
+	reservedProfile, "hatch:capacity-001", "bunny", 1, 103
+)
+expect("same reservation request is idempotent", not reservedAgain and reservedAgainStatus == "ALREADY_RESERVED")
+
+local granted, grantStatus, grantedProfile = PetCollectionData.addPetOnce(
+	reservedProfile, "reserved-pet", "bunny", 1, 104, "hatch:capacity-001"
+)
+expect("reserved slot can be consumed by matching acquisition", granted and grantStatus == "UPDATED" and grantedProfile ~= nil)
+assert(grantedProfile ~= nil)
+expect("grant replaces reservation with owned pet", #grantedProfile.owned == PetCollectionData.MAX_OWNED_PETS and #grantedProfile.reservedAcquisitions == 0)
+
+local grantedAgain, grantedAgainStatus = PetCollectionData.addPetOnce(
+	grantedProfile, "another-pet-id", "bunny", 1, 105, "hatch:capacity-001"
+)
+expect("consumed reservation acquisition is idempotent", not grantedAgain and grantedAgainStatus == "ALREADY_ACQUIRED")
+
+local conflictReservation, conflictReservationStatus = PetCollectionData.reservePetSlotOnce(
+	reservedProfile, "hatch:capacity-001", "bunny", 2, 106
+)
+expect("reservation cannot be reused for different rarity", not conflictReservation and conflictReservationStatus == "RESERVATION_CONFLICT")
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
