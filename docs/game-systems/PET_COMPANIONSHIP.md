@@ -67,3 +67,6 @@ No food/inventory action is added because an approved food catalogue and resourc
 
 - Mutation results are synchronized into the in-memory profile only when their revision is not older than the current snapshot. This prevents delayed DataStore responses from regressing the live profile after a newer concurrent mutation has already completed.
 - Verify concurrent Equip, Interact, and server XP reward calls in Studio; persisted DataStore ordering and live in-memory ordering both need integration coverage.
+
+
+- Equip/Interact RemoteFunction responses return the newest in-memory collection snapshot after revision-aware synchronization, not a potentially stale individual DataStore response. This keeps the client view aligned with concurrent server mutations.
