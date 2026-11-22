@@ -13,7 +13,9 @@ These quantities and timer reuse the provisional baseline in the project specifi
 
 ## Interaction
 
-- Uses Roblox ProximityPrompt; keyboard E and gamepad ButtonX are configured.
+- Uses Roblox ProximityPrompt; keyboard E, gamepad ButtonX, and Roblox touch prompt are supported.
+- Resource nodes show a floating label with the resource name and exact reward (+3 wood / +2 stone). The prompt explicitly says Срубить дерево or Добыть камень.
+- A first-gather hint appears in the resource HUD while the player's wood balance is zero.
 - Prompts are server-observed through ProximityPromptService.
 - The server validates resource ID, integer reward, player ownership, node ancestry, island ownership, character root, and interaction distance.
 - Reward values are node attributes assigned by server-owned island generation, never accepted from the client.
@@ -28,7 +30,7 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 
 ## Explicit limitations
 
-- Nodes currently use temporary procedural blockout geometry, not approved production art.
+- Nodes currently use temporary procedural blockout geometry, not approved production art. Floating markers improve discovery but do not replace final tree/ore meshes.
 - There is no inventory HUD/toast or gathering animation yet.
 - No tools, stamina, skill checks, node tiers, or biome-specific drops.
 - Respawn timers are server-memory timers and are not persisted across server shutdown.
@@ -45,3 +47,39 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 - [ ] Leave/rejoin; balances persist after autosave.
 - [ ] Simulate non-writable session; reward is rejected and node remains available.
 - [ ] Test E and gamepad interaction; verify prompt readability on mobile touch devices.
+
+
+## Gathering discoverability pass (2026-11-22)
+
+- [x] Add readable floating resource markers above each active wood/stone node, showing exact resource yield.
+- [x] Make the wood prompt explicitly say Срубить дерево and show the wood reward; stone prompt shows its reward too.
+- [x] Hide floating markers while the node is on cooldown and restore them on respawn.
+- [x] Show a HUD hint directing new players to a wood node while their wood balance is zero.
+- [ ] Verify marker distance, readability, ProximityPrompt touch behavior, and first-gather flow in Roblox Studio/mobile.
+- [ ] Replace procedural resource blockouts with approved production art assets.
+
+## Replaceable resource art templates (2026-11-22)
+
+- The renderer now checks `ServerStorage/ResourceNodeModels/wood` and `ServerStorage/ResourceNodeModels/stone` for approved **Model** objects. These are optional: if absent, existing procedural tree/ore blockouts remain functional.
+- A resource Model must be authored with a sensible pivot at the ground-level centre of the node. The renderer clones it at the node's canonical grid location, anchors all BaseParts, removes all LuaSourceContainer descendants, and removes template-provided ProximityPrompts and BillboardGuis.
+- All gameplay prompts are **created by the server** on a separate invisible `GatherAnchor`. The server owns reward value, resource ID, distance validation and cooldown regardless of asset contents. The existing resource marker attaches to the custom model's PrimaryPart (or first BasePart).
+- Transparency of each visual BasePart is recorded in `GatherBaseTransparency` and restored after cooldown, so translucent mesh details and the invisible prompt anchor stay transparent after node respawn.
+- No third-party assets have been imported or approved. Keep visual asset provenance and studio review in `docs/ASSET_TRACKER.md`; do not put executable code inside source models.
+- A Studio-only world integration test constructs a temporary resource Model, checks that the scripted payload is stripped and that the trusted prompt anchor exists, then removes the fixture. Studio execution is still pending.
+
+## Prompt origin and rejoin checks (2026-11-22)
+
+- On gather, the server accepts only its named `GatherPrompt` directly under the trusted `GatherAnchor` inside a node Model belonging to `ResourceNodes`. Other prompts are ignored.
+- Studio world integration tests now model a persisted cooldown on a second player's island and assert the hidden prompt, transparent anchor and saved custom-mesh base transparency. Actual post-delay respawn still requires runtime testing.
+
+## Repeatable resource visibility tests (2026-11-22)
+
+The shared `ResourceNodeVisibility.setVisible` now owns cooldown hide/restore behavior and is covered by a Studio-only test fixture. The fixture checks alpha-preserving restoration of a partially transparent model, permanently invisible `GatherAnchor`, disabled prompt/marker during cooldown, re-enabled cues on respawn, and a second hide/restore cycle. Run in Studio before claiming resource respawn behavior fully verified.
+
+## Respawn scheduler and writable-session guard (2026-11-22)
+
+The server tracks each resource node's scheduled cooldown timestamp instead of a generic active boolean. Scheduling the same deadline twice does not create duplicate callbacks, and stale callbacks cannot clear a newer deadline. A resource will not reappear until the deadline has expired and its owner's session is writable; the periodic reconciliation loop retries recovery if writing was unavailable when the timer fired. Restored nodes are not reprocessed every sweep after their gather prompt has been enabled. Live Studio QA is still pending.
+
+## Resource availability HUD (2026-11-22)
+
+The local HUD now reports ready/total wood and stone nodes and the nearest cooldown countdown in MM:SS. It reads own-island replicated node attributes once per second; it does not claim or modify resources. The cooldown timestamp comes from the server and is compared with synchronized server time. Device Emulator and runtime gather/respawn tests remain outstanding.

@@ -13,6 +13,7 @@ local IslandBuildingJournalData = require(script.Parent:WaitForChild("IslandBuil
 local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
 local IslandExpansion = require(script.Parent:WaitForChild("IslandExpansion"))
 local QuestProgressData = require(script.Parent:WaitForChild("QuestProgressData"))
+local QuestRewardOutboxData = require(script.Parent:WaitForChild("QuestRewardOutboxData"))
 
 local IslandData = {}
 
@@ -87,6 +88,8 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		resourceNodes = {},
 		questProgress = QuestProgressData.create(),
 		trackedQuestId = "gather_wood",
+		questRewardClaims = QuestRewardOutboxData.createClaims(),
+		questRewardOutbox = QuestRewardOutboxData.createOutbox(),
 		revision = 0,
 	}
 end
@@ -166,6 +169,16 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 	if profile.questProgress ~= nil then
 		local validQuests, questReason = QuestProgressData.validate(profile.questProgress)
 		if not validQuests then return false, "INVALID_QUEST_PROGRESS:" .. questReason end
+	end
+
+	-- Legacy schema-v1 profiles predate durable quest claim receipts and XP outbox records.
+	if profile.questRewardClaims ~= nil then
+		local validClaims, claimsReason = QuestRewardOutboxData.validateClaims(profile.questRewardClaims)
+		if not validClaims then return false, "INVALID_QUEST_CLAIMS:" .. claimsReason end
+	end
+	if profile.questRewardOutbox ~= nil then
+		local validOutbox, outboxReason = QuestRewardOutboxData.validateOutbox(profile.questRewardOutbox)
+		if not validOutbox then return false, "INVALID_QUEST_OUTBOX:" .. outboxReason end
 	end
 
 	-- Legacy schema-v1 profiles predate persisted resource-node cooldowns.

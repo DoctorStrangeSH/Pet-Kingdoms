@@ -14,11 +14,10 @@ local IslandLeaseService = require(services:WaitForChild("IslandLeaseService"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandHatchLedgerData = require(services:WaitForChild("IslandHatchLedgerData"))
 local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
-local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
-local IslandResourceNodeData = require(services:WaitForChild("IslandResourceNodeData"))
-local IslandResources = require(services:WaitForChild("IslandResources"))
+local IslandGatheringTransactionData = require(services:WaitForChild("IslandGatheringTransactionData"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
+local QuestRewardOutboxData = require(services:WaitForChild("QuestRewardOutboxData"))
 
 local IslandSessionService = {}
 
@@ -121,45 +120,23 @@ function IslandSessionService.commitResourceGathering(
 		return false, "GATHERING_BUSY", nil
 	end
 
-	local definition = IslandResourceNodeCatalog.get(nodeId)
-	if definition == nil then return false, "UNKNOWN_NODE", nil end
 	session.gatheringMutationBusy = true
-
-	local nextStates, availableAt, stateCode = IslandResourceNodeData.recordGather(
-		session.profile.resourceNodes or {},
+	local transaction, transactionCode, availableAt = IslandGatheringTransactionData.apply(
+		session.profile,
 		nodeId,
 		now
 	)
-	if nextStates == nil then
+	if transaction == nil then
 		session.gatheringMutationBusy = false
-		return false, stateCode, availableAt
+		return false, transactionCode, availableAt
 	end
 
-	local previousResources = table.clone(session.profile.resources)
-	local granted, grantCode = IslandResources.grant(
-		session.profile.resources,
-		definition.resourceId,
-		definition.reward
-	)
-	if not granted then
-		session.gatheringMutationBusy = false
-		return false, grantCode, nil
-	end
-
-	local previousQuestProgress = session.profile.questProgress or QuestProgressData.create()
-	local nextQuestProgress, completedQuestIds, questCode = QuestProgressData.recordGather(
-		previousQuestProgress,
-		definition.resourceId
-	)
-	if nextQuestProgress == nil then
-		session.profile.resources = previousResources
-		session.gatheringMutationBusy = false
-		return false, questCode, nil
-	end
-
+	local previousResources = session.profile.resources
 	local previousStates = session.profile.resourceNodes
-	session.profile.resourceNodes = nextStates
-	session.profile.questProgress = nextQuestProgress
+	local previousQuestProgress = session.profile.questProgress
+	session.profile.resources = transaction.resources
+	session.profile.resourceNodes = transaction.resourceNodes
+	session.profile.questProgress = transaction.questProgress
 	if not IslandSessionService.markDirty(userId) then
 		session.profile.resources = previousResources
 		session.profile.resourceNodes = previousStates
@@ -185,6 +162,343 @@ function IslandSessionService.commitResourceGathering(
 
 	session.gatheringMutationBusy = false
 	return true, "GATHERED", availableAt
+end
+-- Commits a server-resolved pet XP quest reward, its permanent claim receipt,
+-- and its outbox record in one durable island profile revision.
+-- rewardPlan must come from a server-owned catalog; this method is never a RemoteFunction.
+function IslandSessionService.commitQuestRewardClaim(
+	userId: number,
+	player: Player,
+	questId: string,
+	rewardPlan: any
+): (boolean, string, any?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	local definition = QuestProgressData.DEFINITIONS[questId]
+	if definition == nil then return false, "UNKNOWN_QUEST", nil end
+	if type(rewardPlan) ~= "table" then return false, "INVALID_REWARD_PLAN", nil end
+
+	local progress = (session.profile.questProgress or QuestProgressData.create())[questId]
+	if progress == nil or progress.count < definition.target then
+		return false, "QUEST_NOT_COMPLETED", nil
+	end
+
+	local claims = session.profile.questRewardClaims or QuestRewardOutboxData.createClaims()
+	local existingReceipt = claims[questId]
+	if existingReceipt ~= nil then
+		if type(existingReceipt) ~= "table" or type(existingReceipt.rewardId) ~= "string" then
+			return false, "INVALID_CLAIM_RECEIPT", nil
+		end
+		local expectedRevision = existingReceipt.revision
+		if type(expectedRevision) == "number" then
+			local deadline = os.clock() + 30
+			while session.persistedRevision < expectedRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					return false, "SESSION_NOT_WRITABLE", existingReceipt
+				end
+				if os.clock() >= deadline then return false, "PERSIST_PENDING", existingReceipt end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
+		return true, "ALREADY_CLAIMED", table.clone(existingReceipt)
+	end
+
+	local rewardId = rewardPlan.rewardId
+	local petId = rewardPlan.petId
+	local amount = rewardPlan.amount
+	local progressionVersion = rewardPlan.progressionVersion
+	if type(rewardId) ~= "string" or #rewardId == 0 or #rewardId > QuestRewardOutboxData.MAX_REWARD_ID_LENGTH
+		or type(petId) ~= "string" or #petId == 0 or #petId > QuestRewardOutboxData.MAX_PET_ID_LENGTH
+		or type(amount) ~= "number" or amount < 1 or amount > QuestRewardOutboxData.MAX_REWARD_AMOUNT
+		or amount ~= math.floor(amount)
+		or type(progressionVersion) ~= "number" or progressionVersion < 1
+		or progressionVersion ~= math.floor(progressionVersion) then
+		return false, "INVALID_REWARD_PLAN", nil
+	end
+
+	session.gatheringMutationBusy = true
+	local now = os.time()
+	local targetRevision = session.profile.revision + 1
+	local nextClaims, claimCode = QuestRewardOutboxData.recordClaim(
+		claims, questId, rewardId, now, targetRevision
+	)
+	if nextClaims == nil then
+		session.gatheringMutationBusy = false
+		return false, claimCode, nil
+	end
+	local nextOutbox, outboxCode = QuestRewardOutboxData.append(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox(),
+		{
+			rewardId = rewardId,
+			questId = questId,
+			petId = petId,
+			amount = amount,
+			progressionVersion = progressionVersion,
+			createdAt = now,
+		}
+	)
+	if nextOutbox == nil then
+		session.gatheringMutationBusy = false
+		return false, outboxCode, nil
+	end
+
+	local previousClaims = session.profile.questRewardClaims
+	local previousOutbox = session.profile.questRewardOutbox
+	session.profile.questRewardClaims = nextClaims
+	session.profile.questRewardOutbox = nextOutbox
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.questRewardClaims = previousClaims
+		session.profile.questRewardOutbox = previousOutbox
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", nil
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", nil
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "CLAIM_DURABLE", table.clone(nextClaims[questId])
+end
+
+-- The caller may acknowledge the pet-side receipt only after this method
+-- confirms the delivered timestamp is durable in the island profile.
+function IslandSessionService.commitQuestRewardDelivery(
+	userId: number,
+	player: Player,
+	rewardId: string
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	session.gatheringMutationBusy = true
+	local nextOutbox, status = QuestRewardOutboxData.markDelivered(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox(),
+		rewardId,
+		os.time()
+	)
+	if nextOutbox == nil then
+		if status == "ALREADY_DELIVERED" then
+			local targetRevision = session.profile.revision
+			local deadline = os.clock() + 30
+			while session.persistedRevision < targetRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					session.gatheringMutationBusy = false
+					return false, "SESSION_NOT_WRITABLE", targetRevision
+				end
+				if os.clock() >= deadline then
+					session.gatheringMutationBusy = false
+					return false, "PERSIST_PENDING", targetRevision
+				end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
+		session.gatheringMutationBusy = false
+		return status == "ALREADY_DELIVERED", status, session.profile.revision
+	end
+
+	local previousOutbox = session.profile.questRewardOutbox
+	session.profile.questRewardOutbox = nextOutbox
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.questRewardOutbox = previousOutbox
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "DELIVERY_DURABLE", targetRevision
+end
+
+-- Persist the source-side acknowledgement after the pet XP delivery revision is
+-- durable. This must precede pet receipt acknowledgement so its retention clock
+-- cannot expire while the source-side commit is still unavailable.
+function IslandSessionService.commitQuestRewardAcknowledgement(
+	userId: number,
+	player: Player,
+	rewardId: string
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	session.gatheringMutationBusy = true
+	local nextOutbox, status = QuestRewardOutboxData.markAcknowledged(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox(),
+		rewardId,
+		os.time()
+	)
+	if nextOutbox == nil then
+		if status == "ALREADY_ACKNOWLEDGED" then
+			local targetRevision = session.profile.revision
+			local deadline = os.clock() + 30
+			while session.persistedRevision < targetRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					session.gatheringMutationBusy = false
+					return false, "SESSION_NOT_WRITABLE", targetRevision
+				end
+				if os.clock() >= deadline then
+					session.gatheringMutationBusy = false
+					return false, "PERSIST_PENDING", targetRevision
+				end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
+		session.gatheringMutationBusy = false
+		return status == "ALREADY_ACKNOWLEDGED", status, session.profile.revision
+	end
+	local previousOutbox = session.profile.questRewardOutbox
+	session.profile.questRewardOutbox = nextOutbox
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.questRewardOutbox = previousOutbox
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "ACKNOWLEDGEMENT_DURABLE", targetRevision
+end
+
+-- After source acknowledgement is durable, finalize the pet-side receipt retention
+-- state. The outbox is compactable only after this final marker is durable too.
+function IslandSessionService.commitQuestRewardPetAcknowledgement(
+	userId: number,
+	player: Player,
+	rewardId: string
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	session.gatheringMutationBusy = true
+	local nextOutbox, status = QuestRewardOutboxData.markPetAcknowledged(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox(),
+		rewardId,
+		os.time()
+	)
+	if nextOutbox == nil then
+		if status == "ALREADY_PET_ACKNOWLEDGED" then
+			local targetRevision = session.profile.revision
+			local deadline = os.clock() + 30
+			while session.persistedRevision < targetRevision do
+				if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+					session.gatheringMutationBusy = false
+					return false, "SESSION_NOT_WRITABLE", targetRevision
+				end
+				if os.clock() >= deadline then
+					session.gatheringMutationBusy = false
+					return false, "PERSIST_PENDING", targetRevision
+				end
+				local saved = saveSession(userId, session)
+				if not saved then task.wait(0.5) end
+			end
+		end
+		session.gatheringMutationBusy = false
+		return status == "ALREADY_PET_ACKNOWLEDGED", status, session.profile.revision
+	end
+	local previousOutbox = session.profile.questRewardOutbox
+	session.profile.questRewardOutbox = nextOutbox
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.questRewardOutbox = previousOutbox
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "PET_ACKNOWLEDGEMENT_DURABLE", targetRevision
+end
+
+function IslandSessionService.getPendingQuestRewards(userId: number): { any }
+	local session = sessions[userId]
+	if session == nil then return {} end
+	return QuestRewardOutboxData.listPending(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox()
+	)
+end
+
+function IslandSessionService.getQuestRewardsAwaitingAcknowledgement(userId: number): { any }
+	local session = sessions[userId]
+	if session == nil then return {} end
+	return QuestRewardOutboxData.listAwaitingAcknowledgement(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox()
+	)
+end
+
+function IslandSessionService.getQuestRewardsAwaitingPetAcknowledgement(userId: number): { any }
+	local session = sessions[userId]
+	if session == nil then return {} end
+	return QuestRewardOutboxData.listAwaitingPetAcknowledgement(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox()
+	)
 end
 
 -- Persists the player's tracked quest preference using the island profile revision.
@@ -505,6 +819,14 @@ local function cloneProfile(profile: any): any
 	copy.questProgress = {}
 	for questId, state in pairs(profile.questProgress or QuestProgressData.create()) do
 		copy.questProgress[questId] = table.clone(state)
+	end
+	copy.questRewardClaims = {}
+	for questId, receipt in pairs(profile.questRewardClaims or {}) do
+		copy.questRewardClaims[questId] = table.clone(receipt)
+	end
+	copy.questRewardOutbox = {}
+	for index, record in ipairs(profile.questRewardOutbox or {}) do
+		copy.questRewardOutbox[index] = table.clone(record)
 	end
 	copy.buildingOperations = {}
 	for index, record in ipairs(profile.buildingOperations or {}) do

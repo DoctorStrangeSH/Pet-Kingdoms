@@ -94,3 +94,43 @@ No food/inventory action is added because an approved food catalogue and resourc
 - The existing collection RemoteFunction remains the only path for equip/protect/delete/interact operations; those mutations remain server-authoritative and revision-checked. The prompt itself grants no ownership or gameplay reward.
 - Prompt creation is shared by initial island rendering and live building synchronization, so a newly placed or moved Pet House has the same interaction.
 - Studio verification is pending: test keyboard, gamepad, touch prompt presentation, another player's Pet House, and a missing Door part on a custom template.
+
+
+## Companion grounding correction (2026-11-22)
+
+- Follow controllers now calculate each pet model's actual pivot-to-bounding-box-bottom offset when binding.
+- Ground placement no longer assumes a universal 0.28-stud root offset. This supports the procedural Bunny rig and imported mesh pets with center-based pivots and different heights.
+- Added a Studio client test with a 4-stud imported-mesh stand-in whose pivot is centered; the expected ground lift is 2 studs.
+- This corrects vertical placement only. Obstacle navigation, slope limits, multiplayer replication behavior, and mobile performance still require Studio verification.
+
+
+## Companion obstacle navigation foundation (2026-11-22)
+
+- CompanionFollowController performs two horizontal obstacle raycasts (low and upper body) before moving directly toward its formation target.
+- If the direct lane is blocked, it requests a Roblox PathfindingService route using a 1.25-stud agent radius, 3.2-stud agent height, and jump/climb support.
+- Path computation runs asynchronously and is reused while the target remains nearby; blocked waypoints invalidate the route and trigger a retry.
+- Waypoint positions are projected onto the island surface and lifted by the companion's measured pivot-to-bounds-bottom offset.
+- If navigation is pending or fails, the companion waits instead of walking through an obstacle. When the direct lane clears, path resources are released.
+- This is a client-side cosmetic movement system. It does not grant the pet gameplay authority or change server-owned island interactions.
+- Studio verification is still required for generated navmesh coverage, narrow paths, stairs, cliffs, streaming, multiplayer presentation, and mobile performance.
+
+## Companion navigation safety follow-up (2026-11-22)
+
+The obstruction raycast helper now has its horizontal-vector dependency declared in lexical scope before use. Recovery from a distant owner is calculated against the actual formation target, not the current path waypoint; teleporting clears pending routes and increments their generation to discard stale asynchronous results. Studio tests cover this interrupted-navigation case, but real obstacle, stairs and mobile traversal remain unverified.
+
+## Formation motion smoothing correction (2026-11-22)
+
+- Corrected double application of the exponential smoothing factor when following navigation targets, improving the response of formation slots as the owner turns.
+- Run/catch-up animation now uses the distance to the owner formation target, not the possibly short local waypoint; blocked and stationary pets no longer animate as if walking.
+- A Studio-only isolated mesh test checks the exact translation factor for one update. Actual gameplay turns and slope motion remain to be tested in Studio.
+
+## Terrain-edge safety pass (2026-11-22)
+
+- Direct movement requires both obstacle-ray clearance and sampled supporting ground along the route. Missing ground and height jumps larger than 2.75 studs between successive samples invalidate the shortcut when the initial ground is known.
+- Pathfinding waypoints are also checked for ground support before each movement update; unsupported segments halt movement and schedule a new route.
+- Emergency teleport destinations are projected onto nearby ground with model-specific pivot offset.
+- A Studio-only cliff-gap regression has been authored. Verify actual generated island terrain and mobile framerates before treating this as shippable terrain traversal.
+
+## Companion navigation raycast-budget pass (2026-11-22)
+
+To reduce render-frame raycast work, the controller caches direct obstacle+terrain checks for a maximum of 0.12 seconds while both the companion pivot and formation target remain within 0.5 studs of sampled positions. A significant movement or timer expiry forces recalculation, and teleports clear cached results. The path system remains client-side cosmetic movement; Studio FPS and multiplayer validation is still required.

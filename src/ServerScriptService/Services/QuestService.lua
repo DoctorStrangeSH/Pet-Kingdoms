@@ -55,7 +55,7 @@ function QuestService.start()
 		if type(profile) ~= "table" then return { ok = false, code = "SESSION_NOT_READY" } end
 		return {
 			ok = true,
-			quests = QuestProgressData.snapshot(profile.questProgress),
+			quests = QuestProgressData.snapshot(profile.questProgress, profile.questRewardClaims),
 			trackedQuestId = profile.trackedQuestId,
 			revision = profile.revision,
 		}

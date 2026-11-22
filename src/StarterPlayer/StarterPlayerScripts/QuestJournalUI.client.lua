@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -83,8 +84,9 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 340), MaxSize = Vector2.new(500, 440) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(290, 300), MaxSize = Vector2.new(500, 440) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
 local title = make("TextLabel", {
@@ -278,6 +280,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	trackedQuestId = serverTrackedQuestId
 	clearCards()
 	local completedCount = 0
+	local claimedCount = 0
 	for index, quest in ipairs(quests) do
 		if type(quest) ~= "table" or type(quest.id) ~= "string"
 			or type(quest.name) ~= "string" or type(quest.description) ~= "string"
@@ -286,7 +289,9 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			continue
 		end
 		local done = quest.completed == true
+		local claimed = done and quest.rewardClaimed == true
 		if done then completedCount += 1 end
+		if claimed then claimedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
 			Size = UDim2.new(1, -6, 0, 124),
@@ -362,10 +367,10 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = UDim2.new(0, 16, 0, 65),
 			Size = UDim2.new(0.5, 0, 0, 18),
 			Font = Enum.Font.GothamBold,
-			Text = if done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
+			Text = if claimed then "НАГРАДА ПОЛУЧЕНА" elseif done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
 			TextSize = 9,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			TextColor3 = if done then COLORS.mint else COLORS.gold,
+			TextColor3 = if claimed or done then COLORS.mint else COLORS.gold,
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
@@ -391,7 +396,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	end
 	badge.Text = if #quests == 0 then "—" else tostring(math.max(0, #quests - completedCount))
 	badge.BackgroundColor3 = if completedCount == #quests and #quests > 0 then COLORS.mint else COLORS.gold
-	status.Text = string.format("Выполнено: %d из %d  •  Награды появятся в следующем этапе", completedCount, #quests)
+	status.Text = string.format("Выполнено: %d из %d  •  Получено наград: %d  •  Выдача наград пока отключена", completedCount, #quests, claimedCount)
 	status.TextColor3 = COLORS.muted
 	for _, quest in ipairs(quests) do
 		if quest.completed == true then
@@ -451,6 +456,11 @@ local function queueRefresh()
 end
 
 local function setOpen(value: boolean)
+	if value then
+		playerGui:SetAttribute("PetKingdomsActiveModal", "quests")
+	elseif playerGui:GetAttribute("PetKingdomsActiveModal") == "quests" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 	opened = value
 	panel.Visible = value
 	shade.Visible = value
@@ -466,6 +476,32 @@ local function setOpen(value: boolean)
 	end
 end
 
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if opened and owner ~= "quests" then
+		setOpen(false)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not opened then return end
+	if input.KeyCode == Enum.KeyCode.Escape then setOpen(false) end
+end)
+
+-- Full-screen backdrop is a touch-friendly close target.
+shade.InputBegan:Connect(function(input)
+	if not opened then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local position = input.Position
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if position.X < origin.X or position.X > origin.X + size.X
+		or position.Y < origin.Y or position.Y > origin.Y + size.Y then
+		setOpen(false)
+	end
+end)
+
 openButton.Activated:Connect(function() setOpen(not opened) end)
 closeButton.Activated:Connect(function() setOpen(false) end)
 resourceUpdate.OnClientEvent:Connect(function(_snapshot, _resourceId, _amount, code)
@@ -475,10 +511,18 @@ end)
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	-- Fit the entire dialogue in portrait and short landscape viewports.
+	-- Scale fixed internal offsets together so the close control stays reachable.
+	local baseHeight = 410
+	local width = math.clamp(viewport.X - 24, 290, 500)
+	local scale = math.min(1, math.max(0.6, (viewport.Y - 40) / baseHeight))
+	panelScale.Scale = scale
+	panel.Size = UDim2.fromOffset(width, baseHeight)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, -12)
 	tracker.Size = UDim2.fromOffset(compact and 220 or 260, 78)
 end

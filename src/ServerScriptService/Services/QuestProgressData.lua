@@ -20,6 +20,9 @@ QuestProgressData.DEFINITIONS = {
 	},
 }
 
+-- Stable presentation and progression order; never depend on hash-table iteration.
+local QUEST_ORDER = { "gather_wood", "gather_stone" }
+
 local function isCount(value: any): boolean
 	return type(value) == "number" and value == value
 		and value ~= math.huge and value ~= -math.huge
@@ -56,7 +59,8 @@ function QuestProgressData.recordGather(state: any, resourceId: string): (any?, 
 	if not valid then return nil, nil, reason end
 	local nextState = table.clone(state)
 	local completed = {}
-	for questId, definition in pairs(QuestProgressData.DEFINITIONS) do
+	for _, questId in ipairs(QUEST_ORDER) do
+		local definition = QuestProgressData.DEFINITIONS[questId]
 		if definition.resourceId == resourceId then
 			local previous = state[questId]
 			if previous.count < definition.target then
@@ -72,12 +76,24 @@ function QuestProgressData.recordGather(state: any, resourceId: string): (any?, 
 	return nextState, completed, "RECORDED"
 end
 
-function QuestProgressData.snapshot(state: any): { any }
-	local valid = QuestProgressData.validate(state)
+function QuestProgressData.snapshot(state: any, claims: any?): { any }
+	-- Legacy island profiles may predate questProgress. Present the current
+	-- introductory quest set at zero progress without mutating the saved profile.
+	local source = if state == nil then QuestProgressData.create() else state
+	local valid = QuestProgressData.validate(source)
 	if not valid then return {} end
 	local result = {}
-	for questId, definition in pairs(QuestProgressData.DEFINITIONS) do
-		local entry = state[questId]
+	for _, questId in ipairs(QUEST_ORDER) do
+		local definition = QuestProgressData.DEFINITIONS[questId]
+		local entry = source[questId]
+		local receipt = if type(claims) == "table" then claims[questId] else nil
+		local rewardClaimed = entry.count >= definition.target
+			and type(receipt) == "table"
+			and type(receipt.rewardId) == "string"
+			and receipt.rewardId ~= ""
+			and type(receipt.claimedAt) == "number"
+			and receipt.claimedAt == receipt.claimedAt
+			and receipt.claimedAt > 0
 		table.insert(result, {
 			id = definition.id,
 			name = definition.name,
@@ -86,6 +102,7 @@ function QuestProgressData.snapshot(state: any): { any }
 			target = definition.target,
 			completed = entry.count >= definition.target,
 			rewardAvailable = false,
+			rewardClaimed = rewardClaimed,
 		})
 	end
 	return result

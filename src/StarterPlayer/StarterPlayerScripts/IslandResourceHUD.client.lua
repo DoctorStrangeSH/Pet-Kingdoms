@@ -109,7 +109,7 @@ end
 local toast = Instance.new("TextLabel")
 toast.Name = "GatherToast"
 toast.AnchorPoint = Vector2.new(0.5, 0)
-toast.Position = UDim2.new(0.5, 0, 0, 106)
+toast.Position = UDim2.new(0.5, 0, 0, 178)
 toast.Size = UDim2.fromOffset(250, 38)
 toast.BackgroundColor3 = COLORS.panel
 toast.BackgroundTransparency = 1
@@ -176,6 +176,97 @@ task.spawn(function()
 	folder.ChildAdded:Connect(bindKingdomBond)
 end)
 
+local gatherHint = Instance.new("TextLabel")
+gatherHint.Name = "GatheringHint"
+gatherHint.AnchorPoint = Vector2.new(0.5, 0)
+gatherHint.Position = UDim2.new(0.5, 0, 0, 106)
+gatherHint.Size = UDim2.new(0.94, 0, 0, 32)
+gatherHint.BackgroundColor3 = COLORS.panel
+gatherHint.BackgroundTransparency = 0.08
+gatherHint.BorderSizePixel = 0
+gatherHint.Text = "НАЙДИ ДЕРЕВО  •  E / НАЖМИ «СРУБИТЬ»"
+gatherHint.TextColor3 = COLORS.mint
+gatherHint.TextSize = 11
+gatherHint.Font = Enum.Font.GothamBold
+gatherHint.TextWrapped = true
+gatherHint.Visible = false
+gatherHint.Parent = screen
+Instance.new("UICorner", gatherHint).CornerRadius = UDim.new(0, 10)
+local gatherHintStroke = Instance.new("UIStroke")
+gatherHintStroke.Color = COLORS.mint
+gatherHintStroke.Transparency = 0.45
+gatherHintStroke.Parent = gatherHint
+
+-- Read-only gathering feedback. Nodes expose their server-owned cooldown
+-- deadline as a replicated attribute; no client request can change rewards.
+local gatheringAvailability = Instance.new("TextLabel")
+gatheringAvailability.Name = "ResourceAvailability"
+gatheringAvailability.AnchorPoint = Vector2.new(0.5, 0)
+gatheringAvailability.Position = UDim2.new(0.5, 0, 0, 142)
+gatheringAvailability.Size = UDim2.new(0.94, 0, 0, 28)
+gatheringAvailability.BackgroundColor3 = COLORS.panel
+gatheringAvailability.BackgroundTransparency = 0.12
+gatheringAvailability.BorderSizePixel = 0
+gatheringAvailability.Text = ""
+gatheringAvailability.TextColor3 = COLORS.muted
+gatheringAvailability.Font = Enum.Font.GothamMedium
+gatheringAvailability.TextSize = 12
+gatheringAvailability.Visible = false
+gatheringAvailability.Parent = screen
+Instance.new("UICorner", gatheringAvailability).CornerRadius = UDim.new(0, 10)
+
+local function updateGatheringAvailability()
+	local worlds = Workspace:FindFirstChild("PlayerIslands")
+	local ownWorld = worlds and worlds:FindFirstChild("Island_" .. tostring(player.UserId))
+	local nodes = ownWorld and ownWorld:FindFirstChild("ResourceNodes")
+	if nodes == nil then
+		gatheringAvailability.Visible = false
+		return
+	end
+
+	local availableWood, availableStone = 0, 0
+	local totalWood, totalStone = 0, 0
+	local nextReady: number? = nil
+	local now = Workspace:GetServerTimeNow()
+	for _, node in ipairs(nodes:GetChildren()) do
+		if not node:IsA("Model") or node:GetAttribute("OwnerUserId") ~= player.UserId then continue end
+		local resourceId = node:GetAttribute("ResourceId")
+		local availableAt = node:GetAttribute("AvailableAt")
+		if resourceId ~= "wood" and resourceId ~= "stone" then continue end
+		local ready = type(availableAt) == "number" and availableAt <= now
+		if resourceId == "wood" then
+			totalWood += 1
+			if ready then availableWood += 1 end
+		else
+			totalStone += 1
+			if ready then availableStone += 1 end
+		end
+		if type(availableAt) == "number" and availableAt > now then
+			nextReady = if nextReady then math.min(nextReady, availableAt) else availableAt
+		end
+	end
+	if totalWood + totalStone == 0 then
+		gatheringAvailability.Visible = false
+		return
+	end
+	local upcoming = ""
+	if nextReady then
+		local remaining = math.max(1, math.ceil(nextReady - now))
+		upcoming = string.format("  •  ещё через %02d:%02d", math.floor(remaining / 60), remaining % 60)
+	end
+	gatheringAvailability.Text = string.format(
+		"🌲 %d/%d  •  🪨 %d/%d%s", availableWood, totalWood, availableStone, totalStone, upcoming
+	)
+	gatheringAvailability.Visible = true
+end
+
+task.spawn(function()
+	while screen.Parent ~= nil do
+		updateGatheringAvailability()
+		task.wait(1)
+	end
+end)
+
 local toastSequence = 0
 local function showToast(resourceId: string?, amount: number?, code: string?)
 	if code ~= "GATHERED" or resourceId == nil or amount == nil then return end
@@ -216,6 +307,9 @@ local function applySnapshot(snapshot: any)
 			amountLabels[resource.id].Text = tostring(value)
 		end
 	end
+	if type(snapshot.wood) == "number" then
+		gatherHint.Visible = snapshot.wood == 0
+	end
 end
 
 local function resize()
@@ -235,6 +329,8 @@ local function resize()
 	for _, label in pairs(amountLabels) do
 		label.TextSize = compact and 14 or 17
 	end
+	gatherHint.TextSize = compact and 9 or 11
+	gatheringAvailability.TextSize = compact and 10 or 12
 end
 
 if Workspace.CurrentCamera then

@@ -41,6 +41,14 @@ local maxLevel = PetProgressionData.getProgress(maxLevelXp, thresholds)
 expect("maximum threshold resolves to level 50", maxLevel ~= nil and maxLevel.level == 50 and maxLevel.isMaxLevel)
 expect("maximum level has no next threshold", maxLevel ~= nil and maxLevel.nextLevelXp == nil and maxLevel.progress == 1)
 
+local beyondMaximum = PetProgressionData.getProgress(maxLevelXp + 5000, thresholds)
+expect("XP beyond level 50 remains capped at maximum level",
+	beyondMaximum ~= nil and beyondMaximum.level == PetProgressionData.MAX_LEVEL
+		and beyondMaximum.isMaxLevel and beyondMaximum.progress == 1)
+expect("XP beyond level 50 remains visible as lifetime XP",
+	beyondMaximum ~= nil and beyondMaximum.totalXp == maxLevelXp + 5000
+		and beyondMaximum.currentLevelXp == 5000)
+
 local incomplete = table.clone(thresholds)
 incomplete[50] = nil
 expect("incomplete threshold table is rejected", not PetProgressionData.validateThresholds(incomplete))

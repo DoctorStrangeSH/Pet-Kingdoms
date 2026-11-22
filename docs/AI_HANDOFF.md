@@ -1030,3 +1030,370 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionService.acknowledgeExperienceReward`, a server-only DataStore-backed operation. It validates the current collection snapshot, updates through UpdateAsync retry, syncs the resulting revision, and is idempotent.
 - Added Studio data tests for unacknowledged receipts surviving beyond seven days, acknowledgement persistence, duplicate acknowledgement, expiry only after acknowledgement, and invalid acknowledgement timestamps.
 - Important: this is the pet-side safety primitive only. The island XP outbox and caller integration are NOT DONE, so no live quest reward claims are enabled.
+
+
+## Quest reward outbox foundation (2026-11-22)
+
+- Branch: feature/quest-reward-outbox-foundation.
+- Added QuestRewardOutboxData.lua, a pure data contract for permanent quest claim receipts and durable XP outbox records.
+- Claim receipts are keyed by quest ID and have no expiry/pruning path. Repeating the same claim is ALREADY_CLAIMED; attempting to replace its reward identity is rejected.
+- Outbox records carry stable rewardId, quest ID, exact pet ID, XP amount, progression configuration version, enqueue timestamp, and optional delivery timestamp.
+- Duplicate enqueue with the same payload is idempotent; a reused reward ID with different content fails closed. Pending entries are never evicted; the bounded ledger rejects new entries when full.
+- Island profiles now initialize questRewardClaims and questRewardOutbox. Validation accepts older schema-v1 profiles without these fields. IslandSessionService.cloneProfile deep-clones both ledgers before save.
+- Added QuestRewardOutboxDataTests.server.lua and extended IslandDataTests.server.lua.
+- These are data/persistence primitives only. There is still no quest claim transaction, client claim remote, XP delivery worker, or live reward configuration.
+- Do not invent reward amounts, XP progression version, or which pet receives quest XP. These decisions remain open in docs/PROJECT_SPEC.md and QUEST_REWARDS_TRANSACTION_DESIGN.md.
+- Next: inspect/implement the server-side durable claim transaction using an approved server-owned reward catalog; then add a recovery worker that delivers the exact stable reward ID, persists island delivery acknowledgement, and only then calls PetCollectionService.acknowledgeExperienceReward. Execute Studio/DataStore fault-injection tests before enabling claims.
+
+
+## Quest outbox CI verification (2026-11-22)
+
+- GitHub Actions run 45039287808 (PR #1, commit 9d287477722727f8c9bb33bbcd50d204b7f1de70) completed successfully: pinned Rojo setup, project build, and Studio-ready artifact upload all PASS.
+- Artifact: pet-kingdoms-studio-build (artifact ID 14760529099), available until 2026-12-06 15:37 UTC.
+- CI validates Rojo packaging only. The new Studio-only Lua tests and live DataStore recovery scenarios have not been executed.
+
+
+## Quest claim transaction primitives (2026-11-22)
+
+- Added server-only `IslandSessionService.commitQuestRewardClaim(userId, player, questId, rewardPlan)`. It verifies the quest is complete, then writes the permanent claim receipt and pet XP outbox record in one profile revision. `rewardPlan` must be resolved by trusted server code; no client remote was added.
+- Claim receipts now optionally carry the exact island revision. The transaction writes this revision and retries wait until it is persisted before acknowledging the receipt.
+- Added `commitQuestRewardDelivery` and `commitQuestRewardAcknowledgement`, each persisting its state transition and checking durability even on duplicate retries.
+- Added server-side read helpers `getPendingQuestRewards` and `getQuestRewardsAwaitingAcknowledgement` so a future worker can recover both sides of the two-phase protocol.
+- Outbox records in `acknowledgedAt` state are compacted only when appending a later record. Pending and delivered-but-unacknowledged records are retained. Permanent claim receipts remain in the separate claims map.
+- Extended pure Studio tests for claim revision binding, acknowledgement ordering/idempotency, and safe outbox compaction.
+- Still no recovery worker, reward catalog, XP threshold table, recipient-selection rule, claim RemoteFunction, or claim UI. Do not activate claims or invent economy values until those are approved.
+
+
+## Quest claim transaction CI verification (2026-11-22)
+
+- GitHub Actions run #115 / run ID 45039658996 completed successfully on commit c804f6d511f6b2b05945d9e62aa4163dab1e1b40. Pinned Rokit setup, Rojo version check, full project build, and artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14760569677 is available until 2026-12-06 15:41 UTC.
+- CI confirms project serialization only. It does not execute Luau tests or live DataStore workflows; Roblox Studio verification remains pending.
+
+
+## Quest XP recovery worker (2026-11-22)
+
+- Added `PetProgressionCatalog.lua`, a versioned server-owned progression registry. It intentionally contains no thresholds until XP balance is approved; unknown versions fail closed.
+- Added `QuestRewardRecoveryService.lua` and started it from Bootstrap. It waits for the exact player's writable island session and ready collection, processes pending records using their stored stable reward ID/pet ID/amount/version, persists delivery before receipt acknowledgement, and resumes delivered-but-unacknowledged records.
+- DataStore/configuration/target failures leave the durable outbox untouched and are retried with a delay. The worker never accepts reward details from clients.
+- Added `PetProgressionCatalogTests.server.lua`.
+- CI build does not execute Studio-only scripts. Studio execution and DataStore fault injection remain pending.
+- No live claim endpoint or reward values are enabled. Do not populate progression thresholds or recipient/reward policy without approval.
+- Known remaining design hardening: the current pet receipt retention clock starts when the pet receipt is acknowledged, before the island source acknowledgement is persisted. If the latter remains unavailable beyond the seven-day receipt window, recovery needs a stronger finalization handshake; resolve before production claims.
+
+
+## Quest XP acknowledgement retention hardening (2026-11-22)
+
+- Reordered the worker handshake: pet XP write -> durable island delivered marker -> durable island source acknowledgement -> pet receipt acknowledgement -> durable island pet-acknowledged marker.
+- Added `petAcknowledgedAt` to outbox validation and compaction rules. An outbox record cannot be compacted after only the source acknowledgement; both markers must be durable.
+- Added `commitQuestRewardPetAcknowledgement` and `getQuestRewardsAwaitingPetAcknowledgement` to IslandSessionService.
+- Recovery now resumes the source-ack and pet-ack phases separately. A missing pet receipt is accepted only after source acknowledgement is already durable, proving the XP write was confirmed before the receipt retention window began.
+- Added contract tests for phase ordering, safe retention, and finalization.
+- This closes the previously documented seven-day source-ack outage window in the intended transaction protocol. Studio execution/fault injection remains pending.
+
+
+## Quest XP recovery worker CI verification (2026-11-22)
+
+- GitHub Actions run #127 / run ID 45040309791 completed successfully on code commit 159ac9f57068bcd8edea928c65794fb6f20530eb. Pinned Rokit setup, Rojo version check, project build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14760942790 is available until 2026-12-06 15:48 UTC.
+- The run includes the recovery worker, versioned catalog, source-before-pet acknowledgement ordering, final pet acknowledgement marker, and updated outbox contract tests. CI still does not execute Studio-only tests or live DataStore fault injection.
+
+
+## Recovery worker readiness hardening (2026-11-22)
+
+- Prevent duplicate recovery loops for the same live Player instance. This closes the narrow PlayerAdded / initial GetPlayers overlap window.
+- Player data readiness no longer gives up after 120 seconds. It logs one warning after the threshold and keeps waiting while the same player session remains active; recovery cannot silently remain skipped for a long but valid profile load.
+- Clear the readiness warning once both island and pet collection data become writable.
+- Validation: latest GitHub Actions run is pending/not yet visible in the PR-filtered commit-run listing. Previous run #127 passed Rojo build and Studio artifact upload; this latest hardening still requires a fresh CI result.
+
+
+## Recovery readiness CI verification (2026-11-22)
+
+- GitHub Actions run #131 / run ID 45040551285 passed on worker code commit `af98734adece28bd1ee34eb102208e0150396b25`.
+- Confirmed successful steps: checkout, pinned Rokit setup, Rojo version verification, Roblox place build, and Studio-ready artifact upload.
+- Artifact `pet-kingdoms-studio-build` ID 14761452485 is available until 2026-12-06 15:51 UTC.
+- This validates project packaging and Rojo build only; Studio-only Luau test scripts and live DataStore fault injection still need execution in Roblox Studio.
+
+
+## Recovery protocol fault-injection tests (2026-11-22)
+
+- Extracted the cross-DataStore transaction sequence to `QuestRewardRecoveryProtocol.lua`; `QuestRewardRecoveryService.lua` now delegates pending delivery and acknowledgement recovery to it.
+- Added `QuestRewardRecoveryProtocolTests.server.lua`: deterministic adapter-level crash/response-loss simulation after each of the five durable phases (XP grant, island delivery, source acknowledgement, pet receipt acknowledgement, final island pet marker).
+- Tests assert that retrying the same stable reward ID never applies XP twice and that all phases eventually become durable.
+- Added delivered-record resume coverage (no XP grant) and the rule that a missing pet receipt is accepted only after source acknowledgement.
+- These tests are authored but not yet executed in Roblox Studio. Live DataStore outage testing remains separate.
+
+
+## Recovery protocol fault-injection CI packaging (2026-11-22)
+
+- GitHub Actions run #136 / run ID 45040727040 passed on the commit containing `QuestRewardRecoveryProtocolTests.server.lua`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761452820 is available until 2026-12-06 15:53 UTC.
+- This confirms the new test script is included in the Studio-ready project artifact. It does NOT mean the Studio-only tests were executed; manual Roblox Studio execution and live DataStore outage testing remain pending.
+
+
+## Quest journal legacy-profile compatibility (2026-11-22)
+
+- Found a migration edge case: IslandData intentionally accepts legacy profiles with no `questProgress`, but QuestService passed nil directly to the snapshot helper. The helper returned an empty quest list, hiding introductory quests from existing players until they gathered a resource.
+- Fixed `QuestProgressData.snapshot(nil)` to build a zero-progress default snapshot without mutating the saved profile.
+- Added Studio-only assertions for legacy nil progress and malformed progress being excluded from client snapshots.
+- Studio execution is still pending.
+
+
+## Quest journal compatibility CI verification (2026-11-22)
+
+- GitHub Actions run #141 / run ID 45041007006 completed successfully on commit `f3e0503533b17ed9176b1ffefc0559dd7991af3f`.
+- Pinned Rokit setup, Rojo version check, full place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761577784 is available until 2026-12-06 15:56 UTC.
+- CI confirms the compatibility fix and its Studio test are packaged. It does not execute Studio-only Luau tests.
+
+
+## Quest progress edge-case CI verification (2026-11-22)
+
+- GitHub Actions run #144 / run ID 45041075570 passed on commit `b3227f82374ce267f7142ac1803cd7ffd9fc4f4d`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761448377 is available until 2026-12-06 15:57 UTC.
+- The build packages the expanded quest data edge-case tests. Studio-only Luau test execution remains pending.
+
+
+## Quest journal deterministic ordering (2026-11-22)
+
+- Quest definitions are stored in a map, so iterating them with `pairs` did not guarantee stable order in the player journal.
+- Added an explicit quest order (wood, then stone) for progress updates and snapshots. Added a Studio contract assertion for stable ordering across snapshots.
+- The change is covered by the next Rojo CI build; Studio-only execution remains pending.
+
+
+## Quest journal ordering CI verification (2026-11-22)
+
+- GitHub Actions run #147 / run ID 45041261790 passed on commit `9910d8785404f494beb6436d7614699ca0456765`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761219905 is available until 2026-12-06 15:59 UTC.
+- This verifies Rojo packaging only; Studio-only Luau tests still require execution in Roblox Studio.
+
+
+## Atomic gathering-to-quest integration (2026-11-22)
+
+- Added `IslandGatheringTransactionData.lua` as a pure composition of canonical node cooldown, wallet grant, and quest progress. It returns a complete candidate result and never mutates the supplied profile.
+- Refactored `IslandSessionService.commitResourceGathering` to calculate the full transaction first, then assign resources + node cooldown + quest progress together and mark one profile revision dirty. On a pre-commit writeability failure it restores the previous profile fields.
+- Added `IslandGatheringTransactionDataTests.server.lua` covering successful wood/stone integration, quest completion, source immutability, per-node cooldown, resource cap, invalid quest state, and unknown nodes.
+- Studio-only tests are authored but not executed yet. CI will verify Rojo packaging, not runtime behavior or live DataStore durability.
+
+
+## Gathering-to-quest integration CI verification (2026-11-22)
+
+- GitHub Actions run #153 / run ID 45041510736 passed on commit `dc46f357ee3087085a89cda2b6e81b9fee5cb1ef`, which contains the production transaction refactor and the new integration test suite.
+- Pinned Rokit setup, Rojo version verification, full place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761942353 is available until 2026-12-06 16:01 UTC.
+- The artifact packages the new integration tests; this CI run does not execute Studio-only Luau tests or live DataStore scenarios.
+
+
+## Gathering profile serialization/reload contract (2026-11-22)
+
+- Added `IslandGatheringPersistenceContractTests.server.lua`. It applies the production pure gathering transaction to a canonical IslandData profile, serializes/deserializes it with HttpService JSON (DataStore-shaped payload), and validates the restored profile.
+- The test asserts that wallet balances, node cooldown timestamps, quest counts, and profile revision survive the round trip. It then verifies the restored cooldown rejects a duplicate gather and a different node advances the quest once.
+- This is an adapter/schema-level persistence contract only. It does not call Roblox DataStoreService or simulate an actual server leave/rejoin; those remain pending.
+
+
+## Gathering serialization contract CI verification (2026-11-22)
+
+- GitHub Actions run #157 / run ID 45041677501 passed on commit `5b176b5ad0c955f1985434ae2dc4f7e0f3fdea14`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761947614 is available until 2026-12-06 16:03 UTC.
+- CI confirms the serialization/reload contract is packaged. Studio-only execution and live DataStore tests remain pending.
+
+
+## Quest completion and claim-state visibility (2026-11-22)
+
+- Extended `QuestProgressData.snapshot(state, claims)` to expose `rewardClaimed` separately from `completed`. A receipt is shown as claimed only when the quest reached its target and the receipt has a non-empty reward ID plus a valid positive timestamp.
+- `QuestService` now supplies the persisted `questRewardClaims` ledger when building the server-authoritative journal snapshot.
+- Updated `QuestJournalUI.client.lua`: completed tasks remain `ВЫПОЛНЕНО`; a durable claim receipt is displayed as `НАГРАДА ПОЛУЧЕНА`. Summary now counts claimed rewards and explicitly states that reward issuance is still disabled.
+- Added QuestProgressData contract tests for valid claim receipt, unclaimed completion, malformed receipt, and a receipt attached to an incomplete quest.
+- No claim RemoteFunction or reward interaction was added. Reward economy/progression/recipient policy remains unapproved and the XP catalog remains intentionally empty.
+- Studio execution remains pending; CI only verifies Rojo packaging.
+
+
+## Quest claim visibility CI verification (2026-11-22)
+
+- GitHub Actions run #164 / run ID 45041866743 passed on commit `03843821215e4ab451dfe95dfbee8e7bfeb78efe`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761139196 is available until 2026-12-06 16:05 UTC.
+- The artifact includes the quest claim-state snapshot tests and UI changes. This verifies packaging only; Studio-only Luau execution remains pending.
+
+
+## Pet progression safety and collection UI (2026-11-22)
+
+- Hardened `PetProgressionCatalog.getThresholds`: version IDs must be finite positive safe integers, and every configured curve is validated through shared `PetProgressionData.validateThresholds` before it can be used by the XP recovery worker.
+- Added catalog contract cases for NaN, infinity, unsafe versions, the intentionally empty/unapproved catalog, and fail-closed lookup for version 1.
+- Extended progression resolver tests for XP beyond the level-50 threshold: level remains capped at 50 while lifetime XP continues to be represented.
+- Updated `PetCollectionUI.client.lua` to show each selected pet's persisted level and lifetime XP. The UI deliberately does not invent a next-level bar or XP requirement while the production curve remains unapproved.
+- Existing client snapshot cloning uses the canonical PetCollectionData clone, which preserves level/xp; no new client authority or RemoteFunction was added.
+- Studio test execution and desktop/mobile visual inspection remain pending. No production progression curve has been enabled.
+
+
+## Pet progression hardening CI verification (2026-11-22)
+
+- GitHub Actions run #173 / run ID 45042191273 passed on commit `fa078b12971fe16cab08eb55f0ed7bf848139b04`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761488381 is available until 2026-12-06 16:09 UTC.
+- Run #172 also passed for the collection UI level/lifetime-XP display.
+- These runs verify project packaging only. Studio-only test execution and visual inspection are still pending.
+
+
+## Idempotent pet XP service boundary (2026-11-22)
+
+- Audited all server service and bootstrap modules in the current branch. No gameplay caller used the non-idempotent XP service methods.
+- Removed `PetCollectionService.grantExperience` and `PetCollectionService.grantExperienceWithProgress`. The only service-level XP DataStore write method is now `grantExperienceWithProgressOnce`, which requires a stable server-generated reward ID.
+- Pure `PetCollectionData` mutations remain available for deterministic unit tests; they are not exposed as service-level DataStore write APIs.
+- Next activity-source integrations must define approved reward amount, progression version, and deterministic pet recipient policy, and should use a durable source outbox where cross-DataStore delivery is involved.
+
+
+## Pet activity reward contract (2026-11-22)
+
+- Added `PetCollectionServiceApiTests.server.lua`, a Studio-only, no-DataStore API boundary test. It asserts the two non-idempotent service XP methods are absent and `grantExperienceWithProgressOnce` is the sole XP write entry point.
+- Added `docs/game-systems/PET_ACTIVITY_REWARD_DESIGN.md`. It maps the project-spec XP sources (combat, quests, interactions) to server-authoritative invariants and stable reward IDs, distinguishes progression XP from Bond XP, and records all unapproved decisions.
+- Do not wire XP rewards to a speculative event, amount, or recipient. Combat does not yet have an approved runtime event model; interaction Bond XP is a separate system; quest outbox is implemented but issuance remains disabled pending amount/version/recipient approval.
+- Next implementation should begin only after an authoritative source event model exists; cross-profile sources must use durable outbox recovery.
+
+
+## Pet interaction hardening (2026-11-22)
+
+- Audited the existing `Interact` RemoteFunction action and `PetCollectionData.interact`. Only `pet` and `play` are supported; they grant Bond XP, not progression XP. `feed` remains intentionally unsupported because there is no approved food inventory/cost system.
+- Hardened remote payload validation: pet IDs must be 1–128 chars from the safe server-ID alphabet; expected revision must be finite, non-negative, integral, and within the safe integer range.
+- Applied the same safe pet ID validation in the pure data mutation.
+- Expanded PetCollectionData tests for Bond/progression XP isolation, exact cooldown boundary, clock rollback, selected-pet-only mutation, oversized IDs, and malformed IDs.
+- No new client authority, reward endpoint, consumable, XP amount, or personality preference was invented.
+- Studio execution and live RemoteFunction/DataStore checks remain pending.
+
+
+## Player-facing UX correction pass (2026-11-22)
+
+- Updated IslandBuildingController.client.lua: opening construction now shows the catalogue first; selecting an item only selects it; ВЫБРАТЬ МЕСТО starts the ghost preview; ПОДТВЕРДИТЬ commits the exact current grid position. This removes the previous mixed selection/placement flow.
+- Added an always-visible construction close button and Escape cancellation. Added viewport-aware panel sizing and compact button widths for narrow screens.
+- Added a shared PlayerGui.PetKingdomsActiveModal ownership convention to the construction and pet collection controllers. Opening one hides the other instead of leaving stacked modals.
+- This is a code/packaging change only. Roblox Studio interaction testing, safe-area validation, and actual mobile device verification remain pending.
+- Next player-facing work: gathering affordance/onboarding, visible in-world companion verification, and explicit interaction cooldown countdown/lock feedback.
+
+
+## Pet interaction cooldown feedback (2026-11-22)
+
+- PetCollectionUI now reads the persisted `lastInteractionAt` field and uses `Workspace:GetServerTimeNow()` with the shared `PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS` constant.
+- While the per-pet cooldown is active, both Pet and Play buttons are disabled and show a lock plus live MM:SS countdown. When the timer expires they restore their normal labels and active state.
+- This is presentation only. The server's `PetCollectionData.interact` check remains authoritative and still rejects early requests.
+- Studio verification remains pending.
+
+
+## Gathering discoverability correction (2026-11-22)
+
+- IslandWorldService now creates a floating BillboardGui marker over each resource node: ДРЕВЕСИНА +3 or КАМЕНЬ +2, with consistent dark badge styling.
+- ProximityPrompt text now explicitly identifies the action and yield: Срубить дерево / Добыть камень.
+- IslandGatheringService toggles the marker together with node visibility, so cooldown nodes do not retain a misleading available marker.
+- IslandResourceHUD shows a first-gather hint while wood balance is zero: find a tree and use E / the Roblox touch prompt.
+- The actual node geometry remains procedural blockout; no external/free Toolbox asset has been imported in this pass. Studio and mobile verification remain pending.
+
+
+## Pet companion grounding correction (2026-11-22)
+
+- CompanionFollowController now measures the model bounding box and pivot at controller creation, storing a per-model ground lift.
+- The ground raycast applies this measured lift rather than a fixed 0.28-stud offset. This accommodates imported meshes whose pivot is centered, while retaining a measured offset for the procedural Bunny rig.
+- Added a client Studio smoke test with a center-pivot 4-stud mesh stand-in; expected lift is 2 studs.
+- No new pet assets or gameplay behavior were added. Obstacle/path navigation, slope handling, real imported asset validation, and multiplayer/mobile testing remain open.
+
+
+## Pet companion obstacle navigation (2026-11-22)
+
+- CompanionFollowController now checks two horizontal ray heights between the pet and its desired formation/investigation position.
+- If blocked, it computes a PathfindingService route asynchronously on the ground surface. Pathfinding uses a 1.25-stud radius, 3.2-stud height, and permits jumps/climbing.
+- The controller follows waypoints, reuses paths while the goal is stable, invalidates blocked routes, and retries after a short delay.
+- While a route is pending or unavailable, the pet holds position rather than clipping through walls. A clear direct lane releases path state.
+- The route remains client-side visual movement only. Studio navmesh/obstacle tests and mobile/multiplayer verification are still required.
+
+## Companion navigation safety fix (2026-11-22)
+
+- Corrected the declaration order of `horizontal` before `hasDirectPath`; the earlier order could resolve the symbol incorrectly at runtime when raycasts were used.
+- Teleport recovery is now based on horizontal distance from pet to the owner's desired formation slot, rather than distance from pet to its current navigation waypoint. This prevents an unavailable/blocked path from leaving companions stranded after character teleports.
+- Teleport recovery invalidates pending asynchronous path results, discards waypoints and disconnects blocked-path listeners.
+- Added a Studio client smoke-test case for teleporting with a pending navigation computation. Rojo packaging is not Studio runtime verification.
+
+## Companion formation responsiveness (2026-11-22)
+
+- Found that the follow controller first interpolated currentPosition towards navigationGoal and then interpolated current CFrame towards that already-interpolated target; translation was effectively alpha^2. Now it interpolates directly to the final navigation CFrame once.
+- Catch-up animation now uses owner formation distance, rather than waypoint distance; stalled navigation shows idle rather than walking in place.
+- Added an isolated Studio client smoothing regression that checks measured one-frame translation against alpha = 1-exp(-8/60).
+- Note: Rojo packaging and GitHub Actions do not execute these runtime assertions. Real Studio terrain, obstacle and mobile QA remain pending.
+
+## Companion terrain-edge safety (2026-11-22)
+
+- Added conservative ground-support sampling between companion and direct formation target (at most 12 samples, every ~3 studs). Large vertical discontinuities (>2.75 studs per sample) and missing ground now block straight-line shortcuts when the pet's starting surface is known.
+- Revalidate path waypoint traversal using the same ground-support check; hold position and retry path calculation rather than walking over an unsupported surface.
+- Teleport recovery projects the destination back to the ground surface and retains the measured pet pivot lift.
+- Added Studio smoke-test geometry with a reachable owner across a ground gap and an assertion that the pet does not move directly into the void.
+- This is conservative safety logic, not full terrain intelligence. Real steps, collision, slopes and navmesh are unverified. GitHub Actions builds do not run Studio assertions.
+
+## Companion direct-route probe budget (2026-11-22)
+
+- `CompanionFollowController` now caches the result of its two horizontal obstacle rays plus ground samples for at most 0.12 s when both the pet pivot and desired formation position remain within 0.5 studs of the previous check. Significant movement triggers an immediate recheck.
+- This avoids repeated multi-ray scans every render frame for stationary companions while allowing frequent short-lived checks for changing geometry. Emergency teleport recovery clears the cache.
+- Added a Studio-only test asserting stationary reuse and invalidation after moving the target 1.5 studs.
+- No FPS/raycast benchmarks were actually measured. GitHub Actions Rojo build does not execute client-side tests.
+
+## Shared modal close/ownership pass (2026-11-22)
+
+- Added `PetKingdomsActiveModal` ownership integration to `QuestJournalUI.client.lua`, `IslandExpansionUI.client.lua`, and the kingdom overview in `IslandBuildingController.client.lua`. Construction and pet collection previously had it.
+- The currently open owner relinquishes visibility when another major panel claims the attribute, preventing the known building/collection/quest/expansion/overview modal stack.
+- Quest journal, expansion, and kingdom overview now respond to Escape. Quest, expansion, and pet collection support backdrop click/tap for dismissal when the pointer falls outside the panel's absolute rectangle.
+- Closing only clears the global attribute if the closing panel owns it; switching panels cannot inadvertently clear the newly opened owner's token.
+- All changes are client UI logic only. Roblox Studio manual keyboard/touch testing and safe area/resolution testing are still pending; GitHub Actions Rojo builds cannot validate actual close hit targets.
+
+## Responsive quest and expansion panels (2026-11-22)
+
+- Removed old percentage-width+fixed-height combinations from QuestJournalUI and IslandExpansionUI: both now calculate a bounded pixel width from viewport width and use a fixed design height with UIScale that reduces the full panel on short screens.
+- Quest journal remains a scrolling list; the expansion panel keeps its current fixed internal card layout. Both dialogs stay centered on viewport resize.
+- This is a code-only responsiveness pass. The Roblox Studio Device Emulator and real touch hit target checks have not been run. Remaining high-impact UI work: collection mobile two-column layout and building placement controls.
+
+## Mobile pet collection + compact build placement (2026-11-22)
+
+- PetCollectionUI has a mobile layout branch (<650 viewport width) with explicit list/detail tabs. Cards open the detail tab; wider screens retain the original two-column UI. Mobile search/filter/list and pet details occupy the full panel width independently. Short portrait detail offsets and delete confirmation width are constrained.
+- Fixed an existing Lua lexical-scope defect: applyInteractionCooldown had been defined before petButton and playButton locals; it is now defined below both controls and continues using authoritative server cooldown timestamps.
+- IslandBuildingController now switches between full catalogue layout (340 px design height) and compact preview action bar (136 px) by hiding the catalogue when placing and moving action buttons into the shorter panel. This restores camera visibility while aiming.
+- Tests not executed in Studio; CI Rojo build verifies packaging only. Check touch hit targets, mobile safe areas, landscape, and the full catalogue/preview state transitions.
+
+## Resource model replacement and gathering safety (2026-11-22)
+
+- IslandWorldService accepts vetted optional visual templates under `ServerStorage/ResourceNodeModels/wood` and `/stone` (Model only), with procedural blockout fallback when missing.
+- Resource visual Model is cloned, repositioned to canonical node base pivot, sanitized of scripts and template-provided ProximityPrompt/BillboardGui instances, and anchored/non-colliding. Server constructs separate `GatherAnchor` BasePart with server-trusted ProximityPrompt.
+- IslandGatheringService now restores saved `GatherBaseTransparency` for individual parts and never unhides the invisible prompt anchor. This also keeps transparent details in imported assets after respawn.
+- Added Studio-only resource contract fixture to IslandWorldServiceTests; no Studio execution performed. No actual visual assets imported or approved, as `ASSET_TRACKER` requires explicit provenance and review.
+
+## Build placement confirmation freeze (2026-11-22)
+
+- `IslandBuildingController.client.lua` now skips preview updates when pointer is within the open action panel and freezes the selected catalog/grid/rotation/move-ID fields before invoking the server.
+- `placementSubmitting` guards duplicate clicks, rotating, catalogue edits, stop, and RenderStepped preview updates until the request completes. The existing idempotency request ID is derived from the same immutable snapshot used in the server payload.
+- Rojo package validation is not Studio interaction validation. Manual test: choose ground cell, move mouse/touch to Confirm, verify preview holds; confirm, verify saved GridX/GridZ exactly; test server errors and retries.
+
+## Resource rejoin and construction modal-flight safety (2026-11-22)
+
+- IslandGatheringService now validates that `prompt.Name == "GatherPrompt"`, `prompt.Enabled`, and its direct BasePart parent is named `GatherAnchor` within a `ResourceNodes` model. Other imported/template prompts cannot trigger gathering just by being descendants.
+- IslandWorldServiceTests adds a persisted WoodNode_A cooldown fixture on the second test island: checks disabled prompt, hidden visual and invisible trusted anchor, with retained original 0.35 alpha attribute for future respawn.
+- IslandBuildingController prevents another modal from tearing down its active preview mid-`InvokeServer`; when the server call returns, it closes the stale build menu if another modal owns focus. This avoids destroying request state during a yielding remote call.
+- Rojo build validates only project packaging. In-Studio resource cooldown expiry and actual modal-switch UI behavior remain unverified.
+
+## Resource visibility cycle and building receipt hotfix (2026-11-22)
+
+- Fixed IslandBuildingController: a completed `PlaceBuilding:InvokeServer` request now clears its pending GUID before checking whether another panel took `PetKingdomsActiveModal` ownership. Previously this early exit could keep a completed GUID and cause subsequent placements with the same payload to be treated as duplicates. Retriable results still retain the GUID per existing policy.
+- Success labels now use the frozen submitted catalog/move ID, not potentially changed selection values after the remote yields.
+- Added `Services/ResourceNodeVisibility.lua` to preserve per-part `GatherBaseTransparency`, prohibit collidable resource parts, toggle resource markers and prompts, and keep `GatherAnchor` invisible across cooldowns. `IslandGatheringService` delegates to it.
+- Added `Tests/ResourceNodeVisibilityTests.server.lua`, Studio-only, covering hide, restoration and repeated hide/restore cycles. It is not executed by Rojo packaging CI; manual Studio playtest is pending.
+
+## Gathering cooldown scheduler safety (2026-11-22)
+
+- `IslandGatheringService.activeNodes` now stores an exact `availableAt` deadline (`-1` means the server is processing the gather). Scheduling an identical timestamp is idempotent. A callback verifies its timestamp is still registered and matches the node attribute before modifying visibility or clearing registration.
+- A node is restored only after the deadline passes **and** the owner session can write. When the session is temporarily unavailable, it remains hidden; the reconciler retries restoration when session write access returns.
+- The reconciliation sweep no longer repeatedly resets visible nodes every 5 seconds: it checks whether the trusted `GatherPrompt` is disabled before restoring.
+- Resource reward timing, the 60-second canonical respawn duration, saved cooldown persistence and visual transparency attributes are unchanged.
+- Rojo packaging does not execute Studio-only tests. Required manual tests: two overlapping timeout revisions, refresh/rejoin mid-cooldown, session read-only transition, and mobile gather/respawn.
+
+## Gathering availability feedback (2026-11-22)
+
+- IslandResourceHUD now displays a compact line beneath the first-wood hint showing available and total wood/stone nodes, plus time until the next respawn. It reads replicated `ResourceNodes` models on the local player's own island once per second and calculates countdown against `Workspace:GetServerTimeNow()`.
+- No new server APIs; clients only observe server-owned `OwnerUserId`, `ResourceId`, and `AvailableAt` attributes. The HUD hides itself before the island is available or after removal; refresh is naturally handled by the next scan.
+- Toast shifted lower to make room. This is an in-code UI feature, not verified in Roblox Studio; test 320/375 px widths, safe-area insets, and whether quest/other overlays obscure it.

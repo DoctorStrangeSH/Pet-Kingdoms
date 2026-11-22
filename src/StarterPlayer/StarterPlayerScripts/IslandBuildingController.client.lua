@@ -27,6 +27,8 @@ local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
 local placing = false
+local buildMenuOpen = false
+local placementSubmitting = false
 local currentCellX: number? = nil
 local currentCellZ: number? = nil
 local currentIsland: Model? = nil
@@ -94,7 +96,7 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 340), MaxSize = Vector2.new(420, 340) }, panel)
+local panelSizeConstraint = make("UISizeConstraint", { MinSize = Vector2.new(300, 130), MaxSize = Vector2.new(420, 340) }, panel) :: UISizeConstraint
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -107,13 +109,27 @@ make("UIPadding", {
 make("TextLabel", {
 	Name = "Title",
 	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 0, 28),
+	Size = UDim2.new(1, -48, 0, 28),
 	Font = Enum.Font.GothamBold,
 	Text = "СТРОИТЕЛЬСТВО",
 	TextColor3 = COLORS.gold,
 	TextSize = 18,
 	TextXAlignment = Enum.TextXAlignment.Left,
 }, panel)
+
+local closeBuildButton = make("TextButton", {
+	Name = "Close",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, 0, 0, -2),
+	Size = UDim2.fromOffset(34, 34),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "×",
+	TextColor3 = COLORS.text,
+	TextSize = 24,
+}, panel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, closeBuildButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -417,7 +433,17 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 end
 
 local function updatePreview(screenPosition: Vector2)
-	if not placing or currentPreview == nil then
+	if not placing or placementSubmitting or currentPreview == nil then
+		return
+	end
+	-- The confirmation button and catalogue must never move the selected
+	-- cell when the mouse crosses the bottom panel or the player taps it.
+	local panelOrigin = panel.AbsolutePosition
+	local panelSize = panel.AbsoluteSize
+	if panel.Visible and screenPosition.X >= panelOrigin.X
+		and screenPosition.X <= panelOrigin.X + panelSize.X
+		and screenPosition.Y >= panelOrigin.Y
+		and screenPosition.Y <= panelOrigin.Y + panelSize.Y then
 		return
 	end
 	local top, width, depth, cellSize = getIslandGrid()
@@ -473,6 +499,7 @@ local function updatePreview(screenPosition: Vector2)
 end
 
 local function setSelectedBuilding(catalogId: string)
+	if placementSubmitting then return end
 	local size = BUILDING_SIZES[catalogId]
 	if size == nil then return end
 	selectedCatalogId = catalogId
@@ -499,7 +526,8 @@ local function setSelectedBuilding(catalogId: string)
 		flower_bed = "Выбрана цветочная клумба",
 		wooden_fence = "Выбран деревянный забор",
 	}
-	setStatus(labels[catalogId] or "Выбран объект")
+	setStatus((labels[catalogId] or "Выбран объект") .. " — нажми «Выбрать место»")
+	if buildMenuOpen and not placing then confirmButton.Text = "ВЫБРАТЬ МЕСТО" end
 end
 
 mainHouseButton.Activated:Connect(function()
@@ -520,7 +548,30 @@ end)
 woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
+-- Keep the preview stage compact so the placement controls no longer
+-- obscure the world. Reopen the catalogue at its normal height when needed.
+local function updateBuildPanelMode()
+	local currentCamera = Workspace.CurrentCamera
+	if currentCamera == nil then return end
+	local viewport = currentCamera.ViewportSize
+	local compact = viewport.X < 370
+	local width = math.clamp(viewport.X - 24, 300, 420)
+	local height = if placing then 136 else math.clamp(viewport.Y - 48, 300, 340)
+	panel.Size = UDim2.fromOffset(width, height)
+	panel.Position = UDim2.new(0.5, 0, 1, -16)
+	catalogRow.Visible = not placing
+	buttons.Position = UDim2.fromOffset(0, if placing then 66 else 244)
+	rotateButton.Size = UDim2.fromOffset(if compact then 78 else 94, 48)
+	confirmButton.Size = UDim2.fromOffset(if compact then 96 else 104, 48)
+	cancelButton.Size = UDim2.fromOffset(if compact then 68 else 78, 48)
+	status.TextSize = if compact then 11 else 13
+	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+		button.TextSize = if compact then 11 else 13
+	end
+end
+
 local function beginMoveSelected()
+	if placementSubmitting then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -537,7 +588,10 @@ local function beginMoveSelected()
 	setSelectedBuilding(catalogId)
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
+	buildMenuOpen = true
+	updateBuildPanelMode()
 	panel.Visible = true
+	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
@@ -568,9 +622,13 @@ moveButton.Activated:Connect(beginMoveSelected)
 
 
 local function stopPlacing()
+	if placementSubmitting then return end
 	placing = false
+	buildMenuOpen = false
 	movingInstanceId = nil
+	updateBuildPanelMode()
 	panel.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "building" then playerGui:SetAttribute("PetKingdomsActiveModal", nil) end
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
@@ -587,68 +645,123 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
+	if placementSubmitting then return end
 	movingInstanceId = nil
-	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
-	placing = true
+	placing = false
+	buildMenuOpen = true
+	updateBuildPanelMode()
 	panel.Visible = true
+	playerGui:SetAttribute("PetKingdomsActiveModal", "building")
 	moveButton.Visible = false
 	demolishButton.Visible = false
+	clearPreview()
+	confirmButton.Text = "ВЫБРАТЬ МЕСТО"
+	confirmButton.Active = true
+	setStatus("1. Выбери постройку  2. Нажми «Выбрать место»")
+end
+
+local function beginPlacementPreview()
+	if placementSubmitting or not buildMenuOpen or placing then return end
+	placing = true
+	updateBuildPanelMode()
+	confirmButton.Text = "ПОДТВЕРДИТЬ"
+	setStatus("Перемещай предпросмотр. Нажми «Подтвердить», когда место подходит")
 	createPreview()
 	if currentPreview == nil then
 		placing = false
-		panel.Visible = false
-		if selectedBuildingModel and selectedBuildingModel.Parent then
-			moveButton.Visible = true
-			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
-		end
+		updateBuildPanelMode()
+		confirmButton.Text = "ВЫБРАТЬ МЕСТО"
 		return
 	end
-	setStatus("Наведи на траву и выбери место")
+	updatePreview(pointerPosition)
 end
 
 rotateButton.Activated:Connect(function()
-	if not placing then return end
+	if not placing or placementSubmitting then return end
 	rotation = (rotation + 90) % 360
 end)
 
 cancelButton.Activated:Connect(stopPlacing)
+closeBuildButton.Activated:Connect(stopPlacing)
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if owner ~= nil and owner ~= "building" and buildMenuOpen then
+		-- Do not destroy the preview while the server still owns an in-flight
+		-- request; the completion handler will close it safely afterwards.
+		if placementSubmitting then return end
+		placing = false
+		buildMenuOpen = false
+		movingInstanceId = nil
+		updateBuildPanelMode()
+		panel.Visible = false
+		clearPreview()
+		mainHouseButton.Active = true
+		petHouseButton.Active = true
+		stonePathButton.Active = true
+		gardenLanternButton.Active = true
+		flowerBedButton.Active = true
+		woodenFenceButton.Active = true
+		confirmButton.Text = "ВЫБРАТЬ МЕСТО"
+	end
+end)
 
 confirmButton.Activated:Connect(function()
+	if placementSubmitting then return end
+	if buildMenuOpen and not placing then
+		beginPlacementPreview()
+		return
+	end
 	if not placing or not currentValid or currentCellX == nil or currentCellZ == nil then
 		setStatus("Сначала выбери подходящее место", false)
 		return
 	end
+	-- Freeze exactly what the player saw before the yielding InvokeServer.
+	-- RenderStepped and touch/mouse movement must not mutate the request.
+	local requestedCatalogId = selectedCatalogId
+	local requestedX = currentCellX
+	local requestedZ = currentCellZ
+	local requestedRotation = rotation
+	local requestedMovingId = movingInstanceId
+	placementSubmitting = true
 	confirmButton.Active = false
 	confirmButton.Text = "..."
 	local operationKey = table.concat({
 		"build",
-		selectedCatalogId,
-		tostring(currentCellX),
-		tostring(currentCellZ),
-		tostring(rotation),
-		tostring(movingInstanceId or ""),
+		requestedCatalogId,
+		tostring(requestedX),
+		tostring(requestedZ),
+		tostring(requestedRotation),
+		tostring(requestedMovingId or ""),
 	}, ":")
 	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
 			requestId = requestId,
-			catalogId = selectedCatalogId,
-			x = currentCellX,
-			z = currentCellZ,
-			rotation = rotation,
-			movingInstanceId = movingInstanceId,
+			catalogId = requestedCatalogId,
+			x = requestedX,
+			z = requestedZ,
+			rotation = requestedRotation,
+			movingInstanceId = requestedMovingId,
 		})
 	end)
-	confirmButton.Active = true
-	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
+	placementSubmitting = false
+	-- Resolve the request receipt even when the player opened another modal
+	-- during the yielding remote call. Otherwise an already accepted operation
+	-- keeps its old request ID and a later placement looks like a duplicate.
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
+	if playerGui:GetAttribute("PetKingdomsActiveModal") ~= "building" then
+		stopPlacing()
+		return
+	end
+	confirmButton.Active = true
+	confirmButton.Text = if requestedMovingId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		local wasMoving = movingInstanceId ~= nil
+		local wasMoving = requestedMovingId ~= nil
 		local successLabels = {
 			main_house = "Главный дом построен!",
 			pet_house = "Домик питомцев построен!",
@@ -657,7 +770,7 @@ confirmButton.Activated:Connect(function()
 			flower_bed = "Клумба размещена!",
 			wooden_fence = "Секция забора установлена!",
 		}
-		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[selectedCatalogId] or "Объект размещён!"), true)
+		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[requestedCatalogId] or "Объект размещён!"), true)
 		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
@@ -686,7 +799,10 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		selectBuilding(if hit then findBuildingModel(hit.Instance) else nil)
 		return
 	end
-	if not placing then return end
+	if not placing then
+		if input.KeyCode == Enum.KeyCode.Escape and buildMenuOpen then stopPlacing() end
+		return
+	end
 	if input.KeyCode == Enum.KeyCode.R then
 		rotation = (rotation + 90) % 360
 	elseif input.KeyCode == Enum.KeyCode.Escape then
@@ -714,6 +830,21 @@ RunService.RenderStepped:Connect(function()
 		updatePreview(pointerPosition)
 	end
 end)
+
+local function resizeBuildingPanel()
+	updateBuildPanelMode()
+end
+
+if Workspace.CurrentCamera then
+	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	if Workspace.CurrentCamera then
+		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+		resizeBuildingPanel()
+	end
+end)
+resizeBuildingPanel()
 
 local function addBuildEntry()
 	if gui:FindFirstChild("OpenBuildButton") then return end
@@ -884,6 +1015,9 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 local function closeKingdomOverview()
 	overview.Visible = false
 	overviewShade.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "kingdom" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 end
 
 local function refreshKingdomOverview()
@@ -935,10 +1069,21 @@ local function refreshKingdomOverview()
 end
 
 local function openKingdomOverview()
+	playerGui:SetAttribute("PetKingdomsActiveModal", "kingdom")
 	refreshKingdomOverview()
 	overviewShade.Visible = true
 	overview.Visible = true
 end
+
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	if overview.Visible and playerGui:GetAttribute("PetKingdomsActiveModal") ~= "kingdom" then
+		closeKingdomOverview()
+	end
+end)
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not overview.Visible then return end
+	if input.KeyCode == Enum.KeyCode.Escape then closeKingdomOverview() end
+end)
 
 overviewClose.Activated:Connect(closeKingdomOverview)
 overviewShade.Activated:Connect(closeKingdomOverview)

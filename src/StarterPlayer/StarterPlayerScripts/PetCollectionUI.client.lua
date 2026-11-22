@@ -6,6 +6,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Workspace = game:GetService("Workspace")
+local PetCollectionData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets"):WaitForChild("PetCollectionData"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -24,7 +25,7 @@ local COLORS = {
 	danger = Color3.fromRGB(255, 135, 135),
 }
 
-type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
+type PetRecord = { petId: string, speciesId: string, acquiredAt: number, level: number?, xp: number?, bondXp: number?, bondLevel: number?, lastInteractionAt: number?, isLocked: boolean?, isFavorite: boolean? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
 
 local collection: Collection? = nil
@@ -120,6 +121,40 @@ local closeButton = make("TextButton", {
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 12) }, closeButton)
+
+-- On narrow screens list and details are separate views rather than
+-- two unusably thin columns. The selected pet opens its details directly.
+local mobileView = "list"
+local mobileLayout = false
+local mobileTabs = make("Frame", {
+	Name = "MobileTabs",
+	Position = UDim2.new(0, 16, 0, 88),
+	Size = UDim2.new(1, -32, 0, 40),
+	BackgroundTransparency = 1,
+	Visible = false,
+}, panel) :: Frame
+local listTab = make("TextButton", {
+	Name = "ListTab",
+	Position = UDim2.fromScale(0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.cardSelected,
+	Text = "ВСЕ ПИТОМЦЫ",
+	TextColor3 = COLORS.cream,
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+}, mobileTabs) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, listTab)
+local detailTab = make("TextButton", {
+	Name = "DetailTab",
+	Position = UDim2.new(0.5, 5, 0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.panelSoft,
+	Text = "МОЙ ПИТОМЕЦ",
+	TextColor3 = COLORS.cream,
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+}, mobileTabs) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, detailTab)
 
 local search = make("TextBox", {
 	Position = UDim2.new(0, 24, 0, 88),
@@ -266,9 +301,21 @@ local teamLabel = make("TextLabel", {
 }, detail) :: TextLabel
 
 
-local bondLabel = make("TextLabel", {
+local progressionLabel = make("TextLabel", {
+	Name = "PetProgression",
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 16, 0.55, 103),
+	Size = UDim2.new(1, -32, 0, 20),
+	Font = Enum.Font.GothamBold,
+	Text = "УРОВЕНЬ 1 • 0 XP ВСЕГО",
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextColor3 = COLORS.mint,
+}, detail) :: TextLabel
+
+local bondLabel = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 16, 0.55, 127),
 	Size = UDim2.new(1, -32, 0, 22),
 	Font = Enum.Font.GothamBold,
 	Text = "ДРУЖБА • УРОВЕНЬ 1",
@@ -306,6 +353,37 @@ local playButton = make("TextButton", {
 	AutoButtonColor = true,
 }, interactionRow) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
+
+local PET_BUTTON_READY_TEXT = "♡ ПОГЛАДИТЬ"
+local PLAY_BUTTON_READY_TEXT = "✦ ПОИГРАТЬ"
+local function formatCooldown(seconds: number): string
+	local safeSeconds = math.max(0, math.ceil(seconds))
+	return string.format("%02d:%02d", math.floor(safeSeconds / 60), safeSeconds % 60)
+end
+
+local function applyInteractionCooldown(record: PetRecord?)
+	local remaining = 0
+	if record and type(record.lastInteractionAt) == "number" then
+		local elapsed = Workspace:GetServerTimeNow() - record.lastInteractionAt
+		remaining = math.max(0, PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS - elapsed)
+	end
+	local coolingDown = remaining > 0
+	local enabled = not coolingDown and not busy and record ~= nil
+	petButton.Active = enabled
+	playButton.Active = enabled
+	petButton.AutoButtonColor = enabled
+	playButton.AutoButtonColor = enabled
+	petButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	playButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	if coolingDown then
+		local timer = formatCooldown(remaining)
+		petButton.Text = "🔒 ПОГЛАДИТЬ " .. timer
+		playButton.Text = "🔒 ПОИГРАТЬ " .. timer
+	else
+		petButton.Text = PET_BUTTON_READY_TEXT
+		playButton.Text = PLAY_BUTTON_READY_TEXT
+	end
+end
 
 local equipButton = make("TextButton", {
 	Position = UDim2.new(0, 14, 1, -58),
@@ -476,6 +554,9 @@ local function updateDetail()
 		petName.Text = "Пока пусто"
 		petRarity.Text = "КОЛЛЕКЦИЯ"
 		petDescription.Text = "Исследуй мир, чтобы найти новых друзей!"
+		progressionLabel.Text = "УРОВЕНЬ — • XP —"
+		bondLabel.Text = "ДРУЖБА —"
+		applyInteractionCooldown(nil)
 		equipButton.Visible = false
 		preview:ClearAllChildren()
 		return
@@ -484,8 +565,12 @@ local function updateDetail()
 	petName.Text = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
 	petRarity.Text = "ОБЫЧНЫЙ • " .. string.upper(selected.speciesId)
 	petDescription.Text = "Твой верный спутник. Впереди ждёт много приключений!"
+	local petLevel = selected.level or 1
+	local petXp = selected.xp or 0
+	progressionLabel.Text = string.format("УРОВЕНЬ %d  •  %s XP ВСЕГО", petLevel, tostring(petXp))
 	local bondLevel = selected.bondLevel or 1
 	local bondXp = selected.bondXp or 0
+	applyInteractionCooldown(selected)
 	bondLabel.Text = if bondLevel >= 10
 		then string.format("ДРУЖБА • УРОВЕНЬ %d  •  МАКСИМУМ", bondLevel)
 		else string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
@@ -507,6 +592,33 @@ local function updateDetail()
 	teamLabel.Text = string.format("КОМАНДА: %d / %d", countEquipped(), collection.maxEquipped)
 	renderPreview(selected.speciesId)
 end
+
+local function updateMobileView()
+	mobileTabs.Visible = mobileLayout
+	if not mobileLayout then
+		search.Visible = true
+		filterBar.Visible = true
+		list.Visible = true
+		detail.Visible = true
+		return
+	end
+	local showList = mobileView == "list"
+	search.Visible = showList
+	filterBar.Visible = showList
+	list.Visible = showList
+	detail.Visible = not showList
+	listTab.BackgroundColor3 = if showList then COLORS.cardSelected else COLORS.panelSoft
+	detailTab.BackgroundColor3 = if showList then COLORS.panelSoft else COLORS.cardSelected
+end
+
+listTab.Activated:Connect(function()
+	mobileView = "list"
+	updateMobileView()
+end)
+detailTab.Activated:Connect(function()
+	mobileView = "detail"
+	updateMobileView()
+end)
 
 local function renderList()
 	if collection == nil then return end
@@ -590,6 +702,10 @@ local function renderList()
 			selectedPetId = record.petId
 			renderList()
 			updateDetail()
+			if mobileLayout then
+				mobileView = "detail"
+				updateMobileView()
+			end
 		end)
 	end
 	if #visibleRecords == 0 then
@@ -707,8 +823,8 @@ local function interactWithSelected(interactionType: string)
 	busy = true
 	petButton.Active = false
 	playButton.Active = false
-	local originalPetText = petButton.Text
-	local originalPlayText = playButton.Text
+	petButton.AutoButtonColor = false
+	playButton.AutoButtonColor = false
 	petButton.Text = "..."
 	playButton.Text = "..."
 	local ok, success, result = pcall(function()
@@ -719,10 +835,8 @@ local function interactWithSelected(interactionType: string)
 		})
 	end)
 	busy = false
-	petButton.Active = true
-	playButton.Active = true
-	petButton.Text = originalPetText
-	playButton.Text = originalPlayText
+	petButton.Active = false
+	playButton.Active = false
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
 		local messages = {
@@ -827,19 +941,65 @@ local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
-	if viewport.X < 650 then
-		panel.Size = UDim2.new(0.94, 0, 0.82, 0)
-		panelScale.Scale = 0.94
-	elseif viewport.X < 900 then
-		panel.Size = UDim2.new(0.9, 0, 0.8, 0)
-		panelScale.Scale = 0.96
+	mobileLayout = viewport.X < 650
+	panelScale.Scale = 1
+	if mobileLayout then
+		-- Each mobile view uses the full available width; fixed control sizes
+		-- are never squeezed into half-width desktop columns.
+		panel.Size = UDim2.fromOffset(
+			math.max(270, math.min(viewport.X - 20, 520)),
+			math.max(380, viewport.Y - 30)
+		)
+		closeButton.Size = UDim2.fromOffset(44, 44)
+		confirmPanel.Size = UDim2.fromOffset(math.min(330, viewport.X - 36), 178)
+		search.Position = UDim2.new(0, 16, 0, 136)
+		search.Size = UDim2.new(1, -32, 0, 40)
+		filterBar.Position = UDim2.new(0, 16, 0, 182)
+		filterBar.Size = UDim2.new(1, -32, 0, 36)
+		list.Position = UDim2.new(0, 16, 0, 226)
+		list.Size = UDim2.new(1, -32, 1, -266)
+		detail.Position = UDim2.new(0, 16, 0, 136)
+		detail.Size = UDim2.new(1, -32, 1, -174)
+		preview.Size = UDim2.new(1, -20, 0.27, -8)
+		local shortDetail = viewport.Y < 640
+		petDescription.Size = UDim2.new(1, -32, 0, if shortDetail then 28 else 44)
+		for _, item in ipairs({ petName, petRarity, petDescription, progressionLabel, bondLabel, favoriteButton, lockButton }) do
+			local y = item == petName and 0
+				or item == petRarity and (if shortDetail then 23 else 31)
+				or item == petDescription and (if shortDetail then 42 else 57)
+				or item == progressionLabel and (if shortDetail then 70 else 103)
+				or item == bondLabel and (if shortDetail then 90 else 127)
+				or 0
+			item.Position = UDim2.new(
+				(item == favoriteButton or item == lockButton) and 1 or 0,
+				item == favoriteButton and -88 or item == lockButton and -48 or 16,
+				0.27, y
+			)
+		end
 	else
-		panel.Size = UDim2.fromScale(0.78, 0.78)
-		panelScale.Scale = 1
+		panel.Size = UDim2.new(if viewport.X < 900 then 0.9 else 0.78, 0, 0.78, 0)
+		if viewport.Y < 540 then panel.Size = UDim2.new(panel.Size.X.Scale, 0, 0.92, 0) end
+		closeButton.Size = UDim2.fromOffset(38, 38)
+		confirmPanel.Size = UDim2.fromOffset(330, 178)
+		petDescription.Size = UDim2.new(1, -32, 0, 44)
+		search.Position = UDim2.new(0, 24, 0, 88)
+		search.Size = UDim2.new(0.48, -28, 0, 38)
+		filterBar.Position = UDim2.new(0, 24, 0, 132)
+		filterBar.Size = UDim2.new(0.48, -28, 0, 32)
+		list.Position = UDim2.new(0, 24, 0, 172)
+		list.Size = UDim2.new(0.48, -28, 1, -196)
+		detail.Position = UDim2.new(0.52, 0, 0, 88)
+		detail.Size = UDim2.new(0.48, -24, 1, -112)
+		preview.Size = UDim2.new(1, -20, 0.53, -10)
+		petName.Position = UDim2.new(0, 16, 0.55, 0)
+		petRarity.Position = UDim2.new(0, 16, 0.55, 31)
+		petDescription.Position = UDim2.new(0, 16, 0.55, 57)
+		progressionLabel.Position = UDim2.new(0, 16, 0.55, 103)
+		bondLabel.Position = UDim2.new(0, 16, 0.55, 127)
+		favoriteButton.Position = UDim2.new(1, -88, 0.55, 0)
+		lockButton.Position = UDim2.new(1, -48, 0.55, 0)
 	end
-	if viewport.Y < 540 then
-		panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0.92, 0)
-	end
+	updateMobileView()
 end
 
 local viewportConnection: RBXScriptConnection? = nil
@@ -858,6 +1018,8 @@ local function bindViewportCamera()
 end
 
 local function openCollection()
+	mobileView = "list"
+	playerGui:SetAttribute("PetKingdomsActiveModal", "pets")
 	shade.Visible = true
 	panel.Visible = true
 	resize()
@@ -871,7 +1033,47 @@ end
 local function closeCollection()
 	panel.Visible = false
 	shade.Visible = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") == "pets" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 end
+
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if owner ~= nil and owner ~= "pets" then
+		panel.Visible = false
+		shade.Visible = false
+		confirmPanel.Visible = false
+		pendingDeletePetId = nil
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not panel.Visible then return end
+	if input.KeyCode == Enum.KeyCode.Escape then
+		if confirmPanel.Visible then
+			confirmPanel.Visible = false
+			pendingDeletePetId = nil
+		else
+			closeCollection()
+		end
+	end
+end)
+
+-- Dismiss the collection by tapping the backdrop, without accidentally
+-- dismissing the confirmation layer when the user taps inside the panel.
+shade.InputBegan:Connect(function(input)
+	if not panel.Visible then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local position = input.Position
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if position.X < origin.X or position.X > origin.X + size.X
+		or position.Y < origin.Y or position.Y > origin.Y + size.Y then
+		closeCollection()
+	end
+end)
 
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
@@ -939,5 +1141,18 @@ bindViewportCamera()
 if UserInputService.TouchEnabled then
 	openButton.Position = UDim2.new(1, -14, 0.72, 0)
 end
+
+task.spawn(function()
+	while screen.Parent do
+		if panel.Visible and collection ~= nil and selectedPetId ~= nil then
+			local selectedRecord = nil
+			for _, record in ipairs(collection.owned) do
+				if record.petId == selectedPetId then selectedRecord = record break end
+			end
+			applyInteractionCooldown(selectedRecord)
+		end
+		task.wait(0.25)
+	end
+end)
 
 print("[PetKingdoms] Pet collection UI loaded.")

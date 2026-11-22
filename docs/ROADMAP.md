@@ -308,7 +308,7 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add regression tests for final receipt-slot reservation, rejection of an additional pending hatch, successful receipt-slot consumption, expiry pruning, and pet-ID reuse after expiry.
 - [x] Synchronize the newest validated DataStore snapshot into the in-memory cache when an idempotent XP retry returns `ALREADY_PROCESSED`.
 - [ ] Run Studio pure-data tests and DataStore concurrency/fault-injection tests. Verify a reservation remains grantable when other reward sources execute concurrently.
-- [ ] Replace or explicitly deprecate non-idempotent XP reward entry points before gameplay reward callers are introduced; use stable reward IDs for retryable sources.
+- [x] Remove non-idempotent PetCollectionService XP write entry points before gameplay reward callers exist; all service-level XP writes now require a stable reward ID via `grantExperienceWithProgressOnce`.
 
 
 ### Acquisition receipt integrity
@@ -425,3 +425,322 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Audit current wallet defaults, resource-node rewards/respawn, and server building costs; document theoretical gathering ceilings and explicitly keep expansion prices unapproved until the full balance sheet is decided.
 
 See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current values and open balancing decisions.
+
+
+## Quest reward outbox foundation (2026-11-22)
+
+- [x] Add pure QuestRewardOutboxData contracts for permanent quest-claim receipts and durable pet-XP outbox entries.
+- [x] Validate quest IDs, stable reward IDs, pet IDs, positive bounded XP amounts, progression configuration version, timestamps, unique IDs, and contiguous bounded outbox storage.
+- [x] Make duplicate claim and enqueue attempts idempotent; reject reuse of a reward ID with a different payload.
+- [x] Record delivery only after a caller confirms the pet-side XP write; repeated delivery acknowledgement is idempotent.
+- [x] Never expire or evict pending XP records; a full outbox fails closed.
+- [x] Add the claim/outbox fields to newly created island profiles, preserve compatibility with legacy schema-v1 profiles, and deep-clone the ledgers before DataStore saves.
+- [x] Add Studio-only contract tests for claim receipts, enqueue deduplication, payload conflicts, pending lookup, delivery acknowledgement, malformed records, and profile compatibility.
+- [ ] Execute the new Studio tests in Roblox Studio.
+- [x] Verify the full Rojo build and Studio artifact upload in GitHub Actions run 45039287808 (PASS); Studio script execution remains separate and pending.
+- [ ] Integrate the durable quest claim transaction into IslandSessionService; no client claim endpoint is exposed.
+- [ ] Add an outbox recovery worker that retries the same reward ID, durably marks delivery, then acknowledges the pet-side receipt.
+- [ ] Decide approved reward amounts, XP progression configuration, and deterministic pet recipient policy before enabling claims. No economy values or recipient rule were invented.
+- [ ] Add DataStore fault-injection coverage for island commit, pet XP commit, lost acknowledgement, player leave, server restart, and recovery after rejoin.
+
+
+### Quest reward transaction integration (2026-11-22)
+
+- [x] Add a server-only IslandSessionService claim primitive that commits the permanent claim receipt and XP outbox entry in one island revision.
+- [x] Bind each claim receipt to its island revision and make retries wait for durable persistence before acknowledging the original receipt.
+- [x] Add durable outbox delivery and second-phase pet receipt acknowledgement transitions.
+- [x] Expose server-only pending-delivery and awaiting-acknowledgement snapshots for a future recovery worker.
+- [x] Compact only fully acknowledged outbox entries; never evict pending or delivered-but-unacknowledged rewards.
+- [x] Add the server-started recovery worker; it retries the same reward ID, persists island delivery, then acknowledges the pet receipt and source outbox. Studio/DataStore fault-injection remains pending.
+- [ ] Approve reward values, progression thresholds/version, and deterministic pet recipient policy.
+- [ ] Execute Roblox Studio DataStore failure/rejoin/server-restart tests before enabling any claim remote or UI.
+
+- [x] Verify the latest Rojo build and Studio artifact upload in GitHub Actions run #115 (PASS); Studio script execution remains separate and pending.
+
+
+### Quest XP recovery worker (2026-11-22)
+
+- [x] Add a server-owned, versioned pet progression catalog contract. Unknown/unapproved versions fail closed; the registry is intentionally empty pending approved XP thresholds.
+- [x] Add a recovery worker that waits for island + pet collection readiness and resumes pending or delivered-but-unacknowledged outbox entries.
+- [x] Integrate the worker into server bootstrap; retry transient failures without dropping or regenerating reward IDs.
+- [x] Add Studio-only progression catalog contract tests.
+- [ ] Resolve the pet receipt/source acknowledgement retention edge case for prolonged outages.
+- [ ] Add service-level fault-injection coverage for every cross-DataStore crash boundary and execute in Roblox Studio.
+- [ ] Approve the progression curve, quest reward values, and deterministic pet recipient policy before enabling claims.
+
+
+### Quest XP acknowledgement retention hardening (2026-11-22)
+
+- [x] Persist the island source acknowledgement immediately after the pet XP delivery is confirmed and before acknowledging the pet receipt.
+- [x] Add a separate durable `petAcknowledgedAt` outbox marker; compact only after both source and pet acknowledgement markers are persisted.
+- [x] Recover source-acknowledged records whose pet receipt finalization was interrupted.
+- [x] Treat a missing pet receipt as already finalized only after the source acknowledgement is durable; unacknowledged receipts remain permanent.
+- [x] Add tests proving source-acknowledged records cannot be compacted before the final pet marker and that acknowledgement timestamps are ordered.
+- [ ] Execute Studio tests and cross-DataStore crash/fault-injection scenarios.
+
+- [x] Verify quest XP recovery worker and final acknowledgement handshake in GitHub Actions run #127 (Rojo build + Studio artifact upload PASS); Studio script execution remains pending.
+
+- [x] Harden recovery worker startup against duplicate PlayerAdded/initial-player enumeration and keep waiting through slow profile loads instead of abandoning recovery after a fixed timeout.
+
+
+### Quest reward recovery protocol fault injection (2026-11-22)
+
+- [x] Extract cross-DataStore transaction ordering into a shared protocol used by the production recovery worker.
+- [x] Add deterministic fault-injection tests for lost responses after each durable write boundary.
+- [x] Assert stable reward ID retry and exactly-once XP application across all five interrupted boundaries.
+- [x] Assert delivered-record resume never calls the XP grant again.
+- [x] Assert missing pet receipt is accepted only after durable source acknowledgement.
+- [ ] Run the Studio-only protocol suite and all existing data contract suites in Roblox Studio.
+- [ ] Run live DataStore outage/rejoin/server-restart scenarios in a dedicated test environment.
+
+
+### Quest journal legacy-profile compatibility (2026-11-22)
+
+- [x] Fix quest snapshots for legacy island profiles created before `questProgress` existed: the server now presents the current introductory quests at 0 progress without mutating the stored profile.
+- [x] Add Studio contract coverage for legacy nil progress and malformed progress snapshots.
+- [ ] Execute the updated QuestProgressData tests in Roblox Studio.
+
+
+- [x] Verify the legacy quest snapshot fix and expanded quest progress edge-case test packaging in GitHub Actions run #144 (Rojo build + Studio artifact upload PASS).
+
+
+### Quest journal deterministic ordering (2026-11-22)
+
+- [x] Replace hash-table iteration in quest progression/snapshot presentation with an explicit stable order: wood quest first, stone quest second.
+- [x] Add a contract assertion that repeated snapshots preserve the same order.
+- [ ] Execute the updated Luau test in Roblox Studio.
+
+
+### Atomic gathering-to-quest integration (2026-11-22)
+
+- [x] Extract a pure `IslandGatheringTransactionData` transform that composes wallet grant, resource-node cooldown, and quest progress before any live profile mutation.
+- [x] Route `IslandSessionService.commitResourceGathering` through the shared transaction result and persist all three state changes under one island profile revision.
+- [x] Add integration contract tests for wood/stone progression, independent node cooldowns, quest completion, immutable source state, cooldown rejection, wallet-cap rejection, malformed quest state, and unknown nodes.
+- [ ] Execute the new Studio integration suite and existing gathering/quest contract suites in Roblox Studio.
+- [ ] Validate actual DataStore persistence, leave/rejoin, and server restart behavior in a dedicated test place.
+
+
+### Gathering persistence and reload contract (2026-11-22)
+
+- [x] Add a Studio contract that JSON-serializes and restores a real island profile after a gathering transaction, then validates the restored profile against the canonical IslandData schema.
+- [x] Assert resources, node cooldown, quest progress, and profile revision all survive the round trip.
+- [x] Assert a reloaded node cannot be gathered twice during its persisted cooldown and that a distinct node advances quest progress once.
+- [ ] Execute the serialization/reload contract in Roblox Studio.
+- [ ] Run true DataStore leave/rejoin and server-restart scenarios in a dedicated test place; JSON round-trip is a schema contract, not a live DataStore test.
+
+
+- [x] Verify gathering serialization/reload contract packaging in GitHub Actions run #157 (Rojo build + Studio artifact upload PASS); Studio execution and live DataStore testing remain pending.
+
+
+### Quest completion vs reward claim visibility (2026-11-22)
+
+- [x] Include durable claim receipt state in server quest snapshots without conflating it with completion.
+- [x] Expose `rewardClaimed` only when the quest is complete and a structurally valid receipt exists.
+- [x] Update Quest Journal cards to distinguish `ВЫПОЛНЕНО` from `НАГРАДА ПОЛУЧЕНА` and show the total claimed count.
+- [x] Add contract coverage for claimed, unclaimed, malformed-receipt, and premature-receipt snapshots.
+- [ ] Execute quest data and UI behavior tests in Roblox Studio.
+- [ ] Approve reward economy and pet recipient policy before enabling a claim interaction.
+
+
+- [x] Verify quest completion/claim-state visibility tests and UI packaging in GitHub Actions run #164 (Rojo build + Studio artifact upload PASS); Studio execution remains pending.
+
+
+### Pet progression safety and collection visibility (2026-11-22)
+
+- [x] Validate every server-owned progression curve before returning it to reward recovery; malformed configured data fails closed.
+- [x] Reject NaN, infinity, fractional, and unsafe progression version identifiers.
+- [x] Cover XP beyond the level-50 threshold: level remains capped while lifetime XP remains visible.
+- [x] Display each pet's persisted level and lifetime XP in the collection details panel without inventing a next-level requirement.
+- [ ] Execute progression/catalog/collection contract tests and inspect the collection panel at desktop and mobile sizes in Roblox Studio.
+- [ ] Approve the production 50-level XP curve before enabling quest XP delivery.
+
+
+- [x] Verify pet progression catalog hardening and contract-test packaging in GitHub Actions run #173; Rojo build and Studio artifact upload PASS. Studio test execution remains pending.
+
+
+### Idempotent pet XP service boundary (2026-11-22)
+
+- [x] Audit all server service/bootstrap modules: no gameplay callers use the non-idempotent XP service methods.
+- [x] Remove `PetCollectionService.grantExperience` and `PetCollectionService.grantExperienceWithProgress`.
+- [x] Keep only `grantExperienceWithProgressOnce` as the server service XP write entry point; every retryable gameplay reward must carry a stable server-generated reward ID.
+- [x] Keep pure `PetCollectionData` mutation helpers for isolated deterministic data tests; they are not exposed as service-level DataStore write APIs.
+- [ ] Add each approved combat/quest/interaction source through the durable reward protocol with an explicit amount, progression version, and pet-recipient policy.
+
+
+### Pet activity reward contracts (2026-11-22)
+
+- [x] Add a Studio-only API boundary test proving the legacy non-idempotent pet XP service methods are not exposed and the stable reward-ID method is the only XP write entry point.
+- [x] Document server-authoritative reward invariants for the three specification sources: combat, quests, and interactions.
+- [x] Explicitly separate pet progression XP from Kingdom Bond XP; existing Bond interaction XP must not be treated as progression XP.
+- [x] Record open decisions without inventing values: XP curve/amounts, deterministic recipient policy, combat contribution/anti-farming rules, and interaction repeat/cooldown policy.
+- [ ] Implement source-specific reward validation and durable event/outbox integration after each source's gameplay event model exists.
+- [ ] Approve reward amounts, progression curve, and pet recipient policy before enabling live XP issuance.
+- [ ] Execute the new API boundary test in Roblox Studio.
+
+
+### Pet interaction hardening (2026-11-22)
+
+- [x] Harden server interaction request validation: bounded safe pet IDs and finite non-negative safe-integer expected revisions.
+- [x] Harden the pure interaction mutation with the same pet ID contract.
+- [x] Test that interaction grants Bond XP but never pet progression XP.
+- [x] Test exact cooldown boundary, rapid repeat rejection, and clock rollback rejection.
+- [x] Test that an interaction mutates only the selected pet in a multi-pet collection.
+- [x] Keep unsupported `feed` requests rejected until food inventory and cost rules are specified.
+- [ ] Design species personality/preferences only after the approved pet roster and behavior matrix are finalized.
+- [ ] Execute interaction tests and RemoteFunction/DataStore behavior in Roblox Studio.
+
+
+### First player-facing UX correction pass (2026-11-22)
+
+- [x] Construction catalogue selection and placement preview are now separate actions.
+- [x] Add close control and shared modal ownership between construction and pet collection.
+- [x] Apply viewport-aware construction panel sizing and compact action buttons.
+- [ ] Verify construction workflow, collection/building handoff, and 375 px/touch layouts in Roblox Studio.
+- [ ] Continue with gathering onboarding/interaction feedback, pet world presence, and per-action cooldown feedback.
+
+
+### Pet interaction cooldown feedback (2026-11-22)
+
+- [x] Show a lock and live MM:SS countdown on both interaction buttons while the server-owned per-pet cooldown is active.
+- [x] Use the saved lastInteractionAt timestamp and synchronized server time for presentation; server remains authoritative for acceptance.
+- [x] Restore normal button labels and enabled state automatically when cooldown reaches zero.
+- [x] Keep the same cooldown rule for pet/play because the data contract currently defines one shared per-pet interaction cooldown.
+- [ ] Verify timer synchronization and button behavior in Roblox Studio, including selection changes and rapid interaction attempts.
+
+
+### Gathering onboarding feedback (2026-11-22)
+
+- [x] Add floating labels to wood/stone resource nodes with explicit reward values.
+- [x] Clarify the wood interaction as Срубить дерево and show the amount gained.
+- [x] Show a first-wood hint while the wallet has zero wood.
+- [x] Keep resource markers hidden during node cooldown.
+- [ ] Verify first-time gathering on desktop and mobile in Studio.
+- [ ] Replace placeholder tree/ore models with curated production assets.
+
+
+### Pet companion grounding (2026-11-22)
+
+- [x] Calculate the vertical ground lift from each companion's actual model pivot and bounding-box bottom.
+- [x] Remove the hard-coded universal 0.28-stud offset so imported center-pivot meshes do not sink into or float above the island.
+- [x] Add a Studio test using a 4-stud external mesh stand-in with a centered pivot.
+- [ ] Verify actual imported pet assets, slopes, obstacles, streaming, and multiplayer presentation in Roblox Studio.
+
+
+### Pet companion obstacle navigation (2026-11-22)
+
+- [x] Detect obstacles in the companion's direct lane at two body heights.
+- [x] Request asynchronous PathfindingService routes only when direct movement is blocked.
+- [x] Follow computed waypoints and re-evaluate when the path is blocked or the goal moves.
+- [x] Project path start/goal and waypoints to island ground; preserve each pet's measured ground lift.
+- [x] Wait rather than clipping through obstacles while a route is pending or unavailable.
+- [x] Release path connections and invalidate stale path computations when routes clear or controllers are destroyed.
+- [x] Add smoke coverage for the clear-route fast path and path connection cleanup.
+- [ ] Verify obstacle detours, stairs, slopes, cliffs, narrow passages, streaming, multiplayer, and mobile in Roblox Studio.
+
+### Companion navigation recovery safety (2026-11-22)
+
+- [x] Fix Luau lexical declaration ordering for the horizontal direction helper used by obstacle raycasts.
+- [x] Keep owner distance separate from navigation waypoint distance so a blocked or pending path cannot suppress teleport recovery.
+- [x] Invalidate pending path computations and disconnect blocked-path listeners after owner teleport recovery.
+- [x] Add a Studio client regression scenario for teleporting while path computation is pending.
+- [ ] Run the updated companion tests and actual wall/stair/slope navigation scenarios in Roblox Studio.
+
+### Companion formation responsiveness (2026-11-22)
+
+- [x] Remove duplicate interpolation that applied smoothing alpha twice to pet translation and caused excessive lag during turns and formation rearrangement.
+- [x] Calculate catch-up animation from owner formation distance rather than a nearby path waypoint; avoid walking animation when a blocked path holds the companion in place.
+- [x] Add a Studio regression case checking a single exponential interpolation step using a safe, isolated stand-in mesh.
+- [ ] Run the new Luau tests and inspect formation turns, obstacles, cliffs, and mobile framerate in Roblox Studio.
+
+### Companion terrain-edge safety (2026-11-22)
+
+- [x] Sample ground support along direct companion routes so clear horizontal raycasts cannot send a pet through a cliff edge or large height discontinuity.
+- [x] Recheck navigation waypoints for streamed-out ground or steep steps before moving, and retry pathfinding after a blocked terrain segment.
+- [x] Project emergency teleport recovery onto the local ground surface using the pet-specific pivot offset.
+- [x] Add Studio-only cliff-gap regression test using isolated test geometry.
+- [ ] Run the companion tests in Roblox Studio and verify real island edges, stairs, slopes, streaming, and mobile performance.
+
+### Companion navigation frame-budget pass (2026-11-22)
+
+- [x] Add a 0.12-second cache for direct obstacle+ground checks while companion and formation target move less than 0.5 studs.
+- [x] Recompute direct route immediately on significant target or pet movement; expire cached results rapidly to detect streamed/dynamic obstacle changes.
+- [x] Clear cached positions after emergency teleport recovery.
+- [x] Add Studio regression tests for stationary cache reuse and owner-movement invalidation.
+- [ ] Execute client tests and profile raycasts at 30/60 FPS with 1-3 equipped companions in Roblox Studio/mobile.
+
+### Unified player-facing modal ownership (2026-11-22)
+
+- [x] Connect quest journal and island expansion panels to the existing `PlayerGui.PetKingdomsActiveModal` ownership convention.
+- [x] Connect kingdom overview to shared modal ownership, keeping it mutually exclusive with construction and pet collection.
+- [x] Close quest/expansion/kingdom panels by Escape; add click/tap-outside dismissal to quest/expansion/pet collection panels.
+- [x] When a second major panel opens, hide the previous one instead of layering several backdrops and close buttons.
+- [ ] Verify keyboard, mouse and touch close controls and one-window-only behavior in Roblox Studio.
+- [ ] Rework viewport constraints for narrow screens (especially 320-375 px) and conduct a real responsive UI pass.
+
+### Small viewport dialog sizing (2026-11-22)
+
+- [x] Make quest journal and island expansion panel widths follow the actual viewport with bounded minimum/maximum dimensions.
+- [x] Apply a shared proportional UIScale to each fixed-height dialog on short viewports rather than allowing its bottom/close controls to overflow.
+- [x] Keep modal panels centered when the screen dimensions change.
+- [ ] Test portrait devices (320×568, 375×667, 390×844) and short landscape windows in Roblox Studio Device Emulator.
+- [ ] Rework the pet collection two-column mobile layout and the building action area separately.
+
+### Mobile pet collection and compact placement mode (2026-11-22)
+
+- [x] Fix pet cooldown UI helper declaration so its local Pet/Play button references exist before the function is defined.
+- [x] On viewports narrower than 650 px, show a full-width pet list and separate full-width pet detail tab rather than unusably narrow desktop columns.
+- [x] Selecting a pet automatically opens its detail tab on mobile; provide explicit list/detail navigation buttons.
+- [x] Reflow mobile search, filters, and scrolling list; compact detail text offsets on short screens and fit the deletion confirmation within the viewport width.
+- [x] Collapse the building catalogue during preview placement, retaining only a compact rotate/confirm/cancel action bar and close button.
+- [x] Restore the full catalogue when placement ends; support resize of both modes.
+- [ ] Validate 320 px/375 px portrait, landscape, mobile touch and native Roblox insets in Studio Device Emulator.
+- [ ] Verify placement controls do not cover terrain target and that cooldown controls work when choosing another pet.
+
+### Replaceable gathering visual assets (2026-11-22)
+
+- [x] Support optional approved wood/stone Model templates in `ServerStorage/ResourceNodeModels` without changing gathering economy or node persistence.
+- [x] Preserve existing procedural fallback when approved templates are absent.
+- [x] Remove executable/template prompt content from resource art, and create the gameplay prompt on a trusted invisible anchor.
+- [x] Restore original mesh transparency after gathering cooldown rather than making all parts opaque.
+- [x] Add Studio-only world contract checks for a temporary custom resource template and trusted prompt.
+- [ ] Curate and approve actual tree/ore assets with source/license/review; no third-party model imported in this pass.
+- [ ] Execute Roblox Studio resource respawn, gathering, art pivot and streaming tests.
+
+### Construction confirmation position safety (2026-11-22)
+
+- [x] Ignore preview pointer positions over the visible building action panel so pressing Confirm/Rotate/Cancel cannot move the selected world cell.
+- [x] Freeze requested catalog ID, grid X/Z, rotation, and moving instance ID before the yielding server call.
+- [x] Pause preview updates and reject duplicate confirmation or edit actions while the server submission is in progress.
+- [ ] Verify the exact grid cell seen on preview matches the saved object after pressing Confirm on desktop and touch.
+- [ ] Investigate GUI-inset and landscape touch coordinates in Roblox Studio Device Emulator.
+
+### Gathering rejoin and modal-flight safety (2026-11-22)
+
+- [x] Reject untrusted/incorrect resource prompts; the gathering handler now only accepts the server-owned `GatherPrompt` under the invisible `GatherAnchor` directly inside an authorized resource node.
+- [x] Add Studio integration checks for persisted resource cooldown: a rejoined player's tree starts hidden, the gather prompt is disabled, the invisible anchor remains hidden, and custom mesh alpha is preserved for later respawn.
+- [x] Preserve an in-flight construction request when another modal takes focus, then close construction cleanly when its server response returns.
+- [ ] Execute these tests in Roblox Studio and verify cooldown expiry, resuming resource availability, and multiple clicks/touch switches while a build request is pending.
+
+### Resource respawn regression and repeated build receipts (2026-11-22)
+
+- [x] Clear completed building request IDs even when the user switches to another window during the server response; preserve IDs only for explicitly retriable response codes.
+- [x] Use immutable submitted catalog/moving instance fields to render build confirmation feedback, avoiding mutable UI state after yielding.
+- [x] Extract resource visibility transitions into `ResourceNodeVisibility` so hide/restore behavior can be tested independently of persistence and live player sessions.
+- [x] Add Studio-only repeat-cycle test verifying original translucent resource alpha, permanently invisible `GatherAnchor`, noncolliding parts and enabled/disabled prompt and markers.
+- [ ] Execute all Studio tests and verify live 60-second respawns, rejoin, multiplayer, and touch-based duplicate submissions.
+
+### Gathering respawn scheduler safety (2026-11-22)
+
+- [x] Track resource cooldown deadlines per node rather than a boolean so repeated reconciliation cannot register duplicate timers for the same deadline.
+- [x] Prevent stale timers from clearing a newer node cooldown or restoring a resource after its deadline changed.
+- [x] Keep resources hidden when the owning session is unavailable; the five-second reconciler makes an expired node visible only once the owner's session is writable.
+- [x] Avoid reapplying all mesh transparency and prompt states every five seconds after an expired node has already become visible.
+- [ ] Run live Studio scenarios: gather -> cooldown -> respawn, reconnect during cooldown, stale timer after island refresh, session not writable -> writable, and overlapping players.
+
+### Gathering availability HUD (2026-11-22)
+
+- [x] Show a read-only wood/stone resource-node availability counter (ready/total) in the player's HUD.
+- [x] Show a synchronized countdown to the nearest resource respawn using replicated node AvailableAt and Workspace:GetServerTimeNow().
+- [x] Read only nodes owned by the local player; update once per second and handle island creation/refresh without subscriptions to stale models.
+- [x] Keep reward/cooldown calculations server-owned; UI does not call remote actions or alter progress.
+- [ ] Verify real mobile/desktop layouts, resource pickup/respawn countdown and reconnect transitions in Roblox Studio.

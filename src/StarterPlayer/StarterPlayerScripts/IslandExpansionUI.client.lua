@@ -3,6 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
@@ -65,8 +66,9 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 370), MaxSize = Vector2.new(440, 390) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(290, 300), MaxSize = Vector2.new(500, 440) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
 local title = make("TextLabel", {
@@ -292,6 +294,11 @@ local function refresh()
 end
 
 local function setOpen(value: boolean)
+	if value then
+		playerGui:SetAttribute("PetKingdomsActiveModal", "expansion")
+	elseif playerGui:GetAttribute("PetKingdomsActiveModal") == "expansion" then
+		playerGui:SetAttribute("PetKingdomsActiveModal", nil)
+	end
 	opened = value
 	panel.Visible = value
 	shade.Visible = value
@@ -308,6 +315,32 @@ local function setOpen(value: boolean)
 	end
 end
 
+playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
+	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
+	if opened and owner ~= "expansion" then
+		setOpen(false)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not opened then return end
+	if input.KeyCode == Enum.KeyCode.Escape then setOpen(false) end
+end)
+
+-- Full-screen backdrop is a touch-friendly close target.
+shade.InputBegan:Connect(function(input)
+	if not opened then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local position = input.Position
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if position.X < origin.X or position.X > origin.X + size.X
+		or position.Y < origin.Y or position.Y > origin.Y + size.Y then
+		setOpen(false)
+	end
+end)
+
 openButton.Activated:Connect(function() setOpen(not opened) end)
 closeButton.Activated:Connect(function() setOpen(false) end)
 refreshButton.Activated:Connect(refresh)
@@ -315,10 +348,18 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	-- Fit the entire dialogue in portrait and short landscape viewports.
+	-- Scale fixed internal offsets together so the close control stays reachable.
+	local baseHeight = 390
+	local width = math.clamp(viewport.X - 24, 290, 440)
+	local scale = math.min(1, math.max(0.6, (viewport.Y - 40) / baseHeight))
+	panelScale.Scale = scale
+	panel.Size = UDim2.fromOffset(width, baseHeight)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	openButton.Position = UDim2.new(1, compact and -12 or -22, 0.70, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
 end
 if Workspace.CurrentCamera then
 	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)

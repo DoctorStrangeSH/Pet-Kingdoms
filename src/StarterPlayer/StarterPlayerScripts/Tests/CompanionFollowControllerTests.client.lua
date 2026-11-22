@@ -45,6 +45,122 @@ for slot = 1, 3 do
 	expect("pet remains in test world for slot " .. tostring(slot), pet.Parent == folder)
 end
 
+-- Imported meshes often use a center pivot and must be lifted by half their height.
+local externalPet = Instance.new("Model")
+externalPet.Name = "ExternalMeshPivotTest"
+externalPet:SetAttribute("SpeciesId", "bunny")
+externalPet:SetAttribute("IsExternalMeshPet", true)
+local externalMesh = Instance.new("Part")
+externalMesh.Name = "MeshBounds"
+externalMesh.Anchored = true
+externalMesh.CanCollide = false
+externalMesh.Size = Vector3.new(2, 4, 2)
+externalMesh.Position = Vector3.new(12, 10, 0)
+externalMesh.Parent = externalPet
+externalPet.PrimaryPart = externalMesh
+externalPet.Parent = folder
+local externalController, externalStatus = CompanionFollowController.new(externalPet, target, { slotIndex = 3 })
+expect("external mesh with center pivot can follow", externalController ~= nil and externalStatus == "CREATED")
+assert(externalController ~= nil)
+expect("ground lift follows actual imported mesh bounds", math.abs(externalController.groundLift - 2) < 0.05)
+externalController:destroy()
+externalPet:Destroy()
+
+-- Verify a single exponential smoothing step: the old controller applied
+-- interpolation twice, resulting in alpha squared and sluggish movement.
+local smoothTarget = Instance.new("Part")
+smoothTarget.Name = "SmoothingTarget"
+smoothTarget.Anchored = true
+smoothTarget.CanCollide = false
+smoothTarget.CanQuery = false
+smoothTarget.CFrame = CFrame.new(1200, 80, 1200)
+smoothTarget.Parent = folder
+local smoothPet = Instance.new("Model")
+smoothPet.Name = "SmoothingPet"
+smoothPet:SetAttribute("SpeciesId", "bunny")
+smoothPet:SetAttribute("IsExternalMeshPet", true)
+local smoothPart = Instance.new("Part")
+smoothPart.Anchored = true
+smoothPart.CanCollide = false
+smoothPart.CanQuery = false
+smoothPart.Size = Vector3.new(2, 2, 2)
+smoothPart.CFrame = CFrame.new(1208, 80, 1200)
+smoothPart.Parent = smoothPet
+smoothPet.PrimaryPart = smoothPart
+smoothPet.Parent = folder
+local smoothController, smoothStatus = CompanionFollowController.new(
+	smoothPet, smoothTarget, { slotIndex = 1, smoothing = 8 }
+)
+expect("smoothing test controller created", smoothController ~= nil and smoothStatus == "CREATED")
+assert(smoothController ~= nil)
+local before = smoothPet:GetPivot().Position
+local formationTarget = smoothTarget.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
+smoothController:update(1 / 60)
+local after = smoothPet:GetPivot().Position
+local expectedAlpha = 1 - math.exp(-8 / 60)
+local actualAlpha = (after.X - before.X) / (formationTarget.X - before.X)
+expect("follow translation uses one smoothing step, not alpha squared",
+	math.abs(actualAlpha - expectedAlpha) < 0.015)
+smoothController:destroy()
+smoothPet:Destroy()
+smoothTarget:Destroy()
+
+-- A visible pet must not slide off its island across a terrain gap just
+-- because the direct horizontal raycast happens to be unobstructed.
+local edgeFloor = Instance.new("Part")
+edgeFloor.Name = "CliffEdgeGround"
+edgeFloor.Anchored = true
+edgeFloor.Size = Vector3.new(12, 1, 12)
+edgeFloor.CFrame = CFrame.new(2000, 3, 2000)
+edgeFloor.Parent = folder
+local edgeTarget = Instance.new("Part")
+edgeTarget.Name = "CliffEdgeOwner"
+edgeTarget.Anchored = true
+edgeTarget.CanCollide = false
+edgeTarget.CanQuery = false
+edgeTarget.Position = Vector3.new(2018.4, 5, 2000)
+edgeTarget.Parent = folder
+local edgePet = Instance.new("Model")
+edgePet.Name = "CliffEdgePet"
+edgePet:SetAttribute("SpeciesId", "bunny")
+edgePet:SetAttribute("IsExternalMeshPet", true)
+local edgeRoot = Instance.new("Part")
+edgeRoot.Anchored = true
+edgeRoot.CanCollide = false
+edgeRoot.CanQuery = false
+edgeRoot.Size = Vector3.new(2, 2, 2)
+edgeRoot.Position = Vector3.new(2000, 5, 2000)
+edgeRoot.Parent = edgePet
+edgePet.PrimaryPart = edgeRoot
+edgePet.Parent = folder
+local edgeController = CompanionFollowController.new(edgePet, edgeTarget, { slotIndex = 1 })
+expect("cliff-edge companion controller created", edgeController ~= nil)
+assert(edgeController ~= nil)
+local beforeEdge = edgePet:GetPivot().Position
+edgeController:update(1 / 60)
+expect("companion does not take a direct shortcut into missing ground",
+	(edgePet:GetPivot().Position - beforeEdge).Magnitude < 0.05)
+edgeController:destroy()
+edgePet:Destroy()
+edgeTarget:Destroy()
+edgeFloor:Destroy()
+
+-- Direct raycasts + terrain samples are expensive when 3 companions follow
+-- a stationary owner. Reuse a recent result until the owner or pet moves.
+controllers[2]:update(1 / 60)
+local firstProbeCount = controllers[2].directCheckCount
+controllers[2]:update(1 / 60)
+expect("stationary companion reuses recent direct-route check",
+	controllers[2].directCheckCount == firstProbeCount)
+local oldTarget = target.CFrame
+target.CFrame = oldTarget * CFrame.new(1.5, 0, 0)
+controllers[2]:update(1 / 60)
+expect("owner movement invalidates the navigation cache",
+	controllers[2].directCheckCount == firstProbeCount + 1)
+target.CFrame = oldTarget
+
+expect("clear follow lane does not allocate a path", controllers[1].path == nil and #controllers[1].pathWaypoints == 0)
+
 local firstPosition = pets[1]:GetPivot().Position
 local secondPosition = pets[2]:GetPivot().Position
 expect("formation slots produce distinct pet positions", (firstPosition - secondPosition).Magnitude > 0.5)
@@ -117,8 +233,16 @@ expect("fourth active slot is rejected", invalidController == nil and invalidSta
 -- Catch-up must switch to run when the pet falls behind, then recover from
 -- extreme streaming/character-reset gaps without remaining stranded far away.
 target.AssemblyLinearVelocity = Vector3.zero
+-- Reproduce an owner teleport while navigation is waiting on an obstacle route:
+-- recovery must use the owner's formation target, not a nearby waypoint.
+controllers[1].pathPending = true
+controllers[1].pathWaypoints = {}
+local previousGeneration = controllers[1].pathGeneration
 target.CFrame = target.CFrame + Vector3.new(70, 0, 0)
 controllers[1]:update(1 / 60)
+expect("teleport recovery cancels pending navigation", not controllers[1].pathPending
+	and controllers[1].pathGeneration > previousGeneration
+	and #controllers[1].pathWaypoints == 0)
 local catchUpTarget = target.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
 expect("lagging companion switches to run", controllers[1].animation.state == "run")
 expect("extremely distant companion recovers near its owner",
@@ -126,7 +250,7 @@ expect("extremely distant companion recovers near its owner",
 
 for _, controller in ipairs(controllers) do
 	controller:destroy()
-	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil)
+	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil and controller.pathBlockedConnection == nil)
 end
 
 target:Destroy()
