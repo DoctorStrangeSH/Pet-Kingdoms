@@ -62,17 +62,9 @@ local function isPlayerReady(player: Player, token: {}): boolean
 end
 
 local function acknowledgeDeliveredReward(player: Player, record: any): (boolean, string)
-	-- The pet receipt is acknowledged only after the source outbox's delivered
-	-- state is durable. If this call succeeds but the island acknowledgement
-	-- fails, retrying it is safe while the receipt remains in its retention window.
-	local petAcknowledged, petStatus = PetCollectionService.acknowledgeExperienceReward(
-		player,
-		record.rewardId
-	)
-	if not petAcknowledged then
-		return false, "PET_RECEIPT_ACK_FAILED:" .. petStatus
-	end
-
+	-- First persist the source acknowledgement. Only then may the pet receipt
+	-- start its finite retention window; this prevents a prolonged source-store
+	-- outage from expiring the only pet-side deduplication receipt.
 	local sourceAcknowledged, sourceStatus = IslandSessionService.commitQuestRewardAcknowledgement(
 		player.UserId,
 		player,
@@ -81,7 +73,26 @@ local function acknowledgeDeliveredReward(player: Player, record: any): (boolean
 	if not sourceAcknowledged then
 		return false, "SOURCE_ACK_FAILED:" .. sourceStatus
 	end
-	return true, sourceStatus
+
+	local petAcknowledged, petStatus = PetCollectionService.acknowledgeExperienceReward(
+		player,
+		record.rewardId
+	)
+	-- A missing receipt is safe to finalize only now: the durable source
+	-- acknowledgement proves the XP write was already confirmed.
+	if not petAcknowledged and petStatus ~= "RECEIPT_NOT_FOUND" then
+		return false, "PET_RECEIPT_ACK_FAILED:" .. petStatus
+	end
+
+	local petMarker, markerStatus = IslandSessionService.commitQuestRewardPetAcknowledgement(
+		player.UserId,
+		player,
+		record.rewardId
+	)
+	if not petMarker then
+		return false, "PET_ACK_MARKER_FAILED:" .. markerStatus
+	end
+	return true, markerStatus
 end
 
 local function deliverPendingReward(player: Player, record: any): (boolean, string)
@@ -131,7 +142,9 @@ local function processPlayer(player: Player)
 		local pending = IslandSessionService.getPendingQuestRewards(player.UserId)
 		local awaitingAcknowledgement =
 			IslandSessionService.getQuestRewardsAwaitingAcknowledgement(player.UserId)
-		local workCount = #pending + #awaitingAcknowledgement
+		local awaitingPetAcknowledgement =
+			IslandSessionService.getQuestRewardsAwaitingPetAcknowledgement(player.UserId)
+		local workCount = #pending + #awaitingAcknowledgement + #awaitingPetAcknowledgement
 		if workCount == 0 then break end
 
 		local deferredCount = 0
@@ -151,10 +164,23 @@ local function processPlayer(player: Player)
 		for _, record in ipairs(awaitingAcknowledgement) do
 			if not isPlayerReady(player, token) then break end
 			local ok, status = acknowledgeDeliveredReward(player, record)
-			local warningKey = record.rewardId .. ":" .. status
+			local warningKey = record.rewardId
 			if ok then
 				clearWarning(player, record.rewardId)
 				print("[PetKingdoms] Quest XP receipt acknowledged", player.UserId, record.rewardId, status)
+			else
+				deferredCount += 1
+				warnOnce(player, warningKey, record.rewardId .. " — " .. status)
+			end
+		end
+
+		for _, record in ipairs(awaitingPetAcknowledgement) do
+			if not isPlayerReady(player, token) then break end
+			local ok, status = acknowledgeDeliveredReward(player, record)
+			local warningKey = record.rewardId
+			if ok then
+				clearWarning(player, record.rewardId)
+				print("[PetKingdoms] Quest XP pet receipt finalized", player.UserId, record.rewardId, status)
 			else
 				deferredCount += 1
 				warnOnce(player, warningKey, record.rewardId .. " — " .. status)
