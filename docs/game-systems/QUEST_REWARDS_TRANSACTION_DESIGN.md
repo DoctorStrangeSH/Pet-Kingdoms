@@ -82,3 +82,10 @@ Do not enable a live claim button until the economy values and pet recipient rul
 - Each scenario retries with the same stable reward ID and asserts XP is applied exactly once and all durable phases eventually complete.
 - Additional cases verify that an already-delivered record resumes without invoking XP grant, and that `RECEIPT_NOT_FOUND` is accepted only after source acknowledgement is durable.
 - These are deterministic adapter-level fault-injection tests, not live Roblox DataStore outage tests. The latter still require Studio execution with a dedicated test place/account and controlled DataStore access.
+
+
+## Atomic gathering and quest progress integration (2026-11-22)
+
+The production gathering commit now uses `IslandGatheringTransactionData.apply(profile, nodeId, now)` to compute the complete candidate state before mutating the live session. The pure transform validates the wallet and quest state, records the node cooldown, grants the canonical resource reward, and advances the matching quest. Only when all stages succeed does `IslandSessionService.commitResourceGathering` assign resources, resource-node cooldowns, and quest progress together and persist them under one profile revision.
+
+A Studio-only integration contract suite covers successful wood/stone gathering, independent node cooldowns, wood quest completion, immutable source state, cooldown rejection, wallet-cap rejection, malformed quest state, and unknown nodes. These tests still require execution in Roblox Studio; Rojo CI only verifies project packaging.
