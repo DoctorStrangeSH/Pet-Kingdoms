@@ -467,3 +467,13 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Resolve the pet receipt/source acknowledgement retention edge case for prolonged outages.
 - [ ] Add service-level fault-injection coverage for every cross-DataStore crash boundary and execute in Roblox Studio.
 - [ ] Approve the progression curve, quest reward values, and deterministic pet recipient policy before enabling claims.
+
+
+### Quest XP acknowledgement retention hardening (2026-11-22)
+
+- [x] Persist the island source acknowledgement immediately after the pet XP delivery is confirmed and before acknowledging the pet receipt.
+- [x] Add a separate durable `petAcknowledgedAt` outbox marker; compact only after both source and pet acknowledgement markers are persisted.
+- [x] Recover source-acknowledged records whose pet receipt finalization was interrupted.
+- [x] Treat a missing pet receipt as already finalized only after the source acknowledgement is durable; unacknowledged receipts remain permanent.
+- [x] Add tests proving source-acknowledged records cannot be compacted before the final pet marker and that acknowledgement timestamps are ordered.
+- [ ] Execute Studio tests and cross-DataStore crash/fault-injection scenarios.
