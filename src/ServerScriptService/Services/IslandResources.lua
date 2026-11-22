@@ -77,6 +77,7 @@ function IslandResources.spend(wallet: any, costs: any): (boolean, string, { [st
 	local valid = IslandResources.validate(wallet)
 	if not valid then return false, "INVALID_RESOURCE_WALLET", nil end
 	if type(costs) ~= "table" then return false, "INVALID_COSTS", nil end
+	if next(costs) == nil then return false, "EMPTY_COSTS", nil end
 
 	local normalizedCosts: { [string]: number } = {}
 	for resourceId, amount in pairs(costs) do
