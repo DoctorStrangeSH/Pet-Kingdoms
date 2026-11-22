@@ -171,19 +171,34 @@ local function handleRequest(player: Player, request: any): any
 		if removedRecord.catalogId == "main_house" then
 			return fail("MAIN_HOUSE_PROTECTED")
 		end
+		local previousLedger = table.clone(profileForRemoval.buildingOperations or {})
+		local previousRevision = profileForRemoval.revision
 		table.remove(profileForRemoval.buildings, removeIndex)
-		IslandWorldService.removeBuilding(userId, removedRecord.instanceId, profileForRemoval)
-		if not IslandSessionService.markDirty(userId) then
+		local removedFromWorld = IslandWorldService.removeBuilding(userId, removedRecord.instanceId, profileForRemoval)
+		if not removedFromWorld then
 			table.insert(profileForRemoval.buildings, removeIndex, removedRecord)
-			IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
-			return fail("SESSION_NOT_WRITABLE")
+			return fail("BUILDING_WORLD_NOT_FOUND")
 		end
 		local removalResult = {
 			ok = true,
 			code = "BUILDING_DEMOLISHED",
 			instanceId = removedRecord.instanceId,
 		}
-		remember(userId, request.requestId, removalResult)
+		local committed, commitCode = IslandSessionService.commitBuildingOperation(
+			userId, player, request.requestId, fingerprint, operationAction, removalResult
+		)
+		if not committed then
+			table.insert(profileForRemoval.buildings, removeIndex, removedRecord)
+			IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
+			if profileForRemoval.revision > previousRevision then
+				profileForRemoval.buildingOperations = previousLedger
+				if IslandSessionService.canWrite(userId, player) then
+					IslandSessionService.markDirty(userId)
+				end
+			end
+			return fail(commitCode)
+		end
+		remember(userId, request.requestId, fingerprint, removalResult)
 		return removalResult
 	end
 
@@ -195,7 +210,7 @@ local function handleRequest(player: Player, request: any): any
 	local validation = PlacementValidator.validate(userId, request, profile, BuildingCatalog)
 	if not validation.ok then
 		local result = fail(validation.code)
-		remember(userId, request.requestId, result)
+		remember(userId, request.requestId, fingerprint, result)
 		return result
 	end
 
@@ -205,6 +220,8 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	local definition = BuildingCatalog[validation.catalogId :: string]
+	local previousLedger = table.clone(profile.buildingOperations or {})
+	local previousRevision = profile.revision
 
 	local record
 	local previousRecord: any = nil
@@ -245,7 +262,7 @@ local function handleRequest(player: Player, request: any): any
 		local paid, paymentCode = IslandResources.spend(profile.resources, definition.cost)
 		if not paid then
 			local result = fail(paymentCode)
-			remember(userId, request.requestId, result)
+			remember(userId, request.requestId, fingerprint, result)
 			return result
 		end
 		charged = true
@@ -274,18 +291,6 @@ local function handleRequest(player: Player, request: any): any
 		return fail(syncCode)
 	end
 
-	if not IslandSessionService.markDirty(userId) then
-		if movingIndex and previousRecord then
-			profile.buildings[movingIndex] = previousRecord
-			IslandWorldService.syncBuilding(userId, profile, previousRecord)
-		else
-			table.remove(profile.buildings, #profile.buildings)
-			IslandWorldService.removeBuilding(userId, record.instanceId)
-		end
-		if charged then profile.resources = resourcesBefore end
-		return fail("SESSION_NOT_WRITABLE")
-	end
-
 	local result = {
 		ok = true,
 		code = "BUILDING_PLACED",
@@ -295,10 +300,31 @@ local function handleRequest(player: Player, request: any): any
 		z = record.z,
 		rotation = record.rotation,
 	}
+	local committed, commitCode = IslandSessionService.commitBuildingOperation(
+		userId, player, request.requestId, fingerprint, operationAction, result
+	)
+	if not committed then
+		if movingIndex and previousRecord then
+			profile.buildings[movingIndex] = previousRecord
+			IslandWorldService.syncBuilding(userId, profile, previousRecord)
+		else
+			table.remove(profile.buildings, #profile.buildings)
+			IslandWorldService.removeBuilding(userId, record.instanceId)
+		end
+		if charged then profile.resources = resourcesBefore end
+		if profile.revision > previousRevision then
+			profile.buildingOperations = previousLedger
+			if IslandSessionService.canWrite(userId, player) then
+				IslandSessionService.markDirty(userId)
+			end
+		end
+		return fail(commitCode)
+	end
+
 	if charged then
 		IslandResourceService.publishSnapshot(userId, "SPENT")
 	end
-	remember(userId, request.requestId, result)
+	remember(userId, request.requestId, fingerprint, result)
 	return result
 end
 
