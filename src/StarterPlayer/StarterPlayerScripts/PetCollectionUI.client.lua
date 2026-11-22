@@ -546,6 +546,21 @@ local function resize()
 	end
 end
 
+local viewportConnection: RBXScriptConnection? = nil
+
+local function bindViewportCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
+	end
+
+	local camera = Workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+		resize()
+	end
+end
+
 local function openCollection()
 	shade.Visible = true
 	panel.Visible = true
@@ -568,6 +583,8 @@ equipButton.Activated:Connect(toggleEquip)
 petButton.Activated:Connect(function() interactWithSelected("pet") end)
 playButton.Activated:Connect(function() interactWithSelected("play") end)
 search:GetPropertyChangedSignal("Text"):Connect(renderList)
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
+bindViewportCamera()
 
 if UserInputService.TouchEnabled then
 	openButton.Position = UDim2.new(1, -14, 0.72, 0)
