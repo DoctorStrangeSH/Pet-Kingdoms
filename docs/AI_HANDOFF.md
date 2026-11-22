@@ -1363,3 +1363,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Resource visual Model is cloned, repositioned to canonical node base pivot, sanitized of scripts and template-provided ProximityPrompt/BillboardGui instances, and anchored/non-colliding. Server constructs separate `GatherAnchor` BasePart with server-trusted ProximityPrompt.
 - IslandGatheringService now restores saved `GatherBaseTransparency` for individual parts and never unhides the invisible prompt anchor. This also keeps transparent details in imported assets after respawn.
 - Added Studio-only resource contract fixture to IslandWorldServiceTests; no Studio execution performed. No actual visual assets imported or approved, as `ASSET_TRACKER` requires explicit provenance and review.
+
+## Build placement confirmation freeze (2026-11-22)
+
+- `IslandBuildingController.client.lua` now skips preview updates when pointer is within the open action panel and freezes the selected catalog/grid/rotation/move-ID fields before invoking the server.
+- `placementSubmitting` guards duplicate clicks, rotating, catalogue edits, stop, and RenderStepped preview updates until the request completes. The existing idempotency request ID is derived from the same immutable snapshot used in the server payload.
+- Rojo package validation is not Studio interaction validation. Manual test: choose ground cell, move mouse/touch to Confirm, verify preview holds; confirm, verify saved GridX/GridZ exactly; test server errors and retries.
