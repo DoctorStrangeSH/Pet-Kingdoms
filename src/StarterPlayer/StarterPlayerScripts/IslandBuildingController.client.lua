@@ -746,19 +746,22 @@ confirmButton.Activated:Connect(function()
 		})
 	end)
 	placementSubmitting = false
+	-- Resolve the request receipt even when the player opened another modal
+	-- during the yielding remote call. Otherwise an already accepted operation
+	-- keeps its old request ID and a later placement looks like a duplicate.
+	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if playerGui:GetAttribute("PetKingdomsActiveModal") ~= "building" then
 		stopPlacing()
 		return
 	end
 	confirmButton.Active = true
 	confirmButton.Text = if requestedMovingId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
-	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		local wasMoving = movingInstanceId ~= nil
+		local wasMoving = requestedMovingId ~= nil
 		local successLabels = {
 			main_house = "Главный дом построен!",
 			pet_house = "Домик питомцев построен!",
@@ -767,7 +770,7 @@ confirmButton.Activated:Connect(function()
 			flower_bed = "Клумба размещена!",
 			wooden_fence = "Секция забора установлена!",
 		}
-		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[selectedCatalogId] or "Объект размещён!"), true)
+		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[requestedCatalogId] or "Объект размещён!"), true)
 		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
