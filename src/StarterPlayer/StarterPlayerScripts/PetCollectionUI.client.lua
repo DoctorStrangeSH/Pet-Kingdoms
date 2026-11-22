@@ -122,6 +122,40 @@ local closeButton = make("TextButton", {
 }, panel) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 12) }, closeButton)
 
+-- On narrow screens list and details are separate views rather than
+-- two unusably thin columns. The selected pet opens its details directly.
+local mobileView = "list"
+local mobileLayout = false
+local mobileTabs = make("Frame", {
+	Name = "MobileTabs",
+	Position = UDim2.new(0, 16, 0, 88),
+	Size = UDim2.new(1, -32, 0, 40),
+	BackgroundTransparency = 1,
+	Visible = false,
+}, panel) :: Frame
+local listTab = make("TextButton", {
+	Name = "ListTab",
+	Position = UDim2.fromScale(0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.cardSelected,
+	Text = "ВСЕ ПИТОМЦЫ",
+	TextColor3 = COLORS.cream,
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+}, mobileTabs) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, listTab)
+local detailTab = make("TextButton", {
+	Name = "DetailTab",
+	Position = UDim2.new(0.5, 5, 0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.panelSoft,
+	Text = "МОЙ ПИТОМЕЦ",
+	TextColor3 = COLORS.cream,
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+}, mobileTabs) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, detailTab)
+
 local search = make("TextBox", {
 	Position = UDim2.new(0, 24, 0, 88),
 	Size = UDim2.new(0.48, -28, 0, 38),
@@ -559,6 +593,33 @@ local function updateDetail()
 	renderPreview(selected.speciesId)
 end
 
+local function updateMobileView()
+	mobileTabs.Visible = mobileLayout
+	if not mobileLayout then
+		search.Visible = true
+		filterBar.Visible = true
+		list.Visible = true
+		detail.Visible = true
+		return
+	end
+	local showList = mobileView == "list"
+	search.Visible = showList
+	filterBar.Visible = showList
+	list.Visible = showList
+	detail.Visible = not showList
+	listTab.BackgroundColor3 = if showList then COLORS.cardSelected else COLORS.panelSoft
+	detailTab.BackgroundColor3 = if showList then COLORS.panelSoft else COLORS.cardSelected
+end
+
+listTab.Activated:Connect(function()
+	mobileView = "list"
+	updateMobileView()
+end)
+detailTab.Activated:Connect(function()
+	mobileView = "detail"
+	updateMobileView()
+end)
+
 local function renderList()
 	if collection == nil then return end
 	for _, child in ipairs(list:GetChildren()) do
@@ -641,6 +702,10 @@ local function renderList()
 			selectedPetId = record.petId
 			renderList()
 			updateDetail()
+			if mobileLayout then
+				mobileView = "detail"
+				updateMobileView()
+			end
 		end)
 	end
 	if #visibleRecords == 0 then
@@ -876,19 +941,60 @@ local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
-	if viewport.X < 650 then
-		panel.Size = UDim2.new(0.94, 0, 0.82, 0)
-		panelScale.Scale = 0.94
-	elseif viewport.X < 900 then
-		panel.Size = UDim2.new(0.9, 0, 0.8, 0)
-		panelScale.Scale = 0.96
+	mobileLayout = viewport.X < 650
+	panelScale.Scale = 1
+	if mobileLayout then
+		-- Each mobile view uses the full available width; fixed control sizes
+		-- are never squeezed into half-width desktop columns.
+		panel.Size = UDim2.fromOffset(
+			math.max(270, math.min(viewport.X - 20, 520)),
+			math.max(380, viewport.Y - 30)
+		)
+		closeButton.Size = UDim2.fromOffset(44, 44)
+		search.Position = UDim2.new(0, 16, 0, 136)
+		search.Size = UDim2.new(1, -32, 0, 40)
+		filterBar.Position = UDim2.new(0, 16, 0, 182)
+		filterBar.Size = UDim2.new(1, -32, 0, 36)
+		list.Position = UDim2.new(0, 16, 0, 226)
+		list.Size = UDim2.new(1, -32, 1, -266)
+		detail.Position = UDim2.new(0, 16, 0, 136)
+		detail.Size = UDim2.new(1, -32, 1, -174)
+		preview.Size = UDim2.new(1, -20, 0.27, -8)
+		for _, item in ipairs({ petName, petRarity, petDescription, progressionLabel, bondLabel, favoriteButton, lockButton }) do
+			local y = item == petName and 0
+				or item == petRarity and 31
+				or item == petDescription and 57
+				or item == progressionLabel and 103
+				or item == bondLabel and 127
+				or 0
+			item.Position = UDim2.new(
+				(item == favoriteButton or item == lockButton) and 1 or 0,
+				item == favoriteButton and -88 or item == lockButton and -48 or 16,
+				0.27, y
+			)
+		end
 	else
-		panel.Size = UDim2.fromScale(0.78, 0.78)
-		panelScale.Scale = 1
+		panel.Size = UDim2.new(if viewport.X < 900 then 0.9 else 0.78, 0, 0.78, 0)
+		if viewport.Y < 540 then panel.Size = UDim2.new(panel.Size.X.Scale, 0, 0.92, 0) end
+		closeButton.Size = UDim2.fromOffset(38, 38)
+		search.Position = UDim2.new(0, 24, 0, 88)
+		search.Size = UDim2.new(0.48, -28, 0, 38)
+		filterBar.Position = UDim2.new(0, 24, 0, 132)
+		filterBar.Size = UDim2.new(0.48, -28, 0, 32)
+		list.Position = UDim2.new(0, 24, 0, 172)
+		list.Size = UDim2.new(0.48, -28, 1, -196)
+		detail.Position = UDim2.new(0.52, 0, 0, 88)
+		detail.Size = UDim2.new(0.48, -24, 1, -112)
+		preview.Size = UDim2.new(1, -20, 0.53, -10)
+		petName.Position = UDim2.new(0, 16, 0.55, 0)
+		petRarity.Position = UDim2.new(0, 16, 0.55, 31)
+		petDescription.Position = UDim2.new(0, 16, 0.55, 57)
+		progressionLabel.Position = UDim2.new(0, 16, 0.55, 103)
+		bondLabel.Position = UDim2.new(0, 16, 0.55, 127)
+		favoriteButton.Position = UDim2.new(1, -88, 0.55, 0)
+		lockButton.Position = UDim2.new(1, -48, 0.55, 0)
 	end
-	if viewport.Y < 540 then
-		panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0.92, 0)
-	end
+	updateMobileView()
 end
 
 local viewportConnection: RBXScriptConnection? = nil
@@ -907,6 +1013,7 @@ local function bindViewportCamera()
 end
 
 local function openCollection()
+	mobileView = "list"
 	playerGui:SetAttribute("PetKingdomsActiveModal", "pets")
 	shade.Visible = true
 	panel.Visible = true
