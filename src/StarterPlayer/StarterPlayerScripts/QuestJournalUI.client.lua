@@ -278,6 +278,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	trackedQuestId = serverTrackedQuestId
 	clearCards()
 	local completedCount = 0
+	local claimedCount = 0
 	for index, quest in ipairs(quests) do
 		if type(quest) ~= "table" or type(quest.id) ~= "string"
 			or type(quest.name) ~= "string" or type(quest.description) ~= "string"
@@ -286,7 +287,9 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			continue
 		end
 		local done = quest.completed == true
+		local claimed = done and quest.rewardClaimed == true
 		if done then completedCount += 1 end
+		if claimed then claimedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
 			Size = UDim2.new(1, -6, 0, 124),
@@ -362,10 +365,10 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = UDim2.new(0, 16, 0, 65),
 			Size = UDim2.new(0.5, 0, 0, 18),
 			Font = Enum.Font.GothamBold,
-			Text = if done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
+			Text = if claimed then "НАГРАДА ПОЛУЧЕНА" elseif done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
 			TextSize = 9,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			TextColor3 = if done then COLORS.mint else COLORS.gold,
+			TextColor3 = if claimed or done then COLORS.mint else COLORS.gold,
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
@@ -391,7 +394,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	end
 	badge.Text = if #quests == 0 then "—" else tostring(math.max(0, #quests - completedCount))
 	badge.BackgroundColor3 = if completedCount == #quests and #quests > 0 then COLORS.mint else COLORS.gold
-	status.Text = string.format("Выполнено: %d из %d  •  Награды появятся в следующем этапе", completedCount, #quests)
+	status.Text = string.format("Выполнено: %d из %d  •  Получено наград: %d  •  Выдача наград пока отключена", completedCount, #quests, claimedCount)
 	status.TextColor3 = COLORS.muted
 	for _, quest in ipairs(quests) do
 		if quest.completed == true then
