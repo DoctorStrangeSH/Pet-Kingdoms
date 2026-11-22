@@ -815,3 +815,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 
 - Removed the unused BUILDING_COSTS table from IslandBuildingController. It duplicated provisional prices already owned by the server's BuildingCatalog and was not read by the client.
 - Server remains authoritative for all construction costs and affordability decisions. This is dead-code removal only; no price, placement, or economy behavior changed.
+
+
+## Island expansion geometry regression coverage (2026-11-22)
+
+- Extended IslandExpansionTests.server.lua beyond dimension-only checks.
+- The test now expands a representative profile from 24x24 to 32x32 to 40x40, checks the +4-cell coordinate shift on each expansion, verifies cumulative offsets for two saved buildings, confirms the original source profile is unchanged, and rejects a third expansion at the configured maximum.
+- These are Studio-only pure contract tests. They have been committed but not executed in the owner's Roblox Studio session.
+- Expansion pricing, purchase/unlock, durable transaction receipt, world resize/update, occupied-edge handling, and client preview remain unimplemented because the economy and unlock requirements are not approved yet.
