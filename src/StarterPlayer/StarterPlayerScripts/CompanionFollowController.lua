@@ -239,6 +239,10 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local navigationGoal = desired
 	local directRouteClear = hasDirectPath(currentPosition, desired, self.groundRaycastParams)
 	if directRouteClear then
+		if self.path ~= nil or self.pathPending then
+			self.pathGeneration += 1
+			self.pathPending = false
+		end
 		if self.pathBlockedConnection then
 			self.pathBlockedConnection:Disconnect()
 			self.pathBlockedConnection = nil
@@ -282,6 +286,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 					self.pathIndex = math.min(2, #self.pathWaypoints)
 					self.pathGoal = goalPosition
 					self.pathBlockedConnection = computedPath.Blocked:Connect(function(blockedIndex)
+						if self.destroyed then return end
 						if blockedIndex >= self.pathIndex then
 							self.pathGeneration += 1
 							self.path = nil
