@@ -157,7 +157,6 @@ local function refreshKingdomBondVisuals(world: Model, profile: any)
 	if bond.buildingCount >= 6 then
 		local banner = accent("Kingdom_Banner", center.Position + Vector3.new(-edgeX * 0.2, groundY - center.Position.Y + 2.1, edgeZ * 0.45),
 			Vector3.new(0.35, 4.2, 0.35), Color3.fromRGB(255, 207, 123), Enum.Material.Metal)
-		banner.Shape = Enum.PartType.Cylinder
 		accent("Kingdom_BannerCloth", banner.Position + Vector3.new(0.9, 0.7, 0),
 			Vector3.new(1.7, 1.15, 0.12), Color3.fromRGB(132, 104, 194), Enum.Material.SmoothPlastic)
 	end
