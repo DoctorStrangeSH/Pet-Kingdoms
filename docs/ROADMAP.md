@@ -92,6 +92,9 @@
 - [ ] Implement shared Sun Grove and Moon Grove connections.
 - [ ] Implement bridge repair and guest permissions.
 - [ ] Implement island expansion and validated building placement.
+  - [x] Add a pure expansion geometry contract: level 0 preserves the current plot, each of two provisional levels adds 8 grid cells per axis, and invalid/max levels are rejected. No purchase costs or unlock conditions are invented before economy approval.
+  - [x] Add Studio-only geometry contract tests for starter/expanded dimensions, maximum level, and invalid inputs (execution pending).
+  - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
 - [x] Add a minimal client catalogue for main_house and pet_house, wired to server-authoritative placement (Studio/device verification pending).
