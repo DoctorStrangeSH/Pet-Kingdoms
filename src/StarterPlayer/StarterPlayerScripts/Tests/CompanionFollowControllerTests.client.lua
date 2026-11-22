@@ -66,6 +66,45 @@ expect("ground lift follows actual imported mesh bounds", math.abs(externalContr
 externalController:destroy()
 externalPet:Destroy()
 
+-- Verify a single exponential smoothing step: the old controller applied
+-- interpolation twice, resulting in alpha squared and sluggish movement.
+local smoothTarget = Instance.new("Part")
+smoothTarget.Name = "SmoothingTarget"
+smoothTarget.Anchored = true
+smoothTarget.CanCollide = false
+smoothTarget.CanQuery = false
+smoothTarget.CFrame = CFrame.new(1200, 80, 1200)
+smoothTarget.Parent = folder
+local smoothPet = Instance.new("Model")
+smoothPet.Name = "SmoothingPet"
+smoothPet:SetAttribute("SpeciesId", "bunny")
+smoothPet:SetAttribute("IsExternalMeshPet", true)
+local smoothPart = Instance.new("Part")
+smoothPart.Anchored = true
+smoothPart.CanCollide = false
+smoothPart.CanQuery = false
+smoothPart.Size = Vector3.new(2, 2, 2)
+smoothPart.CFrame = CFrame.new(1208, 80, 1200)
+smoothPart.Parent = smoothPet
+smoothPet.PrimaryPart = smoothPart
+smoothPet.Parent = folder
+local smoothController, smoothStatus = CompanionFollowController.new(
+	smoothPet, smoothTarget, { slotIndex = 1, smoothing = 8 }
+)
+expect("smoothing test controller created", smoothController ~= nil and smoothStatus == "CREATED")
+assert(smoothController ~= nil)
+local before = smoothPet:GetPivot().Position
+local formationTarget = smoothTarget.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
+smoothController:update(1 / 60)
+local after = smoothPet:GetPivot().Position
+local expectedAlpha = 1 - math.exp(-8 / 60)
+local actualAlpha = (after.X - before.X) / (formationTarget.X - before.X)
+expect("follow translation uses one smoothing step, not alpha squared",
+	math.abs(actualAlpha - expectedAlpha) < 0.015)
+smoothController:destroy()
+smoothPet:Destroy()
+smoothTarget:Destroy()
+
 expect("clear follow lane does not allocate a path", controllers[1].path == nil and #controllers[1].pathWaypoints == 0)
 
 local firstPosition = pets[1]:GetPivot().Position
