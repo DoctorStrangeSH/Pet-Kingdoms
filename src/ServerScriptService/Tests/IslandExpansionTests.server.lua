@@ -44,6 +44,17 @@ expect("profile with mismatched bounds and expansion level is rejected",
 	not IslandExpansion.matchesProfileBounds({ boundsWidth = 40, boundsDepth = 40, expansionLevel = 1 }, 24, 24))
 expect("profile with out-of-range expansion level is rejected",
 	not IslandExpansion.matchesProfileBounds({ boundsWidth = 48, boundsDepth = 48, expansionLevel = 3 }, 24, 24))
+
+local preparedFirst, preparedFirstCode = IslandExpansion.prepareNextProfile(original, 24, 24)
+expect("canonical starter profile prepares next expansion",
+	preparedFirst ~= nil and preparedFirstCode == "PREPARED"
+		and preparedFirst.boundsWidth == 32 and preparedFirst.expansionLevel == 1)
+expect("preparing next expansion does not mutate source profile",
+	original.boundsWidth == 24 and original.expansionLevel == 0 and original.buildings[1].x == originalFirstX)
+local malformedCurrent = { boundsWidth = 40, boundsDepth = 40, expansionLevel = 1, buildings = {} }
+local malformedNext, malformedCode = IslandExpansion.prepareNextProfile(malformedCurrent, 24, 24)
+expect("non-canonical current profile cannot advance",
+	malformedNext == nil and malformedCode == "INVALID_EXPANSION_BOUNDS")
 expect("non-finite dimensions are rejected", IslandExpansion.getBounds(math.huge, 24, 1) == nil)
 
 local original = {
