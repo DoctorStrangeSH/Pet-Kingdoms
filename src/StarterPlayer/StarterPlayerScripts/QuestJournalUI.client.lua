@@ -84,8 +84,9 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 340), MaxSize = Vector2.new(500, 440) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(290, 300), MaxSize = Vector2.new(500, 440) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
 local title = make("TextLabel", {
@@ -510,10 +511,18 @@ end)
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	-- Fit the entire dialogue in portrait and short landscape viewports.
+	-- Scale fixed internal offsets together so the close control stays reachable.
+	local baseHeight = 410
+	local width = math.clamp(viewport.X - 24, 290, 500)
+	local scale = math.min(1, math.max(0.6, (viewport.Y - 40) / baseHeight))
+	panelScale.Scale = scale
+	panel.Size = UDim2.fromOffset(width, baseHeight)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, -12)
 	tracker.Size = UDim2.fromOffset(compact and 220 or 260, 78)
 end
