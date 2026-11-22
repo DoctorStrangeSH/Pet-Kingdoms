@@ -343,7 +343,7 @@ local ledgerFullAcquisition, ledgerFullAcquisitionStatus =
 expect("full acquisition ledger rejects new acquisitions safely", not ledgerFullAcquisition and ledgerFullAcquisitionStatus == "ACQUISITION_LEDGER_FULL")
 
 local expiredAcquisitionProfile = PetCollectionData.clone(acquiredOnceProfile)
-local acquisitionAfterRetention = 1_800_000_000 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+local acquisitionAfterRetention = 1_800_000_000 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 1
 local reacquired, reacquiredStatus, reacquiredProfile =
 	PetCollectionData.addPetOnce(expiredAcquisitionProfile, "pet_acq_after_expiry", "bunny", 2, acquisitionAfterRetention, "egg:opening_001")
 expect("unacknowledged acquisition receipt never expires", not reacquired and reacquiredStatus == "ALREADY_ACQUIRED" and reacquiredProfile ~= nil)
@@ -645,7 +645,7 @@ local expiredIdentityReuse, expiredIdentityStatus = PetCollectionData.addPet(
 	"retired-pet-id",
 	"bunny",
 	2,
-	300 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+	300 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 1
 )
 expect("completed pet identity can be reused after journal retention", expiredIdentityReuse and expiredIdentityStatus == "UPDATED")
 
@@ -699,7 +699,7 @@ local expiredLedgerReserved, expiredLedgerStatus = PetCollectionData.reservePetS
 	"hatch-after-expiry",
 	"bunny",
 	1,
-	1 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+	1 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 1
 )
 expect("acknowledged receipts are pruned after retention", expiredLedgerReserved and expiredLedgerStatus == "RESERVED")
 
@@ -712,7 +712,7 @@ expect("hatch grant stores its source transaction", pendingHatchAdded and pendin
 assert(pendingHatchOwned ~= nil)
 local pendingHatchRetry, pendingHatchRetryStatus = PetCollectionData.addPetOnce(
 	pendingHatchOwned, "duplicate-hatch-pet", "bunny", 2,
-	100 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 100,
+	100 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 100,
 	"hatch:pending-001", "hatch:tx-pending-001"
 )
 expect("unacknowledged hatch receipt survives beyond seven days",
@@ -734,7 +734,7 @@ expect("receipt acknowledgement is idempotent", not repeatedAck and repeatedAckS
 local expiredAcknowledgedHatch, expiredAcknowledgedStatus =
 	PetCollectionData.reservePetSlotOnce(
 		acknowledgedHatchProfile, "hatch:after-completion", "bunny", 1,
-		200 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1, "hatch:tx-after-completion"
+		200 + PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS + 1, "hatch:tx-after-completion"
 	)
 expect("acknowledged receipt can be compacted after completion retention",
 	expiredAcknowledgedHatch and expiredAcknowledgedStatus == "RESERVED")
