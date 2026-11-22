@@ -250,5 +250,6 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Consume the reserved receipt capacity atomically when the matching hatch grant completes; account for other pending reservations when processing a grant.
 - [x] Apply the documented receipt retention window to the pet-ID reuse guard; expired receipts no longer block an ID forever.
 - [x] Add regression tests for final receipt-slot reservation, rejection of an additional pending hatch, successful receipt-slot consumption, expiry pruning, and pet-ID reuse after expiry.
+- [x] Synchronize the newest validated DataStore snapshot into the in-memory cache when an idempotent XP retry returns `ALREADY_PROCESSED`.
 - [ ] Run Studio pure-data tests and DataStore concurrency/fault-injection tests. Verify a reservation remains grantable when other reward sources execute concurrently.
 - [ ] Replace or explicitly deprecate non-idempotent XP reward entry points before gameplay reward callers are introduced; use stable reward IDs for retryable sources.
