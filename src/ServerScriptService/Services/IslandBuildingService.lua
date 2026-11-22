@@ -120,6 +120,9 @@ local function handleRequest(player: Player, request: any): any
 	if not IslandSessionService.canWrite(userId, player) then
 		return fail("SESSION_NOT_WRITABLE")
 	end
+	if IslandSessionService.isProfileMutationBusy(userId) then
+		return fail("BUILDING_OPERATION_BUSY")
+	end
 	local fingerprint, operationAction = makeFingerprint(request)
 	local cache = resultsByUserId[userId]
 	local cached = cache and cache[request.requestId]
