@@ -66,6 +66,8 @@ expect("ground lift follows actual imported mesh bounds", math.abs(externalContr
 externalController:destroy()
 externalPet:Destroy()
 
+expect("clear follow lane does not allocate a path", controllers[1].path == nil and #controllers[1].pathWaypoints == 0)
+
 local firstPosition = pets[1]:GetPivot().Position
 local secondPosition = pets[2]:GetPivot().Position
 expect("formation slots produce distinct pet positions", (firstPosition - secondPosition).Magnitude > 0.5)
@@ -147,7 +149,7 @@ expect("extremely distant companion recovers near its owner",
 
 for _, controller in ipairs(controllers) do
 	controller:destroy()
-	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil)
+	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil and controller.pathBlockedConnection == nil)
 end
 
 target:Destroy()
