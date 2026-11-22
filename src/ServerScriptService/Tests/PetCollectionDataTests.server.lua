@@ -142,6 +142,41 @@ expect("NaN pet XP reward rejected", not nanReward and nanRewardStatus == "INVAL
 local unownedReward, unownedRewardStatus = PetCollectionData.grantExperience(profile, "not-owned", 10)
 expect("XP reward for unowned pet rejected", not unownedReward and unownedRewardStatus == "PET_NOT_OWNED")
 
+
+-- Synthetic thresholds verify atomic XP + level persistence only; not production balance.
+local progressionThresholds = {}
+for level = 1, PetCollectionData.MAX_PET_LEVEL do
+	progressionThresholds[level] = (level - 1) * 100
+end
+
+local progressionReward, progressionStatus, progressionProfile, progressionSummary =
+	PetCollectionData.grantExperienceWithProgress(profile, "starter-bunny", 250, progressionThresholds)
+expect("progression reward updates XP and level", progressionReward and progressionStatus == "UPDATED" and progressionProfile ~= nil and progressionSummary ~= nil)
+assert(progressionProfile ~= nil and progressionSummary ~= nil)
+expect("progression reward persists total XP", progressionProfile.owned[1].xp == 250)
+expect("progression reward persists derived level", progressionProfile.owned[1].level == 3)
+expect("progression summary reports multiple level gains", progressionSummary.previousLevel == 1 and progressionSummary.level == 3 and progressionSummary.levelsGained == 2)
+expect("progression reward increments revision once", progressionProfile.revision == profile.revision + 1)
+expect("progression reward leaves Bond unchanged", progressionProfile.owned[1].bondXp == profile.owned[1].bondXp)
+
+local maxProgressionReward, _, maxProgressionProfile, maxProgressionSummary =
+	PetCollectionData.grantExperienceWithProgress(profile, "starter-bunny", 4900, progressionThresholds)
+expect("large reward caps level at 50", maxProgressionProfile ~= nil and maxProgressionProfile.owned[1].level == 50)
+expect("level 50 summary has no next level", maxProgressionSummary ~= nil and maxProgressionSummary.isMaxLevel and maxProgressionSummary.nextLevelXp == nil)
+
+local badThresholdReward, badThresholdStatus = PetCollectionData.grantExperienceWithProgress(profile, "starter-bunny", 10, {})
+expect("progression reward rejects invalid thresholds", not badThresholdReward and string.find(badThresholdStatus, "INVALID_THRESHOLDS:", 1, true) == 1)
+
+local progressionUnowned, progressionUnownedStatus =
+	PetCollectionData.grantExperienceWithProgress(profile, "missing-pet", 10, progressionThresholds)
+expect("progression reward rejects unowned pet", not progressionUnowned and progressionUnownedStatus == "PET_NOT_OWNED")
+
+local progressionOverflow = PetCollectionData.clone(profile)
+progressionOverflow.owned[1].xp = PetCollectionData.MAX_SAFE_INTEGER - 1
+local progressionOverflowReward, progressionOverflowStatus =
+	PetCollectionData.grantExperienceWithProgress(progressionOverflow, "starter-bunny", 10, progressionThresholds)
+expect("progression reward rejects XP overflow", not progressionOverflowReward and progressionOverflowStatus == "XP_OVERFLOW")
+
 local equipped, equipStatus, updated = PetCollectionData.setEquipped(profile, { "starter-bunny" })
 expect("owned pet can be equipped", equipped and equipStatus == "UPDATED" and updated ~= nil)
 assert(updated ~= nil)
