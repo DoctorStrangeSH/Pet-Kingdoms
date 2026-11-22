@@ -697,4 +697,29 @@ local expiredLedgerReserved, expiredLedgerStatus = PetCollectionData.reservePetS
 )
 expect("expired receipts are pruned before reserving hatch capacity", expiredLedgerReserved and expiredLedgerStatus == "RESERVED")
 
+local sessionProfile = PetCollectionData.createDefault(12345)
+assert(sessionProfile ~= nil)
+sessionProfile.collectionSessionGeneration = 3
+sessionProfile.collectionSessionToken = "server-session-token"
+local sessionValid, sessionReason = PetCollectionData.validate(sessionProfile, 12345)
+expect("fenced collection profile validates", sessionValid and sessionReason == "VALID")
+
+local sessionClone = PetCollectionData.clone(sessionProfile)
+expect("collection cloning preserves writer generation and token",
+	sessionClone.collectionSessionGeneration == 3
+	and sessionClone.collectionSessionToken == "server-session-token")
+local sessionMutated, _, sessionUpdated = PetCollectionData.setPetFlags(
+	sessionProfile, "starter-bunny", true, false
+)
+expect("pet mutation preserves collection fencing",
+	sessionMutated and sessionUpdated ~= nil
+	and sessionUpdated.collectionSessionGeneration == 3
+	and sessionUpdated.collectionSessionToken == "server-session-token")
+
+local incompleteSession = PetCollectionData.clone(sessionProfile)
+incompleteSession.collectionSessionToken = nil
+local incompleteValid, incompleteReason = PetCollectionData.validate(incompleteSession, 12345)
+expect("partial collection session metadata is rejected",
+	not incompleteValid and incompleteReason == "INCOMPLETE_COLLECTION_SESSION")
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
