@@ -72,3 +72,10 @@ These functions are server-only module APIs. Do not expose a RemoteFunction that
 - `IslandDataTests.server.lua`: wallet defaults and invalid resource balance rejection.
 
 These Studio tests are committed; execution in Roblox Studio is still pending.
+
+
+## Pet hatching integration constraint
+
+The island wallet and pet collection currently live in separate DataStores. The current `spend` API mutates the loaded island session and marks it dirty for autosave; it is not a durable transaction acknowledgement. Do not implement paid egg hatching as a simple `spend` followed by `grantPet`. A server crash between operations can leave the player charged without a pet.
+
+Before paid hatching ships, add a persisted transaction journal/debit receipt in the island profile, a durable save/commit acknowledgement, and retry/reconciliation using the same hatch transaction ID and pet acquisition ID. The selected species and rarity must be fixed in the durable prepared record before charging, so a retry cannot reroll. The pet collection acquisition receipt remains the idempotent grant boundary.
