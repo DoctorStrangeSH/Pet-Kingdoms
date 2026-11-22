@@ -22,6 +22,15 @@ expect("zero progression version is rejected", invalid == nil and invalidCode ==
 local fractional, fractionalCode = PetProgressionCatalog.getThresholds(1.5)
 expect("fractional progression version is rejected", fractional == nil and fractionalCode == "INVALID_PROGRESSION_VERSION")
 
+local nanVersion, nanVersionCode = PetProgressionCatalog.getThresholds(0 / 0)
+expect("NaN progression version is rejected", nanVersion == nil and nanVersionCode == "INVALID_PROGRESSION_VERSION")
+
+local infiniteVersion, infiniteVersionCode = PetProgressionCatalog.getThresholds(math.huge)
+expect("infinite progression version is rejected", infiniteVersion == nil and infiniteVersionCode == "INVALID_PROGRESSION_VERSION")
+
+local unsafeVersion, unsafeVersionCode = PetProgressionCatalog.getThresholds(9007199254740992)
+expect("unsafe progression version is rejected", unsafeVersion == nil and unsafeVersionCode == "INVALID_PROGRESSION_VERSION")
+
 local unknown, unknownCode = PetProgressionCatalog.getThresholds(2147483000)
 expect("unknown progression version fails closed", unknown == nil and unknownCode == "PROGRESSION_VERSION_NOT_CONFIGURED")
 
@@ -33,6 +42,10 @@ for _, version in ipairs(versions) do
 	previous = version
 end
 expect("configured progression versions are unique and sorted", ordered)
+
+expect("unapproved progression catalog stays empty", #versions == 0)
+local unconfigured, unconfiguredCode = PetProgressionCatalog.getThresholds(1)
+expect("unapproved progression curve fails closed", unconfigured == nil and unconfiguredCode == "PROGRESSION_VERSION_NOT_CONFIGURED")
 
 print(string.format("[PetProgressionCatalogTests] %d passed, %d failed", passed, failed))
 assert(failed == 0, "Pet progression catalog contract tests failed")
