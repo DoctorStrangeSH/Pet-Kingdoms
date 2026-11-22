@@ -94,3 +94,11 @@ No food/inventory action is added because an approved food catalogue and resourc
 - The existing collection RemoteFunction remains the only path for equip/protect/delete/interact operations; those mutations remain server-authoritative and revision-checked. The prompt itself grants no ownership or gameplay reward.
 - Prompt creation is shared by initial island rendering and live building synchronization, so a newly placed or moved Pet House has the same interaction.
 - Studio verification is pending: test keyboard, gamepad, touch prompt presentation, another player's Pet House, and a missing Door part on a custom template.
+
+
+## Companion grounding correction (2026-11-22)
+
+- Follow controllers now calculate each pet model's actual pivot-to-bounding-box-bottom offset when binding.
+- Ground placement no longer assumes a universal 0.28-stud root offset. This supports the procedural Bunny rig and imported mesh pets with center-based pivots and different heights.
+- Added a Studio client test with a 4-stud imported-mesh stand-in whose pivot is centered; the expected ground lift is 2 studs.
+- This corrects vertical placement only. Obstacle navigation, slope limits, multiplayer replication behavior, and mobile performance still require Studio verification.
