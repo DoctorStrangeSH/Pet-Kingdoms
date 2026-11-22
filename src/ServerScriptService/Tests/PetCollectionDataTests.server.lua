@@ -51,6 +51,36 @@ badRevision.revision = -1
 local revisionValid = PetCollectionData.validate(badRevision, 12345)
 expect("negative revision rejected", not revisionValid)
 
+local infiniteRevision = PetCollectionData.clone(profile)
+infiniteRevision.revision = math.huge
+local infiniteRevisionValid = PetCollectionData.validate(infiniteRevision, 12345)
+expect("infinite revision rejected", not infiniteRevisionValid)
+
+local nanRevision = PetCollectionData.clone(profile)
+nanRevision.revision = 0 / 0
+local nanRevisionValid = PetCollectionData.validate(nanRevision, 12345)
+expect("NaN revision rejected", not nanRevisionValid)
+
+local infiniteAcquiredAt = PetCollectionData.clone(profile)
+infiniteAcquiredAt.owned[1].acquiredAt = math.huge
+local infiniteAcquiredAtValid = PetCollectionData.validate(infiniteAcquiredAt, 12345)
+expect("infinite acquisition timestamp rejected", not infiniteAcquiredAtValid)
+
+local fractionalAcquiredAt = PetCollectionData.clone(profile)
+fractionalAcquiredAt.owned[1].acquiredAt = 12.5
+local fractionalAcquiredAtValid = PetCollectionData.validate(fractionalAcquiredAt, 12345)
+expect("fractional acquisition timestamp rejected", not fractionalAcquiredAtValid)
+
+local infiniteInteractionAt = PetCollectionData.clone(profile)
+infiniteInteractionAt.owned[1].lastInteractionAt = math.huge
+local infiniteInteractionAtValid = PetCollectionData.validate(infiniteInteractionAt, 12345)
+expect("infinite interaction timestamp rejected", not infiniteInteractionAtValid)
+
+local nanInteractionAt = PetCollectionData.clone(profile)
+nanInteractionAt.owned[1].lastInteractionAt = 0 / 0
+local nanInteractionAtValid = PetCollectionData.validate(nanInteractionAt, 12345)
+expect("NaN interaction timestamp rejected", not nanInteractionAtValid)
+
 local interacted, interactionStatus, bonded = PetCollectionData.interact(profile, "starter-bunny", "pet", 1000)
 expect("owned pet can receive affection", interacted and interactionStatus == "UPDATED" and bonded ~= nil)
 assert(bonded ~= nil)
