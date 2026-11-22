@@ -518,3 +518,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add integration contract tests for wood/stone progression, independent node cooldowns, quest completion, immutable source state, cooldown rejection, wallet-cap rejection, malformed quest state, and unknown nodes.
 - [ ] Execute the new Studio integration suite and existing gathering/quest contract suites in Roblox Studio.
 - [ ] Validate actual DataStore persistence, leave/rejoin, and server restart behavior in a dedicated test place.
+
+
+### Gathering persistence and reload contract (2026-11-22)
+
+- [x] Add a Studio contract that JSON-serializes and restores a real island profile after a gathering transaction, then validates the restored profile against the canonical IslandData schema.
+- [x] Assert resources, node cooldown, quest progress, and profile revision all survive the round trip.
+- [x] Assert a reloaded node cannot be gathered twice during its persisted cooldown and that a distinct node advances quest progress once.
+- [ ] Execute the serialization/reload contract in Roblox Studio.
+- [ ] Run true DataStore leave/rejoin and server-restart scenarios in a dedicated test place; JSON round-trip is a schema contract, not a live DataStore test.
