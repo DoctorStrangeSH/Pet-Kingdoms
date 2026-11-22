@@ -869,3 +869,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - It returns PREPARED only for a canonical one-level transition. Invalid current geometry, max-level, and malformed building records retain explicit failure codes.
 - The helper does not mutate the source profile, debit resources, write DataStore, or change the live world. It is a safe preparation primitive for the future server-authoritative transaction after economy rules are approved.
 - Added Studio contract cases for valid starter preparation, source immutability, and rejection of a non-canonical current profile.
+
+
+## Expansion preparation failure-path coverage (2026-11-22)
+
+- Added contract tests for prepareNextProfile rejection at maximum level, invalid saved building coordinates, and mismatched configured base dimensions.
+- These tests complement the success and source-immutability cases and ensure invalid requests fail before any future transaction can mutate or persist a profile.
+- No purchase, resource debit, durable receipt, or live world resize was introduced. Studio execution remains pending.
