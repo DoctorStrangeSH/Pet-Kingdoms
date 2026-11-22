@@ -574,3 +574,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Updated `PetHatchingRecoveryService.recoverPlayer`: it now repeatedly reads the current island journal and attempts outstanding PREPARED/CHARGED transactions while `isCurrentRun`, `IslandSessionService.canWrite`, and `PetCollectionService.isReady` hold. A failed transaction no longer has to wait until the next login for another attempt.
 - The retry delay is 15 seconds; the worker stops on an empty pending journal, disconnect, lease loss, or collection unavailability. It does not spin while a transaction cannot yet complete.
 - Roblox Studio fault injection remains NOT DONE. A separate unresolved reliability issue is the seven-day expiry of acquisition receipts while CHARGED hatch transactions can persist longer. Until addressed, do not claim unlimited-duration duplicate prevention for a grant whose journal completion never persisted.
+
+
+## Durable hatch acquisition receipts (2026-11-22)
+
+- Fixed the seven-day dedupe gap. Acquisition receipts now carry optional `transactionId` and `completedAt`. Hatch reservations and grants both persist the exact source transaction ID.
+- An acquisition receipt without `completedAt` is unresolved and is never expired by age. This is the critical guarantee for PREPARED/CHARGED hatch transactions that can remain recoverable indefinitely.
+- Once `IslandSessionService.applyHatchOperation(..., "GRANT", transactionId)` confirms the island journal is durably GRANTED, `PetCollectionService.acknowledgeAcquisition` records `completedAt` in the collection DataStore. Only acknowledged receipts may be compacted, after seven days from completion.
+- Recovery retries acknowledgement for already-GRANTED journal entries. A missing receipt in this branch is treated as already compacted; the durable GRANTED journal is authoritative. The receipt acknowledgement is idempotent and transaction-bound.
+- `IslandHatchLedgerData.prepare` now returns `ALREADY_GRANTED` for an existing completed transaction, preventing a retry from appearing to be a fresh PREPARED operation.
+- Legacy pending reservations with no transaction ID can be upgraded to the transaction ID supplied by the current recovery record. Conflicting transaction IDs are rejected.
+- The acquisition receipt ledger remains bounded at 128 entries. The code reserves capacity before charging; if full, it fails closed rather than charging a hatch that cannot be durably deduplicated. High-volume long-term operation may need a separate compacted dedupe index.
+- Studio tests were added/updated but have NOT been executed in Roblox Studio. Cross-store fault injection remains NOT DONE.
