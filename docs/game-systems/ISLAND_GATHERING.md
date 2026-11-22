@@ -57,3 +57,12 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 - [x] Show a HUD hint directing new players to a wood node while their wood balance is zero.
 - [ ] Verify marker distance, readability, ProximityPrompt touch behavior, and first-gather flow in Roblox Studio/mobile.
 - [ ] Replace procedural resource blockouts with approved production art assets.
+
+## Replaceable resource art templates (2026-11-22)
+
+- The renderer now checks `ServerStorage/ResourceNodeModels/wood` and `ServerStorage/ResourceNodeModels/stone` for approved **Model** objects. These are optional: if absent, existing procedural tree/ore blockouts remain functional.
+- A resource Model must be authored with a sensible pivot at the ground-level centre of the node. The renderer clones it at the node's canonical grid location, anchors all BaseParts, removes all LuaSourceContainer descendants, and removes template-provided ProximityPrompts and BillboardGuis.
+- All gameplay prompts are **created by the server** on a separate invisible `GatherAnchor`. The server owns reward value, resource ID, distance validation and cooldown regardless of asset contents. The existing resource marker attaches to the custom model's PrimaryPart (or first BasePart).
+- Transparency of each visual BasePart is recorded in `GatherBaseTransparency` and restored after cooldown, so translucent mesh details and the invisible prompt anchor stay transparent after node respawn.
+- No third-party assets have been imported or approved. Keep visual asset provenance and studio review in `docs/ASSET_TRACKER.md`; do not put executable code inside source models.
+- A Studio-only world integration test constructs a temporary resource Model, checks that the scripted payload is stripped and that the trusted prompt anchor exists, then removes the fixture. Studio execution is still pending.
