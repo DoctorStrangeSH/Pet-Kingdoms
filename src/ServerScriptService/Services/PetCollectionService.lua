@@ -318,7 +318,7 @@ function PetCollectionService.reservePetSlot(
 		return nextProfile
 	end)
 	if not ok then return false, "DATASTORE_UNAVAILABLE" end
-	if mutationStatus == "ALREADY_RESERVED" or mutationStatus == "ALREADY_ACQUIRED" then
+	if mutationStatus == "ALREADY_RESERVED" or mutationStatus == "ALREADY_ACQUIRED" or mutationStatus == "RECEIPT_BOUND" then
 		if type(result) == "table" then syncProfileIfNewer(state, result) end
 		return true, mutationStatus
 	end
@@ -763,6 +763,10 @@ function PetCollectionService.grantPet(
 		if reserveStatus == "ALREADY_ACQUIRED" then
 			mutationStatus = "ALREADY_ACQUIRED"
 			return current
+		end
+		if reserveStatus == "RECEIPT_BOUND" and reservedProfile ~= nil then
+			mutationStatus = "ALREADY_ACQUIRED"
+			return reservedProfile
 		end
 		if (not reserved and reserveStatus ~= "ALREADY_RESERVED") or reservedProfile == nil then
 			mutationStatus = reserveStatus
