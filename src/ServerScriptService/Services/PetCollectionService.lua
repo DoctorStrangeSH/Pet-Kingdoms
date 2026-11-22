@@ -502,10 +502,13 @@ end
 
 -- Trusted server-only pet acquisition entry point for future egg, quest, and shop systems.
 -- Pet ID is generated once before UpdateAsync so retries reuse the same identity.
+-- Trusted server-only, idempotent pet acquisition for future egg, quest, and shop systems.
+-- Callers must reuse the same server-generated acquisitionId when retrying an opening.
 function PetCollectionService.grantPet(
 	player: Player,
 	speciesId: string,
-	rarityTier: number
+	rarityTier: number,
+	acquisitionId: string
 ): (boolean, string, any?)
 	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
 		return false, "INVALID_PLAYER", nil
@@ -529,7 +532,7 @@ function PetCollectionService.grantPet(
 			return current
 		end
 		local changed, status, nextProfile =
-			PetCollectionData.addPet(current, petId, speciesId, rarityTier, acquiredAt)
+			PetCollectionData.addPetOnce(current, petId, speciesId, rarityTier, acquiredAt, acquisitionId)
 		mutationStatus = status
 		if not changed then
 			return current
@@ -539,6 +542,14 @@ function PetCollectionService.grantPet(
 
 	if not ok then
 		return false, "DATASTORE_UNAVAILABLE", nil
+	end
+	if mutationStatus == "ALREADY_ACQUIRED" and type(result) == "table" then
+		local valid, reason = PetCollectionData.validate(result, player.UserId)
+		if not valid then
+			return false, "INVALID_SAVE_RESULT:" .. reason, nil
+		end
+		syncProfileIfNewer(state, result)
+		return true, "ALREADY_ACQUIRED", cloneForClient(state.profile)
 	end
 	if mutationStatus ~= "UPDATED" or type(result) ~= "table" then
 		return false, mutationStatus, nil
@@ -551,7 +562,6 @@ function PetCollectionService.grantPet(
 	syncProfileIfNewer(state, result)
 	return true, "UPDATED", cloneForClient(state.profile)
 end
-
 
 function PetCollectionService.start()
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
