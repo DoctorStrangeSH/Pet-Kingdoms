@@ -295,3 +295,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `PetStatsData.validate` now requires exactly the five approved stat keys. Unknown keys (including misspelled or future unapproved stats), non-string keys, and incomplete maps are rejected with explicit statuses.
 - Added regression tests for extra `mana`, numeric keys, and missing stat count. This prevents silent acceptance of typoed or client-injected stat fields while the contract is still being established.
 - No balance values or runtime integration were added. Studio test execution remains pending.
+
+
+## Pet stat clone safety (2026-11-22)
+
+- `PetStatsData.clone(snapshot)` now runs the full schema validator before reading nested fields.
+- Invalid input returns `nil, reason` for nil, malformed level/rarity/stat maps, or invalid stat values; valid input still returns an independent copy containing only the approved schema.
+- Added tests for nil and malformed clone input. Roblox Studio execution remains pending.
