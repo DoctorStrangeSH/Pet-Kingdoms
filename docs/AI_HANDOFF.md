@@ -166,6 +166,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Keep PC and mobile in scope from the start.
 
 
+## Pet collection request hardening (2026-11-22)
+
+- Equip and Interact now share a server-side one-second per-player mutation rate limit to prevent repeated DataStore writes; read-only Get remains unrestricted by this mutation limiter.
+- Mutation limiter state is cleared on PlayerRemoving.
+- Studio multiplayer spam testing and verification that normal UI interactions remain responsive are pending.
+
 ## Latest pet companionship hardening (2026-11-22)
 
 - Per-pet Bond progression is bounded: level 1–10, 50 XP per level, maximum stored XP 450. Interactions at max level remain allowed but cannot increase XP beyond the cap.
