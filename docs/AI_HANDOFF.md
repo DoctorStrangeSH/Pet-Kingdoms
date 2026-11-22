@@ -1069,3 +1069,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - GitHub Actions run #115 / run ID 45039658996 completed successfully on commit c804f6d511f6b2b05945d9e62aa4163dab1e1b40. Pinned Rokit setup, Rojo version check, full project build, and artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14760569677 is available until 2026-12-06 15:41 UTC.
 - CI confirms project serialization only. It does not execute Luau tests or live DataStore workflows; Roblox Studio verification remains pending.
+
+
+## Quest XP recovery worker (2026-11-22)
+
+- Added `PetProgressionCatalog.lua`, a versioned server-owned progression registry. It intentionally contains no thresholds until XP balance is approved; unknown versions fail closed.
+- Added `QuestRewardRecoveryService.lua` and started it from Bootstrap. It waits for the exact player's writable island session and ready collection, processes pending records using their stored stable reward ID/pet ID/amount/version, persists delivery before receipt acknowledgement, and resumes delivered-but-unacknowledged records.
+- DataStore/configuration/target failures leave the durable outbox untouched and are retried with a delay. The worker never accepts reward details from clients.
+- Added `PetProgressionCatalogTests.server.lua`.
+- CI build does not execute Studio-only scripts. Studio execution and DataStore fault injection remain pending.
+- No live claim endpoint or reward values are enabled. Do not populate progression thresholds or recipient/reward policy without approval.
+- Known remaining design hardening: the current pet receipt retention clock starts when the pet receipt is acknowledged, before the island source acknowledgement is persisted. If the latter remains unavailable beyond the seven-day receipt window, recovery needs a stronger finalization handshake; resolve before production claims.
