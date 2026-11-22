@@ -502,3 +502,10 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 
 
 - [x] Verify the legacy quest snapshot fix and expanded quest progress edge-case test packaging in GitHub Actions run #144 (Rojo build + Studio artifact upload PASS).
+
+
+### Quest journal deterministic ordering (2026-11-22)
+
+- [x] Replace hash-table iteration in quest progression/snapshot presentation with an explicit stable order: wood quest first, stone quest second.
+- [x] Add a contract assertion that repeated snapshots preserve the same order.
+- [ ] Execute the updated Luau test in Roblox Studio.
