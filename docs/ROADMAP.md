@@ -350,3 +350,12 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Upgrade legacy acquisition receipts and pending reservations with the transaction ID from their matching durable hatch journal before completing recovery.
 
 - [ ] Audit any pre-deployment CHARGED hatch journal whose old seven-day acquisition receipt may already have been pruned; such a legacy record can be ambiguous and must not be described as fully recoverable without a matching receipt/reservation or an explicit migration decision.
+
+
+### Wallet API transaction exclusion (2026-11-22)
+
+- [x] Require the exact live Player instance and a writable island lease before generic wallet grant/spend APIs mutate a profile.
+- [x] Reject generic `grant`, `grantMany`, and `spend` calls while building, gathering, or hatch transactions hold the profile mutation guard.
+- [x] Keep transaction-owned wallet changes inside their existing atomic profile operations; generic wallet helpers cannot interleave while those operations wait for DataStore durability.
+- [ ] Add an executable Studio service-level regression harness for busy-session rejection and exact-Player identity, then run it in Roblox Studio.
+- [ ] Run the complete Studio suite and multi-server DataStore/MemoryStore fault-injection scenarios before treating the persistence layer as accepted.
