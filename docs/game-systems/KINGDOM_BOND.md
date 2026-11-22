@@ -29,7 +29,7 @@ These thresholds are deliberately simple for the first playable loop. They must 
 
 IslandWorldService derives the stage when the island spawns and whenever a building is synchronized or demolished. It:
 
-- replicates Bond points, stage ID/name, current improvement count, and next threshold as island attributes;
+- replicates Bond points, stage ID/name, the number of non-Main-House improvements, total placed building count (including the Main House), and next threshold as island attributes;
 - gently changes the grass tint by stage;
 - creates a small set of stage decorations (flowers, a crystal accent, then a banner);
 - rebuilds only its own KingdomBondDecor folder so repeated refreshes do not duplicate decorations.
@@ -57,3 +57,10 @@ No client can submit Bond points or select a stage.
 - Permanent historical Bond XP or one-time achievement journal.
 - Final stage thresholds, rewards, unlocks, and production art.
 - Studio validation of stage refresh on place/move/demolish/rejoin and multiplayer ownership.
+
+
+## Kingdom overview count semantics
+
+- `KingdomBondBuildingCount` remains the count of non-Main-House improvements used by the progression contract.
+- `KingdomBondTotalBuildingCount` counts every placed building, including the starting Main House, and is used for the player-facing total-building statistic.
+- The overview calculates progress from the stable stage ID (`quiet/cozy/blooming/thriving`), not the localized stage name. Localizing a stage label can no longer silently reset the progress bar's lower threshold.
