@@ -53,3 +53,11 @@ No food/inventory action is added because an approved food catalogue and resourc
 - Interaction XP contribution to island-wide Kingdom Bond.
 - Final XP curve and cooldown tuning.
 - Studio DataStore integration, multiplayer, mobile, and visual animation verification.
+
+
+## Ordinary Pet XP reward foundation
+
+- `PetCollectionData.grantExperience(profile, petId, amount)` is a pure validated mutation for ordinary pet XP. It requires a positive finite integer reward and an owned pet, increments only `xp` and collection revision, and leaves Bond fields unchanged.
+- `PetCollectionService.grantExperience(player, petId, amount)` is the trusted server-only persistence entry point. It writes through DataStore `UpdateAsync` and is not exposed through a client remote.
+- Combat, quest, and interaction systems may call this API only after validating their gameplay event on the server. The current collection UI does not directly award ordinary Pet XP.
+- Reward values, level thresholds, level-up math, source callers, and replay/idempotency policy remain undefined; no balance values are assumed here.
