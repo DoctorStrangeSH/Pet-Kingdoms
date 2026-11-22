@@ -698,3 +698,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Displays stage progress, remaining points, building count, and a clear button into the existing construction flow.
 - Closing the panel does not alter island state. The build button calls the same existing `beginPlacing()` client preview flow; all actual placement still goes through server validation, server-owned catalog costs, persistence and rollback.
 - Added touch-friendly close/shade and a centered responsive panel; Studio visual/device verification is pending.
+
+
+## Kingdom overview statistics correction (2026-11-22)
+
+- `KingdomBond.calculate` now exposes both `buildingCount` (non-Main-House improvements used by the existing Bond rules) and `totalBuildingCount` (all placed buildings, including Main House).
+- `IslandWorldService.refreshKingdomBondVisuals` replicates the total as `KingdomBondTotalBuildingCount`; the existing Bond scoring count and thresholds are unchanged.
+- Main House overview now displays the actual total placed-building count with correct Russian singular/plural forms.
+- Progress bar lower threshold is keyed by the stable `KingdomBondStage` ID rather than comparing localized stage names.
+- Added pure contract assertions for empty, Main House + improvement, and duplicate-building layouts. Studio test execution remains pending.
