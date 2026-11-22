@@ -75,6 +75,29 @@ expect("legacy pet progression defaults safely", normalizedProgression.owned[1].
 local wrongOwner, ownerStatus = PetCollectionData.validate(profile, 54321)
 expect("wrong owner rejected", not wrongOwner and ownerStatus == "OWNER_MISMATCH")
 
+local xpGranted, xpStatus, xpProfile = PetCollectionData.grantExperience(profile, "starter-bunny", 25)
+expect("server reward grants pet XP", xpGranted and xpStatus == "UPDATED" and xpProfile ~= nil)
+assert(xpProfile ~= nil)
+expect("pet XP reward increments XP", xpProfile.owned[1].xp == 25)
+expect("pet XP reward preserves level until curve is approved", xpProfile.owned[1].level == 1)
+expect("pet XP reward increments revision", xpProfile.revision == profile.revision + 1)
+expect("pet XP reward does not alter Bond", xpProfile.owned[1].bondXp == profile.owned[1].bondXp)
+
+local zeroReward, zeroRewardStatus = PetCollectionData.grantExperience(profile, "starter-bunny", 0)
+expect("zero pet XP reward rejected", not zeroReward and zeroRewardStatus == "INVALID_XP_AMOUNT")
+
+local fractionalReward, fractionalRewardStatus = PetCollectionData.grantExperience(profile, "starter-bunny", 2.5)
+expect("fractional pet XP reward rejected", not fractionalReward and fractionalRewardStatus == "INVALID_XP_AMOUNT")
+
+local infiniteReward, infiniteRewardStatus = PetCollectionData.grantExperience(profile, "starter-bunny", math.huge)
+expect("infinite pet XP reward rejected", not infiniteReward and infiniteRewardStatus == "INVALID_XP_AMOUNT")
+
+local nanReward, nanRewardStatus = PetCollectionData.grantExperience(profile, "starter-bunny", 0 / 0)
+expect("NaN pet XP reward rejected", not nanReward and nanRewardStatus == "INVALID_XP_AMOUNT")
+
+local unownedReward, unownedRewardStatus = PetCollectionData.grantExperience(profile, "not-owned", 10)
+expect("XP reward for unowned pet rejected", not unownedReward and unownedRewardStatus == "PET_NOT_OWNED")
+
 local equipped, equipStatus, updated = PetCollectionData.setEquipped(profile, { "starter-bunny" })
 expect("owned pet can be equipped", equipped and equipStatus == "UPDATED" and updated ~= nil)
 assert(updated ~= nil)
