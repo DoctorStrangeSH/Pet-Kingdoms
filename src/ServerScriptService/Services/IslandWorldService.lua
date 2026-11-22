@@ -398,7 +398,7 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 
 	local spawnPoint: BasePart? = nil
 	for _, candidate in ipairs(spawnFolder:GetChildren()) do
-		if candidate:IsA("BasePart") and occupiedSpawns[candidate] == nil then
+		if candidate:IsA("BasePart") and candidate.Anchored and occupiedSpawns[candidate] == nil then
 			spawnPoint = candidate
 			break
 		end
