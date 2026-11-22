@@ -86,6 +86,23 @@ local saveSession: (number, Session) -> boolean
 -- The transform is performed without yielding; the per-session guard serializes hatch transitions.
 -- Commits a building result and its idempotency receipt in the same island
 -- profile revision, then waits for DataStore durability before acknowledging it.
+function IslandSessionService.findBuildingOperation(
+	userId: number,
+	requestId: string,
+	fingerprint: string,
+	now: number
+): (any?, string)
+	local session = sessions[userId]
+	if session == nil then return nil, "SESSION_NOT_READY" end
+	return IslandBuildingJournalData.find(
+		session.profile.buildingOperations or {},
+		requestId,
+		fingerprint,
+		now,
+		session.persistedRevision
+	)
+end
+
 function IslandSessionService.commitBuildingOperation(
 	userId: number,
 	player: Player,
@@ -108,7 +125,8 @@ function IslandSessionService.commitBuildingOperation(
 		fingerprint,
 		action,
 		result,
-		os.time()
+		os.time(),
+		session.profile.revision + 1
 	)
 	if nextLedger == nil then
 		session.buildingMutationBusy = false
