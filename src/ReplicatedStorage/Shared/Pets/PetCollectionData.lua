@@ -366,8 +366,8 @@ function PetCollectionData.addPet(
 	end
 	-- Prevent reuse while the acquisition receipt is inside its deduplication window.
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
-		local age = now - receipt.processedAt
-		if (age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS)
+		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
+		if (receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS)
 			and receipt.petId == petId
 		then
 			return false, "PET_ID_ALREADY_USED", nil
