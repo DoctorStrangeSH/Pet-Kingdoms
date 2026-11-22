@@ -971,3 +971,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Reconfirmed there is no quest, reward, or shop service in the current server Services directory. Gold and Gems exist in the wallet schema but no earning source is implemented in the inspected gathering catalog.
 - Updated the economy audit and roadmap to distinguish implemented wallet support from missing income sources. No new currency rates or prices were invented.
 - Studio execution of these tests is still pending.
+
+
+## Introductory quest progress foundation (2026-11-22)
+
+- Added pure `QuestProgressData.lua` with two provisional starter objectives: gather 3 Wood and gather 2 Stone. Targets are prototype values for Studio playtesting, not approved economy/balance values.
+- Added `questProgress` to newly created island profiles and validation; legacy schema-v1 profiles without this field remain valid and are migrated to empty quest progress by IslandStore load/claim paths.
+- Integrated gathering progress into the same durable island profile revision as the resource reward and node cooldown. A gather cannot award resources without also applying the corresponding quest progress transaction.
+- Added `QuestService` and `ReplicatedStorage/Remotes/GetQuestProgress` as a rate-limited, read-only snapshot endpoint. Clients cannot submit progress or rewards.
+- Added Studio tests for quest progress targets, completion caps, invalid IDs/missing entries, and profile validation/migration compatibility.
+- Quest rewards, claim endpoint, player-facing journal UI, additional quest types, and actual Studio/DataStore execution remain NOT DONE. No Gold/Gem rewards or economy values were invented.
