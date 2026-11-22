@@ -178,6 +178,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or (record.bondXp ~= nil and (not isNonNegativeInteger(record.bondXp) or record.bondXp > PetCollectionData.MAX_BOND_XP))
 			or (record.bondLevel ~= nil and (not isPositiveInteger(record.bondLevel) or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL))
 			or (record.lastInteractionAt ~= nil and not isNonNegativeInteger(record.lastInteractionAt))
+			or (record.isLocked ~= nil and type(record.isLocked) ~= "boolean")
+			or (record.isFavorite ~= nil and type(record.isFavorite) ~= "boolean")
 		then
 			return false, "INVALID_OWNED_RECORD"
 		end
@@ -283,6 +285,8 @@ function PetCollectionData.clone(profile: any): any
 		clonedRecord.bondXp = clonedRecord.bondXp or 0
 		clonedRecord.bondLevel = clonedRecord.bondLevel or 1
 		clonedRecord.lastInteractionAt = clonedRecord.lastInteractionAt or 0
+		clonedRecord.isLocked = clonedRecord.isLocked == true
+		clonedRecord.isFavorite = clonedRecord.isFavorite == true
 		copy.owned[index] = clonedRecord
 	end
 	return copy
@@ -683,6 +687,61 @@ function PetCollectionData.grantExperienceWithProgressOnce(
 	return true, "UPDATED", updated, summary
 end
 
+
+-- Update player-controlled collection protection flags without changing pet identity.
+function PetCollectionData.setPetFlags(
+	profile: any,
+	petId: string,
+	isLocked: boolean,
+	isFavorite: boolean
+): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
+	if not canIncrementRevision(profile) then return false, "REVISION_OVERFLOW", nil end
+	if type(petId) ~= "string" or petId == "" then return false, "INVALID_PET_ID", nil end
+	if type(isLocked) ~= "boolean" or type(isFavorite) ~= "boolean" then
+		return false, "INVALID_PET_FLAGS", nil
+	end
+	local updated = PetCollectionData.clone(profile)
+	for _, record in ipairs(updated.owned) do
+		if record.petId == petId then
+			record.isLocked = isLocked
+			record.isFavorite = isFavorite
+			updated.revision += 1
+			return true, "UPDATED", updated
+		end
+	end
+	return false, "PET_NOT_OWNED", nil
+end
+
+-- Permanently remove an owned pet only when it is neither protected nor equipped.
+function PetCollectionData.removePet(profile: any, petId: string): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
+	if not canIncrementRevision(profile) then return false, "REVISION_OVERFLOW", nil end
+	if type(petId) ~= "string" or petId == "" then return false, "INVALID_PET_ID", nil end
+	if #profile.owned <= 1 then return false, "LAST_PET_PROTECTED", nil end
+
+	local selectedIndex = nil
+	for index, record in ipairs(profile.owned) do
+		if record.petId == petId then
+			if record.isLocked == true then return false, "PET_LOCKED", nil end
+			selectedIndex = index
+			break
+		end
+	end
+	if selectedIndex == nil then return false, "PET_NOT_OWNED", nil end
+	for _, equippedPetId in ipairs(profile.equipped) do
+		if equippedPetId == petId then return false, "PET_EQUIPPED", nil end
+	end
+
+	local updated = PetCollectionData.clone(profile)
+	table.remove(updated.owned, selectedIndex)
+	updated.revision += 1
+	local updatedValid, updatedReason = PetCollectionData.validate(updated, profile.ownerUserId)
+	if not updatedValid then return false, "INVALID_REMOVED_PROFILE:" .. updatedReason, nil end
+	return true, "REMOVED", updated
+end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
 	local valid, reason = validateMutationProfile(profile)
