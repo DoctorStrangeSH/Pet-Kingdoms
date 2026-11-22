@@ -268,3 +268,13 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Release the island lease during BindToClose only after the final profile snapshot is confirmed persisted.
 - [x] If the shutdown save fails, retain the lease until its normal expiry instead of allowing an immediate new session to load a known-stale snapshot.
 - [ ] Exercise shutdown save failure, lease expiry, and immediate rejoin in a controlled Roblox Studio/DataStore test environment.
+
+
+### Pet collection reconnect session isolation
+
+- [x] Associate each loaded pet collection state with its exact Roblox `Player` instance, not only its numeric UserId.
+- [x] Ignore a delayed load completion from an older Player instance, without clearing a newer in-flight or loaded state.
+- [x] Ignore stale PlayerRemoving cleanup for a superseded Player instance, preserving the new player's profile, character connections and mutation state.
+- [x] Reject stale Player-instance collection requests and mutations; require matching ownership for equipped-pet spawning and hatch recovery readiness.
+- [ ] Test slow DataStore load + disconnect + immediate rejoin and overlapping server operations in Studio with mocked delays; current verification is static only.
+- [ ] Add stronger cross-server pet collection session fencing if overlapping Player sessions prove possible; DataStore revision checks alone are not ownership leases.
