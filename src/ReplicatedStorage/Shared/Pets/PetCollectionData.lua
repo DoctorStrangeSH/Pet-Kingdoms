@@ -83,8 +83,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or type(record.speciesId) ~= "string"
 			or not VALID_SPECIES[record.speciesId]
 			or not isNonNegativeInteger(record.acquiredAt)
-			or (record.bondXp ~= nil and (type(record.bondXp) ~= "number" or record.bondXp < 0 or record.bondXp > PetCollectionData.MAX_BOND_XP or record.bondXp ~= math.floor(record.bondXp)))
-			or (record.bondLevel ~= nil and (type(record.bondLevel) ~= "number" or record.bondLevel < 1 or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL or record.bondLevel ~= math.floor(record.bondLevel)))
+			or (record.bondXp ~= nil and (not isNonNegativeInteger(record.bondXp) or record.bondXp > PetCollectionData.MAX_BOND_XP))
+			or (record.bondLevel ~= nil and (not isPositiveInteger(record.bondLevel) or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL))
 			or (record.lastInteractionAt ~= nil and not isNonNegativeInteger(record.lastInteractionAt))
 		then
 			return false, "INVALID_OWNED_RECORD"
@@ -150,7 +150,7 @@ function PetCollectionData.interact(profile: any, petId: string, interactionType
 	if interactionType ~= "pet" and interactionType ~= "play" then
 		return false, "INVALID_INTERACTION", nil
 	end
-	if type(now) ~= "number" or now < 0 or now ~= math.floor(now) then
+	if not isNonNegativeInteger(now) then
 		return false, "INVALID_TIMESTAMP", nil
 	end
 	local updated = PetCollectionData.clone(profile)
