@@ -4,6 +4,43 @@
 local services = script.Parent
 local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+if remotes == nil then
+	remotes = Instance.new("Folder")
+	remotes.Name = "Remotes"
+	remotes.Parent = ReplicatedStorage
+end
+local resourceUpdate = remotes:FindFirstChild("IslandResourceUpdate") :: RemoteEvent?
+if resourceUpdate == nil then
+	resourceUpdate = Instance.new("RemoteEvent")
+	resourceUpdate.Name = "IslandResourceUpdate"
+	resourceUpdate.Parent = remotes
+end
+local resourceRequest = remotes:FindFirstChild("IslandResourceRequest") :: RemoteFunction?
+if resourceRequest == nil then
+	resourceRequest = Instance.new("RemoteFunction")
+	resourceRequest.Name = "IslandResourceRequest"
+	resourceRequest.Parent = remotes
+end
+
+local function snapshot(profile: any): { [string]: number }
+	return {
+		wood = IslandResources.get(profile.resources, "wood"),
+		stone = IslandResources.get(profile.resources, "stone"),
+		gold = IslandResources.get(profile.resources, "gold"),
+		gems = IslandResources.get(profile.resources, "gems"),
+	}
+end
+
+resourceRequest.OnServerInvoke = function(player: Player, action: any)
+	if action ~= "Get" then return false, "UNKNOWN_ACTION" end
+	local profile = IslandSessionService.getProfile(player.UserId)
+	if profile == nil then return false, "SESSION_NOT_READY" end
+	return true, snapshot(profile), profile.revision
+end
 
 local IslandResourceService = {}
 
@@ -23,6 +60,7 @@ function IslandResourceService.grant(userId: number, resourceId: string, amount:
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
+	resourceUpdate:FireClient(Players:GetPlayerByUserId(userId), snapshot(profile), resourceId, amount, code)
 	return true, code, balance
 end
 
@@ -36,6 +74,7 @@ function IslandResourceService.spend(userId: number, costs: any): (boolean, stri
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
+	resourceUpdate:FireClient(Players:GetPlayerByUserId(userId), snapshot(profile), nil, nil, code)
 	return true, code, balances
 end
 
