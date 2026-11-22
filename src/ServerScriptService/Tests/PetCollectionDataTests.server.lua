@@ -90,9 +90,43 @@ local normalizedLegacy = PetCollectionData.clone(legacy)
 expect("legacy Bond fields normalize safely", normalizedLegacy.owned[1].bondXp == 0 and normalizedLegacy.owned[1].bondLevel == 1)
 
 local capped = PetCollectionData.clone(profile)
-capped.owned[1].bondXp = 1000
+capped.owned[1].bondXp = PetCollectionData.MAX_BOND_XP
 capped.owned[1].bondLevel = PetCollectionData.MAX_BOND_LEVEL
 local cappedValid = PetCollectionData.validate(capped, 12345)
 expect("maximum Bond level remains valid", cappedValid)
+
+local mismatchedBond = PetCollectionData.clone(profile)
+mismatchedBond.owned[1].bondXp = 0
+mismatchedBond.owned[1].bondLevel = 10
+local mismatchedValid, mismatchReason = PetCollectionData.validate(mismatchedBond, 12345)
+expect("inconsistent Bond XP and level rejected", not mismatchedValid and mismatchReason == "BOND_LEVEL_XP_MISMATCH")
+
+local fractionalXp = PetCollectionData.clone(profile)
+fractionalXp.owned[1].bondXp = 10.5
+local fractionalXpValid = PetCollectionData.validate(fractionalXp, 12345)
+expect("fractional Bond XP rejected", not fractionalXpValid)
+
+local overCapXp = PetCollectionData.clone(profile)
+overCapXp.owned[1].bondXp = PetCollectionData.MAX_BOND_XP + 10
+overCapXp.owned[1].bondLevel = PetCollectionData.MAX_BOND_LEVEL
+local overCapValid = PetCollectionData.validate(overCapXp, 12345)
+expect("Bond XP above maximum rejected", not overCapValid)
+
+local fractionalTimestamp = PetCollectionData.clone(profile)
+fractionalTimestamp.owned[1].lastInteractionAt = 1000.5
+local fractionalTimestampValid = PetCollectionData.validate(fractionalTimestamp, 12345)
+expect("fractional interaction timestamp rejected", not fractionalTimestampValid)
+
+local maxed = PetCollectionData.clone(profile)
+maxed.owned[1].bondXp = PetCollectionData.MAX_BOND_XP
+maxed.owned[1].bondLevel = PetCollectionData.MAX_BOND_LEVEL
+maxed.owned[1].lastInteractionAt = 1000
+local maxedInteraction, maxedStatus, maxedResult = PetCollectionData.interact(maxed, "starter-bunny", "pet", 1030)
+expect("max-level pet can still interact without XP overflow", maxedInteraction and maxedStatus == "UPDATED" and maxedResult ~= nil)
+assert(maxedResult ~= nil)
+expect("max-level Bond XP remains capped", maxedResult.owned[1].bondXp == PetCollectionData.MAX_BOND_XP and maxedResult.owned[1].bondLevel == PetCollectionData.MAX_BOND_LEVEL)
+
+local fractionalNow, fractionalNowStatus = PetCollectionData.interact(profile, "starter-bunny", "pet", 1000.5)
+expect("fractional interaction timestamp rejected", not fractionalNow and fractionalNowStatus == "INVALID_TIMESTAMP")
 
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
