@@ -492,3 +492,10 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Assert missing pet receipt is accepted only after durable source acknowledgement.
 - [ ] Run the Studio-only protocol suite and all existing data contract suites in Roblox Studio.
 - [ ] Run live DataStore outage/rejoin/server-restart scenarios in a dedicated test environment.
+
+
+### Quest journal legacy-profile compatibility (2026-11-22)
+
+- [x] Fix quest snapshots for legacy island profiles created before `questProgress` existed: the server now presents the current introductory quests at 0 progress without mutating the stored profile.
+- [x] Add Studio contract coverage for legacy nil progress and malformed progress snapshots.
+- [ ] Execute the updated QuestProgressData tests in Roblox Studio.
