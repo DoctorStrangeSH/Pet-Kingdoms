@@ -695,3 +695,13 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Restore the full catalogue when placement ends; support resize of both modes.
 - [ ] Validate 320 px/375 px portrait, landscape, mobile touch and native Roblox insets in Studio Device Emulator.
 - [ ] Verify placement controls do not cover terrain target and that cooldown controls work when choosing another pet.
+
+### Replaceable gathering visual assets (2026-11-22)
+
+- [x] Support optional approved wood/stone Model templates in `ServerStorage/ResourceNodeModels` without changing gathering economy or node persistence.
+- [x] Preserve existing procedural fallback when approved templates are absent.
+- [x] Remove executable/template prompt content from resource art, and create the gameplay prompt on a trusted invisible anchor.
+- [x] Restore original mesh transparency after gathering cooldown rather than making all parts opaque.
+- [x] Add Studio-only world contract checks for a temporary custom resource template and trusted prompt.
+- [ ] Curate and approve actual tree/ore assets with source/license/review; no third-party model imported in this pass.
+- [ ] Execute Roblox Studio resource respawn, gathering, art pivot and streaming tests.
