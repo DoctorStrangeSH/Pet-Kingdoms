@@ -669,3 +669,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Hardened `IslandWorldService.spawn`: only anchored BaseParts can be selected as personal-island spawn points. This matches the documented owner-authored spawn point contract and avoids moving/unanchored parts being treated as stable slots.
 - Expanded `IslandWorldServiceTests.server.lua` into a Studio integration smoke test: bootstrap configuration, reject invalid profile, spawn two distinct players, ensure distinct arrival positions, reject duplicate spawn for one owner, verify world models, remove an island, clear its arrival CFrame, and reuse the released slot.
 - Test execution is pending in Roblox Studio; CI Rojo build only validates source-to-place serialization and does not execute Roblox services.
+
+
+## Pet House collection interaction (2026-11-22)
+
+- Added a server-created `PetHousePrompt` to rendered Pet House models. It attaches to the Door when present, otherwise PrimaryPart/first BasePart. The same helper is called by initial spawn and live building synchronization.
+- Updated `PetCollectionUI.client.lua` to listen for `ProximityPromptService.PromptTriggered` and open the existing collection panel only when the prompt is inside a `pet_house` whose ancestor island model has `OwnerUserId == LocalPlayer.UserId`.
+- Prompt text is Russian ("Открыть коллекцию", "Домик питомцев"), keyboard E, gamepad X, zero hold, 10-stud distance.
+- No new remote or authority boundary was added. Equip, protect, delete, and pet interaction continue through the existing server-validated collection remote.
+- Extended `IslandWorldServiceTests.server.lua` with a saved Pet House record and assertions that the model and localized prompt are rendered.
+- CI Rojo build validates serialization only; execute the Studio test and check PC/gamepad/mobile prompt behavior, owner filtering, and custom-template fallback.
