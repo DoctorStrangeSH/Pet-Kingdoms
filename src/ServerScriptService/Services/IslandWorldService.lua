@@ -359,23 +359,33 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 end
 
 local function attachBuildingInteraction(model: Model, catalogId: string)
-	if catalogId ~= "pet_house" or model:FindFirstChild("PetHousePrompt", true) ~= nil then
+	local promptName, actionText, objectText
+	if catalogId == "pet_house" then
+		promptName = "PetHousePrompt"
+		actionText = "Открыть коллекцию"
+		objectText = "Домик питомцев"
+	elseif catalogId == "main_house" then
+		promptName = "MainHousePrompt"
+		actionText = "Управлять королевством"
+		objectText = "Главный дом"
+	else
 		return
 	end
+	if model:FindFirstChild(promptName, true) ~= nil then return end
 
 	local promptPart = model:FindFirstChild("Door", true)
 	if promptPart == nil or not promptPart:IsA("BasePart") then
 		promptPart = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
 	end
 	if promptPart == nil or not promptPart:IsA("BasePart") then
-		warn("[PetKingdoms] Pet house has no BasePart for its interaction prompt:", model:GetFullName())
+		warn("[PetKingdoms] Building has no BasePart for its interaction prompt:", model:GetFullName())
 		return
 	end
 
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "PetHousePrompt"
-	prompt.ActionText = "Открыть коллекцию"
-	prompt.ObjectText = "Домик питомцев"
+	prompt.Name = promptName
+	prompt.ActionText = actionText
+	prompt.ObjectText = objectText
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.HoldDuration = 0
