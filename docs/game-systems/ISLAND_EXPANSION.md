@@ -76,3 +76,8 @@ After the expansion profile revision is durable, `IslandSessionService.commitIsl
 ## Client preview panel
 
 The client `IslandExpansionUI.client.lua` opens a compact responsive panel and requests the read-only `GetIslandExpansionPreview` response. It displays current and next island dimensions and the maximum-level state. The panel explicitly communicates that purchase is unavailable until economy approval. Manual refresh is supported; no client-side profile mutation or purchase action exists.
+
+
+## Local holographic preview
+
+When the panel is open and the preview API reports a next level, the client draws four translucent neon strips around the current island's grass surface. Their dimensions come from the server response and their orientation follows the existing grass part CFrame. These are local-only, non-colliding preview parts; they are not actual terrain, do not modify the profile, and are removed when the panel closes.
