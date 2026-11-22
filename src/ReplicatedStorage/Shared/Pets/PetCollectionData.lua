@@ -16,6 +16,7 @@ PetCollectionData.BOND_XP_PER_INTERACTION = 10
 PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS = 30
 PetCollectionData.MAX_REWARD_RECEIPTS = 128
 PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS = 7 * 24 * 60 * 60
+PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS = 7 * 24 * 60 * 60
 PetCollectionData.MAX_ACQUISITION_RECEIPTS = 128
 
 local VALID_SPECIES: { [string]: boolean } = {
@@ -364,7 +365,8 @@ function PetCollectionData.addPet(
 			return false, "DUPLICATE_PET_ID", nil
 		end
 	end
-	-- Prevent reuse while the acquisition receipt is inside its deduplication window.
+	-- Unacknowledged receipts never expire. Acknowledged receipts remain reserved
+	-- until the completion retention window has elapsed.
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
 		if (receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS)
