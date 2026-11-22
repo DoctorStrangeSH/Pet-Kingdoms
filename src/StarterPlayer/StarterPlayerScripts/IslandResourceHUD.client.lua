@@ -109,7 +109,7 @@ end
 local toast = Instance.new("TextLabel")
 toast.Name = "GatherToast"
 toast.AnchorPoint = Vector2.new(0.5, 0)
-toast.Position = UDim2.new(0.5, 0, 0, 72)
+toast.Position = UDim2.new(0.5, 0, 0, 106)
 toast.Size = UDim2.fromOffset(250, 38)
 toast.BackgroundColor3 = COLORS.panel
 toast.BackgroundTransparency = 1
@@ -125,6 +125,56 @@ local toastStroke = Instance.new("UIStroke")
 toastStroke.Color = COLORS.mint
 toastStroke.Transparency = 1
 toastStroke.Parent = toast
+
+local bondLabel = Instance.new("TextLabel")
+bondLabel.Name = "KingdomBondStatus"
+bondLabel.AnchorPoint = Vector2.new(0.5, 0)
+bondLabel.Position = UDim2.new(0.5, 0, 0, 70)
+bondLabel.Size = UDim2.fromOffset(300, 28)
+bondLabel.BackgroundColor3 = COLORS.panel
+bondLabel.BackgroundTransparency = 0.12
+bondLabel.Text = "🏡 Тихий остров"
+bondLabel.TextColor3 = COLORS.gold
+bondLabel.TextSize = 12
+bondLabel.Font = Enum.Font.GothamBold
+bondLabel.Visible = false
+bondLabel.Parent = screen
+Instance.new("UICorner", bondLabel).CornerRadius = UDim.new(0, 10)
+local bondStroke = Instance.new("UIStroke")
+bondStroke.Color = COLORS.gold
+bondStroke.Transparency = 0.55
+bondStroke.Parent = bondLabel
+
+local function applyKingdomBond(world: Instance)
+	local stageName = world:GetAttribute("KingdomBondStageName")
+	local points = world:GetAttribute("KingdomBondPoints")
+	local nextPoints = world:GetAttribute("KingdomBondNextStagePoints")
+	if type(stageName) ~= "string" or type(points) ~= "number" then
+		bondLabel.Visible = false
+		return
+	end
+	bondLabel.Text = if type(nextPoints) == "number"
+		then string.format("🏡 %s  •  %d очков  •  дальше: %d", stageName, points, nextPoints)
+		else string.format("🏡 %s  •  %d очков  •  максимум", stageName, points)
+	bondLabel.Visible = true
+end
+
+local function bindKingdomBond(world: Instance)
+	if not world:IsA("Model") or world:GetAttribute("OwnerUserId") ~= player.UserId then return end
+	applyKingdomBond(world)
+	for _, attribute in ipairs({ "KingdomBondStageName", "KingdomBondPoints", "KingdomBondNextStagePoints" }) do
+		world:GetAttributeChangedSignal(attribute):Connect(function()
+			applyKingdomBond(world)
+		end)
+	end
+end
+
+task.spawn(function()
+	local folder = Workspace:WaitForChild("PlayerIslands", 30)
+	if folder == nil then return end
+	for _, world in ipairs(folder:GetChildren()) do bindKingdomBond(world) end
+	folder.ChildAdded:Connect(bindKingdomBond)
+end)
 
 local toastSequence = 0
 local function showToast(resourceId: string?, amount: number?, code: string?)
