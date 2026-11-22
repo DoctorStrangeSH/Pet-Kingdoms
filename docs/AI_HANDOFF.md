@@ -211,3 +211,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A stale task destroys any model it just loaded and exits instead of parenting it into the player's folder. This prevents delayed CharacterAdded/equip tasks from reintroducing obsolete or duplicate companion models.
 - PlayerRemoving clears the current token, invalidating in-flight tasks; a reconnect receives a new token that cannot collide with an older task.
 - Verify rapid respawn + equip changes, slow asset loading, and PlayerRemoving during asset loading in Roblox Studio. No Studio execution was performed in this code pass.
+
+
+## Pet Bond numeric validation hardening (2026-11-22)
+
+- `PetCollectionData.interact` now uses the shared finite non-negative integer validator for its server-supplied timestamp. Negative, fractional, NaN, and infinite values are rejected before any profile clone or mutation.
+- Persisted Bond XP and Bond level now use the same strict integer validators, rejecting NaN/Infinity as well as out-of-range/fractional values.
+- Added Studio tests for negative/fractional/NaN/infinite interaction timestamps and non-finite Bond XP/level values.
+- This closes a gap where positive infinity could pass the pure interaction timestamp check and only be rejected later by full profile validation.
+- Roblox Studio execution remains pending.
