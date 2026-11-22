@@ -73,7 +73,7 @@ local invalidModifiers, invalidModifiersReason = PetStatModifierPipeline.apply(b
 expect("duplicate modifier IDs fail before application", invalidModifiers == nil and invalidModifiersReason == "INVALID_MODIFIERS:DUPLICATE_MODIFIER_ID")
 
 local invalidBase, invalidBaseReason = PetStatModifierPipeline.apply({ health = -1 }, {}, testPolicy)
-expect("invalid base stats fail before application", invalidBase == nil and string.sub(invalidBaseReason or "", 1, 17) == "INVALID_BASE_STATS")
+expect("invalid base stats fail before application", invalidBase == nil and string.find(invalidBaseReason or "", "INVALID_BASE_STATS", 1, true) == 1)
 
 local errorResult, errorReason = PetStatModifierPipeline.apply(baseStats, modifiers, function()
 	error("policy failure")
