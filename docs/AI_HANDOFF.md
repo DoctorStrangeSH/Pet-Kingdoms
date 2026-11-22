@@ -770,3 +770,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Uses the existing server-authoritative Equip remote with expectedRevision; no new mutation endpoint or client-side ownership rule.
 - Main companion selection remains unavailable for pets not currently in the active team.
 - Verify in Studio: switch lead among 1–3 equipped pets, rejoin and confirm order persists, confirm spawned FormationSlot 1 matches the selected lead, and review narrow/mobile layout.
+
+
+## Ambient resource awareness (2026-11-22)
+
+- CompanionFollowController scans the owner's own PlayerIslands/<island>/ResourceNodes folder once per second, looking only for nearby visible nodes whose AvailableAt timestamp has elapsed.
+- A nearby wood node triggers a short curious reaction; a stone node triggers a short sniff reaction. Reactions are cosmetic and never grant resources, trigger prompts, or bypass IslandGatheringService server validation.
+- Movement remains higher priority; direct player interaction remains higher priority than ambient curiosity.
+- Added a Studio client smoke assertion for a nearby available wood node. Execute it in Roblox Studio; also verify hidden/depleted nodes are ignored and check mobile frame cost with three active pets.
