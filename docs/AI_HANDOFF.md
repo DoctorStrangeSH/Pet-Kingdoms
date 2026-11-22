@@ -616,3 +616,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 
 - IslandStore save retry hardening: if a retry observes the same session generation already at or beyond the requested snapshot revision, it now acknowledges the snapshot as durable instead of reporting a stale-revision failure. This handles an UpdateAsync write whose acknowledgement was lost, and prevents the building journal from reporting failure after the same receipt was already committed. The Store Studio integration test now checks this same-generation older-snapshot retry case.
 - IslandData also rejects any receipt whose recorded commit revision is ahead of the profile's saved revision. The Studio profile test covers this corruption case.
+
+
+## Persistent island resource nodes (2026-11-22)
+
+- Added canonical server-owned definitions for the four existing island gathering nodes (two Wood, two Stone), including fixed reward amounts and a 60-second respawn policy. World generation now uses these definitions and restores depleted node visuals/prompts from the profile's saved `availableAt` timestamp.
+- Added serializable `resourceNodes` state to the island profile. Each depleted node stores `nodeId`, canonical `resourceId`, `lastGatheredAt`, and `availableAt`. Validation rejects unknown/duplicate nodes, mismatched resource types, invalid timestamps, and cooldown durations outside the server policy. Legacy schema-v1 profiles migrate to an empty state list (all four nodes initially available).
+- Gathering now commits the wallet reward and node cooldown together in one profile revision. The server waits for that revision to become durable before acknowledging the gather and publishing the resource HUD update. Per-session gathering serialization plus the persisted cooldown prevents duplicate prompt triggers and re-gather after reconnect/server restart.
+- A server reconciliation loop resumes node respawn timers after world creation. Remaining offline time counts down; already-expired nodes spawn available. The cooldown begins at successful server commit time.
+- Added `IslandResourceNodeDataTests` for cooldown, expiry, independent nodes, unknown IDs, duplicate state, resource mismatch, and policy limits. Extended `IslandDataTests` and `IslandStoreTests` for profile validation, legacy migration, and DataStore round-trip. Tests are committed but have NOT been run in Roblox Studio; live DataStore, restart, and concurrent prompt fault-injection remain pending.
