@@ -15,6 +15,12 @@ local state = QuestProgressData.create()
 local valid, code = QuestProgressData.validate(state)
 expect("new quest progress validates", valid and code == "VALID")
 
+local legacySnapshot = QuestProgressData.snapshot(nil)
+expect("legacy profile without quest progress receives default quest snapshot",
+	#legacySnapshot == 2 and legacySnapshot[1].count == 0 and legacySnapshot[2].count == 0)
+local invalidSnapshot = QuestProgressData.snapshot({ unknown_quest = { count = 1 } })
+expect("malformed quest progress never leaks into client snapshot", #invalidSnapshot == 0)
+
 local afterWood, completedWood, woodCode = QuestProgressData.recordGather(state, "wood")
 expect("wood gather increments only wood quest", afterWood ~= nil and woodCode == "RECORDED"
 	and afterWood.gather_wood.count == 1 and afterWood.gather_stone.count == 0)
