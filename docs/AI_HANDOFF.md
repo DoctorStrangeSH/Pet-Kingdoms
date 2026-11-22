@@ -1130,3 +1130,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14761452820 is available until 2026-12-06 15:53 UTC.
 - This confirms the new test script is included in the Studio-ready project artifact. It does NOT mean the Studio-only tests were executed; manual Roblox Studio execution and live DataStore outage testing remain pending.
+
+
+## Quest journal legacy-profile compatibility (2026-11-22)
+
+- Found a migration edge case: IslandData intentionally accepts legacy profiles with no `questProgress`, but QuestService passed nil directly to the snapshot helper. The helper returned an empty quest list, hiding introductory quests from existing players until they gathered a resource.
+- Fixed `QuestProgressData.snapshot(nil)` to build a zero-progress default snapshot without mutating the saved profile.
+- Added Studio-only assertions for legacy nil progress and malformed progress being excluded from client snapshots.
+- Studio execution is still pending.
