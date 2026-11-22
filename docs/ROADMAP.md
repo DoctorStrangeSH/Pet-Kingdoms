@@ -736,3 +736,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Keep resources hidden when the owning session is unavailable; the five-second reconciler makes an expired node visible only once the owner's session is writable.
 - [x] Avoid reapplying all mesh transparency and prompt states every five seconds after an expired node has already become visible.
 - [ ] Run live Studio scenarios: gather -> cooldown -> respawn, reconnect during cooldown, stale timer after island refresh, session not writable -> writable, and overlapping players.
+
+### Gathering availability HUD (2026-11-22)
+
+- [x] Show a read-only wood/stone resource-node availability counter (ready/total) in the player's HUD.
+- [x] Show a synchronized countdown to the nearest resource respawn using replicated node AvailableAt and Workspace:GetServerTimeNow().
+- [x] Read only nodes owned by the local player; update once per second and handle island creation/refresh without subscriptions to stale models.
+- [x] Keep reward/cooldown calculations server-owned; UI does not call remote actions or alter progress.
+- [ ] Verify real mobile/desktop layouts, resource pickup/respawn countdown and reconnect transitions in Roblox Studio.
