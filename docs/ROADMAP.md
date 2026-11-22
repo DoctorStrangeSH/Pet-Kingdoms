@@ -636,3 +636,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Release path connections and invalidate stale path computations when routes clear or controllers are destroyed.
 - [x] Add smoke coverage for the clear-route fast path and path connection cleanup.
 - [ ] Verify obstacle detours, stairs, slopes, cliffs, narrow passages, streaming, multiplayer, and mobile in Roblox Studio.
+
+### Companion navigation recovery safety (2026-11-22)
+
+- [x] Fix Luau lexical declaration ordering for the horizontal direction helper used by obstacle raycasts.
+- [x] Keep owner distance separate from navigation waypoint distance so a blocked or pending path cannot suppress teleport recovery.
+- [x] Invalidate pending path computations and disconnect blocked-path listeners after owner teleport recovery.
+- [x] Add a Studio client regression scenario for teleporting while path computation is pending.
+- [ ] Run the updated companion tests and actual wall/stair/slope navigation scenarios in Roblox Studio.
