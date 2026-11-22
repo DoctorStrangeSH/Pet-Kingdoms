@@ -510,11 +510,14 @@ local function interactWithSelected(interactionType: string)
 	playButton.Text = originalPlayText
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
-		if reason == "INTERACTION_COOLDOWN" then
-			showStatus("Питомцу нужно немного отдохнуть. Попробуй позже.", true)
-		else
-			showStatus("Не удалось выполнить действие. Обновляю данные...", true)
-		end
+		local messages = {
+			INTERACTION_COOLDOWN = "Питомцу нужно немного отдохнуть. Попробуй позже.",
+			REQUEST_RATE_LIMITED = "Подожди секунду перед следующим действием.",
+			STALE_REVISION = "Данные коллекции обновились. Загружаю изменения...",
+			DATASTORE_UNAVAILABLE = "Не удалось сохранить дружбу. Проверь соединение и попробуй позже.",
+			COLLECTION_NOT_READY = "Коллекция ещё загружается. Попробуй немного позже.",
+		}
+		showStatus(messages[reason] or "Не удалось выполнить действие. Обновляю данные...", true)
 		refreshCollection()
 		return
 	end
