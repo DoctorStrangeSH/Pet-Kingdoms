@@ -595,7 +595,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 ## Island economy transaction hardening (2026-11-22)
 
 - Construction purchase previously called `IslandResourceService.spend` (which marked the profile dirty) before appending the building record and then called `markDirty` a second time. The two fields were therefore separate revisions. It now applies the server-catalog cost directly to the live wallet, appends the building record, synchronizes the world, and marks the profile dirty once. If world sync or the writable-session check fails, it restores both the building list/world and the exact pre-purchase wallet snapshot. A resource HUD snapshot is published only after the combined mutation commits.
-- Building mutations now reject stale/non-owning Player instances through `IslandSessionService.canWrite` before using a UserId-keyed profile.
+- Building mutations, gathering prompts and client wallet snapshot requests now reject stale/non-owning Player instances through `IslandSessionService.canWrite` before using a UserId-keyed profile.
 - Added pure `IslandResources.grantMany`: it rejects empty reward maps, unknown resources, invalid amounts and any cap overflow before mutating any wallet balance. `IslandResourceService.grantMany` delegates to this shared atomic operation and still rolls back if the island session cannot be marked dirty.
 - `IslandResources.spend` now rejects empty cost maps instead of reporting a successful no-op.
 - `IslandData.validate` now delegates wallet checks to `IslandResources.validate`, so persisted profiles cannot load balances above the live 2,000,000,000 cap and then become impossible to mutate. Added a regression test for an over-cap saved wallet.
