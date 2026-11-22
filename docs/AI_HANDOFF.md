@@ -194,3 +194,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - These are committed Studio tests; they have not been executed in Roblox Studio in this session.
 - The existing per-pet Bond interaction loop is distinct from the approved pet Level progression. Actual pet Level (maximum 50), gameplay XP, core stats, skills, equipment, and ability progression remain unimplemented. Do not invent the XP curve or rarity balance while those rules remain unspecified.
 - Visual/model work is deferred to the owner. Keep code and systems work within the approved MVP; do not generate or replace pet art.
+
+
+## Companion follow performance pass (2026-11-22)
+
+- `CompanionFollowController` now creates one `RaycastParams` per controller and reuses it for ground projection instead of allocating a new filter object on every RenderStepped update.
+- The cached exclusion filter contains the pet model and the target character, so the ground ray continues to ignore both.
+- This is a small allocation reduction for each active companion (up to three); it does not change follow distances, formation, movement smoothing, or ground offset.
+- Roblox Studio verification is still required for terrain, slopes, water, respawn, and mobile performance.
