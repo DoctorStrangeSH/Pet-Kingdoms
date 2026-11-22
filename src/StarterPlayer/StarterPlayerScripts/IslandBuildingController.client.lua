@@ -22,6 +22,14 @@ local BUILDING_SIZES = {
 	flower_bed = { width = 1, depth = 1 },
 	wooden_fence = { width = 1, depth = 1 },
 }
+local BUILDING_COSTS = {
+	main_house = {},
+	pet_house = { wood = 5, stone = 2 },
+	stone_path = { wood = 1, stone = 1 },
+	garden_lantern = { wood = 2, stone = 1 },
+	flower_bed = { wood = 1 },
+	wooden_fence = { wood = 1 },
+}
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
@@ -168,11 +176,11 @@ local function makeCatalogButton(name: string, label: string): TextButton
 end
 
 local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
-local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ")
-local stonePathButton = makeCatalogButton("StonePath", "🪨  КАМЕННАЯ ДОРОЖКА")
-local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВЫЙ ФОНАРЬ")
-local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА")
-local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР")
+local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ\n5 🌲  •  2 🪨")
+local stonePathButton = makeCatalogButton("StonePath", "🪨  КАМЕННАЯ ДОРОЖКА\n1 🌲  •  1 🪨")
+local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВЫЙ ФОНАРЬ\n2 🌲  •  1 🪨")
+local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА\n1 🌲")
+local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР\n1 🌲")
 local setStatus: (string, boolean?) -> ()
 local findOwnIsland: () -> Model?
 
@@ -626,7 +634,15 @@ confirmButton.Activated:Connect(function()
 		stopPlacing()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
-		setStatus("Сервер отклонил постройку: " .. code, false)
+		local messages = {
+			INSUFFICIENT_RESOURCES = "Не хватает ресурсов для этой постройки",
+			SESSION_NOT_READY = "Остров ещё загружается",
+			SESSION_NOT_WRITABLE = "Сейчас нельзя сохранить изменения. Попробуй позже",
+			BUILDING_LIMIT_REACHED = "На острове больше нельзя размещать постройки",
+			FOOTPRINT_OVERLAP = "Это место уже занято",
+			OUT_OF_BOUNDS = "Постройка выходит за границы острова",
+		}
+		setStatus(messages[code] or ("Сервер отклонил постройку: " .. code), false)
 	end
 end)
 
