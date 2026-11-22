@@ -136,6 +136,11 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 		if not validBuildingLedger then
 			return false, "INVALID_BUILDING_LEDGER:" .. buildingLedgerReason
 		end
+		for _, receipt in ipairs(profile.buildingOperations) do
+			if receipt.revision > profile.revision then
+				return false, "INVALID_BUILDING_LEDGER:REVISION_AHEAD"
+			end
+		end
 	end
 
 	local buildingCount = 0
