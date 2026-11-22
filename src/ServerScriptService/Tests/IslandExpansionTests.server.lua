@@ -55,6 +55,20 @@ local malformedCurrent = { boundsWidth = 40, boundsDepth = 40, expansionLevel = 
 local malformedNext, malformedCode = IslandExpansion.prepareNextProfile(malformedCurrent, 24, 24)
 expect("non-canonical current profile cannot advance",
 	malformedNext == nil and malformedCode == "INVALID_EXPANSION_BOUNDS")
+
+local maxPrepared, maxPreparedCode = IslandExpansion.prepareNextProfile(secondProfile, 24, 24)
+expect("maximum-level profile cannot prepare another expansion",
+	maxPrepared == nil and maxPreparedCode == "MAX_EXPANSION_REACHED")
+local malformedBuildings = {
+	boundsWidth = 24, boundsDepth = 24, expansionLevel = 0,
+	buildings = {{ instanceId = "bad-record", catalogId = "main_house", x = 0.5, z = 1, rotation = 0 }},
+}
+local invalidPrepared, invalidPreparedCode = IslandExpansion.prepareNextProfile(malformedBuildings, 24, 24)
+expect("invalid building data blocks next-level preparation",
+	invalidPrepared == nil and invalidPreparedCode == "INVALID_BUILDING_RECORD")
+local wrongBasePrepared, wrongBaseCode = IslandExpansion.prepareNextProfile(original, 32, 32)
+expect("wrong configured base bounds block next-level preparation",
+	wrongBasePrepared == nil and wrongBaseCode == "INVALID_EXPANSION_BOUNDS")
 expect("non-finite dimensions are rejected", IslandExpansion.getBounds(math.huge, 24, 1) == nil)
 
 local original = {
