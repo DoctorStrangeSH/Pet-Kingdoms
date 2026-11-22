@@ -437,3 +437,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The save loop accounts for unrelated profile mutations that occur while a DataStore save yields: if the live revision advances beyond the saved snapshot, it stays dirty and another save is required before acknowledging the hatch operation.
 - Added `PetCollectionService.isReady(player)` as a read-only readiness check for future recovery orchestration.
 - No hatch remote or player-facing hatch endpoint is exposed. No production egg/cost/species definitions exist. This API is infrastructure only and still requires Studio/DataStore fault-injection verification before paid use.
+
+
+## Player-join hatch recovery (2026-11-22)
+
+- Added `PetHatchingRecoveryData.lua` as a pure decision table: PREPARED resumes at CHARGE, CHARGED resumes at GRANT, GRANTED is complete; unknown/missing states fail closed.
+- Added `PetHatchingRecoveryService.lua`. Bootstrap starts it after IslandSessionService, PetCollectionService, and IslandGatheringService. It waits up to 45 seconds for both island session and pet collection readiness, then snapshots unresolved transactions from the island profile.
+- PREPARED records are charged through the durable island session API. CHARGED records are granted through `PetCollectionService.grantPet` using the persisted species, rarity, and acquisitionId. Only after grant success (including ALREADY_ACQUIRED) is the island journal advanced to GRANTED.
+- This safely handles a lost response after pet collection UpdateAsync: retrying the same acquisitionId returns the existing pet receipt rather than adding a duplicate.
+- If collection is full or a datastore operation fails, the transaction stays PREPARED/CHARGED and is deferred; the next player join retries it. A future capacity reservation or overflow/inbox policy is required before paid hatching.
+- Added Studio-only `PetHatchingRecoveryDataTests.server.lua` for all three states and invalid inputs. Tests are committed but not executed in Roblox Studio. End-to-end interruption/fault-injection tests remain NOT DONE.
+- No hatch RemoteFunction, egg definitions, drop rates, prices, or player-facing hatch flow has been added.
