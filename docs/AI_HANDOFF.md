@@ -1253,3 +1253,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `docs/game-systems/PET_ACTIVITY_REWARD_DESIGN.md`. It maps the project-spec XP sources (combat, quests, interactions) to server-authoritative invariants and stable reward IDs, distinguishes progression XP from Bond XP, and records all unapproved decisions.
 - Do not wire XP rewards to a speculative event, amount, or recipient. Combat does not yet have an approved runtime event model; interaction Bond XP is a separate system; quest outbox is implemented but issuance remains disabled pending amount/version/recipient approval.
 - Next implementation should begin only after an authoritative source event model exists; cross-profile sources must use durable outbox recovery.
+
+
+## Pet interaction hardening (2026-11-22)
+
+- Audited the existing `Interact` RemoteFunction action and `PetCollectionData.interact`. Only `pet` and `play` are supported; they grant Bond XP, not progression XP. `feed` remains intentionally unsupported because there is no approved food inventory/cost system.
+- Hardened remote payload validation: pet IDs must be 1–128 chars from the safe server-ID alphabet; expected revision must be finite, non-negative, integral, and within the safe integer range.
+- Applied the same safe pet ID validation in the pure data mutation.
+- Expanded PetCollectionData tests for Bond/progression XP isolation, exact cooldown boundary, clock rollback, selected-pet-only mutation, oversized IDs, and malformed IDs.
+- No new client authority, reward endpoint, consumable, XP amount, or personality preference was invented.
+- Studio execution and live RemoteFunction/DataStore checks remain pending.
