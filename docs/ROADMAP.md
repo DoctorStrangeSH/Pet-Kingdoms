@@ -92,12 +92,12 @@
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
 - [x] Add server-authoritative placement/move/demolition transaction endpoint with recent request deduplication and world/profile rollback (Studio integration verification pending).
 - [x] Require the exact current Player instance and writable island lease before building mutations.
-- [ ] Persist building request receipts so a retry after cache eviction, server restart, or cross-server reconnect cannot repeat a successful purchase.
+- [x] Persist building operation receipts in the same island profile revision as placement/move/demolition results; fingerprint request payloads, replay only after the receipt revision is durable, and retain 512 recent receipts for seven days (Studio DataStore restart/failure-injection verification pending).
   - [x] Add per-player token-bucket rate limiting to the building RemoteFunction (12-request burst, refill 4/sec; Studio spam test pending).
 - [x] Add server transaction handling for new placement resource charging from server-owned provisional catalog prices; move remains free; wallet cost and building record now share one profile revision and restore the original wallet on rollback (Studio transaction/failure-injection verification pending).
 - [x] Show provisional resource costs in the client construction catalogue and localize insufficient-resource/placement errors.
 - [x] Add Studio catalog economy contract tests for resource IDs and positive integer prices (execution pending).
-- [ ] Add durable transaction journal for crash-safe charge/placement recovery.
+- [x] Add durable building-operation receipt journal for crash-safe placement/move/demolition idempotency; wallet/building/profile receipt are saved together before success is acknowledged (Studio DataStore restart/failure-injection verification pending).
 - [ ] Decide and implement demolition refund policy after economy balance approval.
 - [ ] Complete persistent personal home islands (profile lifecycle and MemoryStore lease code are committed; world spawning and Studio verification remain).
 - [x] Add cross-server MemoryStore coordination lease with acquire, renewal, release, and fail-closed handling (Studio verification pending; DataStore fencing is implemented separately).
