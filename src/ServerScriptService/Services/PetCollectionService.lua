@@ -3,6 +3,7 @@
 -- Pet ownership and equipped IDs are never accepted from client-provided profile data.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -495,6 +496,60 @@ function PetCollectionService.grantExperienceWithProgressOnce(
 	end
 	syncProfileIfNewer(state, result)
 	return true, "UPDATED", progressionResult
+end
+
+
+
+-- Trusted server-only pet acquisition entry point for future egg, quest, and shop systems.
+-- Pet ID is generated once before UpdateAsync so retries reuse the same identity.
+function PetCollectionService.grantPet(
+	player: Player,
+	speciesId: string,
+	rarityTier: number
+): (boolean, string, any?)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false, "INVALID_PLAYER", nil
+	end
+	local state = collections[player.UserId]
+	if state == nil or state.loading or state.profile == nil then
+		return false, "COLLECTION_NOT_READY", nil
+	end
+
+	local petId = "pet_" .. HttpService:GenerateGUID(false)
+	local acquiredAt = os.time()
+	local mutationStatus = "NOT_UPDATED"
+	local ok, result = updateWithRetry(player.UserId, function(current)
+		if type(current) ~= "table" then
+			mutationStatus = "PROFILE_MISSING"
+			return current
+		end
+		local valid, reason = PetCollectionData.validate(current, player.UserId)
+		if not valid then
+			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+			return current
+		end
+		local changed, status, nextProfile =
+			PetCollectionData.addPet(current, petId, speciesId, rarityTier, acquiredAt)
+		mutationStatus = status
+		if not changed then
+			return current
+		end
+		return nextProfile
+	end)
+
+	if not ok then
+		return false, "DATASTORE_UNAVAILABLE", nil
+	end
+	if mutationStatus ~= "UPDATED" or type(result) ~= "table" then
+		return false, mutationStatus, nil
+	end
+	local valid, reason = PetCollectionData.validate(result, player.UserId)
+	if not valid then
+		warn("[PetKingdoms] Pet acquisition result invalid:", player.UserId, reason)
+		return false, "INVALID_SAVE_RESULT", nil
+	end
+	syncProfileIfNewer(state, result)
+	return true, "UPDATED", cloneForClient(state.profile)
 end
 
 
