@@ -477,3 +477,5 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Treat a missing pet receipt as already finalized only after the source acknowledgement is durable; unacknowledged receipts remain permanent.
 - [x] Add tests proving source-acknowledged records cannot be compacted before the final pet marker and that acknowledgement timestamps are ordered.
 - [ ] Execute Studio tests and cross-DataStore crash/fault-injection scenarios.
+
+- [x] Verify quest XP recovery worker and final acknowledgement handshake in GitHub Actions run #127 (Rojo build + Studio artifact upload PASS); Studio script execution remains pending.
