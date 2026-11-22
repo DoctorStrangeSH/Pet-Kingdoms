@@ -991,3 +991,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Journal refreshes when opened and after the server's confirmed `IslandResourceUpdate` gathering event (debounced to respect the server read rate limit).
 - Rewards remain explicitly unavailable; no economy amounts were invented. Tracked HUD and completion toast are still pending.
 - Studio visual and mobile interaction verification is pending.
+
+
+## Quest tracking and completion feedback (2026-11-22)
+
+- Extended `QuestJournalUI.client.lua` with a compact tracked-objective HUD anchored bottom-left and responsive sizing.
+- Added per-card Track button; selection is client-local for now and is not persisted across sessions.
+- Automatically selects the first incomplete quest on initial snapshot and advances to the next incomplete objective after completion.
+- Added completion toast driven only by a server-read quest snapshot after the confirmed gather event. Toast is transition-based and does not replay for already-completed quests on initial load.
+- Client remains read-only: it cannot submit progress or claim rewards.
+- Reward claim flow and persistent tracked-quest preference remain NOT DONE. Studio visual/device verification remains pending.
