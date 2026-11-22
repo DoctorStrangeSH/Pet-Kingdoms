@@ -50,4 +50,52 @@ function IslandExpansion.getNextBounds(baseWidth: number, baseDepth: number, cur
 	return IslandExpansion.getBounds(baseWidth, baseDepth, currentLevel + 1)
 end
 
+-- Returns a cloned profile for the next expansion level.
+-- Moving each saved grid coordinate by half the added dimensions preserves
+-- every building's world-space position while the renderer keeps the grid centered.
+function IslandExpansion.expandProfile(profile: any): (any?, string)
+	if type(profile) ~= "table"
+		or not isPositiveInteger(profile.boundsWidth)
+		or not isPositiveInteger(profile.boundsDepth)
+		or type(profile.buildings) ~= "table"
+	then
+		return nil, "INVALID_PROFILE"
+	end
+
+	local currentLevel = if profile.expansionLevel == nil then 0 else profile.expansionLevel
+	if not IslandExpansion.isValidLevel(currentLevel) then
+		return nil, "INVALID_EXPANSION_LEVEL"
+	end
+	if currentLevel >= IslandExpansion.MAX_LEVEL then
+		return nil, "MAX_EXPANSION_REACHED"
+	end
+
+	local nextLevel = currentLevel + 1
+	local nextBounds = IslandExpansion.getNextBounds(profile.boundsWidth, profile.boundsDepth, currentLevel)
+	if nextBounds == nil then
+		return nil, "INVALID_EXPANSION_BOUNDS"
+	end
+
+	local shift = IslandExpansion.CELLS_PER_LEVEL / 2
+	local nextProfile = table.clone(profile)
+	nextProfile.buildings = {}
+	for index, record in ipairs(profile.buildings) do
+		if type(record) ~= "table"
+			or type(record.x) ~= "number"
+			or type(record.z) ~= "number"
+		then
+			return nil, "INVALID_BUILDING_RECORD"
+		end
+		local nextRecord = table.clone(record)
+		nextRecord.x += shift
+		nextRecord.z += shift
+		nextProfile.buildings[index] = nextRecord
+	end
+
+	nextProfile.boundsWidth = nextBounds.width
+	nextProfile.boundsDepth = nextBounds.depth
+	nextProfile.expansionLevel = nextLevel
+	return nextProfile, "EXPANDED"
+end
+
 return IslandExpansion
