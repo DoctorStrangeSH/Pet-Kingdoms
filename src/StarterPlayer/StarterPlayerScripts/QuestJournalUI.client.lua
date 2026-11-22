@@ -9,6 +9,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local request = remotes:WaitForChild("GetQuestProgress") :: RemoteFunction
+local trackingRequest = remotes:WaitForChild("SetTrackedQuest") :: RemoteFunction
 local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 
 local COLORS = {
@@ -268,12 +269,13 @@ local function clearCards()
 	end
 end
 
-local function render(quests: any)
+local function render(quests: any, serverTrackedQuestId: string?)
 	if type(quests) ~= "table" then
 		status.Text = "Не удалось прочитать задания."
 		status.TextColor3 = COLORS.rose
 		return
 	end
+	trackedQuestId = serverTrackedQuestId
 	clearCards()
 	local completedCount = 0
 	for index, quest in ipairs(quests) do
@@ -307,18 +309,29 @@ local function render(quests: any)
 		make("UICorner", { CornerRadius = UDim.new(0, 8) }, trackButton)
 		trackButton.Activated:Connect(function()
 			if quest.completed == true then return end
-			trackedQuestId = quest.id
-			updateTracker(lastQuests)
-			for _, sibling in ipairs(list:GetChildren()) do
-				if sibling:IsA("Frame") then
-					local action = sibling:FindFirstChild("TrackQuest")
-					if action and action:IsA("TextButton") then
-						local active = sibling.Name == "Quest_" .. quest.id
-						action.Text = if active then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ"
-						action.BackgroundColor3 = if active then COLORS.mint else COLORS.card
-						action.TextColor3 = if active then COLORS.panel else COLORS.cream
+			trackButton.Text = "СОХРАНЕНИЕ..."
+			trackButton.Active = false
+			local ok, result = pcall(function()
+				return trackingRequest:InvokeServer(quest.id)
+			end)
+			trackButton.Active = true
+			if ok and type(result) == "table" and result.ok == true then
+				trackedQuestId = quest.id
+				updateTracker(lastQuests)
+				for _, sibling in ipairs(list:GetChildren()) do
+					if sibling:IsA("Frame") then
+						local action = sibling:FindFirstChild("TrackQuest")
+						if action and action:IsA("TextButton") then
+							local active = sibling.Name == "Quest_" .. quest.id
+							action.Text = if active then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ"
+							action.BackgroundColor3 = if active then COLORS.mint else COLORS.card
+							action.TextColor3 = if active then COLORS.panel else COLORS.cream
+						end
 					end
 				end
+			else
+				trackButton.Text = "ОШИБКА — ПОВТОРИ"
+				trackButton.BackgroundColor3 = COLORS.rose
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
@@ -398,6 +411,12 @@ local function render(quests: any)
 		for _, quest in ipairs(quests) do
 			if quest.completed ~= true then trackedQuestId = quest.id break end
 		end
+		if trackedQuestId ~= nil then
+			local nextTrackedId = trackedQuestId
+			task.spawn(function()
+				pcall(function() trackingRequest:InvokeServer(nextTrackedId) end)
+			end)
+		end
 	end
 	updateTracker(quests)
 	lastQuests = quests
@@ -411,7 +430,7 @@ local function refresh()
 	status.TextColor3 = COLORS.muted
 	local ok, result = pcall(function() return request:InvokeServer() end)
 	if ok and type(result) == "table" and result.ok == true then
-		render(result.quests)
+		render(result.quests, result.trackedQuestId)
 	elseif ok and type(result) == "table" and result.code == "RATE_LIMITED" then
 		status.Text = "Подожди немного перед обновлением."
 		status.TextColor3 = COLORS.gold
