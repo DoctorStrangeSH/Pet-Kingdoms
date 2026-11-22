@@ -19,6 +19,18 @@ assert(not invalidOk and invalidCode == "INVALID_PROFILE", "invalid profile must
 local previousCellSize = Workspace:GetAttribute("IslandGridCellSize")
 Workspace:SetAttribute("IslandGridCellSize", 8)
 
+local wrongBoundsProfile = {
+	ownerUserId = 123,
+	schemaVersion = 1,
+	boundsWidth = 40,
+	boundsDepth = 40,
+	expansionLevel = 1,
+	buildings = {},
+}
+local wrongBoundsOk, wrongBoundsCode = IslandWorldService.spawn({ UserId = 123 } :: any, wrongBoundsProfile)
+assert(not wrongBoundsOk and wrongBoundsCode == "INVALID_EXPANSION_BOUNDS",
+	"world renderer must reject bounds that do not match the persisted expansion level")
+
 local function profileFor(userId: number)
 	return {
 		ownerUserId = userId,
