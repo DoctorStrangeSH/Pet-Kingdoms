@@ -481,3 +481,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `getOptions(catalog, sourceSpeciesId)` returns cloned matching definitions and does not mutate the catalog.
 - Added Studio-only `PetEvolutionDataTests.server.lua` for the catalog contract. Tests are committed but have not been run in Roblox Studio.
 - No production evolution definitions are present; the current owned species registry still contains only `bunny`. Do not invent forms or progression requirements. Persistence, eligibility, and evolution transactions remain NOT DONE until design approves the species/form catalog and rules.
+
+
+## Pet evolution transition preparation (2026-11-22)
+
+- Extended `PetEvolutionData` with `getDefinition(catalog, evolutionId)`, which validates the catalog and returns a clone of the matching definition.
+- Added `prepareTransition(definition, petRecord)`. It rejects malformed definitions/records and source-species mismatches, then returns a cloned pet record with only `speciesId` changed. The stable `petId`, rarity, level, XP, bond progress, equipped linkage, lock/favorite flags, and any future record metadata are retained.
+- The function is intentionally pure and does not persist or mutate the supplied record. It is not a production evolution endpoint.
+- Added Studio-only tests for stable ID, preservation of progression and protection metadata, no mutation of the source record, invalid source, malformed record, and unknown evolution ID. Tests are committed but have not been executed in Roblox Studio.
+- Important blocker confirmed in `PetCollectionData.lua`: the authoritative `VALID_SPECIES` registry currently contains only `bunny`. No target form is approved or accepted by persisted collection validation. Do not create a production evolution transaction or invent a target species until game design approves the first form and updates the registry.
