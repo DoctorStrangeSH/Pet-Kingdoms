@@ -247,3 +247,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This handles the case where DataStore `UpdateAsync` commits writes in order but yielding server callbacks resume in a different order; a late older response can no longer roll the in-memory cache back.
 - Initial profile loading still assigns the loaded profile directly before mutation requests are available.
 - Verify overlapping Equip/Interact/XP reward calls in Roblox Studio and confirm the in-memory revision never decreases. Studio verification remains pending.
+
+
+## Latest pet collection response snapshots (2026-11-22)
+
+- Equip and Interact now return `cloneForClient(state.profile)` after revision-aware synchronization, rather than blindly returning the individual DataStore response.
+- A request that completes late can therefore no longer send a stale profile revision back to the UI after a newer concurrent mutation has already updated the in-memory snapshot.
+- Equip still respawns from the current in-memory profile after synchronization.
+- Verify overlapping Equip/Interact/XP calls from multiple client requests in Studio; UI should converge to the greatest revision and not display rolled-back equipped IDs or Bond values.
