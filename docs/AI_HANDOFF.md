@@ -732,4 +732,5 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - After the island is spawned and the live session is installed, server calls `Player:LoadCharacterAsync()`; CharacterAdded routes the character to the island. The player is marked Ready only after the character is pivoted to the current island arrival CFrame.
 - Added `StarterPlayerScripts/IslandLoading.client.lua`: localized full-screen loading panel, animated progress indicator, server-authored phase text, failure state, and fade-out only on Ready.
 - This fixes the confusing default spawn in an empty Workspace during DataStore loading. It does not by itself complete the art/world MVP; the current island renderer remains a procedural blockout.
-- Verify in Studio: new player with API access, saved returning player, delayed DataStore, failed lease/load, respawn, and two-player join.
+- The loading client also clamps the default third-person camera to 8–28 studs and rebinds CameraSubject to the new Humanoid after character spawn.
+- Verify in Studio: publish a private test place, enable Game Settings → Security → Enable Studio Access to API Services, then test new player, saved returning player, delayed DataStore, failed lease/load, respawn, and two-player join.
