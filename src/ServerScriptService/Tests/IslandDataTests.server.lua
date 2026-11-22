@@ -22,6 +22,18 @@ expect("invalid bounds rejected", IslandData.create(1001, 0, 10) == nil)
 
 local valid, code = IslandData.validate(profile, 1001, Catalog)
 expect("empty profile validates", valid and code == "VALID")
+expect("new island profile starts with an empty building operation journal",
+	type(profile.buildingOperations) == "table" and #profile.buildingOperations == 0)
+
+local malformedBuildingJournalProfile = IslandData.create(1001, 10, 10)
+malformedBuildingJournalProfile.buildingOperations = {
+	{ requestId = "bad", fingerprint = "place", action = "place", createdAt = 1, revision = 1, result = { ok = false } },
+}
+local malformedJournalOk, malformedJournalCode =
+	IslandData.validate(malformedBuildingJournalProfile, 1001, Catalog)
+expect("malformed building operation receipt rejected",
+	not malformedJournalOk and string.find(malformedJournalCode, "INVALID_BUILDING_LEDGER:", 1, true) == 1)
+
 expect("new profile receives provisional starter wallet", profile.resources.wood == 2 and profile.resources.stone == 1)
 local invalidWalletProfile = IslandData.create(1001, 10, 10)
 invalidWalletProfile.resources = { wood = -1, stone = 1 }
