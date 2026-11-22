@@ -32,6 +32,13 @@ local function canIncrementRevision(profile: any): boolean
 		and profile.revision < PetCollectionData.MAX_SAFE_INTEGER
 end
 
+local function validateMutationProfile(profile: any): (boolean, string)
+	if type(profile) ~= "table" then
+		return false, "PROFILE_NOT_TABLE"
+	end
+	return PetCollectionData.validate(profile, profile.ownerUserId)
+end
+
 local function isPositiveInteger(value: any): boolean
 	return isNonNegativeInteger(value) and value > 0
 end
@@ -158,6 +165,10 @@ function PetCollectionData.clone(profile: any): any
 end
 
 function PetCollectionData.interact(profile: any, petId: string, interactionType: string, now: number): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil
+	end
 	if not canIncrementRevision(profile) then
 		return false, "REVISION_OVERFLOW", nil
 	end
@@ -195,7 +206,11 @@ end
 -- This pure mutation is intended for trusted server-side reward systems only.
 -- The caller must derive amount from validated server gameplay state, never client payloads.
 function PetCollectionData.grantExperience(profile: any, petId: string, amount: number): (boolean, string, any?)
-	if type(profile) == "table" and not canIncrementRevision(profile) then
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil
+	end
+	if not canIncrementRevision(profile) then
 		return false, "REVISION_OVERFLOW", nil
 	end
 	if type(petId) ~= "string" or petId == "" then
@@ -203,13 +218,6 @@ function PetCollectionData.grantExperience(profile: any, petId: string, amount: 
 	end
 	if not isPositiveInteger(amount) then
 		return false, "INVALID_XP_AMOUNT", nil
-	end
-	if type(profile) ~= "table" then
-		return false, "INVALID_PROFILE:PROFILE_NOT_TABLE", nil
-	end
-	local valid, reason = PetCollectionData.validate(profile, profile.ownerUserId)
-	if not valid then
-		return false, "INVALID_PROFILE:" .. reason, nil
 	end
 
 	local updated = PetCollectionData.clone(profile)
@@ -234,7 +242,11 @@ function PetCollectionData.grantExperience(profile: any, petId: string, amount: 
 end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
-	if type(profile) == "table" and not canIncrementRevision(profile) then
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then
+		return false, "INVALID_PROFILE:" .. reason, nil
+	end
+	if not canIncrementRevision(profile) then
 		return false, "REVISION_OVERFLOW", nil
 	end
 	if type(petIds) ~= "table" then
