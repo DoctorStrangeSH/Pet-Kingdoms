@@ -66,3 +66,8 @@ Preparation contract tests additionally verify rejection at maximum level, inval
 ## Live world refresh
 
 After the expansion profile revision is durable, `IslandSessionService.commitIslandExpansion` calls `IslandWorldService.refresh`. The world service generates a full replacement using the same assigned spawn point, validates canonical saved bounds, and swaps the model only after successful generation. The previous world remains intact if replacement generation fails. A post-save rendering failure does not roll back durable profile data; it returns `PERSISTED_WORLD_REFRESH_PENDING`, and the saved profile will be rendered on the next session load.
+
+
+## Read-only preview API
+
+`IslandExpansionService` exposes `ReplicatedStorage/Remotes/GetIslandExpansionPreview`. It validates the caller's active writable session and canonical profile bounds, then returns current and next dimensions, level cap, and `purchaseAvailable = false` with `ECONOMY_NOT_APPROVED`. Calls are rate-limited. The preview endpoint does not mutate the profile or invoke the expansion commit.
