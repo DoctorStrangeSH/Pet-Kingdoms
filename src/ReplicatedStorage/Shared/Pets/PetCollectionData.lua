@@ -331,7 +331,7 @@ function PetCollectionData.addPet(
 			return false, "DUPLICATE_PET_ID", nil
 		end
 	end
-	-- A removed pet's ID remains retired in the acquisition ledger. Never recycle identity.
+	-- Prevent reuse while the acquisition receipt is retained in the bounded ledger.
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		if receipt.petId == petId then
 			return false, "PET_ID_ALREADY_USED", nil
