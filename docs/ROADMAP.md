@@ -70,7 +70,8 @@
 - [x] Document the MVP building-system design and server-authority requirements.
 
 - [ ] Implement persistent personal home islands.
-- [ ] Verify procedural personal island world rendering and character arrival in Roblox Studio (renderer, spawn routing, and session integration are committed; required Workspace setup and visual checks remain).
+- [x] Verify the first Roblox Studio Play launch after publishing a dedicated private test Experience and enabling Studio API access; owner confirmed the loading screen completed and the game entered successfully (2026-11-22).
+- [ ] Verify procedural personal island rendering quality, exact spawn placement, resource prompts, and repeated leave/rejoin behavior in Roblox Studio.
 - [x] Add versioned island profile schema and validation helpers (Studio tests committed; execution pending).
 - [x] Add persistent resource wallet to island profiles (provisional starter: 2 Wood, 1 Stone; Gold/Gems start at 0).
 - [x] Add backward-compatible migration for existing schema-v1 profiles without a wallet during session claim.
