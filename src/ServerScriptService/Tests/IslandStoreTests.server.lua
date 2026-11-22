@@ -26,13 +26,20 @@ print("[PetKingdoms Test] PASS: IslandStore rejects invalid profile before DataS
 local syntheticUserId = 1_000_000_000 + math.random(1, 900_000_000)
 local seed = IslandData.create(syntheticUserId, 10, 10)
 assert(seed ~= nil, "synthetic profile should be created")
--- Remove the new field to emulate a legacy schema-v1 profile.
+-- Remove newer fields to emulate a legacy schema-v1 profile.
 seed.buildingOperations = nil
+seed.resourceNodes = nil
 
 local claimAOk, profileA, claimAStatus = IslandStore.claimSession(seed)
 assert(claimAOk, "first session claim failed: " .. claimAStatus)
 assert(type(profileA.buildingOperations) == "table" and #profileA.buildingOperations == 0,
 	"legacy profile claim should migrate an empty building operation ledger")
+assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
+	"legacy profile claim should migrate an empty resource node state list")
+
+profileA.resourceNodes = {
+	{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = os.time(), availableAt = os.time() + 60 },
+}
 
 local receiptRevision = profileA.revision + 1
 local receiptLedger, receiptCode = BuildingJournal.append(
@@ -53,8 +60,10 @@ assert(receiptSaveOk, "building receipt should persist: " .. receiptSaveCode)
 local receiptLoadOk, receiptLoaded = IslandStore.load(syntheticUserId)
 assert(receiptLoadOk and receiptLoaded ~= nil
 	and #receiptLoaded.buildingOperations == 1
-	and receiptLoaded.buildingOperations[1].requestId == "store-test-request",
-	"building receipt should survive DataStore save/load")
+	and receiptLoaded.buildingOperations[1].requestId == "store-test-request"
+	and #receiptLoaded.resourceNodes == 1
+	and receiptLoaded.resourceNodes[1].nodeId == "WoodNode_A",
+	"building receipt and resource node cooldown should survive DataStore save/load")
 
 -- A delayed loader holding the original generation-zero snapshot must not
 -- supersede the first session after its claim has committed.
