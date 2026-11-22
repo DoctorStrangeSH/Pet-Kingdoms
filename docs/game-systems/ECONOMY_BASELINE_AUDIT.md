@@ -59,7 +59,7 @@ The server catalog is authoritative. Prices are present in code but the project 
 - One successful stone-node gather raises Stone to 3.
 - Therefore, after one gather of each resource, the current wallet can cover the coded Pet House cost of 5 Wood and 2 Stone, leaving 0 Wood and 1 Stone.
 - A single gather is not necessarily instantaneous; the two resource node interactions and their availability are governed by the server's 60-second node cooldown.
-- No gold or gem earning source is established by these inspected gathering definitions.
+- No gold or gem earning source is established by the current gathering catalog. The inspected server Services directory contains no quest, reward, or shop service; these are still roadmap items, not implemented earning sources.
 
 ## Expansion economy status
 
@@ -95,3 +95,4 @@ The current expansion geometry is a two-step prototype: 24×24 → 32×32 → 40
 - `src/ServerScriptService/Services/IslandResourceNodeData.lua`
 - `src/ServerScriptService/Services/BuildingCatalog.lua`
 - `src/ServerScriptService/Services/IslandSessionService.lua`
+- `src/ServerScriptService/Services/KingdomBond.lua`
