@@ -66,3 +66,7 @@ The global `PlayerGui.PetKingdomsActiveModal` convention now includes `building`
 ## Compact placement UI (2026-11-22)
 
 The building catalogue is visible while choosing a building. Once the player enters placement preview, its large catalogue grid hides, and the bottom panel becomes a compact action bar (rotate, confirm, cancel, close), leaving more screen area available for positioning the preview. Ending the mode restores catalogue layout. Responsive sizing is retained on viewport changes; Studio mobile usability testing is pending.
+
+## Placement confirmation fidelity (2026-11-22)
+
+The client no longer repositions its preview when the pointer crosses its visible action bar, and an in-flight placement request freezes catalog ID, grid coordinates, rotation, and moving-instance ID. The idempotent request ID and server payload use the same snapshot. This protects the currently selected world cell from being shifted by mouse movement/touch over Confirm or by RenderStepped updates during the server call. Roblox Studio desktop/touch gameplay verification remains pending.
