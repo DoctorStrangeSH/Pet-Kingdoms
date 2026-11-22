@@ -36,7 +36,9 @@ function PetCollectionSessionData.claim(current: any, observed: any, token: any,
 	end
 
 	local generation = if current ~= nil then (current.collectionSessionGeneration or 0) else 0
-	if not validGeneration(generation) then return nil, "INVALID_GENERATION" end
+	if not validGeneration(generation) or generation + 1 >= MAX_GENERATION then
+		return nil, "INVALID_GENERATION"
+	end
 	local nextProfile = if current == nil then createDefault() else table.clone(current)
 	if type(nextProfile) ~= "table" then return nil, "INVALID_DEFAULT_PROFILE" end
 	nextProfile.collectionSessionGeneration = generation + 1
