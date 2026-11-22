@@ -20,6 +20,14 @@ local function isPositiveInteger(value: any): boolean
 		and value == math.floor(value)
 end
 
+local function isNonNegativeInteger(value: any): boolean
+	return type(value) == "number"
+		and value == value
+		and value >= 0
+		and value < math.huge
+		and value == math.floor(value)
+end
+
 function IslandExpansion.isValidLevel(level: any): boolean
 	return type(level) == "number"
 		and level == level
@@ -81,8 +89,8 @@ function IslandExpansion.expandProfile(profile: any): (any?, string)
 	nextProfile.buildings = {}
 	for index, record in ipairs(profile.buildings) do
 		if type(record) ~= "table"
-			or type(record.x) ~= "number"
-			or type(record.z) ~= "number"
+			or not isNonNegativeInteger(record.x)
+			or not isNonNegativeInteger(record.z)
 		then
 			return nil, "INVALID_BUILDING_RECORD"
 		end
