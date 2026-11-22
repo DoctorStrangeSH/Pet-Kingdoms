@@ -45,7 +45,13 @@ end
 local function recoverTransaction(player: Player, record: any): (boolean, string)
 	local action, actionStatus = PetHatchingRecoveryData.getNextAction(record)
 	if action == nil then return false, actionStatus end
-	if action == "COMPLETE" then return true, actionStatus end
+	if action == "COMPLETE" then
+		local acknowledged, acknowledgeStatus = PetCollectionService.acknowledgeAcquisition(
+			player, record.acquisitionId, record.transactionId
+		)
+		if not acknowledged then return false, "RECEIPT_ACKNOWLEDGEMENT_FAILED:" .. acknowledgeStatus end
+		return true, actionStatus
+	end
 
 	-- Reserve capacity before charging. A full collection leaves PREPARED/CHARGED
 	-- untouched so no player pays for an unstoreable pet.
@@ -53,7 +59,8 @@ local function recoverTransaction(player: Player, record: any): (boolean, string
 		player,
 		record.speciesId,
 		record.rarityTier,
-		record.acquisitionId
+		record.acquisitionId,
+		record.transactionId
 	)
 	if not reserved then return false, "CAPACITY_RESERVATION_FAILED:" .. reserveStatus end
 
@@ -72,7 +79,8 @@ local function recoverTransaction(player: Player, record: any): (boolean, string
 		player,
 		record.speciesId,
 		record.rarityTier,
-		record.acquisitionId
+		record.acquisitionId,
+		record.transactionId
 	)
 	if not granted then return false, "PET_GRANT_FAILED:" .. grantStatus end
 
@@ -82,6 +90,13 @@ local function recoverTransaction(player: Player, record: any): (boolean, string
 		record.transactionId
 	)
 	if not completed then return false, "JOURNAL_COMPLETION_FAILED:" .. completeStatus end
+
+	local acknowledged, acknowledgeStatus = PetCollectionService.acknowledgeAcquisition(
+		player, record.acquisitionId, record.transactionId
+	)
+	if not acknowledged then
+		return false, "RECEIPT_ACKNOWLEDGEMENT_FAILED:" .. acknowledgeStatus
+	end
 
 	return true, if grantStatus == "ALREADY_ACQUIRED" then "RECOVERED_EXISTING_PET" else "RECOVERED_NEW_PET"
 end
@@ -97,6 +112,9 @@ local function recoverPlayer(player: Player)
 		return
 	end
 
+	-- Completed journal entries are also revisited until their collection receipt
+	-- has been acknowledged. This is safe because acknowledgement is idempotent.
+	local acknowledgedTransactions: { [string]: boolean } = {}
 	-- Recovery is retried while this exact Player owns a writable island session.
 	-- Always read the current journal; never replay a stale snapshot blindly.
 	while isCurrentRun(player, token)
@@ -106,7 +124,7 @@ local function recoverPlayer(player: Player)
 		if profile == nil then break end
 		local pending = {}
 		for _, record in ipairs(profile.hatchTransactions or {}) do
-			if record.state ~= "GRANTED" then
+			if record.state ~= "GRANTED" or not acknowledgedTransactions[record.transactionId] then
 				local copy = table.clone(record)
 				copy.costs = table.clone(record.costs)
 				table.insert(pending, copy)
@@ -120,6 +138,7 @@ local function recoverPlayer(player: Player)
 				or not PetCollectionService.isReady(player) then break end
 			local ok, status = recoverTransaction(player, record)
 			if ok then
+				if record.state == "GRANTED" then acknowledgedTransactions[record.transactionId] = true end
 				print("[PetKingdoms] Hatch transaction recovered", player.UserId, record.transactionId, status)
 			else
 				warn("[PetKingdoms] Hatch transaction recovery deferred", player.UserId, record.transactionId, status)
