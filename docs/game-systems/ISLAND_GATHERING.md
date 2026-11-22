@@ -71,3 +71,7 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 
 - On gather, the server accepts only its named `GatherPrompt` directly under the trusted `GatherAnchor` inside a node Model belonging to `ResourceNodes`. Other prompts are ignored.
 - Studio world integration tests now model a persisted cooldown on a second player's island and assert the hidden prompt, transparent anchor and saved custom-mesh base transparency. Actual post-delay respawn still requires runtime testing.
+
+## Repeatable resource visibility tests (2026-11-22)
+
+The shared `ResourceNodeVisibility.setVisible` now owns cooldown hide/restore behavior and is covered by a Studio-only test fixture. The fixture checks alpha-preserving restoration of a partially transparent model, permanently invisible `GatherAnchor`, disabled prompt/marker during cooldown, re-enabled cues on respawn, and a second hide/restore cycle. Run in Studio before claiming resource respawn behavior fully verified.
