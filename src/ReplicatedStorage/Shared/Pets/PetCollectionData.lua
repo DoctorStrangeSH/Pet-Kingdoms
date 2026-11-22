@@ -171,6 +171,8 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 				or receipt.petId == ""
 				or not isPositiveInteger(receipt.amount)
 				or not isNonNegativeInteger(receipt.processedAt)
+				or (receipt.acknowledgedAt ~= nil and (not isNonNegativeInteger(receipt.acknowledgedAt)
+					or receipt.acknowledgedAt < receipt.processedAt))
 			then
 				return false, "INVALID_REWARD_RECEIPT"
 			end
@@ -799,8 +801,11 @@ function PetCollectionData.grantExperienceWithProgressOnce(
 
 	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.rewardReceipts or {}) do
-		local age = now - receipt.processedAt
-		if age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+		local retentionTimestamp = receipt.acknowledgedAt or receipt.processedAt
+		local age = now - retentionTimestamp
+		local keepReceipt = receipt.acknowledgedAt == nil
+			or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS
+		if keepReceipt then
 			table.insert(retainedReceipts, receipt)
 			if receipt.rewardId == rewardId then
 				if receipt.petId ~= petId or receipt.amount ~= amount then
@@ -830,6 +835,37 @@ function PetCollectionData.grantExperienceWithProgressOnce(
 	updated.rewardReceipts = retainedReceipts
 
 	return true, "UPDATED", updated, summary
+end
+
+
+-- The source outbox calls this only after its own durable acknowledgement.
+-- Unacknowledged receipts never expire; acknowledged receipts enter the normal retention window.
+function PetCollectionData.acknowledgeExperienceReward(
+	profile: any,
+	rewardId: string,
+	now: number
+): (boolean, string, any?)
+	local valid, reason = validateMutationProfile(profile)
+	if not valid then return false, "INVALID_PROFILE:" .. reason, nil end
+	if not canIncrementRevision(profile) then return false, "REVISION_OVERFLOW", nil end
+	if type(rewardId) ~= "string" or #rewardId < 1 or #rewardId > 128
+		or string.match(rewardId, "^[%w][%w:_%-]*$") == nil then
+		return false, "INVALID_REWARD_ID", nil
+	end
+	if not isNonNegativeInteger(now) then return false, "INVALID_TIMESTAMP", nil end
+
+	local updated = PetCollectionData.clone(profile)
+	for _, receipt in ipairs(updated.rewardReceipts) do
+		if receipt.rewardId == rewardId then
+			if receipt.acknowledgedAt ~= nil then
+				return false, "ALREADY_ACKNOWLEDGED", nil
+			end
+			receipt.acknowledgedAt = math.max(now, receipt.processedAt)
+			updated.revision += 1
+			return true, "ACKNOWLEDGED", updated
+		end
+	end
+	return false, "RECEIPT_NOT_FOUND", nil
 end
 
 
