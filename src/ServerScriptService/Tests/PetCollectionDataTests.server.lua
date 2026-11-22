@@ -746,6 +746,12 @@ local pendingHatchRetry, pendingHatchRetryStatus = PetCollectionData.addPetOnce(
 )
 expect("unacknowledged hatch receipt survives beyond seven days",
 	not pendingHatchRetry and pendingHatchRetryStatus == "ALREADY_ACQUIRED")
+local mismatchedHatchRetry, mismatchedHatchRetryStatus = PetCollectionData.addPetOnce(
+	pendingHatchOwned, "different-hatch-pet", "bunny", 2, 300,
+	"hatch:pending-001", "hatch:other-transaction"
+)
+expect("acquisition ID cannot be replayed under another hatch transaction",
+	not mismatchedHatchRetry and mismatchedHatchRetryStatus == "ACQUISITION_ID_CONFLICT")
 local acknowledgedHatch, acknowledgedHatchStatus, acknowledgedHatchProfile =
 	PetCollectionData.acknowledgeAcquisition(pendingHatchOwned, "hatch:pending-001", "hatch:tx-pending-001", 200)
 expect("durable journal completion acknowledges hatch receipt",
@@ -760,6 +766,12 @@ local repeatedAck, repeatedAckStatus = PetCollectionData.acknowledgeAcquisition(
 	acknowledgedHatchProfile, "hatch:pending-001", "hatch:tx-pending-001", 202
 )
 expect("receipt acknowledgement is idempotent", not repeatedAck and repeatedAckStatus == "ALREADY_ACKNOWLEDGED")
+local malformedAcknowledgedReceipt = PetCollectionData.clone(acknowledgedHatchProfile)
+malformedAcknowledgedReceipt.acquisitionReceipts[1].transactionId = nil
+local malformedAcknowledgedValid, malformedAcknowledgedReason =
+	PetCollectionData.validate(malformedAcknowledgedReceipt, 98765)
+expect("completed receipt requires its source transaction",
+	not malformedAcknowledgedValid and malformedAcknowledgedReason == "INVALID_ACQUISITION_RECEIPT")
 local expiredAcknowledgedHatch, expiredAcknowledgedStatus =
 	PetCollectionData.reservePetSlotOnce(
 		acknowledgedHatchProfile, "hatch:after-completion", "bunny", 1,
