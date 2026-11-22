@@ -16,6 +16,7 @@ local IslandHatchLedgerData = require(services:WaitForChild("IslandHatchLedgerDa
 local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJournalData"))
 local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
 local IslandResourceNodeData = require(services:WaitForChild("IslandResourceNodeData"))
+local IslandGatheringTransactionData = require(services:WaitForChild("IslandGatheringTransactionData"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
@@ -122,45 +123,23 @@ function IslandSessionService.commitResourceGathering(
 		return false, "GATHERING_BUSY", nil
 	end
 
-	local definition = IslandResourceNodeCatalog.get(nodeId)
-	if definition == nil then return false, "UNKNOWN_NODE", nil end
 	session.gatheringMutationBusy = true
-
-	local nextStates, availableAt, stateCode = IslandResourceNodeData.recordGather(
-		session.profile.resourceNodes or {},
+	local transaction, transactionCode, availableAt = IslandGatheringTransactionData.apply(
+		session.profile,
 		nodeId,
 		now
 	)
-	if nextStates == nil then
+	if transaction == nil then
 		session.gatheringMutationBusy = false
-		return false, stateCode, availableAt
+		return false, transactionCode, availableAt
 	end
 
-	local previousResources = table.clone(session.profile.resources)
-	local granted, grantCode = IslandResources.grant(
-		session.profile.resources,
-		definition.resourceId,
-		definition.reward
-	)
-	if not granted then
-		session.gatheringMutationBusy = false
-		return false, grantCode, nil
-	end
-
-	local previousQuestProgress = session.profile.questProgress or QuestProgressData.create()
-	local nextQuestProgress, completedQuestIds, questCode = QuestProgressData.recordGather(
-		previousQuestProgress,
-		definition.resourceId
-	)
-	if nextQuestProgress == nil then
-		session.profile.resources = previousResources
-		session.gatheringMutationBusy = false
-		return false, questCode, nil
-	end
-
+	local previousResources = session.profile.resources
 	local previousStates = session.profile.resourceNodes
-	session.profile.resourceNodes = nextStates
-	session.profile.questProgress = nextQuestProgress
+	local previousQuestProgress = session.profile.questProgress
+	session.profile.resources = transaction.resources
+	session.profile.resourceNodes = transaction.resourceNodes
+	session.profile.questProgress = transaction.questProgress
 	if not IslandSessionService.markDirty(userId) then
 		session.profile.resources = previousResources
 		session.profile.resourceNodes = previousStates
@@ -187,7 +166,6 @@ function IslandSessionService.commitResourceGathering(
 	session.gatheringMutationBusy = false
 	return true, "GATHERED", availableAt
 end
-
 -- Commits a server-resolved pet XP quest reward, its permanent claim receipt,
 -- and its outbox record in one durable island profile revision.
 -- rewardPlan must come from a server-owned catalog; this method is never a RemoteFunction.
