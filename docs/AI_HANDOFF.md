@@ -1306,3 +1306,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The controller follows waypoints, reuses paths while the goal is stable, invalidates blocked routes, and retries after a short delay.
 - While a route is pending or unavailable, the pet holds position rather than clipping through walls. A clear direct lane releases path state.
 - The route remains client-side visual movement only. Studio navmesh/obstacle tests and mobile/multiplayer verification are still required.
+
+## Companion navigation safety fix (2026-11-22)
+
+- Corrected the declaration order of `horizontal` before `hasDirectPath`; the earlier order could resolve the symbol incorrectly at runtime when raycasts were used.
+- Teleport recovery is now based on horizontal distance from pet to the owner's desired formation slot, rather than distance from pet to its current navigation waypoint. This prevents an unavailable/blocked path from leaving companions stranded after character teleports.
+- Teleport recovery invalidates pending asynchronous path results, discards waypoints and disconnects blocked-path listeners.
+- Added a Studio client smoke-test case for teleporting with a pending navigation computation. Rojo packaging is not Studio runtime verification.
