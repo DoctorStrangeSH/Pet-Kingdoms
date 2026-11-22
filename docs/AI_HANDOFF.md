@@ -239,3 +239,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This API is deliberately not wired to any RemoteEvent/RemoteFunction. Client payloads cannot choose reward amounts through this method. Future combat/quest/interaction server systems must derive the amount from trusted server state and call this API directly.
 - XP thresholds, level-up calculation, source-specific amounts, reward idempotency policy, and actual gameplay callers remain open/not implemented. Do not award XP from the existing client-triggered collection interaction until an approved reward value and anti-replay policy are defined.
 - Added Studio pure-data tests for valid reward, revision increment, level/Bond isolation, invalid amount (zero/fractional/NaN/Infinity), and unowned pet rejection. Tests are committed, not executed in Studio.
+
+
+## Pet collection snapshot ordering (2026-11-22)
+
+- Added `syncProfileIfNewer` in `PetCollectionService`. Mutation responses from Interact, Equip, and trusted XP rewards update the in-memory collection only when their persisted revision is at least as new as the current snapshot.
+- This handles the case where DataStore `UpdateAsync` commits writes in order but yielding server callbacks resume in a different order; a late older response can no longer roll the in-memory cache back.
+- Initial profile loading still assigns the loaded profile directly before mutation requests are available.
+- Verify overlapping Equip/Interact/XP reward calls in Roblox Studio and confirm the in-memory revision never decreases. Studio verification remains pending.
