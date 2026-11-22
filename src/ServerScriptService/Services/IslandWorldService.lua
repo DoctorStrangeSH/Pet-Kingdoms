@@ -7,6 +7,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
+local KingdomBond = require(script.Parent:WaitForChild("KingdomBond"))
 local GridMath = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 
 local IslandWorldService = {}
@@ -101,6 +102,64 @@ local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, d
 	-- A simple stone arrival pad is a temporary gameplay landmark.
 	makePart(world, "Arrival_Pad", Vector3.new(cellSize * 2.4, 0.35, cellSize * 2.4),
 		top * CFrame.new(0, 0.18, sizeZ * 0.34), Color3.fromRGB(181, 177, 160), Enum.Material.Slate)
+end
+
+local function refreshKingdomBondVisuals(world: Model, profile: any)
+	local bond = KingdomBond.calculate(profile)
+	if bond == nil then return end
+	world:SetAttribute("KingdomBondPoints", bond.points)
+	world:SetAttribute("KingdomBondStage", bond.stageId)
+	world:SetAttribute("KingdomBondStageName", bond.stageName)
+	world:SetAttribute("KingdomBondBuildingCount", bond.buildingCount)
+
+	local grass = world:FindFirstChild("Island_GrassTop")
+	if grass and grass:IsA("BasePart") then
+		local stageColors = {
+			quiet = Color3.fromRGB(103, 166, 91),
+			cozy = Color3.fromRGB(111, 177, 94),
+			blooming = Color3.fromRGB(123, 187, 102),
+			thriving = Color3.fromRGB(135, 194, 111),
+		}
+		grass.Color = stageColors[bond.stageId] or stageColors.quiet
+	end
+
+	local previous = world:FindFirstChild("KingdomBondDecor")
+	if previous then previous:Destroy() end
+	if bond.buildingCount == 0 then return end
+
+	local decor = Instance.new("Folder")
+	decor.Name = "KingdomBondDecor"
+	decor.Parent = world
+	local center = grass and grass:IsA("BasePart") and grass.CFrame or world:GetPivot()
+	local size = grass and grass:IsA("BasePart") and grass.Size or Vector3.new(40, 4, 40)
+	local function accent(name: string, position: Vector3, dimensions: Vector3, color: Color3, material: Enum.Material, shape: Enum.PartType?)
+		local part = makePart(decor, name, dimensions, CFrame.new(position), color, material, shape)
+		part.CanCollide = false
+		part.CanTouch = false
+		part.CanQuery = false
+		return part
+	end
+
+	local edgeX = size.X * 0.34
+	local edgeZ = size.Z * 0.34
+	local groundY = center.Position.Y + size.Y * 0.5 + 0.12
+	if bond.buildingCount >= 1 then
+		for index, offset in ipairs({ Vector3.new(-edgeX, 0, -edgeZ), Vector3.new(edgeX, 0, edgeZ), Vector3.new(-edgeX, 0, edgeZ) }) do
+			accent("Kingdom_Flower_" .. index, center.Position + offset + Vector3.new(0, groundY - center.Position.Y, 0),
+				Vector3.new(0.65, 0.9, 0.65), Color3.fromRGB(255, 190, 215), Enum.Material.Neon, Enum.PartType.Ball)
+		end
+	end
+	if bond.buildingCount >= 3 then
+		accent("Kingdom_Crystal", center.Position + Vector3.new(edgeX * 0.35, groundY - center.Position.Y + 1.1, -edgeZ * 0.2),
+			Vector3.new(1.1, 2.2, 1.1), Color3.fromRGB(115, 220, 231), Enum.Material.Neon, Enum.PartType.Ball)
+	end
+	if bond.buildingCount >= 6 then
+		local banner = accent("Kingdom_Banner", center.Position + Vector3.new(-edgeX * 0.2, groundY - center.Position.Y + 2.1, edgeZ * 0.45),
+			Vector3.new(0.35, 4.2, 0.35), Color3.fromRGB(255, 207, 123), Enum.Material.Metal)
+		banner.Shape = Enum.PartType.Cylinder
+		accent("Kingdom_BannerCloth", banner.Position + Vector3.new(0.9, 0.7, 0),
+			Vector3.new(1.7, 1.15, 0.12), Color3.fromRGB(132, 104, 194), Enum.Material.SmoothPlastic)
+	end
 end
 
 local function gridToWorld(spawnCFrame: CFrame, record: any, profile: any, cellSize: number): CFrame
@@ -353,6 +412,7 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 		createTerrain(world, spawnPoint.CFrame, profile.boundsWidth, profile.boundsDepth, cellSize)
 		spawnBuildings(world, spawnPoint.CFrame, profile, cellSize)
 		spawnResourceNodes(world, spawnPoint.CFrame, profile, cellSize)
+		refreshKingdomBondVisuals(world, profile)
 	end)
 	if not ok then
 		world:Destroy()
@@ -366,12 +426,13 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	return true, "SPAWNED"
 end
 
-function IslandWorldService.removeBuilding(userId: number, instanceId: string): boolean
+function IslandWorldService.removeBuilding(userId: number, instanceId: string, profile: any?): boolean
 	local world = worldsByUserId[userId]
 	if world == nil then return false end
 	for _, child in ipairs(world:GetChildren()) do
 		if child:IsA("Model") and child:GetAttribute("BuildingInstanceId") == instanceId then
 			child:Destroy()
+			if profile ~= nil then refreshKingdomBondVisuals(world, profile) end
 			return true
 		end
 	end
@@ -424,6 +485,7 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 		end
 	end
 	clone.Parent = world
+	refreshKingdomBondVisuals(world, profile)
 	return true, "BUILDING_SYNCED"
 end
 
