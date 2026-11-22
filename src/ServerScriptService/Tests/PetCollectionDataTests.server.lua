@@ -605,4 +605,21 @@ local invalidFlags, invalidFlagsStatus = PetCollectionData.setPetFlags(
 )
 expect("non-boolean protection flags are rejected", not invalidFlags and invalidFlagsStatus == "INVALID_PET_FLAGS")
 
+local identityProfile = PetCollectionData.createDefault(54321)
+assert(identityProfile ~= nil)
+local identityAdded, identityAddStatus, identityOwned = PetCollectionData.addPetOnce(
+	identityProfile, "retired-pet-id", "bunny", 2, 300, "identity-acquisition-001"
+)
+expect("identity test pet is acquired with a receipt", identityAdded and identityAddStatus == "UPDATED" and identityOwned ~= nil)
+assert(identityOwned ~= nil)
+local identityRemoved, identityRemoveStatus, identityAfterRemoval = PetCollectionData.removePet(
+	identityOwned, "retired-pet-id"
+)
+expect("identity test pet can be removed", identityRemoved and identityRemoveStatus == "REMOVED" and identityAfterRemoval ~= nil)
+assert(identityAfterRemoval ~= nil)
+local identityReused, identityReuseStatus = PetCollectionData.addPet(
+	identityAfterRemoval, "retired-pet-id", "bunny", 2, 301
+)
+expect("removed pet identity cannot be reused", not identityReused and identityReuseStatus == "PET_ID_ALREADY_USED")
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
