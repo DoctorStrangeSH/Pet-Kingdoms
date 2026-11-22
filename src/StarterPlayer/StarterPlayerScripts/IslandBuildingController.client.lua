@@ -743,6 +743,231 @@ local function addBuildEntry()
 end
 
 
+local overviewShade = make("TextButton", {
+	Name = "KingdomOverviewShade",
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.fromRGB(12, 12, 22),
+	BackgroundTransparency = 0.38,
+	BorderSizePixel = 0,
+	Text = "",
+	AutoButtonColor = false,
+	Visible = false,
+	ZIndex = 40,
+}, gui) :: TextButton
+
+local overview = make("Frame", {
+	Name = "KingdomOverview",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(1, -32, 0, 286),
+	BackgroundColor3 = COLORS.panel,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 41,
+}, gui) :: Frame
+make("UISizeConstraint", { MinSize = Vector2.new(300, 286), MaxSize = Vector2.new(420, 286) }, overview)
+make("UICorner", { CornerRadius = UDim.new(0, 20) }, overview)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.5 }, overview)
+make("UIPadding", {
+	PaddingTop = UDim.new(0, 18),
+	PaddingBottom = UDim.new(0, 16),
+	PaddingLeft = UDim.new(0, 20),
+	PaddingRight = UDim.new(0, 20),
+}, overview)
+
+local overviewTitle = make("TextLabel", {
+	Name = "Title",
+	BackgroundTransparency = 1,
+	Size = UDim2.new(1, -44, 0, 28),
+	Font = Enum.Font.GothamBold,
+	Text = "МОЁ КОРОЛЕВСТВО",
+	TextColor3 = COLORS.gold,
+	TextSize = 18,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 42,
+}, overview) :: TextLabel
+
+local overviewClose = make("TextButton", {
+	Name = "Close",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, 0, 0, -4),
+	Size = UDim2.fromOffset(34, 34),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "×",
+	TextColor3 = COLORS.text,
+	TextSize = 24,
+	ZIndex = 43,
+}, overview) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 11) }, overviewClose)
+
+local overviewStage = make("TextLabel", {
+	Name = "Stage",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 48),
+	Size = UDim2.new(1, 0, 0, 34),
+	Font = Enum.Font.GothamBold,
+	Text = "🏡  Тихий остров",
+	TextColor3 = COLORS.text,
+	TextSize = 20,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 42,
+}, overview) :: TextLabel
+
+local overviewStats = make("TextLabel", {
+	Name = "Stats",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 88),
+	Size = UDim2.new(1, 0, 0, 24),
+	Font = Enum.Font.GothamMedium,
+	Text = "0 очков развития  •  0 построек",
+	TextColor3 = COLORS.text,
+	TextSize = 13,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 42,
+}, overview) :: TextLabel
+
+local progressBack = make("Frame", {
+	Name = "ProgressBack",
+	Position = UDim2.fromOffset(0, 128),
+	Size = UDim2.new(1, 0, 0, 13),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	ZIndex = 42,
+}, overview) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, progressBack)
+
+local progressFill = make("Frame", {
+	Name = "ProgressFill",
+	Size = UDim2.fromScale(0, 1),
+	BackgroundColor3 = COLORS.gold,
+	BorderSizePixel = 0,
+	ZIndex = 43,
+}, progressBack) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, progressFill)
+
+local progressCaption = make("TextLabel", {
+	Name = "ProgressCaption",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 150),
+	Size = UDim2.new(1, 0, 0, 24),
+	Font = Enum.Font.GothamMedium,
+	Text = "До следующего этапа: 10 очков",
+	TextColor3 = COLORS.gold,
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 42,
+}, overview) :: TextLabel
+
+local overviewHint = make("TextLabel", {
+	Name = "Hint",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 180),
+	Size = UDim2.new(1, 0, 0, 30),
+	Font = Enum.Font.Gotham,
+	Text = "Разнообразные постройки помогают развивать остров.",
+	TextColor3 = COLORS.text,
+	TextTransparency = 0.18,
+	TextSize = 11,
+	TextWrapped = true,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 42,
+}, overview)
+
+local overviewBuild = make("TextButton", {
+	Name = "OpenConstruction",
+	Position = UDim2.new(0, 0, 1, -54),
+	Size = UDim2.new(1, 0, 0, 46),
+	BackgroundColor3 = Color3.fromRGB(45, 137, 91),
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "ПЕРЕЙТИ К СТРОИТЕЛЬСТВУ",
+	TextColor3 = COLORS.text,
+	TextSize = 14,
+	ZIndex = 42,
+}, overview) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
+
+local function closeKingdomOverview()
+	overview.Visible = false
+	overviewShade.Visible = false
+end
+
+local function refreshKingdomOverview()
+	local island = findOwnIsland()
+	if island == nil then
+		overviewStage.Text = "🏡  Остров загружается"
+		overviewStats.Text = "Данные королевства пока недоступны"
+		progressFill.Size = UDim2.fromScale(0, 1)
+		progressCaption.Text = "Подожди завершения загрузки острова"
+		return
+	end
+
+	local stageName = island:GetAttribute("KingdomBondStageName")
+	local points = island:GetAttribute("KingdomBondPoints")
+	local buildingCount = island:GetAttribute("KingdomBondBuildingCount")
+	local nextPoints = island:GetAttribute("KingdomBondNextStagePoints")
+	if type(stageName) ~= "string" then stageName = "Тихий остров" end
+	if type(points) ~= "number" then points = 0 end
+	if type(buildingCount) ~= "number" then buildingCount = 0 end
+
+	overviewStage.Text = "🏡  " .. stageName
+	overviewStats.Text = string.format("%d очков развития  •  %d построек", points, buildingCount)
+
+	if type(nextPoints) == "number" and nextPoints > 0 then
+		local previousThreshold = 0
+		if stageName == "Уютное королевство" then
+			previousThreshold = 10
+		elseif stageName == "Цветущее королевство" then
+			previousThreshold = 30
+		elseif stageName == "Процветающее королевство" then
+			previousThreshold = 50
+		end
+		local span = math.max(1, nextPoints - previousThreshold)
+		local progress = math.clamp((points - previousThreshold) / span, 0, 1)
+		progressFill.Size = UDim2.fromScale(progress, 1)
+		progressCaption.Text = string.format("До следующего этапа: %d очков", math.max(0, nextPoints - points))
+	else
+		progressFill.Size = UDim2.fromScale(1, 1)
+		progressCaption.Text = "Максимальный доступный этап развития"
+	end
+end
+
+local function openKingdomOverview()
+	refreshKingdomOverview()
+	overviewShade.Visible = true
+	overview.Visible = true
+end
+
+overviewClose.Activated:Connect(closeKingdomOverview)
+overviewShade.Activated:Connect(closeKingdomOverview)
+overviewBuild.Activated:Connect(function()
+	closeKingdomOverview()
+	beginPlacing()
+end)
+
+local function bindKingdomOverview(island: Instance)
+	if not island:IsA("Model") or island:GetAttribute("OwnerUserId") ~= player.UserId then return end
+	for _, attribute in ipairs({
+		"KingdomBondStageName",
+		"KingdomBondPoints",
+		"KingdomBondBuildingCount",
+		"KingdomBondNextStagePoints",
+	}) do
+		island:GetAttributeChangedSignal(attribute):Connect(function()
+			if overview.Visible then refreshKingdomOverview() end
+		end)
+	end
+end
+
+task.spawn(function()
+	local folder = Workspace:WaitForChild("PlayerIslands", 30)
+	if folder == nil then return end
+	for _, island in ipairs(folder:GetChildren()) do bindKingdomOverview(island) end
+	folder.ChildAdded:Connect(bindKingdomOverview)
+end)
+
 local function isOwnedMainHousePrompt(prompt: ProximityPrompt): boolean
 	if prompt.Name ~= "MainHousePrompt" then return false end
 	local foundMainHouse = false
@@ -761,7 +986,7 @@ end
 
 ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 	if isOwnedMainHousePrompt(prompt) then
-		beginPlacing()
+		openKingdomOverview()
 	end
 end)
 
