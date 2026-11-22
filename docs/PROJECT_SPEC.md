@@ -10,7 +10,7 @@ The experience must be easy to understand, visually distinctive, satisfying over
 
 ## 2. Non-negotiable product principles
 
-- Prefer original, carefully art-directed visuals and custom-created assets. Do not fill the world with arbitrary low-quality Toolbox models.
+- Prefer original, carefully art-directed visuals and custom-created production assets. For playable prototypes and Studio testing, vetted free Creator Store/Toolbox assets are explicitly allowed as temporary placeholders. They must be reviewed, provenance-tracked, isolated from production asset catalogs, and replaceable without changing gameplay logic.
 - Use a consistent colorful stylized-fantasy art direction, expressive cute 3D pets, warm fairytale lighting, and a polished fantasy UI using gold, purple, and turquoise accents.
 - Keep the interface clear enough for children to understand without adult explanation.
 - The player's home island is persistent and expandable; islands do not float away or move around.
