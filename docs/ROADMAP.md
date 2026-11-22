@@ -451,8 +451,19 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add durable outbox delivery and second-phase pet receipt acknowledgement transitions.
 - [x] Expose server-only pending-delivery and awaiting-acknowledgement snapshots for a future recovery worker.
 - [x] Compact only fully acknowledged outbox entries; never evict pending or delivered-but-unacknowledged rewards.
-- [ ] Add the recovery worker and call the pet XP idempotent grant/acknowledgement APIs in the prescribed order.
+- [x] Add the server-started recovery worker; it retries the same reward ID, persists island delivery, then acknowledges the pet receipt and source outbox. Studio/DataStore fault-injection remains pending.
 - [ ] Approve reward values, progression thresholds/version, and deterministic pet recipient policy.
 - [ ] Execute Roblox Studio DataStore failure/rejoin/server-restart tests before enabling any claim remote or UI.
 
 - [x] Verify the latest Rojo build and Studio artifact upload in GitHub Actions run #115 (PASS); Studio script execution remains separate and pending.
+
+
+### Quest XP recovery worker (2026-11-22)
+
+- [x] Add a server-owned, versioned pet progression catalog contract. Unknown/unapproved versions fail closed; the registry is intentionally empty pending approved XP thresholds.
+- [x] Add a recovery worker that waits for island + pet collection readiness and resumes pending or delivered-but-unacknowledged outbox entries.
+- [x] Integrate the worker into server bootstrap; retry transient failures without dropping or regenerating reward IDs.
+- [x] Add Studio-only progression catalog contract tests.
+- [ ] Resolve the pet receipt/source acknowledgement retention edge case for prolonged outages.
+- [ ] Add service-level fault-injection coverage for every cross-DataStore crash boundary and execute in Roblox Studio.
+- [ ] Approve the progression curve, quest reward values, and deterministic pet recipient policy before enabling claims.
