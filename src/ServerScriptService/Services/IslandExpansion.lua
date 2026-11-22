@@ -58,6 +58,19 @@ function IslandExpansion.getNextBounds(baseWidth: number, baseDepth: number, cur
 	return IslandExpansion.getBounds(baseWidth, baseDepth, currentLevel + 1)
 end
 
+function IslandExpansion.matchesProfileBounds(profile: any, baseWidth: number, baseDepth: number): boolean
+	if type(profile) ~= "table" or not isPositiveInteger(profile.boundsWidth)
+		or not isPositiveInteger(profile.boundsDepth)
+	then
+		return false
+	end
+	local level = if profile.expansionLevel == nil then 0 else profile.expansionLevel
+	local expected = IslandExpansion.getBounds(baseWidth, baseDepth, level)
+	return expected ~= nil
+		and profile.boundsWidth == expected.width
+		and profile.boundsDepth == expected.depth
+end
+
 -- Returns a cloned profile for the next expansion level.
 -- Moving each saved grid coordinate by half the added dimensions preserves
 -- every building's world-space position while the renderer keeps the grid centered.
