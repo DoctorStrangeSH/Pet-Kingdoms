@@ -96,22 +96,36 @@ expect("pet receipt cannot be acknowledged before delivery is durable",
 	prematureAcknowledgement == nil and prematureAcknowledgementCode == "NOT_DELIVERED")
 local acknowledged, acknowledgedCode =
 	QuestRewardOutboxData.markAcknowledged(delivered, record.rewardId, 120)
-expect("source acknowledgement is persisted after pet-side acknowledgement",
+expect("source acknowledgement is persisted before pet receipt finalization",
 	acknowledged ~= nil and acknowledgedCode == "ACKNOWLEDGED"
-		and #QuestRewardOutboxData.listAwaitingAcknowledgement(acknowledged) == 0)
+		and #QuestRewardOutboxData.listAwaitingAcknowledgement(acknowledged) == 0
+		and #QuestRewardOutboxData.listAwaitingPetAcknowledgement(acknowledged) == 1)
+local prematurePetAcknowledgement, prematurePetAcknowledgementCode =
+	QuestRewardOutboxData.markPetAcknowledged(delivered, record.rewardId, 121)
+expect("pet receipt cannot be finalized before source acknowledgement",
+	prematurePetAcknowledgement == nil and prematurePetAcknowledgementCode == "SOURCE_NOT_ACKNOWLEDGED")
 local duplicateAcknowledgement, duplicateAcknowledgementCode =
 	QuestRewardOutboxData.markAcknowledged(acknowledged, record.rewardId, 121)
 expect("source acknowledgement is idempotent",
 	duplicateAcknowledgement == nil and duplicateAcknowledgementCode == "ALREADY_ACKNOWLEDGED")
-local compactedOutbox, compactedCode = QuestRewardOutboxData.append(acknowledged, {
+local petAcknowledged, petAcknowledgedCode =
+	QuestRewardOutboxData.markPetAcknowledged(acknowledged, record.rewardId, 130)
+expect("pet receipt finalization is persisted as a separate durable phase",
+	petAcknowledged ~= nil and petAcknowledgedCode == "PET_ACKNOWLEDGED"
+		and #QuestRewardOutboxData.listAwaitingPetAcknowledgement(petAcknowledged) == 0)
+local duplicatePetAcknowledgement, duplicatePetAcknowledgementCode =
+	QuestRewardOutboxData.markPetAcknowledged(petAcknowledged, record.rewardId, 131)
+expect("pet receipt finalization is idempotent",
+	duplicatePetAcknowledgement == nil and duplicatePetAcknowledgementCode == "ALREADY_PET_ACKNOWLEDGED")
+local compactedOutbox, compactedCode = QuestRewardOutboxData.append(petAcknowledged, {
 	rewardId = "quest:gather_stone:reward:v1",
 	questId = "gather_stone",
 	petId = "starter-bunny",
 	amount = 100,
 	progressionVersion = 1,
-	createdAt = 130,
+	createdAt = 140,
 })
-expect("new enqueue compacts only fully acknowledged receipts",
+expect("new enqueue compacts only fully finalized receipts",
 	compactedOutbox ~= nil and compactedCode == "QUEUED"
 		and #compactedOutbox == 1 and compactedOutbox[1].rewardId == "quest:gather_stone:reward:v1")
 local invalidAcknowledgement = table.clone(delivered)
