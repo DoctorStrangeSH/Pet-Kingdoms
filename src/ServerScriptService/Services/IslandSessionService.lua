@@ -369,8 +369,9 @@ function IslandSessionService.commitQuestRewardDelivery(
 	return true, "DELIVERY_DURABLE", targetRevision
 end
 
--- Persist the source-side acknowledgement only after the pet collection has
--- durably acknowledged its XP receipt. Recovery can resume this exact phase.
+-- Persist the source-side acknowledgement after the pet XP delivery revision is
+-- durable. This must precede pet receipt acknowledgement so its retention clock
+-- cannot expire while the source-side commit is still unavailable.
 function IslandSessionService.commitQuestRewardAcknowledgement(
 	userId: number,
 	player: Player,
