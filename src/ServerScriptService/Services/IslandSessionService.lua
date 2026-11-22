@@ -187,6 +187,59 @@ function IslandSessionService.commitResourceGathering(
 	return true, "GATHERED", availableAt
 end
 
+-- Persists the player's tracked quest preference using the island profile revision.
+-- The selected ID is checked against the server catalog and incomplete progress.
+function IslandSessionService.commitTrackedQuest(
+	userId: number,
+	player: Player,
+	questId: string?
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.buildingMutationBusy or session.gatheringMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	if questId ~= nil then
+		local definition = QuestProgressData.DEFINITIONS[questId]
+		if definition == nil then return false, "UNKNOWN_QUEST", nil end
+		local progress = (session.profile.questProgress or QuestProgressData.create())[questId]
+		if progress == nil or progress.count >= definition.target then
+			return false, "QUEST_NOT_ACTIVE", nil
+		end
+	end
+	if session.profile.trackedQuestId == questId then
+		return true, "UNCHANGED", session.profile.revision
+	end
+
+	session.gatheringMutationBusy = true
+	local previous = session.profile.trackedQuestId
+	session.profile.trackedQuestId = questId
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.trackedQuestId = previous
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "TRACKING_SAVED", targetRevision
+end
+
 -- Applies one level of island expansion as a durable profile mutation.
 -- expectedLevel makes retries safe: a repeated request cannot advance twice.
 function IslandSessionService.commitIslandExpansion(
