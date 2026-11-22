@@ -636,3 +636,19 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Wallet snapshots are sent only to the resolved live Player after a successful mutation. Existing rollback-on-`markDirty`-failure behavior is preserved.
 - Updated `docs/game-systems/ISLAND_RESOURCE_WALLET.md` to document the guards.
 - Static review only; Roblox Studio tests have NOT been run. A service-level regression harness for busy-session rejection and exact-Player identity remains NOT DONE.
+
+
+## Reproducible Rojo build and Studio artifact (2026-11-22)
+
+- Added `rokit.toml` pinning Rojo 7.7.1.
+- Added `.github/workflows/roblox-project-build.yml`, triggered by changes to `src/**`, `default.project.json`, `rokit.toml`, or the workflow; it installs the pinned toolchain, builds `build/PetKingdoms.rbxlx`, and uploads `pet-kingdoms-studio-build` for 14 days.
+- First workflow attempt exposed a duplicate Rokit install: `setup-rokit` already installs manifest tools, and a second plain `rokit install` failed on the trust prompt. Removed the redundant step.
+- Verified successful run `45021287072` (commit `c6cdd0521fa53b6f92b421b09acde67ef13c8f40`). Rojo version check, full project build, and artifact upload all passed. Artifact ID: `14753892241`.
+- This proves the repository can be serialized into a place file; it does NOT prove Roblox Studio runtime, DataStore/MemoryStore, physics, UI, or mobile correctness. Open the artifact in Studio and run the dedicated test checklist.
+- Updated README and `docs/BUILD_AND_TEST.md` with local Rokit setup and artifact download instructions.
+
+## Temporary Creator Store / Toolbox policy (2026-11-22)
+
+- Owner explicitly permits free Roblox Creator Store/Toolbox assets as temporary prototype visuals so they can playtest sooner.
+- Updated PROJECT_SPEC.md, ART_BIBLE.md, README.md, and ASSET_TRACKER.md. Temporary assets must be free, provenance-tracked, license-reviewed, script-audited, performance-checked, isolated from gameplay authority, and have an explicit replacement target.
+- No new external model has been selected, imported, or approved yet. Do not claim that the place already contains Creator Store visuals. The first environment kit still requires candidate review and Studio import.
