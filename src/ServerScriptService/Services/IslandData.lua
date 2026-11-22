@@ -12,6 +12,7 @@ local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 local IslandBuildingJournalData = require(script.Parent:WaitForChild("IslandBuildingJournalData"))
 local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
 local IslandExpansion = require(script.Parent:WaitForChild("IslandExpansion"))
+local QuestProgressData = require(script.Parent:WaitForChild("QuestProgressData"))
 
 local IslandData = {}
 
@@ -84,6 +85,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		hatchTransactions = {},
 		buildingOperations = {},
 		resourceNodes = {},
+		questProgress = QuestProgressData.create(),
 		revision = 0,
 	}
 end
@@ -150,6 +152,12 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 				return false, "INVALID_BUILDING_LEDGER:REVISION_AHEAD"
 			end
 		end
+	end
+
+	-- Legacy schema-v1 profiles predate introductory quest progress.
+	if profile.questProgress ~= nil then
+		local validQuests, questReason = QuestProgressData.validate(profile.questProgress)
+		if not validQuests then return false, "INVALID_QUEST_PROGRESS:" .. questReason end
 	end
 
 	-- Legacy schema-v1 profiles predate persisted resource-node cooldowns.
