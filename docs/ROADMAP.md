@@ -210,3 +210,15 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add pure data tests for flag validation/persistence, lock protection, equipped protection, starter protection, last-pet protection, and successful removal.
 - [ ] Add a player-facing confirmation UX and collection sorting/filtering; UI remains intentionally out of scope for current technical pass.
 - [ ] Run Studio tests and DataStore integration tests before release.
+
+
+### Pet evolution architecture foundation
+
+- [x] Add a balance-agnostic evolution catalog contract with stable evolution IDs and source/target species identifiers.
+- [x] Validate identifier shape, duplicate evolution IDs, self-evolution, dense catalog arrays, and a bounded definition count.
+- [x] Validate the evolution graph as a directed acyclic graph while allowing branches and converging paths.
+- [x] Add a read-only option lookup by source species; returned definitions are cloned.
+- [x] Add Studio-only pure tests for empty catalogs, branching/chained paths, lookup isolation, duplicate IDs, self edges, cycles, malformed IDs, and sparse arrays.
+- [ ] Approve actual species/forms, evolution branches, levels, item/currency costs, and eligibility requirements in game design before adding production catalog entries.
+- [ ] Add persisted evolution history and idempotent server-side evolution transactions only after requirements and target species are approved.
+- [ ] Add Studio/DataStore integration and interruption tests before enabling evolution.
