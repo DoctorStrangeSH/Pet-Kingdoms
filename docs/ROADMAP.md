@@ -113,6 +113,7 @@
 - [x] Add read-only server RemoteFunction `GetIslandExpansionPreview` exposing the active profile's current/next bounds, max level, and explicit economy-not-approved state; rate-limit preview requests. Purchase remains disabled.
 - [x] Add responsive client expansion preview panel wired to GetIslandExpansionPreview; show current/next level and dimensions, explain disabled purchase, and support manual refresh. No purchase action is exposed.
 - [x] Add client-only holographic preview strips around the active island using server-provided next dimensions; preview is non-colliding, non-queryable, and removed when the panel closes. This is a visual guide, not terrain or a purchase.
+- [x] Add a short server-replicated expansion completion effect after successful world replacement: perimeter light pulses and a transient particle burst; add Studio assertions (execution pending).
 - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
