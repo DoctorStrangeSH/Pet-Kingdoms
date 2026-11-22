@@ -144,25 +144,30 @@ function IslandStore.save(profile: any): (boolean, string)
 
 	local key = makeKey(profile.ownerUserId)
 	local snapshot = table.clone(profile)
-	local wroteSnapshot = false
+	local snapshotDurable = false
 	local ok, result = retry(function()
-		wroteSnapshot = false
+		snapshotDurable = false
 		return store:UpdateAsync(key, function(current)
-			wroteSnapshot = false
+			snapshotDurable = false
 			if type(current) ~= "table" then return current end
 			-- Fencing check is atomic with the profile write. A stale server's
 			-- generation can never overwrite a newer claimed generation.
 			if current.sessionGeneration ~= snapshot.sessionGeneration then return current end
-			if type(current.revision) ~= "number" or current.revision >= snapshot.revision then
+			if type(current.revision) ~= "number" then return current end
+			if current.revision >= snapshot.revision then
+				-- An earlier retry may have committed this snapshot but lost its
+				-- acknowledgement. A newer revision from the same generation also
+				-- proves this revision was durably superseded.
+				snapshotDurable = true
 				return current
 			end
-			wroteSnapshot = true
+			snapshotDurable = true
 			return snapshot
 		end)
 	end)
 	if not ok then return false, "DATASTORE_UNAVAILABLE" end
-	if not wroteSnapshot or type(result) ~= "table"
-		or result.revision ~= snapshot.revision
+	if not snapshotDurable or type(result) ~= "table"
+		or type(result.revision) ~= "number" or result.revision < snapshot.revision
 		or result.sessionGeneration ~= snapshot.sessionGeneration
 	then
 		return false, "STALE_SESSION_OR_REVISION"
