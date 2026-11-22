@@ -588,3 +588,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Keep unsupported `feed` requests rejected until food inventory and cost rules are specified.
 - [ ] Design species personality/preferences only after the approved pet roster and behavior matrix are finalized.
 - [ ] Execute interaction tests and RemoteFunction/DataStore behavior in Roblox Studio.
+
+
+### First player-facing UX correction pass (2026-11-22)
+
+- [x] Construction catalogue selection and placement preview are now separate actions.
+- [x] Add close control and shared modal ownership between construction and pet collection.
+- [x] Apply viewport-aware construction panel sizing and compact action buttons.
+- [ ] Verify construction workflow, collection/building handoff, and 375 px/touch layouts in Roblox Studio.
+- [ ] Continue with gathering onboarding/interaction feedback, pet world presence, and per-action cooldown feedback.
