@@ -17,6 +17,7 @@ function KingdomBond.calculate(profile: any): any
 		return nil
 	end
 	local count = 0
+	local totalBuildingCount = #profile.buildings
 	local seenCatalogIds: { [string]: boolean } = {}
 	for _, record in ipairs(profile.buildings) do
 		if type(record) == "table" and type(record.catalogId) == "string"
@@ -41,6 +42,7 @@ function KingdomBond.calculate(profile: any): any
 	return {
 		points = points,
 		buildingCount = count,
+		totalBuildingCount = totalBuildingCount,
 		uniqueBuildingTypes = varietyCount,
 		stageId = stage.id,
 		stageName = stage.name,
