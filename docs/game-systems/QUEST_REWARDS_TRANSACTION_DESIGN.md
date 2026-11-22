@@ -24,7 +24,7 @@ Status: design baseline only. No reward amounts or live claim endpoint are appro
 
 ## Retention and recovery invariant
 
-The pet-side idempotency receipt must remain available for at least as long as its corresponding island outbox can be retried. A fixed seven-day pet receipt retention is not sufficient for an indefinitely retryable outbox unless the outbox has a strict, durable expiry and a safe manual recovery path. Before enabling cross-store XP rewards, change the pet reward ledger to retain receipts until source acknowledgement or implement an equivalent reconciliation protocol.
+The pet-side idempotency receipt must remain available for at least as long as its corresponding island outbox can be retried. Implemented: unacknowledged receipts are retained indefinitely; a trusted source acknowledgement records acknowledgedAt, after which the seven-day retention window applies. The island outbox must call this acknowledgement only after its own delivered state is durable. Until that caller integration exists, receipts remain unacknowledged and do not expire.
 
 Quest claim receipts in the island profile must be retained for the lifetime of the quest claim (or represented by a permanent claimed flag). They must not be evicted by a rolling short-term ledger.
 
