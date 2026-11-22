@@ -57,7 +57,7 @@ local invalidLedgerOk = Journal.validateLedger({
 expect("duplicate receipt IDs are rejected in saved profile", not invalidLedgerOk)
 
 local fullLedger = {}
-for index = 1, 128 do
+for index = 1, 512 do
 	local nextLedger = Journal.append(
 		fullLedger,
 		"request-" .. tostring(index),
@@ -71,11 +71,11 @@ for index = 1, 128 do
 	fullLedger = nextLedger
 end
 local overflowLedger, overflowCode = Journal.append(
-	fullLedger, "request-overflow", "overflow", "place", result, now, 129
+	fullLedger, "request-overflow", "overflow", "place", result, now, 513
 )
 expect("full receipt ledger fails closed without evicting retry evidence",
 	overflowLedger == nil and overflowCode == "LEDGER_FULL"
-		and #fullLedger == 128
-		and Journal.find(fullLedger, "request-1", "fingerprint-1", now, 128) ~= nil)
+		and #fullLedger == 512
+		and Journal.find(fullLedger, "request-1", "fingerprint-1", now, 512) ~= nil)
 
 print("[PetKingdoms Test] IslandBuildingJournalData tests completed.")
