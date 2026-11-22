@@ -954,3 +954,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed commitIslandExpansion so an `ALREADY_APPLIED` retry returns after confirming the durable revision and releases the mutation lock without calling IslandWorldService.refresh again.
 - A lost acknowledgement retry therefore cannot regenerate the active world or replay the expansion completion effect. Only the first successful transition performs the world refresh.
 - Expansion pricing remains deliberately undefined because the project economy specification does not approve costs/rates yet. No prices were invented and purchase remains disabled.
+
+
+## Economy baseline audit (2026-11-22)
+
+- Added `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` with source-backed starter wallet, all four current gathering nodes, rewards, respawn, coded construction costs, and theoretical gross gathering ceilings.
+- Confirmed theoretical ceilings under continuous immediate gathering: 6 Wood/minute and 4 Stone/minute. These are not realistic expected rates.
+- Confirmed current starter wallet (2 Wood, 1 Stone) plus one Wood gather and one Stone gather covers the currently coded Pet House cost (5 Wood, 2 Stone).
+- No expansion prices or unlock requirements were invented. Project spec keeps the complete economy and expansion balance open pending explicit approval.
+- No gameplay code or economy values were changed in this audit.
