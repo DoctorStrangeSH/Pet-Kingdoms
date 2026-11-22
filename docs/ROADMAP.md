@@ -16,6 +16,8 @@
 - [ ] Open the generated place in Roblox Studio and verify the runtime hierarchy, Workspace island bounds, scripts, and playtest behavior.
 - [x] Add an idempotent server startup configuration for provisional 24×24 islands, 8-stud grid cells, and eight generated spawn slots; preserve valid owner-authored Workspace configuration.
 - [x] Add Studio-only configuration contract coverage for defaults, spawn-slot count, and repeated initialization.
+- [x] Extend Studio integration coverage for two-player island allocation, distinct arrival points, duplicate spawn protection, cleanup, and slot reuse (execution pending).
+- [x] Reject unanchored parts as personal-island spawn points.
 - [ ] Execute the configuration and two-player island spawn tests in Roblox Studio.
 
 ## Stage 1 — Pet Art Pipeline
