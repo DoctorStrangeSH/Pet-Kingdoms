@@ -54,6 +54,11 @@ export type FollowController = {
 	interactionConnection: RBXScriptConnection?,
 	groundRaycastParams: RaycastParams,
 	groundLift: number,
+	lastDirectCheckAt: number,
+	lastDirectStart: Vector3?,
+	lastDirectGoal: Vector3?,
+	lastDirectClear: boolean,
+	directCheckCount: number,
 	path: Path?,
 	pathWaypoints: { PathWaypoint },
 	pathIndex: number,
@@ -70,6 +75,8 @@ local MAX_ACTIVE_SLOTS = 3
 local PATH_RETRY_SECONDS = 1.1
 local PATH_GOAL_REUSE_DISTANCE = 5
 local WAYPOINT_REACHED_DISTANCE = 2.2
+local DIRECT_CHECK_INTERVAL = 0.12
+local DIRECT_CHECK_MOVE_THRESHOLD = 0.5
 
 local function horizontal(vector: Vector3): Vector3
 	return Vector3.new(vector.X, 0, vector.Z)
@@ -183,6 +190,11 @@ function CompanionFollowController.new(
 		targetRoot = targetRoot,
 		groundRaycastParams = groundRaycastParams,
 		groundLift = groundLift,
+		lastDirectCheckAt = -math.huge,
+		lastDirectStart = nil,
+		lastDirectGoal = nil,
+		lastDirectClear = false,
+		directCheckCount = 0,
 		path = nil,
 		pathWaypoints = {},
 		pathIndex = 1,
@@ -264,8 +276,28 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	-- Pets remain client-driven cosmetic companions; no gameplay authority or
 	-- server-side character movement is transferred to this path.
 	local navigationGoal = desired
-	local directRouteClear = hasDirectPath(currentPosition, desired, self.groundRaycastParams)
-		and isTerrainTraverseSafe(currentPosition, desired, self.groundRaycastParams)
+	-- Throttle expensive terrain sampling while the owner and companion are
+	-- nearly stationary. Any meaningful movement invalidates the cached result;
+	-- a short absolute expiry also catches new obstacles and streamed terrain.
+	local now = os.clock()
+	local cachedStart = self.lastDirectStart
+	local cachedGoal = self.lastDirectGoal
+	local cacheValid = cachedStart ~= nil and cachedGoal ~= nil
+		and now - self.lastDirectCheckAt < DIRECT_CHECK_INTERVAL
+		and (currentPosition - cachedStart).Magnitude < DIRECT_CHECK_MOVE_THRESHOLD
+		and (desired - cachedGoal).Magnitude < DIRECT_CHECK_MOVE_THRESHOLD
+	local directRouteClear: boolean
+	if cacheValid then
+		directRouteClear = self.lastDirectClear
+	else
+		directRouteClear = hasDirectPath(currentPosition, desired, self.groundRaycastParams)
+			and isTerrainTraverseSafe(currentPosition, desired, self.groundRaycastParams)
+		self.lastDirectCheckAt = now
+		self.lastDirectStart = currentPosition
+		self.lastDirectGoal = desired
+		self.lastDirectClear = directRouteClear
+		self.directCheckCount += 1
+	end
 	if directRouteClear then
 		if self.path ~= nil or self.pathPending then
 			self.pathGeneration += 1
@@ -401,6 +433,9 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		table.clear(self.pathWaypoints)
 		self.pathIndex = 1
 		self.pathNextComputeAt = 0
+		self.lastDirectCheckAt = -math.huge
+		self.lastDirectStart = nil
+		self.lastDirectGoal = nil
 		if self.pathBlockedConnection then
 			self.pathBlockedConnection:Disconnect()
 			self.pathBlockedConnection = nil
