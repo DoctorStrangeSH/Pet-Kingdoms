@@ -650,7 +650,7 @@ confirmButton.Activated:Connect(function()
 	end)
 	confirmButton.Active = true
 	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
-	if ok then clearPendingRequestId(operationKey) end
+	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
