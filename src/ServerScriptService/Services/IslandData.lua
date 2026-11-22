@@ -8,6 +8,7 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 	:WaitForChild("Building")
 	:WaitForChild("GridMath"))
 local IslandHatchLedgerData = require(script.Parent:WaitForChild("IslandHatchLedgerData"))
+local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 
 local IslandData = {}
 
@@ -111,18 +112,11 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 	-- IslandStore normalizes them during load/claim; validation accepts nil
 	-- only so the migration can be applied without discarding existing islands.
 	if profile.resources ~= nil then
-		if type(profile.resources) ~= "table" then
-			return false, "INVALID_RESOURCE_WALLET"
-		end
-		for resourceId, amount in pairs(profile.resources) do
-			if type(resourceId) ~= "string"
-				or (resourceId ~= "wood" and resourceId ~= "stone" and resourceId ~= "gold" and resourceId ~= "gems")
-				or not isInteger(amount)
-				or amount < 0
-			then
-				return false, "INVALID_RESOURCE_BALANCE"
-			end
-		end
+		-- Keep saved-profile validation aligned with the live wallet's resource
+		-- IDs, integer precision and maximum balance. Divergent rules could let
+		-- a profile load successfully but make every later wallet mutation fail.
+		local validWallet, walletReason = IslandResources.validate(profile.resources)
+		if not validWallet then return false, walletReason end
 	end
 
 	if profile.hatchTransactions ~= nil then
