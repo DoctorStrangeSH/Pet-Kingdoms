@@ -7,6 +7,7 @@ local services = script.Parent
 local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
 local PetCollectionService = require(services:WaitForChild("PetCollectionService"))
 local PetProgressionCatalog = require(services:WaitForChild("PetProgressionCatalog"))
+local QuestRewardRecoveryProtocol = require(services:WaitForChild("QuestRewardRecoveryProtocol"))
 
 local QuestRewardRecoveryService = {}
 
@@ -66,70 +67,37 @@ local function isPlayerReady(player: Player, token: {}): boolean
 		and PetCollectionService.isReady(player)
 end
 
+local function createProtocolHandlers(player: Player)
+	return {
+		getThresholds = function(version: number)
+			return PetProgressionCatalog.getThresholds(version)
+		end,
+		grantExperience = function(petId: string, rewardId: string, amount: number, thresholds: { number })
+			return PetCollectionService.grantExperienceWithProgressOnce(
+				player, petId, amount, thresholds, rewardId
+			)
+		end,
+		commitDelivery = function(rewardId: string)
+			return IslandSessionService.commitQuestRewardDelivery(player.UserId, player, rewardId)
+		end,
+		commitSourceAcknowledgement = function(rewardId: string)
+			return IslandSessionService.commitQuestRewardAcknowledgement(player.UserId, player, rewardId)
+		end,
+		acknowledgePetReceipt = function(rewardId: string)
+			return PetCollectionService.acknowledgeExperienceReward(player, rewardId)
+		end,
+		commitPetAcknowledgement = function(rewardId: string)
+			return IslandSessionService.commitQuestRewardPetAcknowledgement(player.UserId, player, rewardId)
+		end,
+	}
+end
+
 local function acknowledgeDeliveredReward(player: Player, record: any): (boolean, string)
-	-- First persist the source acknowledgement. Only then may the pet receipt
-	-- start its finite retention window; this prevents a prolonged source-store
-	-- outage from expiring the only pet-side deduplication receipt.
-	local sourceAcknowledged, sourceStatus = IslandSessionService.commitQuestRewardAcknowledgement(
-		player.UserId,
-		player,
-		record.rewardId
-	)
-	if not sourceAcknowledged then
-		return false, "SOURCE_ACK_FAILED:" .. sourceStatus
-	end
-
-	local petAcknowledged, petStatus = PetCollectionService.acknowledgeExperienceReward(
-		player,
-		record.rewardId
-	)
-	-- A missing receipt is safe to finalize only now: the durable source
-	-- acknowledgement proves the XP write was already confirmed.
-	if not petAcknowledged and petStatus ~= "RECEIPT_NOT_FOUND" then
-		return false, "PET_RECEIPT_ACK_FAILED:" .. petStatus
-	end
-
-	local petMarker, markerStatus = IslandSessionService.commitQuestRewardPetAcknowledgement(
-		player.UserId,
-		player,
-		record.rewardId
-	)
-	if not petMarker then
-		return false, "PET_ACK_MARKER_FAILED:" .. markerStatus
-	end
-	return true, markerStatus
+	return QuestRewardRecoveryProtocol.finalizeDelivered(record, createProtocolHandlers(player))
 end
 
 local function deliverPendingReward(player: Player, record: any): (boolean, string)
-	local thresholds, configStatus = PetProgressionCatalog.getThresholds(record.progressionVersion)
-	if thresholds == nil then
-		return false, configStatus
-	end
-
-	-- The exact pet ID, XP amount, progression version, and reward ID all come
-	-- from the durable server-created outbox record. Never recompute these on retry.
-	local granted, grantStatus = PetCollectionService.grantExperienceWithProgressOnce(
-		player,
-		record.petId,
-		record.amount,
-		thresholds,
-		record.rewardId
-	)
-	if not granted then
-		return false, "PET_XP_GRANT_FAILED:" .. grantStatus
-	end
-
-	-- Mark delivery only after the pet DataStore has confirmed the idempotent XP write.
-	local delivered, deliveryStatus = IslandSessionService.commitQuestRewardDelivery(
-		player.UserId,
-		player,
-		record.rewardId
-	)
-	if not delivered then
-		return false, "SOURCE_DELIVERY_COMMIT_FAILED:" .. deliveryStatus
-	end
-
-	return acknowledgeDeliveredReward(player, record)
+	return QuestRewardRecoveryProtocol.deliverPending(record, createProtocolHandlers(player))
 end
 
 local function processPlayer(player: Player)
