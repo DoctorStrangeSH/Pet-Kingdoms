@@ -108,6 +108,22 @@ local duplicateAcknowledgement, duplicateAcknowledgementCode =
 	QuestRewardOutboxData.markAcknowledged(acknowledged, record.rewardId, 121)
 expect("source acknowledgement is idempotent",
 	duplicateAcknowledgement == nil and duplicateAcknowledgementCode == "ALREADY_ACKNOWLEDGED")
+local notYetFinalizedOutbox, notYetFinalizedCode = QuestRewardOutboxData.append(acknowledged, {
+	rewardId = "quest:gather_stone:pre-finalization:v1",
+	questId = "gather_stone",
+	petId = "starter-bunny",
+	amount = 100,
+	progressionVersion = 1,
+	createdAt = 125,
+})
+expect("source-acknowledged records are retained until pet receipt finalization",
+	notYetFinalizedOutbox ~= nil and notYetFinalizedCode == "QUEUED"
+		and #notYetFinalizedOutbox == 2)
+local invalidPetAcknowledgement = table.clone(acknowledged)
+invalidPetAcknowledgement[1] = table.clone(acknowledged[1])
+invalidPetAcknowledgement[1].petAcknowledgedAt = 119
+local invalidPetAcknowledgementOk = QuestRewardOutboxData.validateOutbox(invalidPetAcknowledgement)
+expect("pet acknowledgement before source acknowledgement is rejected", not invalidPetAcknowledgementOk)
 local petAcknowledged, petAcknowledgedCode =
 	QuestRewardOutboxData.markPetAcknowledged(acknowledged, record.rewardId, 130)
 expect("pet receipt finalization is persisted as a separate durable phase",
