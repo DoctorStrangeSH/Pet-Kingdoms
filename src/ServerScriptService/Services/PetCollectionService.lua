@@ -192,6 +192,14 @@ local function loadPlayer(player: Player)
 	print("[PetKingdoms] Pet collection ready for", player.Name)
 end
 
+function PetCollectionService.isReady(player: Player): boolean
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false
+	end
+	local state = collections[player.UserId]
+	return state ~= nil and not state.loading and state.profile ~= nil
+end
+
 local function handleRequest(player: Player, action: any, payload: any): (boolean, any)
 	local state = collections[player.UserId]
 	if state == nil or state.loading or state.profile == nil then
