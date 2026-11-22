@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local Workspace = game:GetService("Workspace")
@@ -740,6 +741,29 @@ local function addBuildEntry()
 	make("UIStroke", { Color = COLORS.gold, Transparency = 0.3, Thickness = 1.3 }, open)
 	open.Activated:Connect(beginPlacing)
 end
+
+
+local function isOwnedMainHousePrompt(prompt: ProximityPrompt): boolean
+	if prompt.Name ~= "MainHousePrompt" then return false end
+	local foundMainHouse = false
+	local current: Instance? = prompt
+	while current do
+		if current:IsA("Model") and current:GetAttribute("BuildingCatalogId") == "main_house" then
+			foundMainHouse = true
+		end
+		if current:IsA("Model") and current:GetAttribute("OwnerUserId") == player.UserId then
+			return foundMainHouse
+		end
+		current = current.Parent
+	end
+	return false
+end
+
+ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+	if isOwnedMainHousePrompt(prompt) then
+		beginPlacing()
+	end
+end)
 
 addBuildEntry()
 print("[PetKingdoms] Building controller loaded.")
