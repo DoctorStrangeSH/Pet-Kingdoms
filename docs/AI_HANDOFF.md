@@ -310,3 +310,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `ReplicatedStorage/Shared/Pets/PetSpeciesStatsData.lua`. It validates stable lowercase species IDs, exact definition shape (`baseStats` only), all five finite non-negative base stats, and complete catalogs. It also returns defensive copies of individual definitions and catalogs.
 - No species entries, names, base values, rarity assignments, or balance formulas were added. The PROJECT_SPEC explicitly leaves the remaining species and final rarity distribution open; this is a reusable contract only.
 - Added Studio-only pure tests for valid/invalid IDs, malformed definitions, extra fields, invalid base stats, empty/invalid catalogs, and clone isolation. Tests are committed but not executed in Roblox Studio.
+
+
+## Data-driven PetStatsCalculator foundation (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetStatsCalculator.lua`. It validates a species definition, pet level (1–50), rarity tier (1–6), and a required balance resolver supplied by the caller.
+- The calculator gives the resolver a defensive copy of base stats plus level and rarity, catches resolver errors, validates the returned exact five-stat map, and returns an isolated validated snapshot.
+- This deliberately does not define or assume a growth curve, rarity multiplier, modifier ordering, or stat balance. Until those decisions are approved, the resolver is an explicit dependency and there is no default formula.
+- Added Studio-only tests for valid identity resolution, level/rarity boundaries, missing resolver, resolver exceptions, invalid output, unknown stats, and input/result isolation. Tests are committed but not executed in Studio.
+- The calculator is not yet wired to collection persistence, combat, or a concrete species catalog.
