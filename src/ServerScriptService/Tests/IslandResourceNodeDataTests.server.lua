@@ -6,11 +6,32 @@ if not RunService:IsStudio() then return end
 
 local services = script.Parent.Parent:WaitForChild("Services")
 local NodeData = require(services:WaitForChild("IslandResourceNodeData"))
+local NodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
 
 local function expect(name: string, condition: boolean)
 	assert(condition, name .. " failed")
 	print("[PetKingdoms Test] PASS:", name)
 end
+
+local allNodes = NodeCatalog.getAll()
+expect("starter island has exactly four canonical gathering nodes", #allNodes == 4)
+expect("resource node cooldown is exactly 60 seconds", NodeCatalog.RESPAWN_SECONDS == 60)
+
+local rewardById = {}
+for _, definition in ipairs(allNodes) do
+	rewardById[definition.id] = {
+		resourceId = definition.resourceId,
+		reward = definition.reward,
+	}
+end
+expect("wood node A grants 3 wood", rewardById.WoodNode_A ~= nil
+	and rewardById.WoodNode_A.resourceId == "wood" and rewardById.WoodNode_A.reward == 3)
+expect("wood node B grants 3 wood", rewardById.WoodNode_B ~= nil
+	and rewardById.WoodNode_B.resourceId == "wood" and rewardById.WoodNode_B.reward == 3)
+expect("stone node A grants 2 stone", rewardById.StoneNode_A ~= nil
+	and rewardById.StoneNode_A.resourceId == "stone" and rewardById.StoneNode_A.reward == 2)
+expect("stone node B grants 2 stone", rewardById.StoneNode_B ~= nil
+	and rewardById.StoneNode_B.resourceId == "stone" and rewardById.StoneNode_B.reward == 2)
 
 local now = os.time()
 local states = {}
