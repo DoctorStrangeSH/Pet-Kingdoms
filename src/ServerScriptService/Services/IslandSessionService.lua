@@ -431,12 +431,16 @@ function IslandSessionService.start()
 			pending += 1
 			task.spawn(function()
 				local saved = saveSession(userId, session)
-				if not saved then
-					warn(string.format("[PetKingdoms] Shutdown could not flush island profile for %d", userId))
-				end
-				local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
-				if not released then
-					warn(string.format("[PetKingdoms] Shutdown lease release failed for %d: %s", userId, releaseCode))
+				if saved then
+					-- Release only after the final snapshot is confirmed persisted.
+					-- On failure, let the lease expire naturally so a new server
+					-- cannot immediately load stale data while this server shuts down.
+					local released, releaseCode = IslandLeaseService.release(userId, session.leaseToken)
+					if not released then
+						warn(string.format("[PetKingdoms] Shutdown lease release failed for %d: %s", userId, releaseCode))
+					end
+				else
+					warn(string.format("[PetKingdoms] Shutdown could not flush island profile for %d; retaining lease until expiry", userId))
 				end
 				pending -= 1
 			end)
