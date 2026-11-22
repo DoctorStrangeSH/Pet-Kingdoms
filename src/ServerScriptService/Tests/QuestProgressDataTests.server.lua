@@ -60,6 +60,40 @@ for _, quest in ipairs(snapshot) do
 	if quest.id == "gather_wood" then woodSnapshot = quest end
 end
 expect("wood quest completes at target", woodSnapshot ~= nil and woodSnapshot.count == 3 and woodSnapshot.completed)
+
+local claimedSnapshot = nil
+for _, quest in ipairs(QuestProgressData.snapshot(afterThree, {
+	gather_wood = { rewardId = "quest:gather_wood:reward:v1", claimedAt = 100 },
+})) do
+	if quest.id == "gather_wood" then claimedSnapshot = quest end
+end
+expect("completed quest exposes its durable reward claim separately",
+	claimedSnapshot ~= nil and claimedSnapshot.completed == true
+		and claimedSnapshot.rewardClaimed == true and claimedSnapshot.rewardAvailable == false)
+local unclaimedSnapshot = nil
+for _, quest in ipairs(QuestProgressData.snapshot(afterThree, {})) do
+	if quest.id == "gather_wood" then unclaimedSnapshot = quest end
+end
+expect("completed quest without a receipt remains unclaimed",
+	unclaimedSnapshot ~= nil and unclaimedSnapshot.completed == true
+		and unclaimedSnapshot.rewardClaimed == false)
+local malformedClaimSnapshot = nil
+for _, quest in ipairs(QuestProgressData.snapshot(afterThree, {
+	gather_wood = { rewardId = "", claimedAt = 100 },
+})) do
+	if quest.id == "gather_wood" then malformedClaimSnapshot = quest end
+end
+expect("malformed claim receipt is never exposed as claimed",
+	malformedClaimSnapshot ~= nil and malformedClaimSnapshot.rewardClaimed == false)
+local prematureClaimSnapshot = nil
+for _, quest in ipairs(QuestProgressData.snapshot(state, {
+	gather_wood = { rewardId = "quest:gather_wood:premature:v1", claimedAt = 100 },
+})) do
+	if quest.id == "gather_wood" then prematureClaimSnapshot = quest end
+end
+expect("claim receipt cannot mark an incomplete quest as claimed",
+	prematureClaimSnapshot ~= nil and prematureClaimSnapshot.completed == false
+		and prematureClaimSnapshot.rewardClaimed == false)
 expect("completed quest does not exceed target", afterThree.gather_wood.count == 3)
 
 local afterStone, completedStone = QuestProgressData.recordGather(state, "stone")
