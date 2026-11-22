@@ -109,6 +109,7 @@
 - [x] Validate that persisted island bounds exactly match the configured base bounds and expansion level before rendering; reject mismatched or unsupported profile geometry.
 - [x] Add a pure canonical next-level preparation boundary that validates current and resulting profile bounds without mutating the source profile.
 - [x] Add a server-session expansion commit that serializes against existing profile mutations, checks the expected level, prepares the next profile, and waits for its revision to persist; purchase/resource charging and world respawn remain separate NOT DONE work.
+- [x] Rebuild the active island world from the newly persisted expansion profile while retaining its assigned spawn slot; add Studio integration coverage for live refresh at levels 1 and 2 (execution pending).
 - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
