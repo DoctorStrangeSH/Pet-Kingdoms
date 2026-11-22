@@ -49,3 +49,8 @@ The renderer integration test now covers both expansion levels: 32x32 / 256x256 
 ## Persisted bounds validation
 
 Before rendering, IslandWorldService checks the profile's saved bounds against the configured starter dimensions and its persisted expansion level through IslandExpansion.matchesProfileBounds. A legacy profile without an expansionLevel is interpreted as level 0. Inconsistent dimensions are rejected before a spawn slot is allocated, preventing a corrupted or unsupported profile from creating oversized or mismatched terrain.
+
+
+## Canonical transition preparation
+
+`IslandExpansion.prepareNextProfile(profile, baseWidth, baseDepth)` is the pure preparation boundary for the future server transaction. It validates the current saved bounds against the configured base and level, derives exactly one next level using the existing immutable profile transformation, then validates the resulting bounds again. It returns `PREPARED` only for a canonical transition. It intentionally does not charge, persist, or mutate the active world.
