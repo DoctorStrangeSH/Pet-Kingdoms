@@ -707,3 +707,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Main House overview now displays the actual total placed-building count with correct Russian singular/plural forms.
 - Progress bar lower threshold is keyed by the stable `KingdomBondStage` ID rather than comparing localized stage names.
 - Added pure contract assertions for empty, Main House + improvement, and duplicate-building layouts. Studio test execution remains pending.
+
+
+## Island expansion geometry foundation (2026-11-22)
+
+- Added Services/IslandExpansion.lua, a pure geometry contract. Level 0 preserves current base dimensions; each of two provisional levels adds 8 cells to both axes (24x24 -> 32x32 -> 40x40 at current defaults).
+- Added Studio-only tests for dimensions, next-level calculation, maximum level, negative/fractional/over-limit levels, and invalid base dimensions.
+- Added docs/game-systems/ISLAND_EXPANSION.md. The module intentionally does not set prices or unlock requirements because the economy balance sheet is not approved.
+- No profile schema, live world bounds, building placement, or player-facing behavior has changed yet. The purchase/persistence/world-rendering slice remains NOT DONE.
