@@ -68,4 +68,20 @@ local maxProfile, maxStatus = IslandExpansion.expandProfile(secondProfile)
 expect("third expansion is rejected at maximum level",
 	maxProfile == nil and maxStatus == "MAX_EXPANSION_REACHED")
 
+local fractionalProfile = {
+	boundsWidth = 24, boundsDepth = 24, expansionLevel = 0,
+	buildings = {{ instanceId = "bad-fraction", catalogId = "main_house", x = 1.5, z = 2, rotation = 0 }},
+}
+local fractionalResult, fractionalCode = IslandExpansion.expandProfile(fractionalProfile)
+expect("fractional saved building coordinates are rejected",
+	fractionalResult == nil and fractionalCode == "INVALID_BUILDING_RECORD")
+
+local negativeProfile = {
+	boundsWidth = 24, boundsDepth = 24, expansionLevel = 0,
+	buildings = {{ instanceId = "bad-negative", catalogId = "main_house", x = -1, z = 2, rotation = 0 }},
+}
+local negativeResult, negativeCode = IslandExpansion.expandProfile(negativeProfile)
+expect("negative saved building coordinates are rejected",
+	negativeResult == nil and negativeCode == "INVALID_BUILDING_RECORD")
+
 print("[PetKingdoms Test] IslandExpansion geometry contract tests completed.")
