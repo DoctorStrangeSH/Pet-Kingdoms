@@ -1192,3 +1192,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `IslandGatheringPersistenceContractTests.server.lua`. It applies the production pure gathering transaction to a canonical IslandData profile, serializes/deserializes it with HttpService JSON (DataStore-shaped payload), and validates the restored profile.
 - The test asserts that wallet balances, node cooldown timestamps, quest counts, and profile revision survive the round trip. It then verifies the restored cooldown rejects a duplicate gather and a different node advances the quest once.
 - This is an adapter/schema-level persistence contract only. It does not call Roblox DataStoreService or simulate an actual server leave/rejoin; those remain pending.
+
+
+## Gathering serialization contract CI verification (2026-11-22)
+
+- GitHub Actions run #157 / run ID 45041677501 passed on commit `5b176b5ad0c955f1985434ae2dc4f7e0f3fdea14`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761947614 is available until 2026-12-06 16:03 UTC.
+- CI confirms the serialization/reload contract is packaged. Studio-only execution and live DataStore tests remain pending.
