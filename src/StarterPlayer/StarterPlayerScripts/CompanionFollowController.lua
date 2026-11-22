@@ -39,6 +39,9 @@ export type FollowController = {
 	nextIdleActionAt: number,
 	idleActionRemaining: number,
 	idleActionState: string,
+	interactionState: string?,
+	interactionUntil: number,
+	interactionConnection: RBXScriptConnection?,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
 }
@@ -121,6 +124,9 @@ function CompanionFollowController.new(
 		nextIdleActionAt = math.random(35, 65) / 10,
 		idleActionRemaining = 0,
 		idleActionState = "idle",
+		interactionState = nil,
+		interactionUntil = 0,
+		interactionConnection = nil,
 	}, CompanionFollowController)
 
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
@@ -130,6 +136,14 @@ function CompanionFollowController.new(
 		end
 		return nil, "PET_CANNOT_BE_PARENTED_TO_CHARACTER"
 	end
+
+	self.interactionConnection = model:GetAttributeChangedSignal("InteractionSequence"):Connect(function()
+		local emotion = model:GetAttribute("InteractionEmotion")
+		if emotion == "happy" or emotion == "curious" then
+			self.interactionState = emotion
+			self.interactionUntil = os.clock() + 1.8
+		end
+	end)
 
 	self.connection = RunService.RenderStepped:Connect(function(dt)
 		self:update(dt)
@@ -171,6 +185,13 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.idleActionState = "idle"
 		self.nextIdleActionAt = math.random(35, 65) / 10
 	end
+	if state == "idle" and self.interactionState ~= nil then
+		if os.clock() < self.interactionUntil then
+			state = self.interactionState
+		else
+			self.interactionState = nil
+		end
+	end
 	if self.animation then
 		self.animation:setState(state)
 	end
@@ -203,6 +224,10 @@ function CompanionFollowController.destroy(self: FollowController)
 	if self.connection then
 		self.connection:Disconnect()
 		self.connection = nil
+	end
+	if self.interactionConnection then
+		self.interactionConnection:Disconnect()
+		self.interactionConnection = nil
 	end
 	if self.animation then
 		self.animation:destroy()
