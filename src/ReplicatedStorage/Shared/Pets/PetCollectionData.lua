@@ -369,7 +369,7 @@ function PetCollectionData.addPet(
 	-- until the completion retention window has elapsed.
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
-		if (receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS)
+		if (receipt.completedAt == nil or age < 0 or age <= PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS)
 			and receipt.petId == petId
 		then
 			return false, "PET_ID_ALREADY_USED", nil
@@ -430,7 +430,7 @@ function PetCollectionData.reservePetSlotOnce(
 	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
-		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS then
 			table.insert(retainedReceipts, receipt)
 			if receipt.acquisitionId == acquisitionId then
 				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier
@@ -512,7 +512,7 @@ function PetCollectionData.addPetOnce(
 	local retainedReceipts = {}
 	for _, receipt in ipairs(profile.acquisitionReceipts or {}) do
 		local age = if receipt.completedAt ~= nil then now - receipt.completedAt else 0
-		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS then
+		if receipt.completedAt == nil or age < 0 or age <= PetCollectionData.ACQUISITION_RECEIPT_RETENTION_SECONDS then
 			table.insert(retainedReceipts, receipt)
 			if receipt.acquisitionId == acquisitionId then
 				if receipt.speciesId ~= speciesId or receipt.rarityTier ~= rarityTier
