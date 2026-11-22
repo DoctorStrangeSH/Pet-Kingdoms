@@ -84,3 +84,13 @@ No food/inventory action is added because an approved food catalogue and resourc
 - Pet XP rewards that would exceed the safe integer ceiling return `XP_OVERFLOW`; rewards outside the accepted positive integer range return `INVALID_XP_AMOUNT`.
 - Equip, Pet/Play, and XP reward mutations reject a collection revision that cannot be incremented safely (`REVISION_OVERFLOW`).
 - Boundary and overflow test cases are committed; Roblox Studio execution remains pending.
+
+
+## Pet House as a physical collection entrance
+
+- Every rendered `pet_house` building receives a server-created `PetHousePrompt` ProximityPrompt on its door (or a safe model BasePart fallback).
+- The localized action is `Открыть коллекцию`; keyboard E, gamepad X, zero hold duration, and 10-stud activation distance.
+- The collection UI listens to the local ProximityPromptService event and opens the existing collection panel only when the prompt belongs to a `pet_house` under the local player's own island model.
+- The existing collection RemoteFunction remains the only path for equip/protect/delete/interact operations; those mutations remain server-authoritative and revision-checked. The prompt itself grants no ownership or gameplay reward.
+- Prompt creation is shared by initial island rendering and live building synchronization, so a newly placed or moved Pet House has the same interaction.
+- Studio verification is pending: test keyboard, gamepad, touch prompt presentation, another player's Pet House, and a missing Door part on a custom template.
