@@ -624,3 +624,15 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Remove the hard-coded universal 0.28-stud offset so imported center-pivot meshes do not sink into or float above the island.
 - [x] Add a Studio test using a 4-stud external mesh stand-in with a centered pivot.
 - [ ] Verify actual imported pet assets, slopes, obstacles, streaming, and multiplayer presentation in Roblox Studio.
+
+
+### Pet companion obstacle navigation (2026-11-22)
+
+- [x] Detect obstacles in the companion's direct lane at two body heights.
+- [x] Request asynchronous PathfindingService routes only when direct movement is blocked.
+- [x] Follow computed waypoints and re-evaluate when the path is blocked or the goal moves.
+- [x] Project path start/goal and waypoints to island ground; preserve each pet's measured ground lift.
+- [x] Wait rather than clipping through obstacles while a route is pending or unavailable.
+- [x] Release path connections and invalidate stale path computations when routes clear or controllers are destroyed.
+- [x] Add smoke coverage for the clear-route fast path and path connection cleanup.
+- [ ] Verify obstacle detours, stairs, slopes, cliffs, narrow passages, streaming, multiplayer, and mobile in Roblox Studio.
