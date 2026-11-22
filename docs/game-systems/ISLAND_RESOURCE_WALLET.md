@@ -48,6 +48,14 @@ These are provisional implementation defaults, not final balance approval. Keep 
 
 These functions are server-only module APIs. Do not expose a RemoteFunction that accepts arbitrary grant amounts or client-provided costs. Gathering and building services must derive rewards/prices from server-owned definitions.
 
+## Client display
+
+- `IslandResourceHUD.client.lua` renders a compact four-resource HUD for Wood, Stone, Gold, and Gems.
+- The client requests the initial wallet snapshot through `IslandResourceRequest` (`Get`). This endpoint returns data only; it cannot grant or spend resources.
+- Successful server wallet mutations publish a complete authoritative snapshot through `IslandResourceUpdate`.
+- Gathering grants additionally show a short localized reward toast. The HUD resizes for narrow viewports and uses the Roblox ProximityPrompt touch affordance for mobile gathering.
+- The HUD is a first functional interface pass; visual/device acceptance still requires Roblox Studio review.
+
 ## Explicitly not implemented yet
 
 - Resource node visuals and respawn timers are implemented; see `ISLAND_GATHERING.md`.
