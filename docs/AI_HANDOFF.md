@@ -1343,3 +1343,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Quest journal, expansion, and kingdom overview now respond to Escape. Quest, expansion, and pet collection support backdrop click/tap for dismissal when the pointer falls outside the panel's absolute rectangle.
 - Closing only clears the global attribute if the closing panel owns it; switching panels cannot inadvertently clear the newly opened owner's token.
 - All changes are client UI logic only. Roblox Studio manual keyboard/touch testing and safe area/resolution testing are still pending; GitHub Actions Rojo builds cannot validate actual close hit targets.
+
+## Responsive quest and expansion panels (2026-11-22)
+
+- Removed old percentage-width+fixed-height combinations from QuestJournalUI and IslandExpansionUI: both now calculate a bounded pixel width from viewport width and use a fixed design height with UIScale that reduces the full panel on short screens.
+- Quest journal remains a scrolling list; the expansion panel keeps its current fixed internal card layout. Both dialogs stay centered on viewport resize.
+- This is a code-only responsiveness pass. The Roblox Studio Device Emulator and real touch hit target checks have not been run. Remaining high-impact UI work: collection mobile two-column layout and building placement controls.
