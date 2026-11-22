@@ -1237,3 +1237,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Artifact `pet-kingdoms-studio-build` ID 14761488381 is available until 2026-12-06 16:09 UTC.
 - Run #172 also passed for the collection UI level/lifetime-XP display.
 - These runs verify project packaging only. Studio-only test execution and visual inspection are still pending.
+
+
+## Idempotent pet XP service boundary (2026-11-22)
+
+- Audited all server service and bootstrap modules in the current branch. No gameplay caller used the non-idempotent XP service methods.
+- Removed `PetCollectionService.grantExperience` and `PetCollectionService.grantExperienceWithProgress`. The only service-level XP DataStore write method is now `grantExperienceWithProgressOnce`, which requires a stable server-generated reward ID.
+- Pure `PetCollectionData` mutations remain available for deterministic unit tests; they are not exposed as service-level DataStore write APIs.
+- Next activity-source integrations must define approved reward amount, progression version, and deterministic pet recipient policy, and should use a durable source outbox where cross-DataStore delivery is involved.
