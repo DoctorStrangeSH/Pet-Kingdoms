@@ -6,6 +6,8 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PetCollectionData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets"):WaitForChild("PetCollectionData"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -24,7 +26,7 @@ local COLORS = {
 	danger = Color3.fromRGB(255, 135, 135),
 }
 
-type PetRecord = { petId: string, speciesId: string, acquiredAt: number, level: number?, xp: number?, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
+type PetRecord = { petId: string, speciesId: string, acquiredAt: number, level: number?, xp: number?, bondXp: number?, bondLevel: number?, lastInteractionAt: number?, isLocked: boolean?, isFavorite: boolean? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
 
 local collection: Collection? = nil
@@ -278,6 +280,37 @@ local progressionLabel = make("TextLabel", {
 	TextColor3 = COLORS.mint,
 }, detail) :: TextLabel
 
+local PET_BUTTON_READY_TEXT = "♡ ПОГЛАДИТЬ"
+local PLAY_BUTTON_READY_TEXT = "✦ ПОИГРАТЬ"
+local function formatCooldown(seconds: number): string
+	local safeSeconds = math.max(0, math.ceil(seconds))
+	return string.format("%02d:%02d", math.floor(safeSeconds / 60), safeSeconds % 60)
+end
+
+local function applyInteractionCooldown(record: PetRecord?)
+	local remaining = 0
+	if record and type(record.lastInteractionAt) == "number" then
+		local elapsed = Workspace:GetServerTimeNow() - record.lastInteractionAt
+		remaining = math.max(0, PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS - elapsed)
+	end
+	local coolingDown = remaining > 0
+	local enabled = not coolingDown and not busy and record ~= nil
+	petButton.Active = enabled
+	playButton.Active = enabled
+	petButton.AutoButtonColor = enabled
+	playButton.AutoButtonColor = enabled
+	petButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	playButton.BackgroundColor3 = if coolingDown then COLORS.panelSoft else COLORS.cardSelected
+	if coolingDown then
+		local timer = formatCooldown(remaining)
+		petButton.Text = "🔒 ПОГЛАДИТЬ " .. timer
+		playButton.Text = "🔒 ПОИГРАТЬ " .. timer
+	else
+		petButton.Text = PET_BUTTON_READY_TEXT
+		playButton.Text = PLAY_BUTTON_READY_TEXT
+	end
+end
+
 local bondLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 16, 0.55, 127),
@@ -490,6 +523,7 @@ local function updateDetail()
 		petDescription.Text = "Исследуй мир, чтобы найти новых друзей!"
 		progressionLabel.Text = "УРОВЕНЬ — • XP —"
 		bondLabel.Text = "ДРУЖБА —"
+		applyInteractionCooldown(nil)
 		equipButton.Visible = false
 		preview:ClearAllChildren()
 		return
@@ -503,6 +537,7 @@ local function updateDetail()
 	progressionLabel.Text = string.format("УРОВЕНЬ %d  •  %s XP ВСЕГО", petLevel, tostring(petXp))
 	local bondLevel = selected.bondLevel or 1
 	local bondXp = selected.bondXp or 0
+	applyInteractionCooldown(selected)
 	bondLabel.Text = if bondLevel >= 10
 		then string.format("ДРУЖБА • УРОВЕНЬ %d  •  МАКСИМУМ", bondLevel)
 		else string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
@@ -724,8 +759,8 @@ local function interactWithSelected(interactionType: string)
 	busy = true
 	petButton.Active = false
 	playButton.Active = false
-	local originalPetText = petButton.Text
-	local originalPlayText = playButton.Text
+	petButton.AutoButtonColor = false
+	playButton.AutoButtonColor = false
 	petButton.Text = "..."
 	playButton.Text = "..."
 	local ok, success, result = pcall(function()
@@ -736,10 +771,8 @@ local function interactWithSelected(interactionType: string)
 		})
 	end)
 	busy = false
-	petButton.Active = true
-	playButton.Active = true
-	petButton.Text = originalPetText
-	playButton.Text = originalPlayText
+	petButton.Active = false
+	playButton.Active = false
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
 		local messages = {
@@ -982,5 +1015,18 @@ bindViewportCamera()
 if UserInputService.TouchEnabled then
 	openButton.Position = UDim2.new(1, -14, 0.72, 0)
 end
+
+task.spawn(function()
+	while screen.Parent do
+		if panel.Visible and collection ~= nil and selectedPetId ~= nil then
+			local selectedRecord = nil
+			for _, record in ipairs(collection.owned) do
+				if record.petId == selectedPetId then selectedRecord = record break end
+			end
+			applyInteractionCooldown(selectedRecord)
+		end
+		task.wait(0.25)
+	end
+end)
 
 print("[PetKingdoms] Pet collection UI loaded.")
