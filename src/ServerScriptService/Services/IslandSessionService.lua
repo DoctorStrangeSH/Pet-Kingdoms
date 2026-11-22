@@ -63,6 +63,15 @@ end
 
 -- Collection writers share the existing island MemoryStore lease and fail closed
 -- whenever their island session is closing, superseded, or no longer writable.
+function IslandSessionService.isProfileMutationBusy(userId: number): boolean
+	local session = sessions[userId]
+	return session ~= nil and (
+		session.buildingMutationBusy
+		or session.gatheringMutationBusy
+		or session.hatchMutationBusy
+	)
+end
+
 function IslandSessionService.canWrite(userId: number, player: Player): boolean
 	local session = sessions[userId]
 	return session ~= nil and session.player == player
