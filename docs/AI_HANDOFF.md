@@ -536,3 +536,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - All server entry points handling player-specific collection changes now verify `state.player == player`. The companion spawner and `PetCollectionService.isReady` use the same check, so recovery does not mistake an old session for the new join.
 - This is same-server reconnect fencing only. A separate pet collection DataStore ownership lease/fencing scheme has not yet been implemented; concurrent writes from distinct servers still require integration testing and a stronger protocol if needed.
 - Changes are committed and source-verified; Roblox Studio and controlled DataStore race tests have not been executed.
+
+
+## Pet collection persisted writer fencing (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetCollectionSessionData.lua`, which implements pure `claim(current, observed, token, defaultFactory)` and `owns(current, generation, token)` checks.
+- On load `PetCollectionService` now observes the DataStore profile, validates it, and atomically claims a new monotonically increasing `collectionSessionGeneration` with `collectionSessionToken` via `UpdateAsync`. Claim is conditional on the observed revision, generation and token; outdated snapshots are rejected rather than silently superseding a newer claim. Ambiguous claim retry with the same token is idempotent.
+- All post-load mutations through the shared `updateWithRetry` adapter are guarded inside the actual UpdateAsync transform by the originating Player state and the currently persisted generation/token. If another server has claimed a newer generation, an old callback aborts without writing.
+- The claim callback separately checks that the original Player instance still owns the in-memory load state and remains connected. This complements the earlier same-server reconnect fencing.
+- `PetCollectionData.clone` now preserves both session fencing fields. Validation accepts legacy profiles with neither field but rejects incomplete or malformed pairs. Thus pure data mutations cannot drop fencing metadata.
+- Added Studio-only test file `PetCollectionSessionDataTests.server.lua` and collection mutation/validation regression tests. Source reviewed; tests have NOT been executed in Roblox Studio.
+- Remaining limitations: no cross-server MemoryStore lease/heartbeat for exclusive presence, no mocked DataStore concurrency test, and no end-to-end cross-store hatch fault-injection verification. Observational GetAsync caching can cause a safe but inconvenient stale-claim rejection; retry behavior/UI needs design.
