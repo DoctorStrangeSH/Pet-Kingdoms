@@ -40,6 +40,14 @@ local function cloneForClient(profile: any): any
 	}
 end
 
+-- DataStore UpdateAsync serializes persisted writes, but callbacks can resume out of order.
+-- Never let a late response replace a newer in-memory snapshot.
+local function syncProfileIfNewer(state: PlayerCollection, profile: any)
+	if state.profile == nil or profile.revision >= state.profile.revision then
+		state.profile = profile
+	end
+end
+
 local function updateWithRetry(userId: number, transform: (any) -> any): (boolean, any)
 	local lastError = nil
 	for attempt = 1, MAX_ATTEMPTS do
@@ -247,7 +255,7 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 			warn("[PetKingdoms] Pet interaction result invalid:", player.UserId, reason)
 			return false, "INVALID_SAVE_RESULT"
 		end
-		state.profile = result
+		syncProfileIfNewer(state, result)
 		local playerFolder = getPlayerPetFolder(player)
 		local petModel = playerFolder:FindFirstChild(payload.petId)
 		if petModel and petModel:IsA("Model") then
@@ -316,7 +324,7 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 		return false, "INVALID_SAVE_RESULT"
 	end
 
-	state.profile = result
+	syncProfileIfNewer(state, result)
 	spawnEquippedPets(player)
 	return true, cloneForClient(result)
 end
@@ -362,7 +370,7 @@ function PetCollectionService.grantExperience(player: Player, petId: string, amo
 		warn("[PetKingdoms] Pet XP reward result invalid:", player.UserId, reason)
 		return false, "INVALID_SAVE_RESULT"
 	end
-	state.profile = result
+	syncProfileIfNewer(state, result)
 	return true, "UPDATED"
 end
 
