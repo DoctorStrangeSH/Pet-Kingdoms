@@ -1177,3 +1177,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Refactored `IslandSessionService.commitResourceGathering` to calculate the full transaction first, then assign resources + node cooldown + quest progress together and mark one profile revision dirty. On a pre-commit writeability failure it restores the previous profile fields.
 - Added `IslandGatheringTransactionDataTests.server.lua` covering successful wood/stone integration, quest completion, source immutability, per-node cooldown, resource cap, invalid quest state, and unknown nodes.
 - Studio-only tests are authored but not executed yet. CI will verify Rojo packaging, not runtime behavior or live DataStore durability.
+
+
+## Gathering-to-quest integration CI verification (2026-11-22)
+
+- GitHub Actions run #153 / run ID 45041510736 passed on commit `dc46f357ee3087085a89cda2b6e81b9fee5cb1ef`, which contains the production transaction refactor and the new integration test suite.
+- Pinned Rokit setup, Rojo version verification, full place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761942353 is available until 2026-12-06 16:01 UTC.
+- The artifact packages the new integration tests; this CI run does not execute Studio-only Luau tests or live DataStore scenarios.
