@@ -499,3 +499,6 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Fix quest snapshots for legacy island profiles created before `questProgress` existed: the server now presents the current introductory quests at 0 progress without mutating the stored profile.
 - [x] Add Studio contract coverage for legacy nil progress and malformed progress snapshots.
 - [ ] Execute the updated QuestProgressData tests in Roblox Studio.
+
+
+- [x] Verify the legacy quest snapshot fix and expanded quest progress edge-case test packaging in GitHub Actions run #144 (Rojo build + Studio artifact upload PASS).
