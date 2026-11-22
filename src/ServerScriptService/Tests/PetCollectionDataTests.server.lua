@@ -622,4 +622,65 @@ local identityReused, identityReuseStatus = PetCollectionData.addPet(
 )
 expect("removed pet identity cannot be reused", not identityReused and identityReuseStatus == "PET_ID_ALREADY_USED")
 
+local expiredIdentityReuse, expiredIdentityStatus = PetCollectionData.addPet(
+	identityAfterRemoval,
+	"retired-pet-id",
+	"bunny",
+	2,
+	300 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+)
+expect("pet ID reuse is allowed after its receipt retention window", expiredIdentityReuse and expiredIdentityStatus == "UPDATED")
+
+local receiptCapacityProfile = PetCollectionData.clone(profile)
+receiptCapacityProfile.acquisitionReceipts = {}
+for index = 1, PetCollectionData.MAX_ACQUISITION_RECEIPTS - 1 do
+	table.insert(receiptCapacityProfile.acquisitionReceipts, {
+		acquisitionId = "ledger-seed-" .. tostring(index),
+		petId = "ledger-pet-" .. tostring(index),
+		speciesId = "bunny",
+		rarityTier = 1,
+		processedAt = 1000,
+	})
+end
+local receiptCapacityValid = PetCollectionData.validate(receiptCapacityProfile, profile.ownerUserId)
+expect("nearly full acquisition receipt ledger validates", receiptCapacityValid)
+
+local ledgerReserved, ledgerReserveStatus, ledgerReservedProfile = PetCollectionData.reservePetSlotOnce(
+	receiptCapacityProfile, "hatch-ledger-001", "bunny", 1, 1000
+)
+expect("last receipt slot can be reserved for a hatch", ledgerReserved and ledgerReserveStatus == "RESERVED" and ledgerReservedProfile ~= nil)
+assert(ledgerReservedProfile ~= nil)
+
+local secondLedgerReserved, secondLedgerStatus = PetCollectionData.reservePetSlotOnce(
+	ledgerReservedProfile, "hatch-ledger-002", "bunny", 1, 1000
+)
+expect("pending hatch reserves receipt ledger capacity", not secondLedgerReserved and secondLedgerStatus == "ACQUISITION_LEDGER_FULL")
+
+local ledgerGrant, ledgerGrantStatus, ledgerGrantedProfile = PetCollectionData.addPetOnce(
+	ledgerReservedProfile, "ledger-new-pet", "bunny", 1, 1001, "hatch-ledger-001"
+)
+expect("reserved receipt slot can be consumed by its hatch", ledgerGrant and ledgerGrantStatus == "UPDATED" and ledgerGrantedProfile ~= nil)
+assert(ledgerGrantedProfile ~= nil)
+expect("hatch grant fills but does not exceed receipt ledger", #ledgerGrantedProfile.acquisitionReceipts == PetCollectionData.MAX_ACQUISITION_RECEIPTS)
+
+local expiredLedgerProfile = PetCollectionData.clone(receiptCapacityProfile)
+expiredLedgerProfile.acquisitionReceipts = {}
+for index = 1, PetCollectionData.MAX_ACQUISITION_RECEIPTS do
+	table.insert(expiredLedgerProfile.acquisitionReceipts, {
+		acquisitionId = "expired-ledger-" .. tostring(index),
+		petId = "expired-ledger-pet-" .. tostring(index),
+		speciesId = "bunny",
+		rarityTier = 1,
+		processedAt = 1,
+	})
+end
+local expiredLedgerReserved, expiredLedgerStatus = PetCollectionData.reservePetSlotOnce(
+	expiredLedgerProfile,
+	"hatch-after-expiry",
+	"bunny",
+	1,
+	1 + PetCollectionData.REWARD_RECEIPT_RETENTION_SECONDS + 1
+)
+expect("expired receipts are pruned before reserving hatch capacity", expiredLedgerReserved and expiredLedgerStatus == "RESERVED")
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
