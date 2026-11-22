@@ -715,3 +715,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio-only tests for dimensions, next-level calculation, maximum level, negative/fractional/over-limit levels, and invalid base dimensions.
 - Added docs/game-systems/ISLAND_EXPANSION.md. The module intentionally does not set prices or unlock requirements because the economy balance sheet is not approved.
 - No profile schema, live world bounds, building placement, or player-facing behavior has changed yet. The purchase/persistence/world-rendering slice remains NOT DONE.
+
+
+## Island expansion profile persistence foundation (2026-11-22)
+
+- Island profiles now carry optional schema-v1 expansionLevel; newly created profiles start at 0, legacy records are accepted and normalized to 0 in IslandStore.load and the atomic claimSession transform.
+- IslandExpansion.expandProfile returns a cloned profile for the next level, increases dimensions by 8 cells per axis, and shifts every saved building coordinate by 4 cells per axis. This compensates for the renderer's centered-grid coordinate mapping and keeps existing buildings at the same world-space position.
+- IslandData validates the expansion level. Studio tests cover legacy compatibility, invalid levels, two expansions, max-level rejection, source immutability, and world-position invariance.
+- Still NOT DONE: applying the transform through a server-authoritative session transaction, approved resource costs/unlocks, durable receipt/idempotency, world regeneration, client UI, and Studio playtests.
