@@ -71,6 +71,10 @@ local PATH_RETRY_SECONDS = 1.1
 local PATH_GOAL_REUSE_DISTANCE = 5
 local WAYPOINT_REACHED_DISTANCE = 2.2
 
+local function horizontal(vector: Vector3): Vector3
+	return Vector3.new(vector.X, 0, vector.Z)
+end
+
 local function hasDirectPath(
 	fromPosition: Vector3,
 	toPosition: Vector3,
@@ -84,10 +88,6 @@ local function hasDirectPath(
 	local upperOrigin = fromPosition + Vector3.new(0, 2.4, 0)
 	return Workspace:Raycast(origin, direction, params) == nil
 		and Workspace:Raycast(upperOrigin, direction, params) == nil
-end
-
-local function horizontal(vector: Vector3): Vector3
-	return Vector3.new(vector.X, 0, vector.Z)
 end
 
 local function getSlotOffset(slotIndex: number, sideSpacing: number, followDistance: number): Vector3
@@ -236,7 +236,8 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	desired = resolveGroundPosition(desired, self.groundRaycastParams, self.groundLift)
 	local current = self.model:GetPivot()
 	local currentPosition = current.Position
-	local lagDistance = horizontal(desired - currentPosition).Magnitude
+	local ownerDistance = horizontal(desired - currentPosition).Magnitude
+	local lagDistance = ownerDistance
 
 	-- Use Roblox navigation data only when an obstacle blocks the direct route.
 	-- Pets remain client-driven cosmetic companions; no gameplay authority or
@@ -344,12 +345,26 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		then "run"
 		else if speed >= self.walkSpeed or lagDistance >= 1.1 then "walk" else "idle"
 
-	if lagDistance >= self.teleportDistance then
+	if ownerDistance >= self.teleportDistance then
 		local recoveryPosition = desired - horizontal(self.targetRoot.CFrame.LookVector) * 2
 		self.model:PivotTo(CFrame.lookAt(recoveryPosition, recoveryPosition + horizontal(self.targetRoot.CFrame.LookVector)))
 		current = self.model:GetPivot()
 		currentPosition = current.Position
 		lagDistance = horizontal(desired - currentPosition).Magnitude
+		-- The old route starts at the pre-teleport location; discard its waypoints
+		-- and invalidate any asynchronous result still in flight.
+		self.pathGeneration += 1
+		self.pathPending = false
+		self.path = nil
+		self.pathGoal = nil
+		table.clear(self.pathWaypoints)
+		self.pathIndex = 1
+		self.pathNextComputeAt = 0
+		if self.pathBlockedConnection then
+			self.pathBlockedConnection:Disconnect()
+			self.pathBlockedConnection = nil
+		end
+		navigationGoal = desired
 	end
 
 	if state == "idle" then
