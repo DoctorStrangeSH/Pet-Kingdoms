@@ -122,3 +122,10 @@ A successful Rojo build proves the project tree can be serialized; it does not p
 - Leave during the delay; ensure no delayed LoadCharacterAsync occurs after the session closes.
 - Simulate a lease loss during the delay; ensure the stale session cannot respawn.
 - Confirm the loading overlay clears only after the replacement character reaches the island.
+
+
+## First owner-confirmed Studio launch (2026-11-22)
+
+- Owner published a dedicated private test Experience, stopped the initial Play session before publishing, enabled Studio API access, and confirmed a successful Play launch past the localized loading screen.
+- This verifies the first-join startup path in the owner's test environment only. It does not yet verify resource gathering, building transactions, pet collection, respawn, save/rejoin durability, multiplayer lease contention, or mobile controls.
+- Continue testing in the dedicated test Experience with non-production test profiles. Do not enable API access for the production universe as a workaround.
