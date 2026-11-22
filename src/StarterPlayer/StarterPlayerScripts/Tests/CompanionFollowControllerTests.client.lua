@@ -75,6 +75,34 @@ controllers[1]:update(1 / 60)
 expect("movement animation overrides interaction reaction", controllers[1].animation.state == "walk")
 target.AssemblyLinearVelocity = Vector3.zero
 
+-- A nearby, available wood node should trigger a brief cosmetic curiosity reaction.
+local islands = Instance.new("Folder")
+islands.Name = "PlayerIslands"
+islands.Parent = workspace
+local island = Instance.new("Model")
+island.Name = "TestIsland"
+island:SetAttribute("OwnerUserId", 123456)
+island.Parent = islands
+local nodes = Instance.new("Folder")
+nodes.Name = "ResourceNodes"
+nodes.Parent = island
+local woodNode = Instance.new("Model")
+woodNode.Name = "TestWoodNode"
+woodNode:SetAttribute("AvailableAt", os.time())
+woodNode:SetAttribute("ResourceId", "wood")
+woodNode.Parent = nodes
+local woodPart = Instance.new("Part")
+woodPart.Anchored = true
+woodPart.CanCollide = false
+woodPart.Position = pets[1]:GetPivot().Position + Vector3.new(2, 0, 0)
+woodPart.Parent = woodNode
+pets[1]:SetAttribute("OwnerUserId", 123456)
+controllers[1].interactionState = nil
+controllers[1].nextEnvironmentScan = 0
+controllers[1]:update(1 / 60)
+expect("Bunny notices a nearby available wood node", controllers[1].animation.state == "curious")
+islands:Destroy()
+
 local invalidController, invalidStatus = CompanionFollowController.new(pets[1], target, { slotIndex = 4 })
 expect("fourth active slot is rejected", invalidController == nil and invalidStatus == "INVALID_SLOT_INDEX")
 
