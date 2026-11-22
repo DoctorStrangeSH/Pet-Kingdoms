@@ -2,6 +2,22 @@
 
 > Status: procedural blockout renderer is committed and connected to player profile sessions. It is not production art and has not been verified in Roblox Studio.
 
+## Runtime bootstrap configuration
+
+`IslandWorldConfig.configure()` runs before the island session service starts. If Workspace has no existing world settings, it creates these provisional blockout defaults:
+
+| Setting | Default |
+|---|---:|
+| `IslandGridWidth` | 24 cells |
+| `IslandGridDepth` | 24 cells |
+| `IslandGridCellSize` | 8 studs |
+| Generated island slots | 8 |
+| Slot center spacing | 256 studs |
+
+The generated `IslandSpawnPoints` folder contains invisible, non-colliding `IslandSlot_01` through `IslandSlot_08` parts arranged in a 4 × 2 layout. This yields 192 × 192-stud island tops with 64 studs between adjacent island bounds. The values are prototype defaults, not final world-design approvals.
+
+Existing valid Workspace attributes are preserved. An owner-authored `IslandSpawnPoints` folder containing BaseParts is preserved as-is and controls the available server capacity. An empty folder is initialized with generated slots. A conflicting non-Folder instance or invalid attribute stops startup rather than admitting players into a broken world.
+
 ## Required Workspace configuration
 
 - `IslandGridWidth`: logical grid width, also used by the profile schema.
@@ -9,7 +25,7 @@
 - `IslandGridCellSize`: world studs per logical grid cell; must be a positive number.
 - `IslandSpawnPoints`: Folder containing anchored BaseParts. Each BasePart CFrame is the center/top reference for one island slot. The number of spawn points limits simultaneous personal islands per server.
 
-No dimensions, world positions, or cell size are hard-coded as game design defaults. The world renderer fails closed if required configuration or a free spawn point is missing.
+After bootstrap, the world renderer still fails closed if configuration is invalid or no free spawn point is available. Owners can override the provisional defaults with valid Workspace attributes and manually positioned spawn parts.
 
 ## Generated blockout
 
