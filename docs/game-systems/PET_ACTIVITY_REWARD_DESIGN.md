@@ -76,3 +76,8 @@ Pet progression XP is distinct from Kingdom Bond XP. Bond XP represents relation
 - Pet IDs are now constrained to the same bounded safe identifier alphabet used by server-generated collection IDs. Expected revisions must be finite, non-negative safe integers.
 - Pure data tests now cover the exact cooldown boundary, rollback attempts, selected-pet isolation, progression XP/Bond separation, and malformed identifiers.
 - Personality-specific preferences, feeding, consumable costs, and progression XP for interactions remain unimplemented/open; do not invent these behaviors.
+
+
+## Interaction cooldown presentation
+
+The pet collection UI mirrors the authoritative per-pet interaction cooldown from `lastInteractionAt`. Both `pet` and `play` actions currently share the same cooldown. While active, buttons show a lock and a live countdown; the server still independently validates all requests. No client-side cooldown is trusted for gameplay authority.
