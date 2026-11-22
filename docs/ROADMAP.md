@@ -261,3 +261,10 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Cross-check an owned pet's speciesId and rarityTier against its retained acquisition receipt.
 - [x] Add regression tests for duplicate receipt pet IDs and owned-record/receipt metadata mismatch.
 - [ ] Execute collection tests in Roblox Studio and verify legacy production profiles against the stricter receipt invariants before rollout.
+
+
+### Island shutdown persistence fencing
+
+- [x] Release the island lease during BindToClose only after the final profile snapshot is confirmed persisted.
+- [x] If the shutdown save fails, retain the lease until its normal expiry instead of allowing an immediate new session to load a known-stale snapshot.
+- [ ] Exercise shutdown save failure, lease expiry, and immediate rejoin in a controlled Roblox Studio/DataStore test environment.
