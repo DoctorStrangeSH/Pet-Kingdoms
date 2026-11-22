@@ -246,6 +246,51 @@ invalidReceiptTimeProfile.rewardReceipts = {
 }
 expect("non-finite receipt timestamp invalidates profile", not PetCollectionData.validate(invalidReceiptTimeProfile, 12345))
 
+
+-- Pet acquisition contract tests: the current catalog intentionally contains only Bunny.
+local acquired, acquiredStatus, acquiredProfile =
+	PetCollectionData.addPet(profile, "pet_test_001", "bunny", 2, 1_800_000_000)
+expect("valid pet acquisition adds an owned pet", acquired and acquiredStatus == "UPDATED" and acquiredProfile ~= nil)
+assert(acquiredProfile ~= nil)
+expect("new pet starts at level one with zero XP", acquiredProfile.owned[2].level == 1 and acquiredProfile.owned[2].xp == 0)
+expect("new pet stores neutral rarity tier", acquiredProfile.owned[2].rarityTier == 2)
+expect("new pet acquisition increments revision once", acquiredProfile.revision == profile.revision + 1)
+expect("new pet is not auto-equipped", #acquiredProfile.equipped == #profile.equipped)
+
+local duplicatePet, duplicatePetStatus =
+	PetCollectionData.addPet(acquiredProfile, "pet_test_001", "bunny", 2, 1_800_000_001)
+expect("duplicate pet ID is rejected", not duplicatePet and duplicatePetStatus == "DUPLICATE_PET_ID")
+
+local invalidSpecies, invalidSpeciesStatus =
+	PetCollectionData.addPet(profile, "pet_test_002", "unknown_species", 2, 1_800_000_000)
+expect("species outside the approved catalog is rejected", not invalidSpecies and invalidSpeciesStatus == "INVALID_SPECIES")
+
+local invalidRarity, invalidRarityStatus =
+	PetCollectionData.addPet(profile, "pet_test_003", "bunny", 7, 1_800_000_000)
+expect("rarity tier outside 1-6 is rejected", not invalidRarity and invalidRarityStatus == "INVALID_RARITY_TIER")
+
+local fullCollection = PetCollectionData.clone(profile)
+for index = 2, PetCollectionData.MAX_OWNED_PETS do
+	table.insert(fullCollection.owned, {
+		petId = "pet_fill_" .. tostring(index),
+		speciesId = "bunny",
+		rarityTier = 1,
+		acquiredAt = 1,
+		level = 1,
+		xp = 0,
+		bondXp = 0,
+		bondLevel = 1,
+		lastInteractionAt = 0,
+	})
+end
+local fullReward, fullRewardStatus =
+	PetCollectionData.addPet(fullCollection, "pet_over_capacity", "bunny", 1, 1_800_000_000)
+expect("collection capacity is enforced", not fullReward and fullRewardStatus == "COLLECTION_FULL")
+
+local invalidAcquiredAt, invalidAcquiredAtStatus =
+	PetCollectionData.addPet(profile, "pet_test_004", "bunny", 1, math.huge)
+expect("invalid acquisition timestamp is rejected", not invalidAcquiredAt and invalidAcquiredAtStatus == "INVALID_TIMESTAMP")
+
 local equipped, equipStatus, updated = PetCollectionData.setEquipped(profile, { "starter-bunny" })
 expect("owned pet can be equipped", equipped and equipStatus == "UPDATED" and updated ~= nil)
 assert(updated ~= nil)
