@@ -1349,3 +1349,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Removed old percentage-width+fixed-height combinations from QuestJournalUI and IslandExpansionUI: both now calculate a bounded pixel width from viewport width and use a fixed design height with UIScale that reduces the full panel on short screens.
 - Quest journal remains a scrolling list; the expansion panel keeps its current fixed internal card layout. Both dialogs stay centered on viewport resize.
 - This is a code-only responsiveness pass. The Roblox Studio Device Emulator and real touch hit target checks have not been run. Remaining high-impact UI work: collection mobile two-column layout and building placement controls.
+
+## Mobile pet collection + compact build placement (2026-11-22)
+
+- PetCollectionUI has a mobile layout branch (<650 viewport width) with explicit list/detail tabs. Cards open the detail tab; wider screens retain the original two-column UI. Mobile search/filter/list and pet details occupy the full panel width independently. Short portrait detail offsets and delete confirmation width are constrained.
+- Fixed an existing Lua lexical-scope defect: applyInteractionCooldown had been defined before petButton and playButton locals; it is now defined below both controls and continues using authoritative server cooldown timestamps.
+- IslandBuildingController now switches between full catalogue layout (340 px design height) and compact preview action bar (136 px) by hiding the catalogue when placing and moving action buttons into the shorter panel. This restores camera visibility while aiming.
+- Tests not executed in Studio; CI Rojo build verifies packaging only. Check touch hit targets, mobile safe areas, landscape, and the full catalogue/preview state transitions.
