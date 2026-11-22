@@ -123,3 +123,10 @@ The obstruction raycast helper now has its horizontal-vector dependency declared
 - Corrected double application of the exponential smoothing factor when following navigation targets, improving the response of formation slots as the owner turns.
 - Run/catch-up animation now uses the distance to the owner formation target, not the possibly short local waypoint; blocked and stationary pets no longer animate as if walking.
 - A Studio-only isolated mesh test checks the exact translation factor for one update. Actual gameplay turns and slope motion remain to be tested in Studio.
+
+## Terrain-edge safety pass (2026-11-22)
+
+- Direct movement requires both obstacle-ray clearance and sampled supporting ground along the route. Missing ground and height jumps larger than 2.75 studs between successive samples invalidate the shortcut when the initial ground is known.
+- Pathfinding waypoints are also checked for ground support before each movement update; unsupported segments halt movement and schedule a new route.
+- Emergency teleport destinations are projected onto nearby ground with model-specific pivot offset.
+- A Studio-only cliff-gap regression has been authored. Verify actual generated island terrain and mobile framerates before treating this as shippable terrain traversal.
