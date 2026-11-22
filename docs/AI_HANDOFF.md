@@ -602,3 +602,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Construction catalog tests now assert every configured cost map is non-empty. Resource tests cover empty spends, multi-resource grant success, invalid-reward atomicity, empty reward rejection, and cap-failure atomicity.
 - No demolition refund was added: the roadmap explicitly leaves that policy for economy balancing approval.
 - Remaining: recent building request IDs are still cached only in memory (64 entries). A durable building-operation receipt/journal is required to cover server restart, cache eviction and cross-server retries. Roblox Studio execution and autosave/failure injection remain NOT DONE.
+
+
+## Durable building-operation receipts (2026-11-22)
+
+- Added pure `IslandBuildingJournalData` and persisted `buildingOperations` receipts inside the same island profile key as buildings and wallet balances. Each receipt stores request ID, length-prefixed payload fingerprint, operation type, creation time, the profile revision that commits it, and the exact success response.
+- Placement, move, and demolition now append a receipt and increment the profile revision once, then wait for `IslandStore.save` to persist at least that revision before returning success. A server restart after the successful response reloads the building state and its receipt together; a retry with the same ID/payload replays the saved result without charging again. Reusing an ID with another payload is rejected.
+- Duplicate requests arriving while the receipt revision is still being saved receive `BUILDING_OPERATION_IN_PROGRESS`; the client retains that exact request ID and can retry it. The client also reuses request IDs after transient RemoteFunction transport failures for the same placement/demolition payload.
+- Receipt replay checks `persistedRevision`, not just the in-memory profile, so a second concurrent request cannot observe an uncommitted receipt and receive premature success.
+- The journal retains up to 512 receipts for seven days. Expired receipts are pruned when a later operation is appended; a still-present expired ID is rejected rather than replayed. If all 512 slots are occupied by unexpired receipts, new building mutations fail closed with `LEDGER_FULL` rather than evicting retry evidence. This is an explicit bounded-ledger policy and should be monitored during live play.
+- Legacy schema-v1 profiles migrate to an empty receipt ledger during load/claim; profile validation rejects malformed or duplicate receipts. Added pure Studio tests for append/replay, in-progress gating, payload conflicts, expiry, malformed entries, and full-ledger behavior, plus island profile migration/validation coverage.
+- Roblox Studio tests, live DataStore restart tests, and injected save-failure/concurrency scenarios have NOT been executed. Do not treat the implementation as Studio-verified until those checks pass.
