@@ -951,6 +951,7 @@ local function resize()
 			math.max(380, viewport.Y - 30)
 		)
 		closeButton.Size = UDim2.fromOffset(44, 44)
+		confirmPanel.Size = UDim2.fromOffset(math.min(330, viewport.X - 36), 178)
 		search.Position = UDim2.new(0, 16, 0, 136)
 		search.Size = UDim2.new(1, -32, 0, 40)
 		filterBar.Position = UDim2.new(0, 16, 0, 182)
@@ -960,12 +961,14 @@ local function resize()
 		detail.Position = UDim2.new(0, 16, 0, 136)
 		detail.Size = UDim2.new(1, -32, 1, -174)
 		preview.Size = UDim2.new(1, -20, 0.27, -8)
+		local shortDetail = viewport.Y < 640
+		petDescription.Size = UDim2.new(1, -32, 0, if shortDetail then 28 else 44)
 		for _, item in ipairs({ petName, petRarity, petDescription, progressionLabel, bondLabel, favoriteButton, lockButton }) do
 			local y = item == petName and 0
-				or item == petRarity and 31
-				or item == petDescription and 57
-				or item == progressionLabel and 103
-				or item == bondLabel and 127
+				or item == petRarity and (if shortDetail then 23 else 31)
+				or item == petDescription and (if shortDetail then 42 else 57)
+				or item == progressionLabel and (if shortDetail then 70 else 103)
+				or item == bondLabel and (if shortDetail then 90 else 127)
 				or 0
 			item.Position = UDim2.new(
 				(item == favoriteButton or item == lockButton) and 1 or 0,
@@ -977,6 +980,8 @@ local function resize()
 		panel.Size = UDim2.new(if viewport.X < 900 then 0.9 else 0.78, 0, 0.78, 0)
 		if viewport.Y < 540 then panel.Size = UDim2.new(panel.Size.X.Scale, 0, 0.92, 0) end
 		closeButton.Size = UDim2.fromOffset(38, 38)
+		confirmPanel.Size = UDim2.fromOffset(330, 178)
+		petDescription.Size = UDim2.new(1, -32, 0, 44)
 		search.Position = UDim2.new(0, 24, 0, 88)
 		search.Size = UDim2.new(0.48, -28, 0, 38)
 		filterBar.Position = UDim2.new(0, 24, 0, 132)
