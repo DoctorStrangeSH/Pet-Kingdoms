@@ -129,7 +129,10 @@ function IslandSessionService.commitBuildingOperation(
 
 	local targetRevision = session.profile.revision
 	local deadline = os.clock() + 30
-	while session.persistedRevision < targetRevision or session.dirty do
+	-- The receipt is durable once its own revision is persisted. A later
+	-- unrelated mutation may keep the profile dirty; it must not turn an
+	-- already committed purchase into a client-visible failure.
+	while session.persistedRevision < targetRevision do
 		if not IslandSessionService.canWrite(userId, player) or sessions[userId] ~= session then
 			session.buildingMutationBusy = false
 			return false, "SESSION_NOT_WRITABLE"
