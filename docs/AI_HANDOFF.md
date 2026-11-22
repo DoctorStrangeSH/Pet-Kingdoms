@@ -1161,3 +1161,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Quest definitions are stored in a map, so iterating them with `pairs` did not guarantee stable order in the player journal.
 - Added an explicit quest order (wood, then stone) for progress updates and snapshots. Added a Studio contract assertion for stable ordering across snapshots.
 - The change is covered by the next Rojo CI build; Studio-only execution remains pending.
+
+
+## Quest journal ordering CI verification (2026-11-22)
+
+- GitHub Actions run #147 / run ID 45041261790 passed on commit `9910d8785404f494beb6436d7614699ca0456765`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761219905 is available until 2026-12-06 15:59 UTC.
+- This verifies Rojo packaging only; Studio-only Luau tests still require execution in Roblox Studio.
