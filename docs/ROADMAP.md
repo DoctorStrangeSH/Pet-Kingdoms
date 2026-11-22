@@ -149,6 +149,8 @@
 - [ ] Implement pet inventory and collection UI.
 - [ ] Implement up to 3 active companions and team management.
   - [x] Add unique per-player spawn tokens so delayed CharacterAdded/equip spawn tasks cannot re-create stale or duplicate companion models after a newer spawn request; verify respawn/equip races in Studio.
+- [x] Implement client companion follow controllers for up to three equipped Bunny pets, with distinct formation slots and procedural idle/walk/run/interaction animations (Studio verification pending).
+- [x] Add catch-up running when a companion lags behind and bounded recovery when streaming/character resets leave it extremely far from the owner (Studio verification pending).
 - [ ] Implement companion states and mobile-safe movement.
   - [x] Reuse one per-companion RaycastParams instance for ground projection instead of allocating a new filter object every RenderStepped update; mobile/terrain verification pending.
 - [ ] Implement actual pet levels (maximum 50), gameplay XP, core stats, skill tree, abilities, equipment, and Bond. Bond is a separate relationship progression; the current Bond prototype is not the pet-level system.
