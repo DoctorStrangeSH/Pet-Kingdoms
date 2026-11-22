@@ -24,6 +24,21 @@ expect("malformed quest progress never leaks into client snapshot", #invalidSnap
 local afterWood, completedWood, woodCode = QuestProgressData.recordGather(state, "wood")
 expect("wood gather increments only wood quest", afterWood ~= nil and woodCode == "RECORDED"
 	and afterWood.gather_wood.count == 1 and afterWood.gather_stone.count == 0)
+
+expect("gather progression uses immutable snapshots",
+	state.gather_wood.count == 0 and state.gather_stone.count == 0)
+local afterUnknown, completedUnknown, unknownCode = QuestProgressData.recordGather(state, "crystal")
+expect("unknown resource does not advance any quest",
+	afterUnknown ~= nil and unknownCode == "RECORDED"
+		and #completedUnknown == 0
+		and afterUnknown.gather_wood.count == 0
+		and afterUnknown.gather_stone.count == 0)
+local nanState = { gather_wood = { count = 0 / 0 }, gather_stone = { count = 0 } }
+local nanValid = QuestProgressData.validate(nanState)
+expect("NaN quest progress is rejected", not nanValid)
+local infiniteState = { gather_wood = { count = math.huge }, gather_stone = { count = 0 } }
+local infiniteValid = QuestProgressData.validate(infiniteState)
+expect("infinite quest progress is rejected", not infiniteValid)
 expect("incomplete wood quest does not report completion", completedWood ~= nil and #completedWood == 0)
 
 local afterThree = afterWood
