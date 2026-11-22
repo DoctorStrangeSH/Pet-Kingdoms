@@ -981,3 +981,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `QuestService` and `ReplicatedStorage/Remotes/GetQuestProgress` as a rate-limited, read-only snapshot endpoint. Clients cannot submit progress or rewards.
 - Added Studio tests for quest progress targets, completion caps, invalid IDs/missing entries, and profile validation/migration compatibility.
 - Quest rewards, claim endpoint, player-facing journal UI, additional quest types, and actual Studio/DataStore execution remain NOT DONE. No Gold/Gem rewards or economy values were invented.
+
+
+## Quest Journal UI (2026-11-22)
+
+- Added `src/StarterPlayer/StarterPlayerScripts/QuestJournalUI.client.lua`, a responsive journal matching existing dark fantasy UI styling.
+- Added a parchment launcher button, modal panel, quest cards, progress bars, completed states, and remaining-quest badge.
+- UI reads only from `GetQuestProgress`; it never sends progress or reward claims to the server.
+- Journal refreshes when opened and after the server's confirmed `IslandResourceUpdate` gathering event (debounced to respect the server read rate limit).
+- Rewards remain explicitly unavailable; no economy amounts were invented. Tracked HUD and completion toast are still pending.
+- Studio visual and mobile interaction verification is pending.
