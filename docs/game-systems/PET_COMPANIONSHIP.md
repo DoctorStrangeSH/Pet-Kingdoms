@@ -117,3 +117,9 @@ No food/inventory action is added because an approved food catalogue and resourc
 ## Companion navigation safety follow-up (2026-11-22)
 
 The obstruction raycast helper now has its horizontal-vector dependency declared in lexical scope before use. Recovery from a distant owner is calculated against the actual formation target, not the current path waypoint; teleporting clears pending routes and increments their generation to discard stale asynchronous results. Studio tests cover this interrupted-navigation case, but real obstacle, stairs and mobile traversal remain unverified.
+
+## Formation motion smoothing correction (2026-11-22)
+
+- Corrected double application of the exponential smoothing factor when following navigation targets, improving the response of formation slots as the owner turns.
+- Run/catch-up animation now uses the distance to the owner formation target, not the possibly short local waypoint; blocked and stationary pets no longer animate as if walking.
+- A Studio-only isolated mesh test checks the exact translation factor for one update. Actual gameplay turns and slope motion remain to be tested in Studio.
