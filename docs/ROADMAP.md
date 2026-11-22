@@ -720,3 +720,11 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Add Studio integration checks for persisted resource cooldown: a rejoined player's tree starts hidden, the gather prompt is disabled, the invisible anchor remains hidden, and custom mesh alpha is preserved for later respawn.
 - [x] Preserve an in-flight construction request when another modal takes focus, then close construction cleanly when its server response returns.
 - [ ] Execute these tests in Roblox Studio and verify cooldown expiry, resuming resource availability, and multiple clicks/touch switches while a build request is pending.
+
+### Resource respawn regression and repeated build receipts (2026-11-22)
+
+- [x] Clear completed building request IDs even when the user switches to another window during the server response; preserve IDs only for explicitly retriable response codes.
+- [x] Use immutable submitted catalog/moving instance fields to render build confirmation feedback, avoiding mutable UI state after yielding.
+- [x] Extract resource visibility transitions into `ResourceNodeVisibility` so hide/restore behavior can be tested independently of persistence and live player sessions.
+- [x] Add Studio-only repeat-cycle test verifying original translucent resource alpha, permanently invisible `GatherAnchor`, noncolliding parts and enabled/disabled prompt and markers.
+- [ ] Execute all Studio tests and verify live 60-second respawns, rejoin, multiplayer, and touch-based duplicate submissions.
