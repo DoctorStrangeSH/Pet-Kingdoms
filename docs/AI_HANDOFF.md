@@ -448,3 +448,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - If collection is full or a datastore operation fails, the transaction stays PREPARED/CHARGED and is deferred; the next player join retries it. A future capacity reservation or overflow/inbox policy is required before paid hatching.
 - Added Studio-only `PetHatchingRecoveryDataTests.server.lua` for all three states and invalid inputs. Tests are committed but not executed in Roblox Studio. End-to-end interruption/fault-injection tests remain NOT DONE.
 - No hatch RemoteFunction, egg definitions, drop rates, prices, or player-facing hatch flow has been added.
+
+
+## Pet collection capacity reservations (2026-11-22)
+
+- Pet collection profiles now support optional `reservedAcquisitions`; legacy profiles remain valid and normalize through `PetCollectionData.clone`.
+- Validation checks reservation structure, unique acquisition IDs, approved species, rarity 1–6, timestamps, dense arrays, receipt conflicts, and the hard invariant `owned + reserved <= MAX_OWNED_PETS`.
+- `PetCollectionData.reservePetSlotOnce` reserves one slot idempotently. `PetCollectionService.reservePetSlot` persists the reservation through the same collection DataStore UpdateAsync path used by grants.
+- Ordinary `addPet` respects reserved capacity. `addPetOnce` consumes a matching reservation before adding the pet, atomically replacing one reserved slot with one owned pet.
+- `grantPet` creates and consumes a reservation in the same UpdateAsync mutation when called without a prior reservation; existing matching reservations are consumed. This protects legacy trusted grant callers from exceeding capacity.
+- `PetHatchingRecoveryService` reserves capacity before CHARGE/GRANT. If the collection is full, it defers the transaction before any PREPARED transaction is charged. If already acquired, the idempotent receipt is accepted.
+- Added reservation scenarios to `PetCollectionDataTests.server.lua`. Tests are committed but not executed in Roblox Studio. Multi-server concurrency and DataStore fault injection remain NOT DONE.
+- Reservations are not automatically expired. A reservation must not be released while its corresponding island transaction can still be PREPARED or CHARGED. A future cancellation flow must coordinate both profiles and prove the transaction has not been charged before release.
