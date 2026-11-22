@@ -98,3 +98,10 @@ This module does not itself write DataStore. Until a serialized session API dura
 `PetHatchingRecoveryService` waits until both the island session and pet collection are loaded. It resumes PREPARED transactions by charging the persisted cost snapshot, resumes CHARGED transactions by calling the idempotent pet grant with the stored acquisition ID, and only then marks the island journal GRANTED. A retry after a successful pet DataStore write but a lost response returns the existing acquisition receipt rather than creating another pet.
 
 If the pet collection is full or either datastore is unavailable, the transaction remains pending; it is not silently discarded. The recovery worker retries on a later join. A capacity reservation or overflow/inbox policy is still required before paid hatching is enabled.
+
+
+## Pet collection capacity reservation contract
+
+Before a hatch is charged, `PetCollectionService.reservePetSlot` persists one slot in the pet collection profile under the transaction's acquisition ID. The invariant is `owned + reserved <= MAX_OWNED_PETS`. Ordinary pet rewards cannot consume reserved capacity. The matching idempotent grant atomically consumes the reservation and adds the owned pet.
+
+Recovery reserves capacity before resuming a PREPARED or CHARGED transaction. If no slot is available, it defers without charging a PREPARED transaction. Reservations are not auto-expired because the island journal may still contain a payable or already charged transaction. Cancellation/release requires a future coordinated protocol.
