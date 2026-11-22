@@ -1356,3 +1356,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed an existing Lua lexical-scope defect: applyInteractionCooldown had been defined before petButton and playButton locals; it is now defined below both controls and continues using authoritative server cooldown timestamps.
 - IslandBuildingController now switches between full catalogue layout (340 px design height) and compact preview action bar (136 px) by hiding the catalogue when placing and moving action buttons into the shorter panel. This restores camera visibility while aiming.
 - Tests not executed in Studio; CI Rojo build verifies packaging only. Check touch hit targets, mobile safe areas, landscape, and the full catalogue/preview state transitions.
+
+## Resource model replacement and gathering safety (2026-11-22)
+
+- IslandWorldService accepts vetted optional visual templates under `ServerStorage/ResourceNodeModels/wood` and `/stone` (Model only), with procedural blockout fallback when missing.
+- Resource visual Model is cloned, repositioned to canonical node base pivot, sanitized of scripts and template-provided ProximityPrompt/BillboardGui instances, and anchored/non-colliding. Server constructs separate `GatherAnchor` BasePart with server-trusted ProximityPrompt.
+- IslandGatheringService now restores saved `GatherBaseTransparency` for individual parts and never unhides the invisible prompt anchor. This also keeps transparent details in imported assets after respawn.
+- Added Studio-only resource contract fixture to IslandWorldServiceTests; no Studio execution performed. No actual visual assets imported or approved, as `ASSET_TRACKER` requires explicit provenance and review.
