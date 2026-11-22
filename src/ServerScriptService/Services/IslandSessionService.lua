@@ -18,6 +18,7 @@ local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceN
 local IslandResourceNodeData = require(services:WaitForChild("IslandResourceNodeData"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
+local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
 
 local IslandSessionService = {}
 
@@ -145,11 +146,24 @@ function IslandSessionService.commitResourceGathering(
 		return false, grantCode, nil
 	end
 
+	local previousQuestProgress = session.profile.questProgress or QuestProgressData.create()
+	local nextQuestProgress, completedQuestIds, questCode = QuestProgressData.recordGather(
+		previousQuestProgress,
+		definition.resourceId
+	)
+	if nextQuestProgress == nil then
+		session.profile.resources = previousResources
+		session.gatheringMutationBusy = false
+		return false, questCode, nil
+	end
+
 	local previousStates = session.profile.resourceNodes
 	session.profile.resourceNodes = nextStates
+	session.profile.questProgress = nextQuestProgress
 	if not IslandSessionService.markDirty(userId) then
 		session.profile.resources = previousResources
 		session.profile.resourceNodes = previousStates
+		session.profile.questProgress = previousQuestProgress
 		session.gatheringMutationBusy = false
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
@@ -434,6 +448,10 @@ local function cloneProfile(profile: any): any
 	copy.resourceNodes = {}
 	for index, state in ipairs(profile.resourceNodes or {}) do
 		copy.resourceNodes[index] = table.clone(state)
+	end
+	copy.questProgress = {}
+	for questId, state in pairs(profile.questProgress or QuestProgressData.create()) do
+		copy.questProgress[questId] = table.clone(state)
 	end
 	copy.buildingOperations = {}
 	for index, record in ipairs(profile.buildingOperations or {}) do
