@@ -1,0 +1,125 @@
+--!strict
+-- Server-only recovery of persisted pet hatch transactions after player data loads.
+-- Never accepts recovery instructions or transaction details from clients.
+local Players = game:GetService("Players")
+
+local services = script.Parent
+local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
+local PetCollectionService = require(services:WaitForChild("PetCollectionService"))
+local PetHatchingRecoveryData = require(services:WaitForChild("PetHatchingRecoveryData"))
+
+local PetHatchingRecoveryService = {}
+
+local READY_TIMEOUT_SECONDS = 45
+local READY_POLL_SECONDS = 0.25
+local activeRuns: { [number]: {} } = {}
+
+local function isCurrentRun(player: Player, token: {}): boolean
+	return player.Parent == Players and activeRuns[player.UserId] == token
+end
+
+local function waitForPlayerData(player: Player, token: {}): boolean
+	local deadline = os.clock() + READY_TIMEOUT_SECONDS
+	while os.clock() < deadline do
+		if not isCurrentRun(player, token) then return false end
+		if IslandSessionService.getProfile(player.UserId) ~= nil
+			and PetCollectionService.isReady(player)
+		then
+			return true
+		end
+		task.wait(READY_POLL_SECONDS)
+	end
+	return false
+end
+
+local function recoverTransaction(player: Player, record: any): (boolean, string)
+	local action, actionStatus = PetHatchingRecoveryData.getNextAction(record)
+	if action == nil then return false, actionStatus end
+	if action == "COMPLETE" then return true, actionStatus end
+
+	if action == "CHARGE" then
+		local charged, chargeStatus = IslandSessionService.applyHatchOperation(
+			player.UserId,
+			"CHARGE",
+			record.transactionId
+		)
+		if not charged then return false, "CHARGE_FAILED:" .. chargeStatus end
+	end
+
+	-- Reusing the durable acquisition ID is essential: if the collection write
+	-- succeeded but its response was lost, this call returns ALREADY_ACQUIRED.
+	local granted, grantStatus = PetCollectionService.grantPet(
+		player,
+		record.speciesId,
+		record.rarityTier,
+		record.acquisitionId
+	)
+	if not granted then return false, "PET_GRANT_FAILED:" .. grantStatus end
+
+	local completed, completeStatus = IslandSessionService.applyHatchOperation(
+		player.UserId,
+		"GRANT",
+		record.transactionId
+	)
+	if not completed then return false, "JOURNAL_COMPLETION_FAILED:" .. completeStatus end
+
+	return true, if grantStatus == "ALREADY_ACQUIRED" then "RECOVERED_EXISTING_PET" else "RECOVERED_NEW_PET"
+end
+
+local function recoverPlayer(player: Player)
+	local token = {}
+	activeRuns[player.UserId] = token
+	if not waitForPlayerData(player, token) then
+		if isCurrentRun(player, token) then
+			warn("[PetKingdoms] Hatch recovery skipped: player data did not become ready", player.UserId)
+			activeRuns[player.UserId] = nil
+		end
+		return
+	end
+
+	local profile = IslandSessionService.getProfile(player.UserId)
+	if profile == nil then
+		activeRuns[player.UserId] = nil
+		return
+	end
+
+	-- Work from a snapshot; each operation may replace the live profile.
+	local pending = {}
+	for _, record in ipairs(profile.hatchTransactions or {}) do
+		if record.state ~= "GRANTED" then
+			local copy = table.clone(record)
+			copy.costs = table.clone(record.costs)
+			table.insert(pending, copy)
+		end
+	end
+
+	for _, record in ipairs(pending) do
+		if not isCurrentRun(player, token) then break end
+		local ok, status = recoverTransaction(player, record)
+		if ok then
+			print("[PetKingdoms] Hatch transaction recovered", player.UserId, record.transactionId, status)
+		else
+			-- Fail closed. The durable state remains PREPARED or CHARGED and the
+			-- same transaction/acquisition IDs are retried on the next join.
+			warn("[PetKingdoms] Hatch transaction recovery deferred", player.UserId, record.transactionId, status)
+		end
+	end
+
+	if activeRuns[player.UserId] == token then
+		activeRuns[player.UserId] = nil
+	end
+end
+
+function PetHatchingRecoveryService.start()
+	Players.PlayerAdded:Connect(function(player)
+		task.spawn(recoverPlayer, player)
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		activeRuns[player.UserId] = nil
+	end)
+	for _, player in ipairs(Players:GetPlayers()) do
+		task.spawn(recoverPlayer, player)
+	end
+end
+
+return PetHatchingRecoveryService
