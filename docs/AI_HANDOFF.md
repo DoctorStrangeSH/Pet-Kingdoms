@@ -652,3 +652,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Owner explicitly permits free Roblox Creator Store/Toolbox assets as temporary prototype visuals so they can playtest sooner.
 - Updated PROJECT_SPEC.md, ART_BIBLE.md, README.md, and ASSET_TRACKER.md. Temporary assets must be free, provenance-tracked, license-reviewed, script-audited, performance-checked, isolated from gameplay authority, and have an explicit replacement target.
 - No new external model has been selected, imported, or approved yet. Do not claim that the place already contains Creator Store visuals. The first environment kit still requires candidate review and Studio import.
+
+
+## Personal island Workspace bootstrap (2026-11-22)
+
+- Found the concrete runtime blocker: IslandSessionService requires Workspace attributes `IslandGridWidth` and `IslandGridDepth`; IslandWorldService separately requires `IslandGridCellSize` and `Workspace/IslandSpawnPoints`. The repository had no source/configuration creating these, so a clean place would fail closed before a player's island could spawn.
+- Added `IslandWorldConfig.lua` and invoked it before `IslandSessionService.start()` in `Bootstrap.server.lua`.
+- Provisional defaults: 24×24 logical cells, 8 studs per cell, eight island slots in a 4×2 layout with 256-stud center spacing (192-stud island top and 64-stud gap).
+- Generated spawn parts are invisible, anchored, non-colliding, non-touchable, and non-queryable. Initialization is idempotent. Valid pre-existing Workspace attributes and owner-authored spawn folders containing BaseParts are preserved; invalid configuration fails closed.
+- Added `IslandWorldConfigTests.server.lua` to verify defaults, spawn point availability/count for generated layouts, and idempotency. Studio execution is still pending.
+- IMPORTANT: dimensions and layout are provisional prototype defaults. They require Studio review, including two simultaneous players, respawn, island separation, and mobile/streaming behavior.
