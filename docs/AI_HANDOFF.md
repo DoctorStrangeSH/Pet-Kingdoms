@@ -734,3 +734,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - This fixes the confusing default spawn in an empty Workspace during DataStore loading. It does not by itself complete the art/world MVP; the current island renderer remains a procedural blockout.
 - The loading client also clamps the default third-person camera to 8–28 studs and rebinds CameraSubject to the new Humanoid after character spawn.
 - Verify in Studio: publish a private test place, enable Game Settings → Security → Enable Studio Access to API Services, then test new player, saved returning player, delayed DataStore, failed lease/load, respawn, and two-player join.
+
+
+## Character death and respawn lifecycle (2026-11-22)
+
+- Since `Players.CharacterAutoLoads = false`, Roblox no longer automatically respawns a dead character. IslandSessionService now binds the active character's Humanoid.Died event after every CharacterAdded.
+- A death schedules a five-second respawn, guarded by the exact active session, writable lease, player presence, and the still-current dead character. Respawn uses LoadCharacterAsync with up to three bounded attempts.
+- New character arrival continues through the island's current arrival CFrame; the loading overlay remains until the character is moved and marked Ready.
+- CharacterAdded and Humanoid.Died connections are disconnected on lease loss and session finalization.
+- Studio verification still required: kill the character, confirm one respawn after the delay, verify no duplicate characters/respawn tasks, then leave/rejoin during the delay and confirm no stale respawn occurs.
