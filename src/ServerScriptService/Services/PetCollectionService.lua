@@ -24,7 +24,7 @@ local collections: { [number]: PlayerCollection } = {}
 local remote: RemoteFunction? = nil
 local characterConnections: { [number]: RBXScriptConnection } = {}
 local mutationRequestTimes: { [number]: number } = {}
-local spawnGenerations: { [number]: number } = {}
+local spawnTokens: { [number]: {} } = {}
 
 local function keyFor(userId: number): string
 	return "player_" .. tostring(userId)
@@ -93,10 +93,10 @@ local function spawnEquippedPets(player: Player)
 		return
 	end
 
-	local generation = (spawnGenerations[userId] or 0) + 1
-	spawnGenerations[userId] = generation
+	local spawnToken = {}
+	spawnTokens[userId] = spawnToken
 	local targetRoot = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart", 10)
-	if generation ~= spawnGenerations[userId]
+	if spawnToken ~= spawnTokens[userId]
 		or targetRoot == nil
 		or not targetRoot:IsA("BasePart")
 		or player.Character ~= character
@@ -117,7 +117,7 @@ local function spawnEquippedPets(player: Player)
 		end
 		if record then
 			local petModel, status = PetAssetLoader.create(record.speciesId, 1)
-			if generation ~= spawnGenerations[userId] or player.Character ~= character then
+			if spawnToken ~= spawnTokens[userId] or player.Character ~= character then
 				if petModel then
 					petModel:Destroy()
 				end
@@ -343,11 +343,10 @@ function PetCollectionService.start()
 			characterConnections[player.UserId]:Disconnect()
 			characterConnections[player.UserId] = nil
 		end
-		spawnGenerations[player.UserId] = (spawnGenerations[player.UserId] or 0) + 1
+		spawnTokens[player.UserId] = nil
 		clearSpawnedPets(player)
 		collections[player.UserId] = nil
 		mutationRequestTimes[player.UserId] = nil
-		spawnGenerations[player.UserId] = nil
 	end)
 	for _, player in ipairs(Players:GetPlayers()) do
 		task.spawn(loadPlayer, player)
