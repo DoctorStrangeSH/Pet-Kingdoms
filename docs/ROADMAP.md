@@ -111,6 +111,7 @@
 - [x] Add a server-session expansion commit that serializes against existing profile mutations, checks the expected level, prepares the next profile, and waits for its revision to persist; purchase/resource charging and world respawn remain separate NOT DONE work.
 - [x] Rebuild the active island world from the newly persisted expansion profile while retaining its assigned spawn slot; add Studio integration coverage for live refresh at levels 1 and 2 (execution pending).
 - [x] Add read-only server RemoteFunction `GetIslandExpansionPreview` exposing the active profile's current/next bounds, max level, and explicit economy-not-approved state; rate-limit preview requests. Purchase remains disabled.
+- [x] Add responsive client expansion preview panel wired to GetIslandExpansionPreview; show current/next level and dimensions, explain disabled purchase, and support manual refresh. No purchase action is exposed.
 - [ ] Persist expansion level, implement server-authoritative unlock/purchase and idempotency, then render expanded terrain without moving existing saved building coordinates.
 - [x] Add first client construction controller for main_house (grid preview, rotate, confirm/cancel; Studio verification pending).
 - [x] Add runtime fallback blockout Models for main_house and pet_house so placement can be exercised without imported production assets (Studio verification pending).
