@@ -88,6 +88,7 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
 		return false, "INVALID_COLLECTIONS"
 	end
+	local acquisitionByPetId: { [string]: any } = {}
 	if profile.acquisitionReceipts ~= nil then
 		if type(profile.acquisitionReceipts) ~= "table" then
 			return false, "INVALID_ACQUISITION_RECEIPTS"
@@ -96,7 +97,6 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 		local receiptHighestIndex = 0
 		local seenAcquisitions: { [string]: boolean } = {}
 		local seenAcquiredPetIds: { [string]: boolean } = {}
-		local acquisitionByPetId: { [string]: any } = {}
 		for key, receipt in pairs(profile.acquisitionReceipts) do
 			if type(key) ~= "number" or key < 1 or key ~= math.floor(key) then
 				return false, "INVALID_ACQUISITION_RECEIPT_LIST"
