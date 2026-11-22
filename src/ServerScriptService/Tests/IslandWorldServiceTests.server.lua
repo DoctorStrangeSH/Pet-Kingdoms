@@ -27,6 +27,13 @@ local function profileFor(userId: number)
 		boundsDepth = 24,
 		buildings = {
 			{
+				instanceId = "test-main-house-" .. tostring(userId),
+				catalogId = "main_house",
+				x = 14,
+				z = 10,
+				rotation = 0,
+			},
+			{
 				instanceId = "test-pet-house-" .. tostring(userId),
 				catalogId = "pet_house",
 				x = 10,
@@ -72,6 +79,12 @@ local ok, failure = pcall(function()
 	local worldFolder = Workspace:FindFirstChild("PlayerIslands")
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId)), "first world model must exist")
 	local firstWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local mainHouse = firstWorld and firstWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
+	assert(mainHouse and mainHouse:IsA("Model"), "saved main house must be rendered")
+	local mainHousePrompt = mainHouse and mainHouse:FindFirstChild("MainHousePrompt", true)
+	assert(mainHousePrompt and mainHousePrompt:IsA("ProximityPrompt"), "main house must expose its kingdom interaction")
+	assert(mainHousePrompt.ActionText == "Управлять королевством", "main house prompt must have localized action text")
+
 	local petHouse = firstWorld and firstWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
 	assert(petHouse and petHouse:IsA("Model"), "saved pet house must be rendered")
 	local petHousePrompt = petHouse and petHouse:FindFirstChild("PetHousePrompt", true)
