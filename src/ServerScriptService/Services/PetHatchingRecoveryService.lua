@@ -49,8 +49,12 @@ local function recoverTransaction(player: Player, record: any): (boolean, string
 		local acknowledged, acknowledgeStatus = PetCollectionService.acknowledgeAcquisition(
 			player, record.acquisitionId, record.transactionId
 		)
-		if not acknowledged then return false, "RECEIPT_ACKNOWLEDGEMENT_FAILED:" .. acknowledgeStatus end
-		return true, actionStatus
+		if not acknowledged and acknowledgeStatus ~= "ACQUISITION_RECEIPT_NOT_FOUND" then
+			return false, "RECEIPT_ACKNOWLEDGEMENT_FAILED:" .. acknowledgeStatus
+		end
+		-- A missing receipt is already compacted; the durable GRANTED journal
+		-- state is sufficient proof that this transaction completed.
+		return true, if acknowledgeStatus == "ACQUISITION_RECEIPT_NOT_FOUND" then "RECEIPT_ALREADY_COMPACTED" else actionStatus
 	end
 
 	-- Reserve capacity before charging. A full collection leaves PREPARED/CHARGED
