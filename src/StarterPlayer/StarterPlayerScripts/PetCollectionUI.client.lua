@@ -23,7 +23,7 @@ local COLORS = {
 	danger = Color3.fromRGB(255, 135, 135),
 }
 
-type PetRecord = { petId: string, speciesId: string, acquiredAt: number }
+type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
 
 local collection: Collection? = nil
@@ -200,7 +200,7 @@ local petDescription = make("TextLabel", {
 
 local teamLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
-	Position = UDim2.new(0, 16, 1, -93),
+	Position = UDim2.new(0, 16, 1, -145),
 	Size = UDim2.new(1, -32, 0, 22),
 	Font = Enum.Font.GothamMedium,
 	Text = "КОМАНДА: 0 / 3",
@@ -209,8 +209,50 @@ local teamLabel = make("TextLabel", {
 	TextColor3 = COLORS.mint,
 }, detail) :: TextLabel
 
+
+local bondLabel = make("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 16, 0.55, 103),
+	Size = UDim2.new(1, -32, 0, 22),
+	Font = Enum.Font.GothamBold,
+	Text = "ДРУЖБА • УРОВЕНЬ 1",
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextColor3 = COLORS.gold,
+}, detail) :: TextLabel
+
+local interactionRow = make("Frame", {
+	BackgroundTransparency = 1,
+	Position = UDim2.new(0, 14, 1, -104),
+	Size = UDim2.new(1, -28, 0, 38),
+}, detail) :: Frame
+
+local petButton = make("TextButton", {
+	Position = UDim2.new(0, 0, 0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.cardSelected,
+	Text = "♡ ПОГЛАДИТЬ",
+	TextSize = 11,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.cream,
+	AutoButtonColor = true,
+}, interactionRow) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, petButton)
+
+local playButton = make("TextButton", {
+	Position = UDim2.new(0.5, 5, 0, 0),
+	Size = UDim2.new(0.5, -5, 1, 0),
+	BackgroundColor3 = COLORS.cardSelected,
+	Text = "✦ ПОИГРАТЬ",
+	TextSize = 11,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.cream,
+	AutoButtonColor = true,
+}, interactionRow) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
+
 local equipButton = make("TextButton", {
-	Position = UDim2.new(0, 14, 1, -62),
+	Position = UDim2.new(0, 14, 1, -58),
 	Size = UDim2.new(1, -28, 0, 46),
 	BackgroundColor3 = COLORS.mint,
 	Text = "ЭКИПИРОВАТЬ",
@@ -311,6 +353,9 @@ local function updateDetail()
 	petName.Text = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
 	petRarity.Text = "ОБЫЧНЫЙ • " .. string.upper(selected.speciesId)
 	petDescription.Text = "Твой верный спутник. Впереди ждёт много приключений!"
+	local bondLevel = selected.bondLevel or 1
+	local bondXp = selected.bondXp or 0
+	bondLabel.Text = string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
 	local equipped = isEquipped(selected.petId)
 	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
 	equipButton.BackgroundColor3 = if equipped then COLORS.rose else COLORS.mint
@@ -439,6 +484,44 @@ local function toggleEquip()
 	showStatus("Команда сохранена!")
 end
 
+
+local function interactWithSelected(interactionType: string)
+	if busy or collection == nil or selectedPetId == nil then return end
+	busy = true
+	petButton.Active = false
+	playButton.Active = false
+	local originalPetText = petButton.Text
+	local originalPlayText = playButton.Text
+	petButton.Text = "..."
+	playButton.Text = "..."
+	local ok, success, result = pcall(function()
+		return remote:InvokeServer("Interact", {
+			petId = selectedPetId,
+			interactionType = interactionType,
+			expectedRevision = collection.revision,
+		})
+	end)
+	busy = false
+	petButton.Active = true
+	playButton.Active = true
+	petButton.Text = originalPetText
+	playButton.Text = originalPlayText
+	if not ok or success ~= true or type(result) ~= "table" then
+		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
+		if reason == "INTERACTION_COOLDOWN" then
+			showStatus("Питомцу нужно немного отдохнуть. Попробуй позже.", true)
+		else
+			showStatus("Не удалось выполнить действие. Обновляю данные...", true)
+		end
+		refreshCollection()
+		return
+	end
+	collection = result :: Collection
+	renderList()
+	updateDetail()
+	showStatus(if interactionType == "pet" then "Питомцу приятно! +10 дружбы" else "Вы отлично провели время! +10 дружбы")
+end
+
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
@@ -477,6 +560,8 @@ end
 openButton.Activated:Connect(openCollection)
 closeButton.Activated:Connect(closeCollection)
 equipButton.Activated:Connect(toggleEquip)
+petButton.Activated:Connect(function() interactWithSelected("pet") end)
+playButton.Activated:Connect(function() interactWithSelected("play") end)
 search:GetPropertyChangedSignal("Text"):Connect(renderList)
 
 if UserInputService.TouchEnabled then
