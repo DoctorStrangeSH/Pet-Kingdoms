@@ -23,7 +23,7 @@ type PlayerCollection = {
 local collections: { [number]: PlayerCollection } = {}
 local remote: RemoteFunction? = nil
 local characterConnections: { [number]: RBXScriptConnection } = {}
-local interactionRequestTimes: { [number]: number } = {}
+local mutationRequestTimes: { [number]: number } = {}
 
 local function keyFor(userId: number): string
 	return "player_" .. tostring(userId)
@@ -190,11 +190,11 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 			return false, "STALE_REVISION"
 		end
 		local nowClock = os.clock()
-		local previousRequestAt = interactionRequestTimes[player.UserId]
+		local previousRequestAt = mutationRequestTimes[player.UserId]
 		if previousRequestAt ~= nil and nowClock - previousRequestAt < 1 then
 			return false, "REQUEST_RATE_LIMITED"
 		end
-		interactionRequestTimes[player.UserId] = nowClock
+		mutationRequestTimes[player.UserId] = nowClock
 
 		local mutationStatus = "NOT_UPDATED"
 		local ok, result = updateWithRetry(player.UserId, function(current)
@@ -253,6 +253,12 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 	if payload.expectedRevision ~= state.profile.revision then
 		return false, "STALE_REVISION"
 	end
+	local nowClock = os.clock()
+	local previousRequestAt = mutationRequestTimes[player.UserId]
+	if previousRequestAt ~= nil and nowClock - previousRequestAt < 1 then
+		return false, "REQUEST_RATE_LIMITED"
+	end
+	mutationRequestTimes[player.UserId] = nowClock
 
 	local requestedIds = table.clone(payload.petIds)
 	local updatedProfile: any = nil
@@ -323,6 +329,7 @@ function PetCollectionService.start()
 		end
 		clearSpawnedPets(player)
 		collections[player.UserId] = nil
+		mutationRequestTimes[player.UserId] = nil
 	end)
 	for _, player in ipairs(Players:GetPlayers()) do
 		task.spawn(loadPlayer, player)
