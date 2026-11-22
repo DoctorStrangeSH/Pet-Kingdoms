@@ -25,21 +25,27 @@ local result = {
 }
 
 local appended, appendCode = Journal.append(
-	ledger, "request-1", "place|pet_house|2|3|0", "place", result, now
+	ledger, "request-1", "place|pet_house|2|3|0", "place", result, now, 1
 )
 expect("first building receipt is appended", appended ~= nil and appendCode == "RECORDED")
 ledger = appended or {}
 
-local replay, replayCode = Journal.find(ledger, "request-1", "place|pet_house|2|3|0", now)
+local replay, replayCode = Journal.find(ledger, "request-1", "place|pet_house|2|3|0", now, 1)
 expect("same request fingerprint replays saved result",
 	replay ~= nil and replayCode == "DUPLICATE" and replay.instanceId == "building-1")
 
-local conflict, conflictCode = Journal.find(ledger, "request-1", "place|stone_path|2|3|0", now)
+local inProgress, inProgressCode = Journal.find(
+	ledger, "request-1", "place|pet_house|2|3|0", now, 0
+)
+expect("receipt is not replayed before its revision is persisted",
+	inProgress == nil and inProgressCode == "IN_PROGRESS")
+
+local conflict, conflictCode = Journal.find(ledger, "request-1", "place|stone_path|2|3|0", now, 1)
 expect("request ID cannot be reused for another payload",
 	conflict == nil and conflictCode == "REQUEST_ID_CONFLICT")
 
 local expired, expiredCode = Journal.find(
-	ledger, "request-1", "place|pet_house|2|3|0", now + 7 * 24 * 60 * 60 + 1
+	ledger, "request-1", "place|pet_house|2|3|0", now + 7 * 24 * 60 * 60 + 1, 1
 )
 expect("expired receipt is never replayed as a new successful operation",
 	expired == nil and expiredCode == "EXPIRED")
@@ -58,17 +64,18 @@ for index = 1, 128 do
 		"fingerprint-" .. tostring(index),
 		"place",
 		result,
-		now
+		now,
+		index
 	)
 	assert(nextLedger ~= nil, "ledger fill setup failed at " .. tostring(index))
 	fullLedger = nextLedger
 end
 local overflowLedger, overflowCode = Journal.append(
-	fullLedger, "request-overflow", "overflow", "place", result, now
+	fullLedger, "request-overflow", "overflow", "place", result, now, 129
 )
 expect("full receipt ledger fails closed without evicting retry evidence",
 	overflowLedger == nil and overflowCode == "LEDGER_FULL"
 		and #fullLedger == 128
-		and Journal.find(fullLedger, "request-1", "fingerprint-1", now) ~= nil)
+		and Journal.find(fullLedger, "request-1", "fingerprint-1", now, 128) ~= nil)
 
 print("[PetKingdoms Test] IslandBuildingJournalData tests completed.")
