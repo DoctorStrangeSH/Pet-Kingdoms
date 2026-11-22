@@ -14,6 +14,7 @@ local PetHatchingRecoveryService = {}
 -- The recovery poll must not expire first during a delayed but valid login.
 local READY_TIMEOUT_SECONDS = PetHatchingRecoveryData.RECOVERY_READY_TIMEOUT_SECONDS
 local READY_POLL_SECONDS = 0.25
+local RETRY_DELAY_SECONDS = 15
 type RecoveryRun = { player: Player, token: {} }
 local activeRuns: { [number]: RecoveryRun } = {}
 
@@ -96,35 +97,39 @@ local function recoverPlayer(player: Player)
 		return
 	end
 
-	local profile = IslandSessionService.getProfile(player.UserId)
-	if profile == nil then
-		if isCurrentRun(player, token) then activeRuns[player.UserId] = nil end
-		return
-	end
-
-	-- Work from a snapshot; each operation may replace the live profile.
-	local pending = {}
-	for _, record in ipairs(profile.hatchTransactions or {}) do
-		if record.state ~= "GRANTED" then
-			local copy = table.clone(record)
-			copy.costs = table.clone(record.costs)
-			table.insert(pending, copy)
+	-- Recovery is retried while this exact Player owns a writable island session.
+	-- Always read the current journal; never replay a stale snapshot blindly.
+	while isCurrentRun(player, token)
+		and IslandSessionService.canWrite(player.UserId, player)
+		and PetCollectionService.isReady(player) do
+		local profile = IslandSessionService.getProfile(player.UserId)
+		if profile == nil then break end
+		local pending = {}
+		for _, record in ipairs(profile.hatchTransactions or {}) do
+			if record.state ~= "GRANTED" then
+				local copy = table.clone(record)
+				copy.costs = table.clone(record.costs)
+				table.insert(pending, copy)
+			end
 		end
-	end
+		if #pending == 0 then break end
 
-	for _, record in ipairs(pending) do
-		if not isCurrentRun(player, token)
-			or not IslandSessionService.canWrite(player.UserId, player)
-			or not PetCollectionService.isReady(player)
-		then break end
-		local ok, status = recoverTransaction(player, record)
-		if ok then
-			print("[PetKingdoms] Hatch transaction recovered", player.UserId, record.transactionId, status)
-		else
-			-- Fail closed. The durable state remains PREPARED or CHARGED and the
-			-- same transaction/acquisition IDs are retried on the next join.
-			warn("[PetKingdoms] Hatch transaction recovery deferred", player.UserId, record.transactionId, status)
+		for _, record in ipairs(pending) do
+			if not isCurrentRun(player, token)
+				or not IslandSessionService.canWrite(player.UserId, player)
+				or not PetCollectionService.isReady(player) then break end
+			local ok, status = recoverTransaction(player, record)
+			if ok then
+				print("[PetKingdoms] Hatch transaction recovered", player.UserId, record.transactionId, status)
+			else
+				warn("[PetKingdoms] Hatch transaction recovery deferred", player.UserId, record.transactionId, status)
+			end
 		end
+
+		if not isCurrentRun(player, token) then break end
+		-- Failed DataStore writes and capacity shortages are not hot-looped.
+		-- A subsequent pass can recover after the underlying problem clears.
+		task.wait(RETRY_DELAY_SECONDS)
 	end
 
 	if isCurrentRun(player, token) then
