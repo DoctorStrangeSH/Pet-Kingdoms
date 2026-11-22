@@ -1122,3 +1122,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Tests assert that retrying the same stable reward ID never applies XP twice and that all phases eventually become durable.
 - Added delivered-record resume coverage (no XP grant) and the rule that a missing pet receipt is accepted only after source acknowledgement.
 - These tests are authored but not yet executed in Roblox Studio. Live DataStore outage testing remains separate.
+
+
+## Recovery protocol fault-injection CI packaging (2026-11-22)
+
+- GitHub Actions run #136 / run ID 45040727040 passed on the commit containing `QuestRewardRecoveryProtocolTests.server.lua`.
+- Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14761452820 is available until 2026-12-06 15:53 UTC.
+- This confirms the new test script is included in the Studio-ready project artifact. It does NOT mean the Studio-only tests were executed; manual Roblox Studio execution and live DataStore outage testing remain pending.
