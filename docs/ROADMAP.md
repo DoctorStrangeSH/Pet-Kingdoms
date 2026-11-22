@@ -240,3 +240,15 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add a regression test that acquires, removes, and attempts to recreate a pet with the same ID.
 - [ ] Review acquisition receipt retention and capacity policy before treating pet IDs as permanent lifetime identities; the current bounded ledger retains receipts for the configured retention window.
 - [ ] Add cross-system audit correlation for hatch transaction IDs, acquisition IDs, and stable pet IDs when evolution transactions are implemented.
+
+
+### Pet acquisition ledger capacity audit
+
+- [x] Found and fixed a cross-ledger failure: hatch slot reservation previously reserved collection capacity but did not reserve a bounded acquisition-receipt slot. Other rewards could fill the receipt ledger after currency charge, leaving a charged hatch unable to grant its pet.
+- [x] Reserve one acquisition-receipt slot together with each pending hatch reservation. Enforce `retained receipts + pending reservations <= MAX_ACQUISITION_RECEIPTS`.
+- [x] Prune expired acquisition receipts during reservation using the same seven-day retention window as acquisition completion.
+- [x] Consume the reserved receipt capacity atomically when the matching hatch grant completes; account for other pending reservations when processing a grant.
+- [x] Apply the documented receipt retention window to the pet-ID reuse guard; expired receipts no longer block an ID forever.
+- [x] Add regression tests for final receipt-slot reservation, rejection of an additional pending hatch, successful receipt-slot consumption, expiry pruning, and pet-ID reuse after expiry.
+- [ ] Run Studio pure-data tests and DataStore concurrency/fault-injection tests. Verify a reservation remains grantable when other reward sources execute concurrently.
+- [ ] Replace or explicitly deprecate non-idempotent XP reward entry points before gameplay reward callers are introduced; use stable reward IDs for retryable sources.
