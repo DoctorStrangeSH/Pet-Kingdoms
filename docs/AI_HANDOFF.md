@@ -1280,3 +1280,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - While the per-pet cooldown is active, both Pet and Play buttons are disabled and show a lock plus live MM:SS countdown. When the timer expires they restore their normal labels and active state.
 - This is presentation only. The server's `PetCollectionData.interact` check remains authoritative and still rejects early requests.
 - Studio verification remains pending.
+
+
+## Gathering discoverability correction (2026-11-22)
+
+- IslandWorldService now creates a floating BillboardGui marker over each resource node: ДРЕВЕСИНА +3 or КАМЕНЬ +2, with consistent dark badge styling.
+- ProximityPrompt text now explicitly identifies the action and yield: Срубить дерево / Добыть камень.
+- IslandGatheringService toggles the marker together with node visibility, so cooldown nodes do not retain a misleading available marker.
+- IslandResourceHUD shows a first-gather hint while wood balance is zero: find a tree and use E / the Roblox touch prompt.
+- The actual node geometry remains procedural blockout; no external/free Toolbox asset has been imported in this pass. Studio and mobile verification remain pending.
