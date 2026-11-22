@@ -549,11 +549,12 @@ local function playExpansionCompletionEffect(world: Model, previousSize: Vector3
 		pulse("Expansion_East", Vector3.new(math.max(1, addedX), 0.16, previousSize.Z), CFrame.new(previousSize.X * 0.5 + addedX * 0.5, topY, 0))
 	end
 
+	local particleHost = effectFolder:FindFirstChildWhichIsA("BasePart")
+	if particleHost == nil then return end
 	local attachment = Instance.new("Attachment")
 	attachment.Name = "ExpansionParticles"
-	attachment.Position = Vector3.new(0, grass.Size.Y * 0.5 + 0.35, 0)
-	attachment.Parent = grass
-	attachment.Parent = effectFolder:FindFirstChildWhichIsA("BasePart") or grass
+	attachment.Position = Vector3.zero
+	attachment.Parent = particleHost
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Name = "ExpansionSparkles"
 	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
