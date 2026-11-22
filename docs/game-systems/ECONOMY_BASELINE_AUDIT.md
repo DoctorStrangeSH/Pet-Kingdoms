@@ -96,3 +96,8 @@ The current expansion geometry is a two-step prototype: 24×24 → 32×32 → 40
 - `src/ServerScriptService/Services/BuildingCatalog.lua`
 - `src/ServerScriptService/Services/IslandSessionService.lua`
 - `src/ServerScriptService/Services/KingdomBond.lua`
+
+
+## Quest prototype status
+
+The first quest-progress prototype tracks two existing server gameplay actions: gather Wood (target 3 gather events) and gather Stone (target 2 gather events). These targets are provisional test values, not approved economy pacing. Progress is persisted atomically with the corresponding gathering reward and node cooldown. Quest reward amounts and claim flow are intentionally absent until the economy balance sheet is approved.
