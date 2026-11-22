@@ -251,6 +251,9 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 				or type(reservation.speciesId) ~= "string" or not VALID_SPECIES[reservation.speciesId]
 				or not isPositiveInteger(reservation.rarityTier) or reservation.rarityTier > 6
 				or not isNonNegativeInteger(reservation.reservedAt)
+				or (reservation.transactionId ~= nil and (type(reservation.transactionId) ~= "string"
+					or #reservation.transactionId < 1 or #reservation.transactionId > 128
+					or string.match(reservation.transactionId, "^[%w][%w:_%-]*$") == nil))
 			then
 				return false, "INVALID_RESERVED_ACQUISITION"
 			end
@@ -443,8 +446,20 @@ function PetCollectionData.reservePetSlotOnce(
 	end
 	for _, reservation in ipairs(profile.reservedAcquisitions or {}) do
 		if reservation.acquisitionId == acquisitionId then
-			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier then
+			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier
+				or (transactionId ~= nil and reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
 				return false, "RESERVATION_CONFLICT", nil
+			end
+			if transactionId ~= nil and reservation.transactionId == nil then
+				local upgraded = PetCollectionData.clone(profile)
+				for _, upgradedReservation in ipairs(upgraded.reservedAcquisitions) do
+					if upgradedReservation.acquisitionId == acquisitionId then
+						upgradedReservation.transactionId = transactionId
+						break
+					end
+				end
+				upgraded.revision += 1
+				return true, "RESERVED", upgraded
 			end
 			return false, "ALREADY_RESERVED", PetCollectionData.clone(profile)
 		end
@@ -465,6 +480,7 @@ function PetCollectionData.reservePetSlotOnce(
 		speciesId = speciesId,
 		rarityTier = rarityTier,
 		reservedAt = now,
+		transactionId = transactionId,
 	})
 	updated.revision += 1
 	local updatedValid, updatedReason = PetCollectionData.validate(updated, profile.ownerUserId)
@@ -502,7 +518,8 @@ function PetCollectionData.addPetOnce(
 	local reservationIndex = nil
 	for index, reservation in ipairs(reservations) do
 		if reservation.acquisitionId == acquisitionId then
-			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier then
+			if reservation.speciesId ~= speciesId or reservation.rarityTier ~= rarityTier
+				or (transactionId ~= nil and reservation.transactionId ~= nil and reservation.transactionId ~= transactionId) then
 				return false, "RESERVATION_CONFLICT", nil
 			end
 			reservationIndex = index
