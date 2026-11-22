@@ -10,6 +10,7 @@ local services = script.Parent.Parent:WaitForChild("Services")
 local Catalog = require(services:WaitForChild("BuildingCatalog"))
 local IslandData = require(services:WaitForChild("IslandData"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
+local QuestProgressData = require(services:WaitForChild("QuestProgressData"))
 
 local function expect(name: string, condition: boolean)
 	assert(condition, name .. " failed")
@@ -59,6 +60,19 @@ expect("new island profile starts with an empty building operation journal",
 	type(profile.buildingOperations) == "table" and #profile.buildingOperations == 0)
 expect("new island profile starts with no resource cooldowns",
 	type(profile.resourceNodes) == "table" and #profile.resourceNodes == 0)
+
+expect("new island profile starts with introductory quest progress",
+	type(profile.questProgress) == "table" and profile.questProgress.gather_wood.count == 0
+		and profile.questProgress.gather_stone.count == 0)
+local legacyQuestProfile = table.clone(profile)
+legacyQuestProfile.questProgress = nil
+local legacyQuestValid = IslandData.validate(legacyQuestProfile, 1001, Catalog)
+expect("legacy profile without quest progress remains valid", legacyQuestValid)
+local invalidQuestProfile = table.clone(profile)
+invalidQuestProfile.questProgress = { gather_wood = { count = 99 }, gather_stone = { count = 0 } }
+local invalidQuestValid, invalidQuestCode = IslandData.validate(invalidQuestProfile, 1001, Catalog)
+expect("invalid saved quest progress is rejected", not invalidQuestValid
+	and string.find(invalidQuestCode, "INVALID_QUEST_PROGRESS:", 1, true) == 1)
 
 local malformedResourceNodesProfile = IslandData.create(1001, 10, 10)
 malformedResourceNodesProfile.resourceNodes = {
