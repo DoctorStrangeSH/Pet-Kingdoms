@@ -11,6 +11,7 @@ local IslandHatchLedgerData = require(script.Parent:WaitForChild("IslandHatchLed
 local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 local IslandBuildingJournalData = require(script.Parent:WaitForChild("IslandBuildingJournalData"))
 local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
+local IslandExpansion = require(script.Parent:WaitForChild("IslandExpansion"))
 
 local IslandData = {}
 
@@ -76,6 +77,7 @@ function IslandData.create(ownerUserId: number, boundsWidth: number, boundsDepth
 		ownerUserId = ownerUserId,
 		boundsWidth = boundsWidth,
 		boundsDepth = boundsDepth,
+		expansionLevel = 0,
 		buildings = {},
 		unlockedBuildingIds = {},
 		resources = { wood = 2, stone = 1, gold = 0, gems = 0 },
@@ -108,6 +110,10 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 		or (profile.sessionGeneration ~= nil and (not isInteger(profile.sessionGeneration) or profile.sessionGeneration < 0))
 	then
 		return false, "INVALID_PROFILE_METADATA"
+	end
+
+	if profile.expansionLevel ~= nil and not IslandExpansion.isValidLevel(profile.expansionLevel) then
+		return false, "INVALID_EXPANSION_LEVEL"
 	end
 
 	if type(profile.buildings) ~= "table" or type(profile.unlockedBuildingIds) ~= "table" then
