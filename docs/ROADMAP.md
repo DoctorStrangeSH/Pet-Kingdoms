@@ -442,3 +442,15 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Add an outbox recovery worker that retries the same reward ID, durably marks delivery, then acknowledges the pet-side receipt.
 - [ ] Decide approved reward amounts, XP progression configuration, and deterministic pet recipient policy before enabling claims. No economy values or recipient rule were invented.
 - [ ] Add DataStore fault-injection coverage for island commit, pet XP commit, lost acknowledgement, player leave, server restart, and recovery after rejoin.
+
+
+### Quest reward transaction integration (2026-11-22)
+
+- [x] Add a server-only IslandSessionService claim primitive that commits the permanent claim receipt and XP outbox entry in one island revision.
+- [x] Bind each claim receipt to its island revision and make retries wait for durable persistence before acknowledging the original receipt.
+- [x] Add durable outbox delivery and second-phase pet receipt acknowledgement transitions.
+- [x] Expose server-only pending-delivery and awaiting-acknowledgement snapshots for a future recovery worker.
+- [x] Compact only fully acknowledged outbox entries; never evict pending or delivered-but-unacknowledged rewards.
+- [ ] Add the recovery worker and call the pet XP idempotent grant/acknowledgement APIs in the prescribed order.
+- [ ] Approve reward values, progression thresholds/version, and deterministic pet recipient policy.
+- [ ] Execute Roblox Studio DataStore failure/rejoin/server-restart tests before enabling any claim remote or UI.
