@@ -498,3 +498,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The ledger remains bounded and applies the existing receipt-retention policy; this is not a permanent lifetime tombstone guarantee. Do not claim permanent identity retirement until the retention/capacity policy is explicitly redesigned.
 - Added a regression test that grants a pet through `addPetOnce`, removes it, and verifies that `addPet` cannot recreate the same petId.
 - Test source is committed but not executed in Roblox Studio.
+
+
+## Pet acquisition ledger capacity audit (2026-11-22)
+
+- Critical issue found: `reservePetSlotOnce` previously reserved a collection slot but not an acquisition-receipt ledger slot. Since `addPetOnce` could later fail with `ACQUISITION_LEDGER_FULL`, a hatch could be charged while its pet grant became impossible if other acquisitions filled the bounded ledger in between.
+- Fixed by counting retained acquisition receipts plus all pending reservations before accepting a new reservation. The invariant is `retained acquisition receipts + pending acquisition reservations <= MAX_ACQUISITION_RECEIPTS`.
+- Reservation prunes expired acquisition receipts using the existing seven-day `REWARD_RECEIPT_RETENTION_SECONDS` window and persists the pruned ledger together with the reservation.
+- `addPetOnce` accounts for all other pending reservations while consuming the matching reservation and receipt slot atomically.
+- The direct `addPet` pet-ID reuse guard now respects the same retention window: an ID is blocked while its acquisition receipt is retained, but not forever after expiry.
+- Added regression tests for reserving the final receipt slot, refusing another pending hatch, consuming the reserved receipt slot, pruning expired receipts, and allowing pet-ID reuse after expiry.
+- Tests are committed but have not been run in Roblox Studio. Multi-server concurrency and DataStore failure injection remain NOT DONE.
+- Audit note: `PetCollectionService.grantExperience` and `grantExperienceWithProgress` are non-idempotent trusted APIs. They have no confirmed gameplay callers in the current audit; retryable reward sources must use `grantExperienceWithProgressOnce` with a stable server-generated reward ID. Do not wire retryable gameplay rewards to the non-idempotent methods.
