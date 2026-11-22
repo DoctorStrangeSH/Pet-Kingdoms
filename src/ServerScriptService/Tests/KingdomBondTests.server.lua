@@ -35,7 +35,8 @@ local six = KingdomBond.calculate({ buildings = {
 	{ catalogId = "pet_house" }, { catalogId = "stone_path" }, { catalogId = "flower_bed" },
 	{ catalogId = "wooden_fence" }, { catalogId = "garden_lantern" }, { catalogId = "pet_house" },
 } })
-expect("six improvements unlock thriving stage", six.points == 60 and six.stageId == "thriving")
+expect("five distinct improvements unlock thriving stage", six.points == 50 and six.stageId == "thriving")
+expect("duplicate building type does not farm Bond", six.uniqueBuildingTypes == 5 and six.buildingCount == 6)
 expect("maximum stage has no next threshold", six.nextStagePoints == nil)
 
 expect("invalid profile is rejected", KingdomBond.calculate(nil) == nil)
