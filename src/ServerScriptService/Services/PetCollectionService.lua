@@ -24,6 +24,7 @@ local collections: { [number]: PlayerCollection } = {}
 local remote: RemoteFunction? = nil
 local characterConnections: { [number]: RBXScriptConnection } = {}
 local mutationRequestTimes: { [number]: number } = {}
+local spawnGenerations: { [number]: number } = {}
 
 local function keyFor(userId: number): string
 	return "player_" .. tostring(userId)
@@ -85,13 +86,22 @@ local function clearSpawnedPets(player: Player)
 end
 
 local function spawnEquippedPets(player: Player)
-	local state = collections[player.UserId]
+	local userId = player.UserId
+	local state = collections[userId]
 	local character = player.Character
 	if state == nil or state.loading or state.profile == nil or character == nil then
 		return
 	end
+
+	local generation = (spawnGenerations[userId] or 0) + 1
+	spawnGenerations[userId] = generation
 	local targetRoot = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart", 10)
-	if targetRoot == nil or not targetRoot:IsA("BasePart") or player.Character ~= character then
+	if generation ~= spawnGenerations[userId]
+		or targetRoot == nil
+		or not targetRoot:IsA("BasePart")
+		or player.Character ~= character
+		or collections[userId] ~= state
+	then
 		return
 	end
 
@@ -107,6 +117,12 @@ local function spawnEquippedPets(player: Player)
 		end
 		if record then
 			local petModel, status = PetAssetLoader.create(record.speciesId, 1)
+			if generation ~= spawnGenerations[userId] or player.Character ~= character then
+				if petModel then
+					petModel:Destroy()
+				end
+				return
+			end
 			if petModel and status == "CREATED" then
 				petModel.Name = petId
 				petModel:SetAttribute("PetId", petId)
@@ -327,9 +343,11 @@ function PetCollectionService.start()
 			characterConnections[player.UserId]:Disconnect()
 			characterConnections[player.UserId] = nil
 		end
+		spawnGenerations[player.UserId] = (spawnGenerations[player.UserId] or 0) + 1
 		clearSpawnedPets(player)
 		collections[player.UserId] = nil
 		mutationRequestTimes[player.UserId] = nil
+		spawnGenerations[player.UserId] = nil
 	end)
 	for _, player in ipairs(Players:GetPlayers()) do
 		task.spawn(loadPlayer, player)
