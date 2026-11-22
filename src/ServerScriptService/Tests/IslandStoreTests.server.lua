@@ -37,8 +37,9 @@ assert(type(profileA.buildingOperations) == "table" and #profileA.buildingOperat
 assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
 	"legacy profile claim should migrate an empty resource node state list")
 
+local gatheredAt = os.time()
 profileA.resourceNodes = {
-	{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = os.time(), availableAt = os.time() + 60 },
+	{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = gatheredAt, availableAt = gatheredAt + 60 },
 }
 
 local receiptRevision = profileA.revision + 1
