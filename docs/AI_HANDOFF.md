@@ -743,3 +743,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - New character arrival continues through the island's current arrival CFrame; the loading overlay remains until the character is moved and marked Ready.
 - CharacterAdded and Humanoid.Died connections are disconnected on lease loss and session finalization.
 - Studio verification still required: kill the character, confirm one respawn after the delay, verify no duplicate characters/respawn tasks, then leave/rejoin during the delay and confirm no stale respawn occurs.
+
+
+## Pet collection management UI (2026-11-22)
+
+- Expanded the existing responsive collection panel with filters for all owned pets, equipped team, and favorites; added sorting by newest acquisition, species name, or companionship Bond, with favorites prioritized.
+- Added favorite and lock toggles using the existing server-authoritative `Protect` action and expected collection revision.
+- Added a two-step permanent deletion confirmation using the existing server-authoritative `Delete` action. Locked pets cannot be deleted from the UI; server rules still protect the starter pet, last pet, and equipped pets.
+- Added localized empty states for filters/search with no matches.
+- No new remote actions or client-authoritative collection mutations were introduced.
+- Still requires Roblox Studio desktop/touch checks, small-screen layout review, and DataStore integration tests.
