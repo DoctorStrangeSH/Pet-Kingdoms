@@ -42,6 +42,7 @@ export type FollowController = {
 	interactionState: string?,
 	interactionUntil: number,
 	interactionConnection: RBXScriptConnection?,
+	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
 }
@@ -61,12 +62,7 @@ local function getSlotOffset(slotIndex: number, sideSpacing: number, followDista
 	return Vector3.new(0, 0, followDistance + sideSpacing * 0.8)
 end
 
-local function resolveGroundPosition(model: Model, targetRoot: BasePart, desired: Vector3): Vector3
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { model, targetRoot.Parent }
-	params.IgnoreWater = false
-
+local function resolveGroundPosition(model: Model, desired: Vector3, params: RaycastParams): Vector3
 	local scale = model:GetAttribute("Scale")
 	local resolvedScale = if type(scale) == "number" then scale else 1
 	local origin = desired + Vector3.new(0, 8, 0)
@@ -107,9 +103,15 @@ function CompanionFollowController.new(
 		end
 	end
 
+	local groundRaycastParams = RaycastParams.new()
+	groundRaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+	groundRaycastParams.FilterDescendantsInstances = { model, targetRoot.Parent }
+	groundRaycastParams.IgnoreWater = false
+
 	local self = setmetatable({
 		model = model,
 		targetRoot = targetRoot,
+		groundRaycastParams = groundRaycastParams,
 		slotIndex = slotIndex,
 		followDistance = math.clamp(settings.followDistance or 4.5, 3, 8),
 		sideSpacing = math.clamp(settings.sideSpacing or 2.4, 1.5, 4),
@@ -198,7 +200,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 
 	local offset = getSlotOffset(self.slotIndex, self.sideSpacing, self.followDistance)
 	local desired = self.targetRoot.CFrame:PointToWorldSpace(offset)
-	desired = resolveGroundPosition(self.model, self.targetRoot, desired)
+	desired = resolveGroundPosition(self.model, desired, self.groundRaycastParams)
 
 	local facing = if speed > 0.75 then targetVelocity.Unit else horizontal(self.targetRoot.CFrame.LookVector)
 	if facing.Magnitude > 0.001 then
