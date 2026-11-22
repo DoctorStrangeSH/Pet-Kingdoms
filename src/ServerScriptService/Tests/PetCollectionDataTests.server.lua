@@ -718,6 +718,12 @@ local conflictingTransactionReservation, conflictingTransactionReservationStatus
 	)
 expect("reservation cannot be claimed by a different transaction",
 	not conflictingTransactionReservation and conflictingTransactionReservationStatus == "RESERVATION_CONFLICT")
+local unboundReservationRetry, unboundReservationRetryStatus =
+	PetCollectionData.reservePetSlotOnce(
+		transactionReservedProfile, "hatch:bound-reservation", "bunny", 2, 102
+	)
+expect("bound reservation cannot be consumed without its transaction ID",
+	not unboundReservationRetry and unboundReservationRetryStatus == "RESERVATION_CONFLICT")
 
 local legacyReservationProfile = PetCollectionData.createDefault(98763)
 assert(legacyReservationProfile ~= nil)
