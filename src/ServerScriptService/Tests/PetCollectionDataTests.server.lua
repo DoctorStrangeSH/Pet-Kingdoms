@@ -437,6 +437,11 @@ expect("owned pet can receive affection", interacted and interactionStatus == "U
 assert(bonded ~= nil)
 expect("interaction awards Bond XP", bonded.owned[1].bondXp == 10 and bonded.owned[1].bondLevel == 1)
 expect("interaction increments collection revision", bonded.revision == profile.revision + 1)
+expect("Bond interaction does not grant pet progression XP",
+	bonded.owned[1].xp == profile.owned[1].xp
+	and bonded.owned[1].level == profile.owned[1].level)
+expect("Bond interaction does not change unrelated collection resources",
+	bonded.rewardReceipts == nil or #bonded.rewardReceipts == 0)
 
 local cooldown, cooldownStatus = PetCollectionData.interact(bonded, "starter-bunny", "play", 1029)
 expect("rapid repeated interaction is rejected", not cooldown and cooldownStatus == "INTERACTION_COOLDOWN")
@@ -445,6 +450,38 @@ local played, playStatus, playedProfile = PetCollectionData.interact(bonded, "st
 expect("pet can interact again after cooldown", played and playStatus == "UPDATED" and playedProfile ~= nil)
 assert(playedProfile ~= nil)
 expect("second interaction advances Bond XP", playedProfile.owned[1].bondXp == 20)
+
+local backwardsClock, backwardsClockStatus =
+	PetCollectionData.interact(bonded, "starter-bunny", "pet", 999)
+expect("clock rollback cannot bypass interaction cooldown",
+	not backwardsClock and backwardsClockStatus == "INTERACTION_COOLDOWN")
+
+local boundaryInteraction, boundaryStatus, boundaryProfile =
+	PetCollectionData.interact(bonded, "starter-bunny", "pet",
+		1000 + PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS)
+expect("interaction is accepted exactly at cooldown boundary",
+	boundaryInteraction and boundaryStatus == "UPDATED" and boundaryProfile ~= nil)
+
+local acquiredForInteraction, _, multiPetProfile =
+	PetCollectionData.addPet(profile, "interaction-test-pet", "bunny", 1, 999)
+assert(acquiredForInteraction and multiPetProfile ~= nil)
+local secondPetInteracted, _, multiPetBonded =
+	PetCollectionData.interact(multiPetProfile, "interaction-test-pet", "play", 1000)
+assert(secondPetInteracted and multiPetBonded ~= nil)
+expect("interaction changes Bond only for the selected pet",
+	multiPetBonded.owned[1].bondXp == 0
+	and multiPetBonded.owned[2].bondXp == PetCollectionData.BOND_XP_PER_INTERACTION)
+
+local oversizedPetId = string.rep("p", 129)
+local oversizedPetInteraction, oversizedPetInteractionStatus =
+	PetCollectionData.interact(profile, oversizedPetId, "pet", 1000)
+expect("oversized pet interaction ID is rejected",
+	not oversizedPetInteraction and oversizedPetInteractionStatus == "INVALID_PET_ID")
+
+local malformedPetIdInteraction, malformedPetIdStatus =
+	PetCollectionData.interact(profile, "pet id with spaces", "pet", 1000)
+expect("malformed pet interaction ID is rejected",
+	not malformedPetIdInteraction and malformedPetIdStatus == "INVALID_PET_ID")
 
 local invalidInteraction, invalidInteractionStatus = PetCollectionData.interact(profile, "starter-bunny", "feed", 1000)
 expect("unsupported interaction type rejected", not invalidInteraction and invalidInteractionStatus == "INVALID_INTERACTION")
