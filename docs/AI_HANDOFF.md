@@ -345,3 +345,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Each callback invocation is protected with `pcall`; its complete five-stat result is validated and copied before the next modifier. Errors or invalid outputs stop the pipeline with an indexed reason. Empty modifier lists return a defensive copy without requiring a policy.
 - Added Studio-only tests for empty lists, order preservation, policy output, missing policy, duplicate IDs, invalid base/result values, callback errors, unknown output stats, and reference isolation. Corrected one test assertion after reviewing its expected error prefix. Tests are committed but not executed in Roblox Studio.
 - This pipeline is not yet connected to `PetStatsCalculator`, inventory/equipment, skills, abilities, or combat.
+
+
+## Pet stat calculator + modifier pipeline integration (2026-11-22)
+
+- Added `PetStatsCalculator.calculateWithModifiers(..., resolveStats, modifiers, applyModifier)`.
+- The integrated entry point validates the modifier list before running any resolver, rejects a missing modifier policy when the list is non-empty, and composes the existing species/level/rarity validation with the ordered modifier pipeline.
+- The base stat resolver and modifier arithmetic remain caller-supplied. No percentage interpretation, stacking rule, progression curve, or balance value is defined here.
+- Added calculator tests for a successful integrated result, retained level/rarity, modified output, source immutability, missing policy, and empty-list behavior. Tests are committed but not executed in Roblox Studio.
+- The calculator currently returns the existing generic resolver failure reason if an injected resolver or modifier policy throws. More granular structured errors can be added when the public error contract is finalized.
