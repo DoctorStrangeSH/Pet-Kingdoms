@@ -2,7 +2,7 @@
 -- Studio client smoke tests. Run from StarterPlayerScripts in a dedicated test place.
 
 local RunService = game:GetService("RunService")
-if not RunService:IsStudio() then
+if not RunService:IsStudio() or workspace:GetAttribute("RunPetKingdomsStudioTests") ~= true then
 	return
 end
 
