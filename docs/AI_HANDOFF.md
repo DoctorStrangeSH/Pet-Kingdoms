@@ -662,3 +662,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Generated spawn parts are invisible, anchored, non-colliding, non-touchable, and non-queryable. Initialization is idempotent. Valid pre-existing Workspace attributes and owner-authored spawn folders containing BaseParts are preserved; invalid configuration fails closed.
 - Added `IslandWorldConfigTests.server.lua` to verify defaults, spawn point availability/count for generated layouts, and idempotency. Studio execution is still pending.
 - IMPORTANT: dimensions and layout are provisional prototype defaults. They require Studio review, including two simultaneous players, respawn, island separation, and mobile/streaming behavior.
+
+
+## Multiplayer island slot allocation hardening (2026-11-22)
+
+- Hardened `IslandWorldService.spawn`: only anchored BaseParts can be selected as personal-island spawn points. This matches the documented owner-authored spawn point contract and avoids moving/unanchored parts being treated as stable slots.
+- Expanded `IslandWorldServiceTests.server.lua` into a Studio integration smoke test: bootstrap configuration, reject invalid profile, spawn two distinct players, ensure distinct arrival positions, reject duplicate spawn for one owner, verify world models, remove an island, clear its arrival CFrame, and reuse the released slot.
+- Test execution is pending in Roblox Studio; CI Rojo build only validates source-to-place serialization and does not execute Roblox services.
