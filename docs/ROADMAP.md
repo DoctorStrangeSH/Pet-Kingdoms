@@ -199,3 +199,14 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [ ] Run Studio tests and DataStore fault-injection tests; validate simultaneous reserve attempts under concurrent UpdateAsync callbacks.
 - [ ] Define reservation expiry/cancellation policy for abandoned transactions. Do not automatically expire a reservation while its island journal is PREPARED or CHARGED.
 - [ ] Add user-facing overflow/inbox/collection management policy before shipping hatch purchases.
+
+
+### Pet inventory management foundation
+
+- [x] Add persisted `isLocked` and `isFavorite` flags to pet records; legacy records normalize to false.
+- [x] Add server-validated `Protect` action with expected-revision checks and DataStore UpdateAsync persistence.
+- [x] Add safe permanent removal with protections for the starter Bunny, the last remaining pet, locked pets, and currently equipped pets.
+- [x] Add server-validated `Delete` action with expected-revision checks; successful deletion immediately frees one collection slot.
+- [x] Add pure data tests for flag validation/persistence, lock protection, equipped protection, starter protection, last-pet protection, and successful removal.
+- [ ] Add a player-facing confirmation UX and collection sorting/filtering; UI remains intentionally out of scope for current technical pass.
+- [ ] Run Studio tests and DataStore integration tests before release.
