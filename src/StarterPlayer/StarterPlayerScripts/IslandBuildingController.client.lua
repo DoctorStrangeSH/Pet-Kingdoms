@@ -28,6 +28,7 @@ local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
 local placing = false
 local buildMenuOpen = false
+local placementSubmitting = false
 local currentCellX: number? = nil
 local currentCellZ: number? = nil
 local currentIsland: Model? = nil
@@ -432,7 +433,17 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 end
 
 local function updatePreview(screenPosition: Vector2)
-	if not placing or currentPreview == nil then
+	if not placing or placementSubmitting or currentPreview == nil then
+		return
+	end
+	-- The confirmation button and catalogue must never move the selected
+	-- cell when the mouse crosses the bottom panel or the player taps it.
+	local panelOrigin = panel.AbsolutePosition
+	local panelSize = panel.AbsoluteSize
+	if panel.Visible and screenPosition.X >= panelOrigin.X
+		and screenPosition.X <= panelOrigin.X + panelSize.X
+		and screenPosition.Y >= panelOrigin.Y
+		and screenPosition.Y <= panelOrigin.Y + panelSize.Y then
 		return
 	end
 	local top, width, depth, cellSize = getIslandGrid()
@@ -488,6 +499,7 @@ local function updatePreview(screenPosition: Vector2)
 end
 
 local function setSelectedBuilding(catalogId: string)
+	if placementSubmitting then return end
 	local size = BUILDING_SIZES[catalogId]
 	if size == nil then return end
 	selectedCatalogId = catalogId
@@ -559,6 +571,7 @@ local function updateBuildPanelMode()
 end
 
 local function beginMoveSelected()
+	if placementSubmitting then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -609,6 +622,7 @@ moveButton.Activated:Connect(beginMoveSelected)
 
 
 local function stopPlacing()
+	if placementSubmitting then return end
 	placing = false
 	buildMenuOpen = false
 	movingInstanceId = nil
@@ -631,6 +645,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
+	if placementSubmitting then return end
 	movingInstanceId = nil
 	rotation = 0
 	placing = false
@@ -647,7 +662,7 @@ local function beginPlacing()
 end
 
 local function beginPlacementPreview()
-	if not buildMenuOpen or placing then return end
+	if placementSubmitting or not buildMenuOpen or placing then return end
 	placing = true
 	updateBuildPanelMode()
 	confirmButton.Text = "ПОДТВЕРДИТЬ"
@@ -663,7 +678,7 @@ local function beginPlacementPreview()
 end
 
 rotateButton.Activated:Connect(function()
-	if not placing then return end
+	if not placing or placementSubmitting then return end
 	rotation = (rotation + 90) % 360
 end)
 
@@ -689,6 +704,7 @@ playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
 end)
 
 confirmButton.Activated:Connect(function()
+	if placementSubmitting then return end
 	if buildMenuOpen and not placing then
 		beginPlacementPreview()
 		return
@@ -697,27 +713,36 @@ confirmButton.Activated:Connect(function()
 		setStatus("Сначала выбери подходящее место", false)
 		return
 	end
+	-- Freeze exactly what the player saw before the yielding InvokeServer.
+	-- RenderStepped and touch/mouse movement must not mutate the request.
+	local requestedCatalogId = selectedCatalogId
+	local requestedX = currentCellX
+	local requestedZ = currentCellZ
+	local requestedRotation = rotation
+	local requestedMovingId = movingInstanceId
+	placementSubmitting = true
 	confirmButton.Active = false
 	confirmButton.Text = "..."
 	local operationKey = table.concat({
 		"build",
-		selectedCatalogId,
-		tostring(currentCellX),
-		tostring(currentCellZ),
-		tostring(rotation),
-		tostring(movingInstanceId or ""),
+		requestedCatalogId,
+		tostring(requestedX),
+		tostring(requestedZ),
+		tostring(requestedRotation),
+		tostring(requestedMovingId or ""),
 	}, ":")
 	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
 			requestId = requestId,
-			catalogId = selectedCatalogId,
-			x = currentCellX,
-			z = currentCellZ,
-			rotation = rotation,
-			movingInstanceId = movingInstanceId,
+			catalogId = requestedCatalogId,
+			x = requestedX,
+			z = requestedZ,
+			rotation = requestedRotation,
+			movingInstanceId = requestedMovingId,
 		})
 	end)
+	placementSubmitting = false
 	confirmButton.Active = true
 	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
