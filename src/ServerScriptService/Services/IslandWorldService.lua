@@ -7,6 +7,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
+local IslandExpansion = require(script.Parent:WaitForChild("IslandExpansion"))
 local KingdomBond = require(script.Parent:WaitForChild("KingdomBond"))
 local IslandResourceNodeCatalog = require(script.Parent:WaitForChild("IslandResourceNodeCatalog"))
 local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
@@ -422,6 +423,15 @@ function IslandWorldService.spawn(player: Player, profile: any): (boolean, strin
 	end
 	if type(profile) ~= "table" or profile.ownerUserId ~= player.UserId then
 		return false, "INVALID_PROFILE"
+	end
+
+	local baseWidth = getNumberAttribute("IslandGridWidth")
+	local baseDepth = getNumberAttribute("IslandGridDepth")
+	if baseWidth == nil or baseDepth == nil then
+		return false, "MISSING_ISLAND_GRID_BOUNDS"
+	end
+	if not IslandExpansion.matchesProfileBounds(profile, baseWidth, baseDepth) then
+		return false, "INVALID_EXPANSION_BOUNDS"
 	end
 
 	local cellSize = getNumberAttribute("IslandGridCellSize")
