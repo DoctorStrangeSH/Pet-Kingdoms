@@ -74,6 +74,7 @@
 - [x] Persist each canonical Wood/Stone node's last-gathered and available-at timestamps in the island profile; grant its wallet reward and set the 60-second cooldown in one profile revision, waiting for DataStore durability before acknowledging the reward.
 - [x] Restore depleted node visuals/prompts from saved timestamps on island load; offline time counts toward regeneration and expired nodes return without an extra reward.
 - [x] Migrate legacy schema-v1 profiles to an empty resource-node state list; validate node IDs, resource mapping, unique records, timestamp order, and the server-owned cooldown duration.
+- [x] Serialize gathering against building and hatch profile mutations; reject overlapping construction requests before they mutate the wallet/building list, preventing rollback from overwriting another committed reward.
 - [x] Add Studio contract tests for independent node cooldowns, duplicate collection prevention, cooldown expiry, invalid node/resource state, profile validation, legacy migration, and DataStore save/load persistence (execution pending).
 - [x] Require the exact current writable Player session for gathering prompts and client wallet snapshot requests.
 - [x] Add client resource HUD for Wood/Stone/Gold/Gems with server snapshot bootstrap, authoritative update event, and gathering reward toast (Studio/device verification pending).
