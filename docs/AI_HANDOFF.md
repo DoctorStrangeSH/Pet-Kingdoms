@@ -1,6 +1,6 @@
 # Pet Kingdoms — AI Handoff
 
-> Last updated: 2026-11-21  
+ > Last updated: 2026-11-22  
 > Purpose: resume work in a fresh chat without relying on conversation memory.
 
 ## Repository
@@ -13,22 +13,21 @@
 ## Source of truth
 
 Read these files first:
-1. README.md
-2. docs/PROJECT_SPEC.md
-3. docs/ROADMAP.md
-4. docs/ART_BIBLE.md
-5. docs/game-systems/BUILDING_SYSTEM.md
-6. docs/game-systems/BUILDING_VALIDATION_TESTS.md
-7. docs/game-systems/ISLAND_PERSISTENCE.md
-8. docs/game-systems/ISLAND_RESOURCE_WALLET.md
-9. docs/game-systems/ISLAND_GATHERING.md
-10. docs/game-systems/ISLAND_RESOURCE_WALLET.md
-8. docs/game-systems/ISLAND_SESSION_LIFECYCLE.md
-9. docs/game-systems/ISLAND_SESSION_LEASE.md
-9. docs/BUILD_AND_TEST.md
-10. docs/ASSET_TRACKER.md
-11. docs/game-systems/PET_ART_PIPELINE.md
-12. docs/game-systems/PET_COMPANIONSHIP.md
+1. `README.md`
+2. `docs/PROJECT_SPEC.md`
+3. `docs/ROADMAP.md`
+4. `docs/ART_BIBLE.md`
+5. `docs/BUILD_AND_TEST.md`
+6. `docs/ASSET_TRACKER.md`
+7. `docs/game-systems/BUILDING_SYSTEM.md`
+8. `docs/game-systems/BUILDING_VALIDATION_TESTS.md`
+9. `docs/game-systems/ISLAND_PERSISTENCE.md`
+10. `docs/game-systems/ISLAND_RESOURCE_WALLET.md`
+11. `docs/game-systems/ISLAND_GATHERING.md`
+12. `docs/game-systems/ISLAND_SESSION_LIFECYCLE.md`
+13. `docs/game-systems/ISLAND_SESSION_LEASE.md`
+14. `docs/game-systems/PET_ART_PIPELINE.md`
+15. `docs/game-systems/PET_COMPANIONSHIP.md`
 
 The repository is authoritative. If a chat message conflicts with these files, stop and reconcile the decision instead of silently changing scope.
 
@@ -186,3 +185,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added pure tests for XP/level mismatch, fractional XP/timestamps, over-cap XP, max-level interaction cap, and invalid fractional action timestamps.
 - Pet collection UI now has localized messages for cooldown, request throttling, stale revision, unavailable DataStore, and collection loading errors.
 - Roblox Studio execution, live DataStore behavior, multiplayer, and PC/touch visual verification are still NOT DONE. Run `PetCollectionDataTests.server.lua` in Studio before marking the companionship loop complete.
+
+
+## Pet collection data validation hardening (2026-11-22)
+
+- `PetCollectionData` now uses one finite, non-negative integer validator for profile revision, pet acquisition timestamps, and last interaction timestamps. NaN, positive/negative infinity, and fractional timestamps/revisions are rejected.
+- `PetCollectionDataTests.server.lua` now covers infinite/NaN revisions, infinite/fractional acquisition timestamps, and infinite/NaN interaction timestamps.
+- These are committed Studio tests; they have not been executed in Roblox Studio in this session.
+- The existing per-pet Bond interaction loop is distinct from the approved pet Level progression. Actual pet Level (maximum 50), gameplay XP, core stats, skills, equipment, and ability progression remain unimplemented. Do not invent the XP curve or rarity balance while those rules remain unspecified.
+- Visual/model work is deferred to the owner. Keep code and systems work within the approved MVP; do not generate or replace pet art.
