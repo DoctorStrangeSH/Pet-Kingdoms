@@ -129,6 +129,7 @@
   - [x] Require resolved stat snapshots to contain exactly `level`, `rarityTier`, and `stats`; reject unknown top-level fields and add regression coverage.
   - [x] Add a declarative `PetStatModifiersData` contract for equipment, skill, and ability modifiers, including strict validation, duplicate-ID rejection, bounded lists, and defensive cloning. Application/stacking rules remain open.
   - [x] Add an ordered `PetStatModifierPipeline` that validates and clones inputs, delegates each modifier's actual arithmetic to an injected policy, validates every intermediate result, and isolates returned values. No stacking or percentage formula is hardcoded.
+  - [x] Add `PetStatsCalculator.calculateWithModifiers` to compose species/level/rarity resolution with the validated modifier pipeline, while requiring explicit modifier policy for non-empty modifier lists. Balance arithmetic remains injected.
   - [x] Enforce an exact five-key stat map and reject unknown/non-string stat keys and incomplete stat maps; added regression tests.
   - [x] Make `PetStatsData.clone` validate its input first and return a structured failure for nil/malformed snapshots instead of indexing invalid data; added regression tests.
   - [x] Add a trusted server-only `PetCollectionService.grantExperience(player, petId, amount)` API backed by DataStore UpdateAsync and a pure validated `PetCollectionData.grantExperience` mutation. It rejects invalid amounts and unowned pets. It is not exposed to clients; no XP reward amounts, level thresholds, or gameplay source callers are defined yet.
