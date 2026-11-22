@@ -103,6 +103,17 @@ local duplicateAcknowledgement, duplicateAcknowledgementCode =
 	QuestRewardOutboxData.markAcknowledged(acknowledged, record.rewardId, 121)
 expect("source acknowledgement is idempotent",
 	duplicateAcknowledgement == nil and duplicateAcknowledgementCode == "ALREADY_ACKNOWLEDGED")
+local compactedOutbox, compactedCode = QuestRewardOutboxData.append(acknowledged, {
+	rewardId = "quest:gather_stone:reward:v1",
+	questId = "gather_stone",
+	petId = "starter-bunny",
+	amount = 100,
+	progressionVersion = 1,
+	createdAt = 130,
+})
+expect("new enqueue compacts only fully acknowledged receipts",
+	compactedOutbox ~= nil and compactedCode == "QUEUED"
+		and #compactedOutbox == 1 and compactedOutbox[1].rewardId == "quest:gather_stone:reward:v1")
 local invalidAcknowledgement = table.clone(delivered)
 invalidAcknowledgement[1] = table.clone(delivered[1])
 invalidAcknowledgement[1].acknowledgedAt = 119
