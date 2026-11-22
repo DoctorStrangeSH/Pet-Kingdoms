@@ -85,6 +85,19 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 	if not isNonNegativeInteger(profile.revision) then
 		return false, "INVALID_REVISION"
 	end
+	-- Legacy profiles may omit both fencing fields. Modern profiles require
+	-- a complete matching pair so mutations cannot silently erase ownership.
+	local generation = profile.collectionSessionGeneration
+	local token = profile.collectionSessionToken
+	if (generation == nil) ~= (token == nil) then
+		return false, "INCOMPLETE_COLLECTION_SESSION"
+	end
+	if generation ~= nil and (not isPositiveInteger(generation)
+		or generation > 2_000_000_000
+		or type(token) ~= "string" or #token < 1 or #token > 128)
+	then
+		return false, "INVALID_COLLECTION_SESSION"
+	end
 	if type(profile.owned) ~= "table" or type(profile.equipped) ~= "table" then
 		return false, "INVALID_COLLECTIONS"
 	end
@@ -275,6 +288,8 @@ function PetCollectionData.clone(profile: any): any
 		schemaVersion = profile.schemaVersion,
 		ownerUserId = profile.ownerUserId,
 		revision = profile.revision,
+		collectionSessionGeneration = profile.collectionSessionGeneration,
+		collectionSessionToken = profile.collectionSessionToken,
 		owned = {},
 		equipped = table.clone(profile.equipped),
 		rewardReceipts = {},
