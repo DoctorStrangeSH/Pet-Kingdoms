@@ -1313,3 +1313,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Teleport recovery is now based on horizontal distance from pet to the owner's desired formation slot, rather than distance from pet to its current navigation waypoint. This prevents an unavailable/blocked path from leaving companions stranded after character teleports.
 - Teleport recovery invalidates pending asynchronous path results, discards waypoints and disconnects blocked-path listeners.
 - Added a Studio client smoke-test case for teleporting with a pending navigation computation. Rojo packaging is not Studio runtime verification.
+
+## Companion formation responsiveness (2026-11-22)
+
+- Found that the follow controller first interpolated currentPosition towards navigationGoal and then interpolated current CFrame towards that already-interpolated target; translation was effectively alpha^2. Now it interpolates directly to the final navigation CFrame once.
+- Catch-up animation now uses owner formation distance, rather than waypoint distance; stalled navigation shows idle rather than walking in place.
+- Added an isolated Studio client smoothing regression that checks measured one-frame translation against alpha = 1-exp(-8/60).
+- Note: Rojo packaging and GitHub Actions do not execute these runtime assertions. Real Studio terrain, obstacle and mobile QA remain pending.
