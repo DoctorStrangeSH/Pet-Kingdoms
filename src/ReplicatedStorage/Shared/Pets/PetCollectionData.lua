@@ -6,6 +6,8 @@ PetCollectionData.SCHEMA_VERSION = 1
 PetCollectionData.MAX_OWNED_PETS = 100
 PetCollectionData.MAX_EQUIPPED_PETS = 3
 PetCollectionData.MAX_BOND_LEVEL = 10
+PetCollectionData.BOND_XP_PER_LEVEL = 50
+PetCollectionData.MAX_BOND_XP = (PetCollectionData.MAX_BOND_LEVEL - 1) * PetCollectionData.BOND_XP_PER_LEVEL
 PetCollectionData.BOND_XP_PER_INTERACTION = 10
 PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS = 30
 
@@ -82,11 +84,20 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or record.acquiredAt < 0
 			or record.acquiredAt ~= record.acquiredAt
 			or record.acquiredAt == math.huge
-			or (record.bondXp ~= nil and (type(record.bondXp) ~= "number" or record.bondXp < 0 or record.bondXp ~= record.bondXp or record.bondXp == math.huge))
+			or (record.bondXp ~= nil and (type(record.bondXp) ~= "number" or record.bondXp < 0 or record.bondXp > PetCollectionData.MAX_BOND_XP or record.bondXp ~= math.floor(record.bondXp)))
 			or (record.bondLevel ~= nil and (type(record.bondLevel) ~= "number" or record.bondLevel < 1 or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL or record.bondLevel ~= math.floor(record.bondLevel)))
-			or (record.lastInteractionAt ~= nil and (type(record.lastInteractionAt) ~= "number" or record.lastInteractionAt < 0 or record.lastInteractionAt ~= record.lastInteractionAt or record.lastInteractionAt == math.huge))
+			or (record.lastInteractionAt ~= nil and (type(record.lastInteractionAt) ~= "number" or record.lastInteractionAt < 0 or record.lastInteractionAt ~= math.floor(record.lastInteractionAt)))
 		then
 			return false, "INVALID_OWNED_RECORD"
+		end
+		local bondXp = record.bondXp or 0
+		local bondLevel = record.bondLevel or 1
+		local expectedBondLevel = math.min(
+			PetCollectionData.MAX_BOND_LEVEL,
+			1 + math.floor(bondXp / PetCollectionData.BOND_XP_PER_LEVEL)
+		)
+		if bondLevel ~= expectedBondLevel then
+			return false, "BOND_LEVEL_XP_MISMATCH"
 		end
 		ownedById[record.petId] = true
 	end
@@ -140,7 +151,7 @@ function PetCollectionData.interact(profile: any, petId: string, interactionType
 	if interactionType ~= "pet" and interactionType ~= "play" then
 		return false, "INVALID_INTERACTION", nil
 	end
-	if type(now) ~= "number" or now < 0 or now ~= now or now == math.huge then
+	if type(now) ~= "number" or now < 0 or now ~= math.floor(now) then
 		return false, "INVALID_TIMESTAMP", nil
 	end
 	local updated = PetCollectionData.clone(profile)
@@ -155,10 +166,10 @@ function PetCollectionData.interact(profile: any, petId: string, interactionType
 	if now - lastInteractionAt < PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS then
 		return false, "INTERACTION_COOLDOWN", nil
 	end
-	selected.bondXp = (selected.bondXp or 0) + PetCollectionData.BOND_XP_PER_INTERACTION
+	selected.bondXp = math.min(PetCollectionData.MAX_BOND_XP, (selected.bondXp or 0) + PetCollectionData.BOND_XP_PER_INTERACTION)
 	selected.bondLevel = math.min(
 		PetCollectionData.MAX_BOND_LEVEL,
-		1 + math.floor(selected.bondXp / 50)
+		1 + math.floor(selected.bondXp / PetCollectionData.BOND_XP_PER_LEVEL)
 	)
 	selected.lastInteractionAt = now
 	updated.revision += 1
