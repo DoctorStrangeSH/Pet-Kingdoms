@@ -386,3 +386,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Retention is explicitly seven days, capped at 128 receipts. Expired receipts are pruned during a new reward mutation. If 128 unexpired receipts remain, new unique rewards fail closed with `REWARD_LEDGER_FULL`; no unexpired receipt is silently evicted. Therefore deduplication is guaranteed only within the seven-day retention window, and authoritative reward IDs must be stable across retries/reconnects within that window.
 - Added tests for first grant, duplicate grant, receipt persistence, payload conflict, invalid ID, expiry, ledger-full behavior, duplicate stored IDs, and invalid timestamps. Tests are committed but not executed in Roblox Studio.
 - No client remote, combat/quest/interaction reward caller, or production XP curve was added.
+
+
+## Pet collection acquisition foundation (2026-11-22)
+
+- Added optional `rarityTier` to owned pet records, constrained to neutral numeric tiers 1–6. Existing starter/legacy Bunny records may omit it; no rarity names, weights, or distribution were assigned.
+- Added `PetCollectionData.addPet(profile, petId, speciesId, rarityTier, now)`. It validates ownership profile, current species allowlist, ID, rarity tier, timestamp, capacity (100), and duplicate pet IDs; new records start at level 1, XP 0, Bond level 1 / XP 0 and are not auto-equipped.
+- Added `PetCollectionService.grantPet(player, speciesId, rarityTier, acquisitionId)` as a trusted server-module API. Pet GUID is generated server-side before the DataStore UpdateAsync callback and is never accepted from a client.
+- Added a separate optional `acquisitionReceipts` ledger. Legacy profiles remain valid. Receipt IDs are stable server-generated acquisition IDs; records store the generated pet ID, species, rarity tier, and timestamp. The ledger is bounded to 128 entries and seven-day retention, pruning expired entries during a new acquisition and failing closed if all entries remain unexpired.
+- Added `PetCollectionData.addPetOnce`: duplicate acquisition IDs with the same species/rarity return `ALREADY_ACQUIRED` and the unchanged collection; mismatched species/rarity returns `ACQUISITION_ID_CONFLICT`. The service caller must reuse the same acquisition ID when retrying the same egg/shop/quest grant.
+- Added tests for valid acquisition, defaults, rarity, revision, duplicate pet IDs, invalid species/tier/time, capacity, duplicate acquisition, acquisition conflicts, ledger full, and receipt expiry. Tests are committed but not executed in Roblox Studio.
+- Important scope boundary: the project spec defines a 20-pet MVP target but explicitly leaves the remaining species and final rarity distribution open. Current allowlist contains only Bunny. This acquisition API is infrastructure only; it does not implement eggs, roll odds, currency costs, species catalog, or a client-facing hatch endpoint. Do not invent those rules.
