@@ -116,10 +116,16 @@ local function validateOutboxRecord(record: any): (boolean, string)
 		or record.acknowledgedAt < record.deliveredAt) then
 		return false, "INVALID_ACKNOWLEDGEMENT_TIMESTAMP"
 	end
+	if record.petAcknowledgedAt ~= nil and (record.acknowledgedAt == nil
+		or not isValidTimestamp(record.petAcknowledgedAt)
+		or record.petAcknowledgedAt < record.acknowledgedAt) then
+		return false, "INVALID_PET_ACKNOWLEDGEMENT_TIMESTAMP"
+	end
 	for key in pairs(record) do
 		if key ~= "rewardId" and key ~= "questId" and key ~= "petId"
 			and key ~= "amount" and key ~= "progressionVersion"
-			and key ~= "createdAt" and key ~= "deliveredAt" and key ~= "acknowledgedAt" then
+			and key ~= "createdAt" and key ~= "deliveredAt" and key ~= "acknowledgedAt"
+			and key ~= "petAcknowledgedAt" then
 			return false, "INVALID_OUTBOX_RECORD"
 		end
 	end
@@ -169,12 +175,12 @@ function QuestRewardOutboxData.append(outbox: any, record: any): (any?, string)
 			return nil, "REWARD_ID_CONFLICT"
 		end
 	end
-	-- Once the pet-side receipt and this source-side acknowledgement are both
-	-- durable, the outbox copy is no longer needed for recovery. Permanent
+	-- Compact only after the source acknowledgement and pet-side receipt
+	-- acknowledgement are both durable. Permanent
 	-- quest claim receipts remain untouched in the separate claims ledger.
 	local nextOutbox = {}
 	for _, existing in ipairs(outbox) do
-		if existing.acknowledgedAt == nil then
+		if existing.petAcknowledgedAt == nil then
 			table.insert(nextOutbox, table.clone(existing))
 		end
 	end
@@ -244,12 +250,51 @@ function QuestRewardOutboxData.listPending(outbox: any): { any }
 	return pending
 end
 
+function QuestRewardOutboxData.markPetAcknowledged(
+	outbox: any,
+	rewardId: string,
+	petAcknowledgedAt: number
+): (any?, string)
+	local valid, reason = QuestRewardOutboxData.validateOutbox(outbox)
+	if not valid then return nil, reason end
+	if not isValidRewardId(rewardId) or not isValidTimestamp(petAcknowledgedAt) then
+		return nil, "INVALID_PET_ACKNOWLEDGEMENT"
+	end
+	local nextOutbox = table.clone(outbox)
+	for index, record in ipairs(outbox) do
+		if record.rewardId == rewardId then
+			if record.acknowledgedAt == nil then return nil, "SOURCE_NOT_ACKNOWLEDGED" end
+			if record.petAcknowledgedAt ~= nil then return nil, "ALREADY_PET_ACKNOWLEDGED" end
+			if petAcknowledgedAt < record.acknowledgedAt then
+				return nil, "INVALID_PET_ACKNOWLEDGEMENT_TIMESTAMP"
+			end
+			local updated = table.clone(record)
+			updated.petAcknowledgedAt = petAcknowledgedAt
+			nextOutbox[index] = updated
+			return nextOutbox, "PET_ACKNOWLEDGED"
+		end
+	end
+	return nil, "REWARD_NOT_FOUND"
+end
+
 function QuestRewardOutboxData.listAwaitingAcknowledgement(outbox: any): { any }
 	local valid = QuestRewardOutboxData.validateOutbox(outbox)
 	if not valid then return {} end
 	local pending = {}
 	for _, record in ipairs(outbox) do
 		if record.deliveredAt ~= nil and record.acknowledgedAt == nil then
+			table.insert(pending, table.clone(record))
+		end
+	end
+	return pending
+end
+
+function QuestRewardOutboxData.listAwaitingPetAcknowledgement(outbox: any): { any }
+	local valid = QuestRewardOutboxData.validateOutbox(outbox)
+	if not valid then return {} end
+	local pending = {}
+	for _, record in ipairs(outbox) do
+		if record.acknowledgedAt ~= nil and record.petAcknowledgedAt == nil then
 			table.insert(pending, table.clone(record))
 		end
 	end
