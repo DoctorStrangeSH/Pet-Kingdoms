@@ -519,7 +519,7 @@ function IslandWorldService.refresh(userId: number, player: Player, profile: any
 	local worldFolder = currentWorld.Parent
 	if worldFolder == nil then return false, "ISLAND_WORLD_PARENT_MISSING" end
 	local replacement = Instance.new("Model")
-	replacement.Name = currentWorld.Name .. "_Refresh"
+	replacement.Name = "Island_" .. tostring(userId)
 	replacement:SetAttribute("OwnerUserId", userId)
 	replacement:SetAttribute("SchemaVersion", profile.schemaVersion)
 	replacement:SetAttribute("GridWidth", profile.boundsWidth)
