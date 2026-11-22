@@ -627,3 +627,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `IslandResourceNodeDataTests` for cooldown, expiry, independent nodes, unknown IDs, duplicate state, resource mismatch, and policy limits. Extended `IslandDataTests` and `IslandStoreTests` for profile validation, legacy migration, and DataStore round-trip. Tests are committed but have NOT been run in Roblox Studio; live DataStore, restart, and concurrent prompt fault-injection remain pending.
 
 - Mutation concurrency audit: gathering, building, and hatch profile writes now share mutual exclusion checks. Building requests are rejected at handler entry while another profile mutation is persisting, before they can change wallet/building state; session commit methods retain their own defensive lock checks. This avoids a failed overlapping placement rollback restoring a stale wallet snapshot over a resource gather.
+
+
+## Generic wallet API transaction exclusion (2026-11-22)
+
+- Hardened `IslandResourceService.grant`, `grantMany`, and `spend` with a shared writable-profile resolver. It requires the exact currently connected Player instance and an active writable island lease before touching balances.
+- The resolver rejects generic wallet mutations with `PROFILE_MUTATION_BUSY` while a building, gathering, or hatch transaction is in progress. This prevents the convenience wallet facade from bypassing the profile mutation guards while a larger transaction is waiting for DataStore durability.
+- Wallet snapshots are sent only to the resolved live Player after a successful mutation. Existing rollback-on-`markDirty`-failure behavior is preserved.
+- Updated `docs/game-systems/ISLAND_RESOURCE_WALLET.md` to document the guards.
+- Static review only; Roblox Studio tests have NOT been run. A service-level regression harness for busy-session rejection and exact-Player identity remains NOT DONE.
