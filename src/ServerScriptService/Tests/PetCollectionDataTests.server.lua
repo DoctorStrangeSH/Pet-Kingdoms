@@ -159,4 +159,28 @@ expect("max-level Bond XP remains capped", maxedResult.owned[1].bondXp == PetCol
 local fractionalNow, fractionalNowStatus = PetCollectionData.interact(profile, "starter-bunny", "pet", 1000.5)
 expect("fractional interaction timestamp rejected", not fractionalNow and fractionalNowStatus == "INVALID_TIMESTAMP")
 
+local negativeNow, negativeNowStatus = PetCollectionData.interact(profile, "starter-bunny", "pet", -1)
+expect("negative interaction timestamp rejected", not negativeNow and negativeNowStatus == "INVALID_TIMESTAMP")
+
+local infiniteNow, infiniteNowStatus = PetCollectionData.interact(profile, "starter-bunny", "pet", math.huge)
+expect("infinite interaction timestamp rejected", not infiniteNow and infiniteNowStatus == "INVALID_TIMESTAMP")
+
+local nanNow, nanNowStatus = PetCollectionData.interact(profile, "starter-bunny", "pet", 0 / 0)
+expect("NaN interaction timestamp rejected", not nanNow and nanNowStatus == "INVALID_TIMESTAMP")
+
+local infiniteBondXp = PetCollectionData.clone(profile)
+infiniteBondXp.owned[1].bondXp = math.huge
+local infiniteBondXpValid = PetCollectionData.validate(infiniteBondXp, 12345)
+expect("infinite Bond XP rejected", not infiniteBondXpValid)
+
+local nanBondXp = PetCollectionData.clone(profile)
+nanBondXp.owned[1].bondXp = 0 / 0
+local nanBondXpValid = PetCollectionData.validate(nanBondXp, 12345)
+expect("NaN Bond XP rejected", not nanBondXpValid)
+
+local infiniteBondLevel = PetCollectionData.clone(profile)
+infiniteBondLevel.owned[1].bondLevel = math.huge
+local infiniteBondLevelValid = PetCollectionData.validate(infiniteBondLevel, 12345)
+expect("infinite Bond level rejected", not infiniteBondLevelValid)
+
 print("[PetKingdoms Test] PetCollectionData smoke tests completed.")
