@@ -723,3 +723,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - IslandExpansion.expandProfile returns a cloned profile for the next level, increases dimensions by 8 cells per axis, and shifts every saved building coordinate by 4 cells per axis. This compensates for the renderer's centered-grid coordinate mapping and keeps existing buildings at the same world-space position.
 - IslandData validates the expansion level. Studio tests cover legacy compatibility, invalid levels, two expansions, max-level rejection, source immutability, and world-position invariance.
 - Still NOT DONE: applying the transform through a server-authoritative session transaction, approved resource costs/unlocks, durable receipt/idempotency, world regeneration, client UI, and Studio playtests.
+
+
+## Playable join-flow integration (2026-11-22)
+
+- Server bootstrap now sets `Players.CharacterAutoLoads = false` before starting IslandSessionService.
+- IslandSessionService publishes `PetKingdomsLoadStatus`/`PetKingdomsLoadMessage` through lease acquisition, profile load/claim, world generation and character creation.
+- After the island is spawned and the live session is installed, server calls `Player:LoadCharacterAsync()`; CharacterAdded routes the character to the island. The player is marked Ready only after the character is pivoted to the current island arrival CFrame.
+- Added `StarterPlayerScripts/IslandLoading.client.lua`: localized full-screen loading panel, animated progress indicator, server-authored phase text, failure state, and fade-out only on Ready.
+- This fixes the confusing default spawn in an empty Workspace during DataStore loading. It does not by itself complete the art/world MVP; the current island renderer remains a procedural blockout.
+- Verify in Studio: new player with API access, saved returning player, delayed DataStore, failed lease/load, respawn, and two-player join.
