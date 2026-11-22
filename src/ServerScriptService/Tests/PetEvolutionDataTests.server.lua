@@ -56,4 +56,45 @@ local sparseValid, sparseReason = EvolutionData.validateCatalog({
 })
 expect("sparse catalog arrays are rejected", not sparseValid and sparseReason == "INVALID_CATALOG_COUNT")
 
+local definition, definitionError = EvolutionData.getDefinition(branchingCatalog, "bunny_sky")
+expect("evolution definition can be resolved by stable ID", definition ~= nil and definitionError == nil)
+assert(definition ~= nil)
+
+local sourcePet = {
+	petId = "pet-stable-001",
+	speciesId = "bunny",
+	rarityTier = 4,
+	level = 27,
+	xp = 12345,
+	bondXp = 320,
+	bondLevel = 7,
+	lastInteractionAt = 900,
+	isLocked = true,
+	isFavorite = true,
+}
+local transition, transitionError = EvolutionData.prepareTransition(definition, sourcePet)
+expect("matching pet can prepare a transition", transition ~= nil and transitionError == nil)
+assert(transition ~= nil)
+expect("evolution preserves stable pet ID", transition.petRecord.petId == sourcePet.petId)
+expect("evolution changes only the species identity", transition.petRecord.speciesId == "sky_bunny"
+	and transition.petRecord.level == sourcePet.level
+	and transition.petRecord.xp == sourcePet.xp
+	and transition.petRecord.bondXp == sourcePet.bondXp
+	and transition.petRecord.bondLevel == sourcePet.bondLevel
+	and transition.petRecord.rarityTier == sourcePet.rarityTier)
+expect("evolution preserves lock and favorite flags", transition.petRecord.isLocked and transition.petRecord.isFavorite)
+expect("transition preparation does not mutate original pet", sourcePet.speciesId == "bunny")
+
+local mismatchTransition, mismatchReason = EvolutionData.prepareTransition(definition, {
+	petId = "wrong-source",
+	speciesId = "forest_bunny",
+})
+expect("wrong source species is rejected", mismatchTransition == nil and mismatchReason == "SOURCE_SPECIES_MISMATCH")
+
+local malformedTransition, malformedReason = EvolutionData.prepareTransition(definition, {})
+expect("malformed pet records are rejected", malformedTransition == nil and malformedReason == "INVALID_PET_RECORD")
+
+local missingDefinition, missingDefinitionReason = EvolutionData.getDefinition(branchingCatalog, "missing")
+expect("unknown evolution ID is rejected", missingDefinition == nil and missingDefinitionReason == "EVOLUTION_NOT_FOUND")
+
 print("[PetKingdoms Test] PetEvolutionData tests completed.")
