@@ -543,3 +543,13 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 
 
 - [x] Verify quest completion/claim-state visibility tests and UI packaging in GitHub Actions run #164 (Rojo build + Studio artifact upload PASS); Studio execution remains pending.
+
+
+### Pet progression safety and collection visibility (2026-11-22)
+
+- [x] Validate every server-owned progression curve before returning it to reward recovery; malformed configured data fails closed.
+- [x] Reject NaN, infinity, fractional, and unsafe progression version identifiers.
+- [x] Cover XP beyond the level-50 threshold: level remains capped while lifetime XP remains visible.
+- [x] Display each pet's persisted level and lifetime XP in the collection details panel without inventing a next-level requirement.
+- [ ] Execute progression/catalog/collection contract tests and inspect the collection panel at desktop and mobile sizes in Roblox Studio.
+- [ ] Approve the production 50-level XP curve before enabling quest XP delivery.
