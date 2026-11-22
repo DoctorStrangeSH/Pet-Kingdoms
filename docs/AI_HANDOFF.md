@@ -1090,3 +1090,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Recovery now resumes the source-ack and pet-ack phases separately. A missing pet receipt is accepted only after source acknowledgement is already durable, proving the XP write was confirmed before the receipt retention window began.
 - Added contract tests for phase ordering, safe retention, and finalization.
 - This closes the previously documented seven-day source-ack outage window in the intended transaction protocol. Studio execution/fault injection remains pending.
+
+
+## Quest XP recovery worker CI verification (2026-11-22)
+
+- GitHub Actions run #127 / run ID 45040309791 completed successfully on code commit 159ac9f57068bcd8edea928c65794fb6f20530eb. Pinned Rokit setup, Rojo version check, project build, and Studio artifact upload all PASS.
+- Artifact `pet-kingdoms-studio-build` ID 14760942790 is available until 2026-12-06 15:48 UTC.
+- The run includes the recovery worker, versioned catalog, source-before-pet acknowledgement ordering, final pet acknowledgement marker, and updated outbox contract tests. CI still does not execute Studio-only tests or live DataStore fault injection.
