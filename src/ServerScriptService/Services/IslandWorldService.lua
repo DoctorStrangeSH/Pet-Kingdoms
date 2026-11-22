@@ -337,8 +337,10 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 		if promptPart then
 			prompt = Instance.new("ProximityPrompt")
 			prompt.Name = "GatherPrompt"
-			prompt.ActionText = if definition.resourceId == "wood" then "Собрать дерево" else "Добыть камень"
-			prompt.ObjectText = if definition.resourceId == "wood" then "Дерево" else "Каменная жила"
+			prompt.ActionText = if definition.resourceId == "wood" then "Срубить дерево" else "Добыть камень"
+			prompt.ObjectText = if definition.resourceId == "wood"
+				then string.format("Дерево • +%d древесины", definition.reward)
+				else string.format("Каменная жила • +%d камня", definition.reward)
 			prompt.KeyboardKeyCode = Enum.KeyCode.E
 			prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 			prompt.HoldDuration = 0.8
