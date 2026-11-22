@@ -479,3 +479,5 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Execute Studio tests and cross-DataStore crash/fault-injection scenarios.
 
 - [x] Verify quest XP recovery worker and final acknowledgement handshake in GitHub Actions run #127 (Rojo build + Studio artifact upload PASS); Studio script execution remains pending.
+
+- [x] Harden recovery worker startup against duplicate PlayerAdded/initial-player enumeration and keep waiting through slow profile loads instead of abandoning recovery after a fixed timeout.
