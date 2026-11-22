@@ -309,7 +309,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
 
 local equipButton = make("TextButton", {
 	Position = UDim2.new(0, 14, 1, -58),
-	Size = UDim2.new(0.68, -18, 0, 46),
+	Size = UDim2.new(0.50, -18, 0, 46),
 	BackgroundColor3 = COLORS.mint,
 	Text = "ЭКИПИРОВАТЬ",
 	TextSize = 14,
@@ -318,6 +318,18 @@ local equipButton = make("TextButton", {
 	AutoButtonColor = true,
 }, detail) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, equipButton)
+
+local mainButton = make("TextButton", {
+	Name = "SetMainPet",
+	Position = UDim2.new(0.50, 1, 1, -58),
+	Size = UDim2.new(0.18, -2, 0, 46),
+	BackgroundColor3 = COLORS.cardSelected,
+	Text = "★",
+	TextSize = 20,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.gold,
+}, detail) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 13) }, mainButton)
 
 local deleteButton = make("TextButton", {
 	Name = "DeletePet",
@@ -483,6 +495,11 @@ local function updateDetail()
 	lockButton.Text = if selected.isLocked then "🔒" else "🔓"
 	lockButton.BackgroundColor3 = if selected.isLocked then COLORS.cardSelected else COLORS.card
 	deleteButton.Visible = not selected.isLocked
+	local equippedIndex = table.find(collection.equipped, selected.petId)
+	mainButton.Visible = equippedIndex ~= nil
+	mainButton.Text = if equippedIndex == 1 then "★" else "☆"
+	mainButton.BackgroundColor3 = if equippedIndex == 1 then COLORS.cardSelected else COLORS.card
+	mainButton.Active = equippedIndex ~= nil and equippedIndex ~= 1
 	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
 	equipButton.BackgroundColor3 = if equipped then COLORS.rose else COLORS.mint
 	equipButton.TextColor3 = Color3.fromRGB(30, 43, 43)
@@ -612,6 +629,38 @@ local function refreshCollection()
 	renderList()
 	updateDetail()
 	return true
+end
+
+local function setMainPet()
+	if busy or collection == nil or selectedPetId == nil then return end
+	local currentIndex = table.find(collection.equipped, selectedPetId)
+	if currentIndex == nil then
+		showStatus("Сначала добавь питомца в команду.", true)
+		return
+	end
+	if currentIndex == 1 then return end
+
+	busy = true
+	mainButton.Active = false
+	local nextEquipped = table.clone(collection.equipped)
+	table.remove(nextEquipped, currentIndex)
+	table.insert(nextEquipped, 1, selectedPetId)
+	local ok, success, result = pcall(function()
+		return remote:InvokeServer("Equip", {
+			petIds = nextEquipped,
+			expectedRevision = collection.revision,
+		})
+	end)
+	busy = false
+	if not ok or success ~= true or type(result) ~= "table" then
+		showStatus("Не удалось сменить главного питомца. Обновляю данные...", true)
+		refreshCollection()
+		return
+	end
+	collection = result :: Collection
+	renderList()
+	updateDetail()
+	showStatus("Главный питомец изменён!")
 end
 
 local function toggleEquip()
@@ -880,6 +929,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 end)
 closeButton.Activated:Connect(closeCollection)
 equipButton.Activated:Connect(toggleEquip)
+mainButton.Activated:Connect(setMainPet)
 petButton.Activated:Connect(function() interactWithSelected("pet") end)
 playButton.Activated:Connect(function() interactWithSelected("play") end)
 search:GetPropertyChangedSignal("Text"):Connect(renderList)
