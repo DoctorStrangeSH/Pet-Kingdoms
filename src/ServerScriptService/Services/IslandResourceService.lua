@@ -47,6 +47,25 @@ end
 
 local IslandResourceService = {}
 
+-- Resolve the exact live Player instance and reject wallet mutations while a
+-- larger building, gathering, or hatch transaction owns the profile mutation slot.
+-- These checks prevent a convenience wallet API from bypassing transaction
+-- serialization while another operation is waiting for DataStore durability.
+local function getWritableProfile(userId: number): (any?, Player?, string?)
+	local profile = IslandSessionService.getProfile(userId)
+	if profile == nil then return nil, nil, "SESSION_NOT_READY" end
+
+	local player = Players:GetPlayerByUserId(userId)
+	if player == nil or not IslandSessionService.canWrite(userId, player) then
+		return nil, nil, "SESSION_NOT_WRITABLE"
+	end
+	if IslandSessionService.isProfileMutationBusy(userId) then
+		return nil, nil, "PROFILE_MUTATION_BUSY"
+	end
+
+	return profile, player, nil
+end
+
 -- Publish a snapshot after another server-side service commits a larger
 -- profile transaction that already includes the wallet mutation. This does not
 -- mutate balances or increment the profile revision.
@@ -71,8 +90,9 @@ function IslandResourceService.getBalance(userId: number, resourceId: string): n
 end
 
 function IslandResourceService.grant(userId: number, resourceId: string, amount: number): (boolean, string, number?)
-	local profile = IslandSessionService.getProfile(userId)
-	if profile == nil then return false, "SESSION_NOT_READY", nil end
+	local profile, player, accessCode = getWritableProfile(userId)
+	if profile == nil or player == nil then return false, accessCode or "SESSION_NOT_READY", nil end
+
 	local before = table.clone(profile.resources)
 	local granted, code, balance = IslandResources.grant(profile.resources, resourceId, amount)
 	if not granted then return false, code, nil end
@@ -80,16 +100,15 @@ function IslandResourceService.grant(userId: number, resourceId: string, amount:
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	local player = Players:GetPlayerByUserId(userId)
-	if player then
-		resourceUpdate:FireClient(player, snapshot(profile), resourceId, amount, code)
-	end
+
+	resourceUpdate:FireClient(player, snapshot(profile), resourceId, amount, code)
 	return true, code, balance
 end
 
 function IslandResourceService.grantMany(userId: number, rewards: any): (boolean, string, { [string]: number }?)
-	local profile = IslandSessionService.getProfile(userId)
-	if profile == nil then return false, "SESSION_NOT_READY", nil end
+	local profile, player, accessCode = getWritableProfile(userId)
+	if profile == nil or player == nil then return false, accessCode or "SESSION_NOT_READY", nil end
+
 	local before = table.clone(profile.resources)
 	local granted, code = IslandResources.grantMany(profile.resources, rewards)
 	if not granted then return false, code, nil end
@@ -97,16 +116,16 @@ function IslandResourceService.grantMany(userId: number, rewards: any): (boolean
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	local player = Players:GetPlayerByUserId(userId)
-	if player then
-		resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
-	end
-	return true, code, snapshot(profile)
+
+	local balances = snapshot(profile)
+	resourceUpdate:FireClient(player, balances, nil, nil, code)
+	return true, code, balances
 end
 
 function IslandResourceService.spend(userId: number, costs: any): (boolean, string, { [string]: number }?)
-	local profile = IslandSessionService.getProfile(userId)
-	if profile == nil then return false, "SESSION_NOT_READY", nil end
+	local profile, player, accessCode = getWritableProfile(userId)
+	if profile == nil or player == nil then return false, accessCode or "SESSION_NOT_READY", nil end
+
 	local before = table.clone(profile.resources)
 	local spent, code, balances = IslandResources.spend(profile.resources, costs)
 	if not spent then return false, code, nil end
@@ -114,10 +133,8 @@ function IslandResourceService.spend(userId: number, costs: any): (boolean, stri
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	local player = Players:GetPlayerByUserId(userId)
-	if player then
-		resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
-	end
+
+	resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
 	return true, code, balances
 end
 
