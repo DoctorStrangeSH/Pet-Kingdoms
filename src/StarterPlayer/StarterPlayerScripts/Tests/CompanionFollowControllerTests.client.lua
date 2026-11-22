@@ -145,6 +145,19 @@ edgePet:Destroy()
 edgeTarget:Destroy()
 edgeFloor:Destroy()
 
+-- Direct raycasts + terrain samples are expensive when 3 companions follow
+-- a stationary owner. Reuse a recent result until the owner or pet moves.
+local firstProbeCount = controllers[2].directCheckCount
+controllers[2]:update(1 / 60)
+expect("stationary companion reuses recent direct-route check",
+	controllers[2].directCheckCount == firstProbeCount)
+local oldTarget = target.CFrame
+target.CFrame = oldTarget * CFrame.new(1.5, 0, 0)
+controllers[2]:update(1 / 60)
+expect("owner movement invalidates the navigation cache",
+	controllers[2].directCheckCount == firstProbeCount + 1)
+target.CFrame = oldTarget
+
 expect("clear follow lane does not allocate a path", controllers[1].path == nil and #controllers[1].pathWaypoints == 0)
 
 local firstPosition = pets[1]:GetPivot().Position
