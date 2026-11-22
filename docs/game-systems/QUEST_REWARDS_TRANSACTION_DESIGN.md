@@ -60,7 +60,7 @@ Do not enable a live claim button until the economy values and pet recipient rul
 - `commitQuestRewardAcknowledgement` records the source-side acknowledgement after durable pet XP delivery and before pet receipt acknowledgement. `commitQuestRewardPetAcknowledgement` records the final pet receipt acknowledgement in another durable island revision.
 - `getPendingQuestRewards`, `getQuestRewardsAwaitingAcknowledgement`, and `getQuestRewardsAwaitingPetAcknowledgement` expose the three recovery phases to trusted server code.
 - Outbox records are compactable only after both source acknowledgement and final pet acknowledgement are durable. Pending, delivered-but-unacknowledged, and source-acknowledged-but-not-finalized records are never evicted; permanent quest claim receipts are retained separately.
-- Still NOT DONE: reward catalog/balance approval, recipient selection, XP threshold configuration, worker integration, live claim remote/UI, and cross-DataStore fault-injection tests.
+- Still NOT DONE: reward catalog/balance approval, recipient selection, XP threshold configuration, live claim remote/UI, and execution of the Studio fault-injection suite against Roblox DataStores.
 
 
 ## Recovery worker implementation (2026-11-22)
@@ -73,3 +73,12 @@ Do not enable a live claim button until the economy values and pet recipient rul
 - Added Studio-only catalog contract tests and started the worker from `Bootstrap.server.lua`.
 - The worker is infrastructure only while the catalog is empty: no quest reward can be delivered until a progression version is explicitly configured and a trusted claim catalog creates valid outbox records.
 - Remaining: add service-level fault-injection tests for every transaction boundary, run Studio tests, and approve progression/reward/recipient policy.
+
+
+## Recovery protocol fault-injection coverage (2026-11-22)
+
+- Extracted the ordered cross-DataStore handshake into `QuestRewardRecoveryProtocol`; the production recovery worker now delegates both pending delivery and delivered-record finalization to this shared protocol.
+- Added `QuestRewardRecoveryProtocolTests.server.lua`, a deterministic Studio-only fault-injection suite. It simulates a lost response immediately after each durable boundary: pet XP grant, island delivery marker, source acknowledgement, pet receipt acknowledgement, and final pet acknowledgement marker.
+- Each scenario retries with the same stable reward ID and asserts XP is applied exactly once and all durable phases eventually complete.
+- Additional cases verify that an already-delivered record resumes without invoking XP grant, and that `RECEIPT_NOT_FOUND` is accepted only after source acknowledgement is durable.
+- These are deterministic adapter-level fault-injection tests, not live Roblox DataStore outage tests. The latter still require Studio execution with a dedicated test place/account and controlled DataStore access.
