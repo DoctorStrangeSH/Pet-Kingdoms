@@ -322,3 +322,16 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Stop retrying when no pending transactions remain, the Player leaves, the lease becomes non-writable, or collection readiness is lost.
 - [ ] Run Studio/MemoryStore/DataStore fault-injection covering transient save failures, disappearing lease, CHARGED journal recovery, and a blocked transaction that becomes resolvable without rejoining.
 - [ ] Reconcile acquisition receipt expiry with long-lived CHARGED hatch journals before enabling live egg purchase; the seven-day receipt window is not a permanent proof of grant.
+
+
+### Durable hatch acquisition deduplication
+
+- [x] Store the source hatch transaction ID alongside each hatch acquisition receipt and pending reservation.
+- [x] Keep unacknowledged acquisition receipts indefinitely; elapsed wall-clock time alone can never make a PREPARED/CHARGED hatch grantable twice.
+- [x] After the island journal is durably GRANTED, acknowledge the matching collection receipt with its exact transaction ID and completion timestamp.
+- [x] Compact only acknowledged receipts after the seven-day completion retention window; this window begins after durable completion, not initial acquisition.
+- [x] Retry receipt acknowledgement for GRANTED journal entries on subsequent recovery passes and later joins; treat an already-compacted receipt as complete.
+- [x] Prevent a repeated PREPARE from reporting a completed transaction as merely PREPARED; return ALREADY_GRANTED without regressing the journal.
+- [x] Add tests for beyond-seven-day pending receipts, transaction-ID mismatch, acknowledgement idempotency, completed-receipt compaction, legacy reservation upgrade, and granted-journal idempotency.
+- [ ] Run Roblox Studio/DataStore fault injection across the exact sequence: pet grant persisted -> server crash -> journal GRANTED -> receipt acknowledgement lost -> rejoin -> acknowledgement retry.
+- [ ] Monitor the bounded 128-entry receipt ledger; capacity reservation fails closed before charging, but high-volume acquisition patterns may require a compacted external dedupe index.
