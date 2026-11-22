@@ -1012,3 +1012,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Updated the journal so Track buttons wait for server confirmation and selection survives rejoin. When the selected objective is completed, the UI picks the next incomplete objective and attempts to persist it.
 - Added profile validation tests for default, unknown, and legacy tracked quest IDs.
 - Reward claiming and its idempotent receipt ledger remain NOT DONE. Studio/DataStore runtime verification remains pending.
+
+
+## Quest reward transaction design (2026-11-22)
+
+- Added `docs/game-systems/QUEST_REWARDS_TRANSACTION_DESIGN.md`.
+- Confirmed quest progress/resources live in the island profile DataStore while pet XP lives in the separate pet collection DataStore; there is no cross-DataStore atomic transaction.
+- Specified a durable island claim receipt + XP outbox + stable pet reward ID protocol. Retries must be idempotent if pet XP commits but island acknowledgement fails.
+- Identified a retention mismatch to resolve before enabling cross-store rewards: pet reward receipts currently have bounded seven-day retention, while an outbox could remain pending longer. The receipt must outlive all retries or be reconciled safely.
+- No reward values, XP amounts, pet recipient rule, or live claim endpoint were invented. Reward implementation and UI remain NOT DONE.
