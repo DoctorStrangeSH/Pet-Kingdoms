@@ -17,6 +17,7 @@ local IslandBuildingJournalData = require(services:WaitForChild("IslandBuildingJ
 local IslandResourceNodeCatalog = require(services:WaitForChild("IslandResourceNodeCatalog"))
 local IslandResourceNodeData = require(services:WaitForChild("IslandResourceNodeData"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
+local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 
 local IslandSessionService = {}
 
@@ -170,6 +171,76 @@ function IslandSessionService.commitResourceGathering(
 
 	session.gatheringMutationBusy = false
 	return true, "GATHERED", availableAt
+end
+
+-- Applies one level of island expansion as a durable profile mutation.
+-- expectedLevel makes retries safe: a repeated request cannot advance twice.
+function IslandSessionService.commitIslandExpansion(
+	userId: number,
+	player: Player,
+	expectedLevel: number
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.buildingMutationBusy or session.gatheringMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	if type(expectedLevel) ~= "number" or expectedLevel < 0 or expectedLevel ~= math.floor(expectedLevel) then
+		return false, "INVALID_EXPECTED_LEVEL", nil
+	end
+
+	local baseWidth, baseDepth = getConfiguredBounds()
+	if baseWidth == nil or baseDepth == nil then
+		return false, "MISSING_ISLAND_GRID_BOUNDS", nil
+	end
+
+	local currentLevel = if session.profile.expansionLevel == nil then 0 else session.profile.expansionLevel
+	session.buildingMutationBusy = true
+
+	local targetRevision: number
+	local resultCode: string
+	if currentLevel == expectedLevel then
+		local nextProfile, prepareCode = IslandExpansion.prepareNextProfile(session.profile, baseWidth, baseDepth)
+		if nextProfile == nil then
+			session.buildingMutationBusy = false
+			return false, prepareCode, nil
+		end
+		nextProfile.revision = session.profile.revision + 1
+		session.profile = nextProfile
+		session.dirty = true
+		targetRevision = nextProfile.revision
+		resultCode = "EXPANDED"
+	elseif currentLevel == expectedLevel + 1 then
+		if not IslandExpansion.matchesProfileBounds(session.profile, baseWidth, baseDepth) then
+			session.buildingMutationBusy = false
+			return false, "INVALID_EXPANSION_BOUNDS", nil
+		end
+		targetRevision = session.profile.revision
+		resultCode = "ALREADY_APPLIED"
+	else
+		session.buildingMutationBusy = false
+		return false, "EXPANSION_LEVEL_CONFLICT", nil
+	end
+
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.buildingMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.buildingMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+
+	session.buildingMutationBusy = false
+	return true, resultCode, targetRevision
 end
 
 function IslandSessionService.findBuildingOperation(
