@@ -667,3 +667,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [x] Clear cached positions after emergency teleport recovery.
 - [x] Add Studio regression tests for stationary cache reuse and owner-movement invalidation.
 - [ ] Execute client tests and profile raycasts at 30/60 FPS with 1-3 equipped companions in Roblox Studio/mobile.
+
+### Unified player-facing modal ownership (2026-11-22)
+
+- [x] Connect quest journal and island expansion panels to the existing `PlayerGui.PetKingdomsActiveModal` ownership convention.
+- [x] Connect kingdom overview to shared modal ownership, keeping it mutually exclusive with construction and pet collection.
+- [x] Close quest/expansion/kingdom panels by Escape; add click/tap-outside dismissal to quest/expansion/pet collection panels.
+- [x] When a second major panel opens, hide the previous one instead of layering several backdrops and close buttons.
+- [ ] Verify keyboard, mouse and touch close controls and one-window-only behavior in Roblox Studio.
+- [ ] Rework viewport constraints for narrow screens (especially 320-375 px) and conduct a real responsive UI pass.
