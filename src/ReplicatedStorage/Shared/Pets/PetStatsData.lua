@@ -84,6 +84,13 @@ function PetStatsData.validate(snapshot: any): (boolean, string)
 	if type(snapshot) ~= "table" then
 		return false, "SNAPSHOT_NOT_TABLE"
 	end
+
+	for key in pairs(snapshot) do
+		if key ~= "level" and key ~= "rarityTier" and key ~= "stats" then
+			return false, "UNKNOWN_SNAPSHOT_FIELD"
+		end
+	end
+
 	if not isPositiveInteger(snapshot.level) or snapshot.level > PetStatsData.MAX_PET_LEVEL then
 		return false, "INVALID_LEVEL"
 	end
