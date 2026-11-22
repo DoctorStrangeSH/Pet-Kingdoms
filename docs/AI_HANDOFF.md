@@ -1113,3 +1113,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Confirmed successful steps: checkout, pinned Rokit setup, Rojo version verification, Roblox place build, and Studio-ready artifact upload.
 - Artifact `pet-kingdoms-studio-build` ID 14761452485 is available until 2026-12-06 15:51 UTC.
 - This validates project packaging and Rojo build only; Studio-only Luau test scripts and live DataStore fault injection still need execution in Roblox Studio.
+
+
+## Recovery protocol fault-injection tests (2026-11-22)
+
+- Extracted the cross-DataStore transaction sequence to `QuestRewardRecoveryProtocol.lua`; `QuestRewardRecoveryService.lua` now delegates pending delivery and acknowledgement recovery to it.
+- Added `QuestRewardRecoveryProtocolTests.server.lua`: deterministic adapter-level crash/response-loss simulation after each of the five durable phases (XP grant, island delivery, source acknowledgement, pet receipt acknowledgement, final island pet marker).
+- Tests assert that retrying the same stable reward ID never applies XP twice and that all phases eventually become durable.
+- Added delivered-record resume coverage (no XP grant) and the rule that a missing pet receipt is accepted only after source acknowledgement.
+- These tests are authored but not yet executed in Roblox Studio. Live DataStore outage testing remains separate.
