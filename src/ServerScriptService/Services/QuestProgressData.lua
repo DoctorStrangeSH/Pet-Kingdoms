@@ -76,7 +76,7 @@ function QuestProgressData.recordGather(state: any, resourceId: string): (any?, 
 	return nextState, completed, "RECORDED"
 end
 
-function QuestProgressData.snapshot(state: any): { any }
+function QuestProgressData.snapshot(state: any, claims: any?): { any }
 	-- Legacy island profiles may predate questProgress. Present the current
 	-- introductory quest set at zero progress without mutating the saved profile.
 	local source = if state == nil then QuestProgressData.create() else state
@@ -86,6 +86,14 @@ function QuestProgressData.snapshot(state: any): { any }
 	for _, questId in ipairs(QUEST_ORDER) do
 		local definition = QuestProgressData.DEFINITIONS[questId]
 		local entry = source[questId]
+		local receipt = if type(claims) == "table" then claims[questId] else nil
+		local rewardClaimed = entry.count >= definition.target
+			and type(receipt) == "table"
+			and type(receipt.rewardId) == "string"
+			and receipt.rewardId ~= ""
+			and type(receipt.claimedAt) == "number"
+			and receipt.claimedAt == receipt.claimedAt
+			and receipt.claimedAt > 0
 		table.insert(result, {
 			id = definition.id,
 			name = definition.name,
@@ -94,6 +102,7 @@ function QuestProgressData.snapshot(state: any): { any }
 			target = definition.target,
 			completed = entry.count >= definition.target,
 			rewardAvailable = false,
+			rewardClaimed = rewardClaimed,
 		})
 	end
 	return result
