@@ -1297,3 +1297,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The ground raycast applies this measured lift rather than a fixed 0.28-stud offset. This accommodates imported meshes whose pivot is centered, while retaining a measured offset for the procedural Bunny rig.
 - Added a client Studio smoke test with a center-pivot 4-stud mesh stand-in; expected lift is 2 studs.
 - No new pet assets or gameplay behavior were added. Obstacle/path navigation, slope handling, real imported asset validation, and multiplayer/mobile testing remain open.
+
+
+## Pet companion obstacle navigation (2026-11-22)
+
+- CompanionFollowController now checks two horizontal ray heights between the pet and its desired formation/investigation position.
+- If blocked, it computes a PathfindingService route asynchronously on the ground surface. Pathfinding uses a 1.25-stud radius, 3.2-stud height, and permits jumps/climbing.
+- The controller follows waypoints, reuses paths while the goal is stable, invalidates blocked routes, and retries after a short delay.
+- While a route is pending or unavailable, the pet holds position rather than clipping through walls. A clear direct lane releases path state.
+- The route remains client-side visual movement only. Studio navmesh/obstacle tests and mobile/multiplayer verification are still required.
