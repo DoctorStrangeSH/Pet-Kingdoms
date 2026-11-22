@@ -78,6 +78,16 @@ target.AssemblyLinearVelocity = Vector3.zero
 local invalidController, invalidStatus = CompanionFollowController.new(pets[1], target, { slotIndex = 4 })
 expect("fourth active slot is rejected", invalidController == nil and invalidStatus == "INVALID_SLOT_INDEX")
 
+-- Catch-up must switch to run when the pet falls behind, then recover from
+-- extreme streaming/character-reset gaps without remaining stranded far away.
+target.AssemblyLinearVelocity = Vector3.zero
+target.CFrame = target.CFrame + Vector3.new(70, 0, 0)
+controllers[1]:update(1 / 60)
+local catchUpTarget = target.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
+expect("lagging companion switches to run", controllers[1].animation.state == "run")
+expect("extremely distant companion recovers near its owner",
+	(pets[1]:GetPivot().Position - catchUpTarget).Magnitude < 5)
+
 for _, controller in ipairs(controllers) do
 	controller:destroy()
 	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil)
