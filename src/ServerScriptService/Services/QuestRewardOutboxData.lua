@@ -40,13 +40,14 @@ function QuestRewardOutboxData.validateClaims(claims: any): (boolean, string)
 		if type(questId) ~= "string" or QuestProgressData.DEFINITIONS[questId] == nil
 			or type(receipt) ~= "table"
 			or not isNonEmptyString(receipt.rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
-			or not isValidTimestamp(receipt.claimedAt) then
+			or not isValidTimestamp(receipt.claimedAt)
+			or (receipt.revision ~= nil and (not isInteger(receipt.revision) or receipt.revision < 1)) then
 			return false, "INVALID_CLAIM_RECEIPT"
 		end
 		if seenRewardIds[receipt.rewardId] then return false, "DUPLICATE_CLAIM_REWARD_ID" end
 		seenRewardIds[receipt.rewardId] = true
 		for key in pairs(receipt) do
-			if key ~= "rewardId" and key ~= "claimedAt" then
+			if key ~= "rewardId" and key ~= "claimedAt" and key ~= "revision" then
 				return false, "INVALID_CLAIM_RECEIPT"
 			end
 		end
@@ -59,7 +60,8 @@ function QuestRewardOutboxData.recordClaim(
 	claims: any,
 	questId: string,
 	rewardId: string,
-	claimedAt: number
+	claimedAt: number,
+	claimRevision: number?
 ): (any?, string)
 	local valid, reason = QuestRewardOutboxData.validateClaims(claims)
 	if not valid then return nil, reason end
@@ -67,7 +69,8 @@ function QuestRewardOutboxData.recordClaim(
 		return nil, "UNKNOWN_QUEST"
 	end
 	if not isNonEmptyString(rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
-		or not isValidTimestamp(claimedAt) then
+		or not isValidTimestamp(claimedAt)
+		or (claimRevision ~= nil and (not isInteger(claimRevision) or claimRevision < 1)) then
 		return nil, "INVALID_CLAIM_RECEIPT"
 	end
 
@@ -81,7 +84,7 @@ function QuestRewardOutboxData.recordClaim(
 	end
 
 	local nextClaims = table.clone(claims)
-	nextClaims[questId] = { rewardId = rewardId, claimedAt = claimedAt }
+	nextClaims[questId] = { rewardId = rewardId, claimedAt = claimedAt, revision = claimRevision }
 	return nextClaims, "CLAIM_RECORDED"
 end
 
