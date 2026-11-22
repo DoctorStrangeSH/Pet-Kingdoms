@@ -6,10 +6,12 @@ local IslandSessionService = require(services:WaitForChild("IslandSessionService
 local IslandBuildingService = require(services:WaitForChild("IslandBuildingService"))
 local PetCollectionService = require(services:WaitForChild("PetCollectionService"))
 local IslandGatheringService = require(services:WaitForChild("IslandGatheringService"))
+local PetHatchingRecoveryService = require(services:WaitForChild("PetHatchingRecoveryService"))
 
 IslandSessionService.start()
 IslandBuildingService.start()
 PetCollectionService.start()
 IslandGatheringService.start()
+PetHatchingRecoveryService.start()
 
 print("[PetKingdoms] Server bootstrap loaded.")
