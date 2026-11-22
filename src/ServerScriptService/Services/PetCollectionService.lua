@@ -321,6 +321,51 @@ local function handleRequest(player: Player, action: any, payload: any): (boolea
 	return true, cloneForClient(result)
 end
 
+-- Trusted server-only entry point for combat, quest, and interaction reward systems.
+-- Never expose this method through a RemoteEvent/RemoteFunction or pass client-provided amounts.
+function PetCollectionService.grantExperience(player: Player, petId: string, amount: number): (boolean, string)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false, "INVALID_PLAYER"
+	end
+	local state = collections[player.UserId]
+	if state == nil or state.loading or state.profile == nil then
+		return false, "COLLECTION_NOT_READY"
+	end
+
+	local mutationStatus = "NOT_UPDATED"
+	local ok, result = updateWithRetry(player.UserId, function(current)
+		if type(current) ~= "table" then
+			mutationStatus = "PROFILE_MISSING"
+			return current
+		end
+		local valid, reason = PetCollectionData.validate(current, player.UserId)
+		if not valid then
+			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+			return current
+		end
+		local changed, status, nextProfile = PetCollectionData.grantExperience(current, petId, amount)
+		mutationStatus = status
+		if not changed then
+			return current
+		end
+		return nextProfile
+	end)
+
+	if not ok then
+		return false, "DATASTORE_UNAVAILABLE"
+	end
+	if mutationStatus ~= "UPDATED" or type(result) ~= "table" then
+		return false, mutationStatus
+	end
+	local valid, reason = PetCollectionData.validate(result, player.UserId)
+	if not valid then
+		warn("[PetKingdoms] Pet XP reward result invalid:", player.UserId, reason)
+		return false, "INVALID_SAVE_RESULT"
+	end
+	state.profile = result
+	return true, "UPDATED"
+end
+
 function PetCollectionService.start()
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	if remotes == nil then
