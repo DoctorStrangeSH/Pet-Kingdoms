@@ -1320,3 +1320,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Catch-up animation now uses owner formation distance, rather than waypoint distance; stalled navigation shows idle rather than walking in place.
 - Added an isolated Studio client smoothing regression that checks measured one-frame translation against alpha = 1-exp(-8/60).
 - Note: Rojo packaging and GitHub Actions do not execute these runtime assertions. Real Studio terrain, obstacle and mobile QA remain pending.
+
+## Companion terrain-edge safety (2026-11-22)
+
+- Added conservative ground-support sampling between companion and direct formation target (at most 12 samples, every ~3 studs). Large vertical discontinuities (>2.75 studs per sample) and missing ground now block straight-line shortcuts when the pet's starting surface is known.
+- Revalidate path waypoint traversal using the same ground-support check; hold position and retry path calculation rather than walking over an unsupported surface.
+- Teleport recovery projects the destination back to the ground surface and retains the measured pet pivot lift.
+- Added Studio smoke-test geometry with a reachable owner across a ground gap and an assertion that the pet does not move directly into the void.
+- This is conservative safety logic, not full terrain intelligence. Real steps, collision, slopes and navmesh are unverified. GitHub Actions builds do not run Studio assertions.
