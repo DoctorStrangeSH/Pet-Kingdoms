@@ -70,3 +70,9 @@ No food/inventory action is added because an approved food catalogue and resourc
 
 
 - Equip/Interact RemoteFunction responses return the newest in-memory collection snapshot after revision-aware synchronization, not a potentially stale individual DataStore response. This keeps the client view aligned with concurrent server mutations.
+
+
+## Companion reaction state priority
+
+- Player-triggered Pet/Play emotion cues override autonomous idle personality animations while the pet is stationary, so a user interaction is visible immediately instead of waiting for a random idle action to finish.
+- Walk/run states remain dominant during movement. Client Studio tests cover both priority rules; execution is pending.
