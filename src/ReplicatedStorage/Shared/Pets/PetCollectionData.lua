@@ -191,6 +191,9 @@ function PetCollectionData.grantExperience(profile: any, petId: string, amount: 
 	if not isPositiveInteger(amount) then
 		return false, "INVALID_XP_AMOUNT", nil
 	end
+	if type(profile) ~= "table" then
+		return false, "INVALID_PROFILE:PROFILE_NOT_TABLE", nil
+	end
 	local valid, reason = PetCollectionData.validate(profile, profile.ownerUserId)
 	if not valid then
 		return false, "INVALID_PROFILE:" .. reason, nil
