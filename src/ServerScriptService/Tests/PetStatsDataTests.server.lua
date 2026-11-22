@@ -80,6 +80,16 @@ end
 local invalidSnapshot = PetStatsData.validate(nil)
 expect("nil snapshot is rejected", not invalidSnapshot)
 
+local extraSnapshotField = PetStatsData.clone(validSnapshot)
+extraSnapshotField.ownerUserId = 12345
+local extraSnapshotValid, extraSnapshotStatus = PetStatsData.validate(extraSnapshotField)
+expect("unknown snapshot field is rejected", not extraSnapshotValid and extraSnapshotStatus == "UNKNOWN_SNAPSHOT_FIELD")
+
+local missingSnapshotField = PetStatsData.clone(validSnapshot)
+missingSnapshotField.stats = nil
+local missingSnapshotValid = PetStatsData.validate(missingSnapshotField)
+expect("missing snapshot stats are rejected", not missingSnapshotValid)
+
 local invalidStats = PetStatsData.clone(validSnapshot)
 invalidStats.stats = nil
 expect("missing stats table is rejected", not PetStatsData.validate(invalidStats))
