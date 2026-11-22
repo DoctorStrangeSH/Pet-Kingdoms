@@ -650,6 +650,13 @@ playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
 		movingInstanceId = nil
 		panel.Visible = false
 		clearPreview()
+		mainHouseButton.Active = true
+		petHouseButton.Active = true
+		stonePathButton.Active = true
+		gardenLanternButton.Active = true
+		flowerBedButton.Active = true
+		woodenFenceButton.Active = true
+		confirmButton.Text = "ВЫБРАТЬ МЕСТО"
 	end
 end)
 
@@ -684,7 +691,7 @@ confirmButton.Activated:Connect(function()
 		})
 	end)
 	confirmButton.Active = true
-	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
+	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
@@ -769,7 +776,11 @@ local function resizeBuildingPanel()
 	local height = math.clamp(viewport.Y - 48, 300, 340)
 	panel.Size = UDim2.fromOffset(width, height)
 	panel.Position = UDim2.new(0.5, 0, 1, -16)
-	if viewport.X < 390 then
+	local compact = viewport.X < 370
+	rotateButton.Size = UDim2.fromOffset(if compact then 78 else 94, 48)
+	confirmButton.Size = UDim2.fromOffset(if compact then 96 else 104, 48)
+	cancelButton.Size = UDim2.fromOffset(if compact then 68 else 78, 48)
+	if compact then
 		status.TextSize = 11
 		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 			button.TextSize = 11
