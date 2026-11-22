@@ -458,6 +458,8 @@ function PetCollectionData.reservePetSlotOnce(
 						end
 					end
 					upgraded.revision += 1
+					local upgradedValid, upgradedReason = PetCollectionData.validate(upgraded, profile.ownerUserId)
+					if not upgradedValid then return false, "INVALID_BOUND_RECEIPT:" .. upgradedReason, nil end
 					return true, "RECEIPT_BOUND", upgraded
 				end
 				return false, "ALREADY_ACQUIRED", PetCollectionData.clone(profile)
@@ -479,6 +481,8 @@ function PetCollectionData.reservePetSlotOnce(
 					end
 				end
 				upgraded.revision += 1
+				local upgradedValid, upgradedReason = PetCollectionData.validate(upgraded, profile.ownerUserId)
+				if not upgradedValid then return false, "INVALID_UPGRADED_RESERVATION:" .. upgradedReason, nil end
 				return true, "RESERVED", upgraded
 			end
 			return false, "ALREADY_RESERVED", PetCollectionData.clone(profile)
