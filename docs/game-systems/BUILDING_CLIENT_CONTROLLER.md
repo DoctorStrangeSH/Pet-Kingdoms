@@ -58,3 +58,7 @@ The client raycasts only against `Island_GrassTop` belonging to the local player
 - [x] Add responsive panel bounds and compact button sizing for narrow viewports.
 - [x] Coordinate construction and pet collection modal ownership to prevent those two major windows from stacking.
 - [ ] Verify exact placement, focus/input, overlap preview, and mobile safe-area behavior in Roblox Studio on desktop and touch devices.
+
+## Shared modal ownership extension (2026-11-22)
+
+The global `PlayerGui.PetKingdomsActiveModal` convention now includes `building`, `pets`, `quests`, `expansion`, and `kingdom`. Opening a major panel hides the previous one without stacking close-button hit targets. Quest, expansion, and kingdom overview respond to Escape; quest, expansion, and pet collection accept a backdrop click/tap outside their panel. Roblox Studio/mobile validation remains pending.
