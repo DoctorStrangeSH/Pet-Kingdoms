@@ -1,6 +1,6 @@
 # Pet Art Pipeline — Bunny Rig Prototype
 
- > Status: procedural Bunny runtime prototype and separate original Blender mesh pipeline both exist. Blender 4.2.0 generated and structurally validated a rigged `.blend` + `.fbx`; visual review and Roblox Studio import are still pending.
+  > Status: the live collection service uses the published-asset loader, but the Bunny catalog ID is intentionally nil, so no Bunny model currently spawns. A separate Part-based procedural blockout exists for controller tests only. The original OBJ/MTL and Blender FBX are rejected first-draft art; Blender structural CI passes, but Roblox Studio import/visual acceptance does not.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Source:
 
 ## Two Bunny implementations — do not confuse them
 
-The current Roblox runtime prototype is `PetModelFactory.lua`: it builds a Part-based blockout with Motor6D joints for controller testing. It is not the original sculpted Blender mesh and is not approved production art.
+`PetModelFactory.lua` builds a Part-based blockout with Motor6D joints for automated/Studio controller testing only. The live `PetCollectionService` calls `PetAssetLoader`, not this factory. Because `PetAssetCatalog.bunny.assetId` is nil, the loader returns `ASSET_NOT_CONFIGURED` and no Bunny visual is spawned. The blockout is not approved production art.
 
 The separate project-owned sculpted mesh lives in `assets/pets/bunny/`. Blender 4.2.0 CI generated `bunny_rigged.blend` and `bunny_rigged.fbx`; a validator reopened the `.blend` and checked the 10-bone armature, body skin modifier/vertex groups, and four named action curves. These checks do not inspect rendered appearance, deformation quality, or Roblox import compatibility.
 
