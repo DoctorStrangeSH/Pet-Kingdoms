@@ -79,3 +79,7 @@ The shared `ResourceNodeVisibility.setVisible` now owns cooldown hide/restore be
 ## Respawn scheduler and writable-session guard (2026-11-22)
 
 The server tracks each resource node's scheduled cooldown timestamp instead of a generic active boolean. Scheduling the same deadline twice does not create duplicate callbacks, and stale callbacks cannot clear a newer deadline. A resource will not reappear until the deadline has expired and its owner's session is writable; the periodic reconciliation loop retries recovery if writing was unavailable when the timer fired. Restored nodes are not reprocessed every sweep after their gather prompt has been enabled. Live Studio QA is still pending.
+
+## Resource availability HUD (2026-11-22)
+
+The local HUD now reports ready/total wood and stone nodes and the nearest cooldown countdown in MM:SS. It reads own-island replicated node attributes once per second; it does not claim or modify resources. The cooldown timestamp comes from the server and is compared with synchronized server time. Device Emulator and runtime gather/respawn tests remain outstanding.
