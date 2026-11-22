@@ -105,9 +105,7 @@ local ok, failure = pcall(function()
 	assert(worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(secondUserId)), "second world model must exist")
 
 	local originalHousePivot = mainHouse:GetPivot()
-	IslandWorldService.remove(firstUserId)
-	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
-
+	local originalWorld = firstWorld
 	local expandedProfile = profileFor(firstUserId)
 	expandedProfile.boundsWidth = 32
 	expandedProfile.boundsDepth = 32
@@ -116,10 +114,10 @@ local ok, failure = pcall(function()
 		building.x += 4
 		building.z += 4
 	end
-	local expandedOk, expandedCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, expandedProfile)
-	assert(expandedOk and expandedCode == "SPAWNED", "expanded island profile must render")
-	table.insert(spawnedUsers, firstUserId)
+	local expandedOk, expandedCode = IslandWorldService.refresh(firstUserId, { UserId = firstUserId } :: any, expandedProfile)
+	assert(expandedOk and expandedCode == "WORLD_REFRESHED", "expanded island must refresh in the active session")
 	local expandedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	assert(originalWorld.Parent == nil, "successful refresh must replace the previous world model")
 	assert(expandedWorld and expandedWorld:GetAttribute("GridWidth") == 32 and expandedWorld:GetAttribute("GridDepth") == 32,
 		"expanded world must expose persisted 32x32 bounds")
 	local expandedGrass = expandedWorld and expandedWorld:FindFirstChild("Island_GrassTop")
@@ -131,7 +129,6 @@ local ok, failure = pcall(function()
 	assert((expandedHouse:GetPivot().Position - originalHousePivot.Position).Magnitude < 0.01,
 		"expansion coordinate shift must preserve existing building world position")
 
-	IslandWorldService.remove(firstUserId)
 	local maxExpandedProfile = profileFor(firstUserId)
 	maxExpandedProfile.boundsWidth = 40
 	maxExpandedProfile.boundsDepth = 40
@@ -140,10 +137,11 @@ local ok, failure = pcall(function()
 		building.x += 8
 		building.z += 8
 	end
-	local maxExpandedOk, maxExpandedCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, maxExpandedProfile)
-	assert(maxExpandedOk and maxExpandedCode == "SPAWNED", "maximum expanded island profile must render")
-	table.insert(spawnedUsers, firstUserId)
+	local previousExpandedWorld = expandedWorld
+	local maxExpandedOk, maxExpandedCode = IslandWorldService.refresh(firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile)
+	assert(maxExpandedOk and maxExpandedCode == "WORLD_REFRESHED", "maximum expansion must refresh in the active session")
 	local maxExpandedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	assert(previousExpandedWorld and previousExpandedWorld.Parent == nil, "maximum refresh must replace the previous world model")
 	assert(maxExpandedWorld and maxExpandedWorld:GetAttribute("GridWidth") == 40 and maxExpandedWorld:GetAttribute("GridDepth") == 40,
 		"maximum expanded world must expose 40x40 bounds")
 	local maxExpandedGrass = maxExpandedWorld and maxExpandedWorld:FindFirstChild("Island_GrassTop")
