@@ -1200,3 +1200,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pinned Rokit setup, Rojo version verification, place build, and Studio artifact upload all PASS.
 - Artifact `pet-kingdoms-studio-build` ID 14761947614 is available until 2026-12-06 16:03 UTC.
 - CI confirms the serialization/reload contract is packaged. Studio-only execution and live DataStore tests remain pending.
+
+
+## Quest completion and claim-state visibility (2026-11-22)
+
+- Extended `QuestProgressData.snapshot(state, claims)` to expose `rewardClaimed` separately from `completed`. A receipt is shown as claimed only when the quest reached its target and the receipt has a non-empty reward ID plus a valid positive timestamp.
+- `QuestService` now supplies the persisted `questRewardClaims` ledger when building the server-authoritative journal snapshot.
+- Updated `QuestJournalUI.client.lua`: completed tasks remain `ВЫПОЛНЕНО`; a durable claim receipt is displayed as `НАГРАДА ПОЛУЧЕНА`. Summary now counts claimed rewards and explicitly states that reward issuance is still disabled.
+- Added QuestProgressData contract tests for valid claim receipt, unclaimed completion, malformed receipt, and a receipt attached to an incomplete quest.
+- No claim RemoteFunction or reward interaction was added. Reward economy/progression/recipient policy remains unapproved and the XP catalog remains intentionally empty.
+- Studio execution remains pending; CI only verifies Rojo packaging.
