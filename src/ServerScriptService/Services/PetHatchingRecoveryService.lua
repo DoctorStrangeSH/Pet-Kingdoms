@@ -10,12 +10,18 @@ local PetHatchingRecoveryData = require(services:WaitForChild("PetHatchingRecove
 
 local PetHatchingRecoveryService = {}
 
-local READY_TIMEOUT_SECONDS = 45
+-- Pet collection load itself can wait up to 120 seconds for the island lease.
+-- The recovery poll must not expire first during a delayed but valid login.
+local READY_TIMEOUT_SECONDS = 150
 local READY_POLL_SECONDS = 0.25
-local activeRuns: { [number]: {} } = {}
+type RecoveryRun = { player: Player, token: {} }
+local activeRuns: { [number]: RecoveryRun } = {}
 
 local function isCurrentRun(player: Player, token: {}): boolean
-	return player.Parent == Players and activeRuns[player.UserId] == token
+	local run = activeRuns[player.UserId]
+	return player.Parent == Players and run ~= nil
+		and run.player == player and run.token == token
+		and IslandSessionService.canWrite(player.UserId, player)
 end
 
 local function waitForPlayerData(player: Player, token: {}): boolean
@@ -78,7 +84,7 @@ end
 
 local function recoverPlayer(player: Player)
 	local token = {}
-	activeRuns[player.UserId] = token
+	activeRuns[player.UserId] = { player = player, token = token }
 	if not waitForPlayerData(player, token) then
 		if isCurrentRun(player, token) then
 			warn("[PetKingdoms] Hatch recovery skipped: player data did not become ready", player.UserId)
@@ -115,7 +121,7 @@ local function recoverPlayer(player: Player)
 		end
 	end
 
-	if activeRuns[player.UserId] == token then
+	if isCurrentRun(player, token) then
 		activeRuns[player.UserId] = nil
 	end
 end
@@ -125,7 +131,10 @@ function PetHatchingRecoveryService.start()
 		task.spawn(recoverPlayer, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
-		activeRuns[player.UserId] = nil
+		local run = activeRuns[player.UserId]
+		if run ~= nil and run.player == player then
+			activeRuns[player.UserId] = nil
+		end
 	end)
 	for _, player in ipairs(Players:GetPlayers()) do
 		task.spawn(recoverPlayer, player)
