@@ -687,6 +687,9 @@ closeBuildButton.Activated:Connect(stopPlacing)
 playerGui:GetAttributeChangedSignal("PetKingdomsActiveModal"):Connect(function()
 	local owner = playerGui:GetAttribute("PetKingdomsActiveModal")
 	if owner ~= nil and owner ~= "building" and buildMenuOpen then
+		-- Do not destroy the preview while the server still owns an in-flight
+		-- request; the completion handler will close it safely afterwards.
+		if placementSubmitting then return end
 		placing = false
 		buildMenuOpen = false
 		movingInstanceId = nil
@@ -743,8 +746,12 @@ confirmButton.Activated:Connect(function()
 		})
 	end)
 	placementSubmitting = false
+	if playerGui:GetAttribute("PetKingdomsActiveModal") ~= "building" then
+		stopPlacing()
+		return
+	end
 	confirmButton.Active = true
-	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
+	confirmButton.Text = if requestedMovingId ~= nil then "СОХРАНИТЬ" else "ПОДТВЕРДИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
