@@ -125,4 +125,59 @@ assert(clonedResult ~= nil, tostring(clonedReason))
 clonedResult.stats.health = 999
 expect("result snapshot does not mutate species base definition", definition.baseStats.health == 100)
 
+
+local modifierList = {
+	{
+		id = "test_health_charm",
+		sourceType = "equipment",
+		sourceId = "health_charm",
+		stat = "health",
+		operation = "flat",
+		value = 10,
+	},
+}
+local function testModifierPolicy(currentStats, modifier)
+	local nextStats = table.clone(currentStats)
+	if modifier.stat == "health" then
+		nextStats.health += modifier.value
+	end
+	return nextStats
+end
+
+local integrated, integratedReason = PetStatsCalculator.calculateWithModifiers(
+	"sample-species",
+	definition,
+	3,
+	2,
+	identityResolver,
+	modifierList,
+	testModifierPolicy
+)
+expect("calculator integrates the modifier pipeline", integrated ~= nil and integratedReason == nil)
+expect("integrated result retains level and rarity", integrated ~= nil and integrated.level == 3 and integrated.rarityTier == 2)
+expect("integrated result contains modified stats", integrated ~= nil and integrated.stats.health == 110)
+expect("modifier integration leaves species definition unchanged", definition.baseStats.health == 100)
+
+local integratedNoPolicy, integratedNoPolicyReason = PetStatsCalculator.calculateWithModifiers(
+	"sample-species",
+	definition,
+	1,
+	1,
+	identityResolver,
+	modifierList,
+	nil
+)
+expect("non-empty modifiers require an application policy", integratedNoPolicy == nil and integratedNoPolicyReason == "BALANCE_RESOLUTION_FAILED")
+
+local integratedEmpty, integratedEmptyReason = PetStatsCalculator.calculateWithModifiers(
+	"sample-species",
+	definition,
+	1,
+	1,
+	identityResolver,
+	{},
+	nil
+)
+expect("empty modifiers do not require an application policy", integratedEmpty ~= nil and integratedEmptyReason == nil)
+
 print("[PetKingdoms Test] PetStatsCalculator smoke tests completed.")
