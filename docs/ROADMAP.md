@@ -313,3 +313,12 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add a Studio-only test asserting that recovery's readiness window exceeds the collection readiness window.
 - [ ] Run controlled Studio tests for delayed collection loading, rapid disconnect/rejoin, lease loss during CHARGED recovery and DataStore write acknowledgement loss.
 - [ ] Audit cross-store idempotency for CHARGED transactions older than the seven-day acquisition-receipt retention window; do not enable live paid eggs until this is resolved.
+
+
+### Hatch recovery retry during an active session
+
+- [x] Re-read the authoritative island hatch journal on each recovery attempt rather than replaying the first login snapshot.
+- [x] Retry unfinished PREPARED/CHARGED hatch transactions every 15 seconds while the same Player owns a writable island lease and the pet collection is ready.
+- [x] Stop retrying when no pending transactions remain, the Player leaves, the lease becomes non-writable, or collection readiness is lost.
+- [ ] Run Studio/MemoryStore/DataStore fault-injection covering transient save failures, disappearing lease, CHARGED journal recovery, and a blocked transaction that becomes resolvable without rejoining.
+- [ ] Reconcile acquisition receipt expiry with long-lived CHARGED hatch journals before enabling live egg purchase; the seven-day receipt window is not a permanent proof of grant.
