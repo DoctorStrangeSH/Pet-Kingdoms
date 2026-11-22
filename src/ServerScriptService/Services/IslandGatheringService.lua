@@ -11,7 +11,9 @@ local ResourceNodeVisibility = require(services:WaitForChild("ResourceNodeVisibi
 
 local IslandGatheringService = {}
 local MAX_DISTANCE = 18
-local activeNodes: { [Instance]: boolean } = {}
+-- Values are the cooldown deadline for scheduled nodes. -1 marks a gather
+-- transaction currently in progress and prevents a second reward grant.
+local activeNodes: { [Instance]: number } = {}
 
 local function getNode(prompt: ProximityPrompt): Model?
 	-- Only the server-created gather prompt on the invisible interaction anchor
@@ -31,26 +33,38 @@ end
 
 local setNodeVisible = ResourceNodeVisibility.setVisible
 
+local function ownerSessionWritable(node: Model): boolean
+	local ownerUserId = node:GetAttribute("OwnerUserId")
+	if type(ownerUserId) ~= "number" then return false end
+	local ownerPlayer = Players:GetPlayerByUserId(ownerUserId)
+	return ownerPlayer ~= nil and IslandSessionService.canWrite(ownerUserId, ownerPlayer)
+end
+
 local function scheduleRespawn(node: Model, availableAt: number)
-	activeNodes[node] = true
+	-- Duplicate reconciliation ticks must not create multiple timers for the
+	-- same node and cooldown revision.
+	if activeNodes[node] == availableAt then return end
+	activeNodes[node] = availableAt
 	local delaySeconds = math.max(0, availableAt - os.time())
 	task.delay(delaySeconds, function()
+		-- An older timer must not touch a node that was gathered again, refreshed,
+		-- or destroyed. It must not clear a newer timer's registration either.
+		if activeNodes[node] ~= availableAt then return end
 		if node.Parent == nil or node:GetAttribute("AvailableAt") ~= availableAt then
 			activeNodes[node] = nil
 			return
 		end
-		local ownerUserId = node:GetAttribute("OwnerUserId")
-		local ownerPlayer = if type(ownerUserId) == "number" then Players:GetPlayerByUserId(ownerUserId) else nil
-		if ownerPlayer == nil or not IslandSessionService.canWrite(ownerUserId, ownerPlayer) then
-			activeNodes[node] = nil
-			return
-		end
 		if os.time() < availableAt then
+			activeNodes[node] = nil
 			scheduleRespawn(node, availableAt)
 			return
 		end
-		setNodeVisible(node, true)
 		activeNodes[node] = nil
+		if ownerSessionWritable(node) then
+			setNodeVisible(node, true)
+		end
+		-- If the session is unavailable, leave the resource hidden; the periodic
+		-- reconciler will restore it once the owner session is writable again.
 	end)
 end
 
@@ -96,7 +110,7 @@ local function onPromptTriggered(prompt: ProximityPrompt, player: Player)
 		return
 	end
 
-	activeNodes[node] = true
+	activeNodes[node] = -1
 	local committed, code, availableAt = IslandSessionService.commitResourceGathering(
 		player.UserId,
 		player,
@@ -155,12 +169,17 @@ function IslandGatheringService.start()
 					local availableAt = child:GetAttribute("AvailableAt")
 					if type(availableAt) ~= "number" or availableAt <= 0 then continue end
 					if availableAt > os.time() then
-						if not activeNodes[child] then
+						if activeNodes[child] ~= availableAt and activeNodes[child] ~= -1 then
 							setNodeVisible(child, false)
 							scheduleRespawn(child, availableAt)
 						end
-					else
-						setNodeVisible(child, true)
+					elseif activeNodes[child] ~= -1 and ownerSessionWritable(child) then
+						-- The deadline passed. Only restore an actually hidden node;
+						-- repeated sweeps must not rebuild visibility each time.
+						local prompt = child:FindFirstChild("GatherPrompt", true)
+						if prompt and prompt:IsA("ProximityPrompt") and not prompt.Enabled then
+							setNodeVisible(child, true)
+						end
 						activeNodes[child] = nil
 					end
 				end
