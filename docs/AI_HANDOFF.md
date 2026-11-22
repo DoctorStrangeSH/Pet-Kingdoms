@@ -1030,3 +1030,17 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionService.acknowledgeExperienceReward`, a server-only DataStore-backed operation. It validates the current collection snapshot, updates through UpdateAsync retry, syncs the resulting revision, and is idempotent.
 - Added Studio data tests for unacknowledged receipts surviving beyond seven days, acknowledgement persistence, duplicate acknowledgement, expiry only after acknowledgement, and invalid acknowledgement timestamps.
 - Important: this is the pet-side safety primitive only. The island XP outbox and caller integration are NOT DONE, so no live quest reward claims are enabled.
+
+
+## Quest reward outbox foundation (2026-11-22)
+
+- Branch: feature/quest-reward-outbox-foundation.
+- Added QuestRewardOutboxData.lua, a pure data contract for permanent quest claim receipts and durable XP outbox records.
+- Claim receipts are keyed by quest ID and have no expiry/pruning path. Repeating the same claim is ALREADY_CLAIMED; attempting to replace its reward identity is rejected.
+- Outbox records carry stable rewardId, quest ID, exact pet ID, XP amount, progression configuration version, enqueue timestamp, and optional delivery timestamp.
+- Duplicate enqueue with the same payload is idempotent; a reused reward ID with different content fails closed. Pending entries are never evicted; the bounded ledger rejects new entries when full.
+- Island profiles now initialize questRewardClaims and questRewardOutbox. Validation accepts older schema-v1 profiles without these fields. IslandSessionService.cloneProfile deep-clones both ledgers before save.
+- Added QuestRewardOutboxDataTests.server.lua and extended IslandDataTests.server.lua.
+- These are data/persistence primitives only. There is still no quest claim transaction, client claim remote, XP delivery worker, or live reward configuration.
+- Do not invent reward amounts, XP progression version, or which pet receives quest XP. These decisions remain open in docs/PROJECT_SPEC.md and QUEST_REWARDS_TRANSACTION_DESIGN.md.
+- Next: inspect/implement the server-side durable claim transaction using an approved server-owned reward catalog; then add a recovery worker that delivers the exact stable reward ID, persists island delivery acknowledgement, and only then calls PetCollectionService.acknowledgeExperienceReward. Execute Studio/DataStore fault-injection tests before enabling claims.
