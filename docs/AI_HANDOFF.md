@@ -113,9 +113,9 @@ DataStore fencing contract: after MemoryStore lease acquisition, call `IslandSto
 - [x] Add DataStore-side fencing/session generation checked atomically in every profile write (Studio integration test committed; execution pending).
 - [ ] End-to-end building placement, charging, and persistence implemented.
 - [x] Original Bunny OBJ/MTL source committed: 15,332 vertices, 30,194 triangles, 13 named objects, 9 material groups. Rejected Creator Store candidate 92070521355583 is removed from runtime catalog.
-- [x] Blender 4.2+ rig/export script `assets/pets/bunny/build_bunny_rig.py` and `RIG_PIPELINE.md` committed. Script defines a 10-bone draft and Idle/Walk/Hop/Happy actions, but has NOT been executed; generated .blend/.fbx and visual rig review are pending.
+- [x] Blender 4.2+ rig/export script `assets/pets/bunny/build_bunny_rig.py` and `RIG_PIPELINE.md` committed and executed in Blender 4.2.0 CI. Generated `.blend`/`.fbx` pass structural round-trip validation with 10 bones and four keyed actions. Roblox Studio import reported only 7 Bones and Plastic-only material enum; owner rejected the visual result. Do not treat this Bunny as production art or enable it in the runtime catalog.
 - [ ] Import and review the original OBJ/MTL in Roblox Studio, publish to the experience, set the project-owned asset ID, and verify mesh appearance/follow/animations.
-- [ ] Production 3D assets, final pet rigs, animation clips, and gameplay systems implemented. Bunny rig factory is a procedural prototype only; Studio verification is pending.
+- [ ] Production 3D assets, final pet rigs, animation clips, and gameplay systems implemented. Current Bunny source/FBX is a rejected visual draft; procedural Part-based Bunny is a test blockout only. Neither is approved production art.
 
 Important: concept art generated in chat is visual reference only. It is not a production model or integrated game asset.
 
