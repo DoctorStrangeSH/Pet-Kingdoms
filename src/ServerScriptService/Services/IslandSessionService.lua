@@ -239,6 +239,11 @@ function IslandSessionService.commitIslandExpansion(
 		if not saved then task.wait(0.5) end
 	end
 
+	if resultCode == "ALREADY_APPLIED" then
+		session.buildingMutationBusy = false
+		return true, resultCode, targetRevision
+	end
+
 	local refreshed, refreshCode = IslandWorldService.refresh(userId, player, session.profile)
 	session.buildingMutationBusy = false
 	if not refreshed then
