@@ -60,7 +60,10 @@ function IslandResourceService.grant(userId: number, resourceId: string, amount:
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	resourceUpdate:FireClient(Players:GetPlayerByUserId(userId), snapshot(profile), resourceId, amount, code)
+	local player = Players:GetPlayerByUserId(userId)
+	if player then
+		resourceUpdate:FireClient(player, snapshot(profile), resourceId, amount, code)
+	end
 	return true, code, balance
 end
 
@@ -74,7 +77,10 @@ function IslandResourceService.spend(userId: number, costs: any): (boolean, stri
 		profile.resources = before
 		return false, "SESSION_NOT_WRITABLE", nil
 	end
-	resourceUpdate:FireClient(Players:GetPlayerByUserId(userId), snapshot(profile), nil, nil, code)
+	local player = Players:GetPlayerByUserId(userId)
+	if player then
+		resourceUpdate:FireClient(player, snapshot(profile), nil, nil, code)
+	end
 	return true, code, balances
 end
 
