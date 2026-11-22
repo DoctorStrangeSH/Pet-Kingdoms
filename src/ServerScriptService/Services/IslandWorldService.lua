@@ -113,6 +113,7 @@ local function refreshKingdomBondVisuals(world: Model, profile: any)
 	world:SetAttribute("KingdomBondStage", bond.stageId)
 	world:SetAttribute("KingdomBondStageName", bond.stageName)
 	world:SetAttribute("KingdomBondBuildingCount", bond.buildingCount)
+	world:SetAttribute("KingdomBondTotalBuildingCount", bond.totalBuildingCount)
 	world:SetAttribute("KingdomBondNextStagePoints", bond.nextStagePoints)
 
 	local grass = world:FindFirstChild("Island_GrassTop")
