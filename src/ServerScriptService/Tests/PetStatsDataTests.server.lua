@@ -84,6 +84,21 @@ local invalidStats = PetStatsData.clone(validSnapshot)
 invalidStats.stats = nil
 expect("missing stats table is rejected", not PetStatsData.validate(invalidStats))
 
+local extraStat = PetStatsData.clone(validSnapshot)
+extraStat.stats.mana = 10
+local extraStatValid, extraStatStatus = PetStatsData.validate(extraStat)
+expect("unknown stat key is rejected", not extraStatValid and extraStatStatus == "UNKNOWN_STAT_KEY")
+
+local numericStatKey = PetStatsData.clone(validSnapshot)
+numericStatKey.stats[1] = 10
+local numericStatValid, numericStatStatus = PetStatsData.validate(numericStatKey)
+expect("non-string stat key is rejected", not numericStatValid and numericStatStatus == "UNKNOWN_STAT_KEY")
+
+local missingStatCount = PetStatsData.clone(validSnapshot)
+missingStatCount.stats.criticalChance = nil
+local missingStatCountValid, missingStatCountStatus = PetStatsData.validate(missingStatCount)
+expect("incomplete stat count is rejected", not missingStatCountValid and missingStatCountStatus == "INVALID_STAT_COUNT")
+
 local clone = PetStatsData.clone(validSnapshot)
 clone.stats.health = 999
 expect("cloned stat snapshot does not mutate source", validSnapshot.stats.health == 0)
