@@ -75,6 +75,21 @@ expect("legacy pet progression defaults safely", normalizedProgression.owned[1].
 local wrongOwner, ownerStatus = PetCollectionData.validate(profile, 54321)
 expect("wrong owner rejected", not wrongOwner and ownerStatus == "OWNER_MISMATCH")
 
+local nilInteract, nilInteractStatus = PetCollectionData.interact(nil, "starter-bunny", "pet", 1000)
+expect("interaction rejects nil profile safely", not nilInteract and nilInteractStatus == "INVALID_PROFILE:PROFILE_NOT_TABLE")
+
+local malformedInteract, malformedInteractStatus = PetCollectionData.interact({ revision = 0 }, "starter-bunny", "pet", 1000)
+expect("interaction rejects malformed profile safely", not malformedInteract and string.sub(malformedInteractStatus, 1, 15) == "INVALID_PROFILE")
+
+local nilEquip, nilEquipStatus = PetCollectionData.setEquipped(nil, { "starter-bunny" })
+expect("equip rejects nil profile safely", not nilEquip and nilEquipStatus == "INVALID_PROFILE:PROFILE_NOT_TABLE")
+
+local malformedEquip, malformedEquipStatus = PetCollectionData.setEquipped({ revision = 0 }, { "starter-bunny" })
+expect("equip rejects malformed profile safely", not malformedEquip and string.sub(malformedEquipStatus, 1, 15) == "INVALID_PROFILE")
+
+local nilReward, nilRewardStatus = PetCollectionData.grantExperience(nil, "starter-bunny", 1)
+expect("XP reward rejects nil profile safely", not nilReward and nilRewardStatus == "INVALID_PROFILE:PROFILE_NOT_TABLE")
+
 local unsafePetXp = PetCollectionData.clone(profile)
 unsafePetXp.owned[1].xp = PetCollectionData.MAX_SAFE_INTEGER + 1
 local unsafePetXpValid = PetCollectionData.validate(unsafePetXp, 12345)
