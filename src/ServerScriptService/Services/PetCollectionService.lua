@@ -11,10 +11,12 @@ local sharedPets = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets")
 local PetCollectionData = require(sharedPets:WaitForChild("PetCollectionData"))
 local PetCollectionSessionData = require(sharedPets:WaitForChild("PetCollectionSessionData"))
 local PetAssetLoader = require(script.Parent:WaitForChild("PetAssetLoader"))
+local IslandSessionService = require(script.Parent:WaitForChild("IslandSessionService"))
 
 local PetCollectionService = {}
 local STORE_NAME = "PetKingdoms_PetCollections_v1"
 local MAX_ATTEMPTS = 4
+local ISLAND_READY_TIMEOUT_SECONDS = 120
 local store = DataStoreService:GetDataStore(STORE_NAME)
 
 type PlayerCollection = {
@@ -62,7 +64,8 @@ local function updateWithRetry(userId: number, transform: (any) -> any): (boolea
 				-- This guard runs inside the atomic DataStore callback, not merely
 				-- before the request. Older server generations cannot commit.
 				if originatingState ~= nil and not originatingState.loading then
-					if collections[userId] ~= originatingState
+					if not IslandSessionService.canWrite(userId, originatingState.player)
+						or collections[userId] ~= originatingState
 						or originatingState.player.Parent ~= Players
 						or not PetCollectionSessionData.owns(
 							current, originatingState.sessionGeneration, originatingState.sessionToken
@@ -128,7 +131,8 @@ local function spawnEquippedPets(player: Player)
 	local userId = player.UserId
 	local state = collections[userId]
 	local character = player.Character
-	if state == nil or state.player ~= player or state.loading or state.profile == nil or character == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) or character == nil then
 		return
 	end
 
@@ -184,6 +188,25 @@ local function loadPlayer(player: Player)
 	local ownedState: PlayerCollection = { profile = nil, loading = true, player = player }
 	collections[userId] = ownedState
 
+	-- The island session already owns the cross-server MemoryStore lease.
+	-- Do not claim the collection's DataStore writer generation until that
+	-- lease and the island DataStore generation have both been acquired.
+	local deadline = os.clock() + ISLAND_READY_TIMEOUT_SECONDS
+	while collections[userId] == ownedState and player.Parent == Players
+		and not IslandSessionService.canWrite(userId, player)
+		and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	if collections[userId] ~= ownedState or player.Parent ~= Players then
+		if collections[userId] == ownedState then collections[userId] = nil end
+		return
+	end
+	if not IslandSessionService.canWrite(userId, player) then
+		collections[userId] = nil
+		player:Kick("Не удалось открыть коллекцию питомцев. Пожалуйста, попробуйте позже.")
+		return
+	end
+
 	local observedOk, observed = observeCollection(userId)
 	if not observedOk then
 		if collections[userId] == ownedState then collections[userId] = nil end
@@ -202,7 +225,8 @@ local function loadPlayer(player: Player)
 	local claimToken = HttpService:GenerateGUID(false)
 	local claimStatus = "NOT_CLAIMED"
 	local ok, result = updateWithRetry(userId, function(current)
-		if collections[userId] ~= ownedState or player.Parent ~= Players then
+		if collections[userId] ~= ownedState or player.Parent ~= Players
+			or not IslandSessionService.canWrite(userId, player) then
 			claimStatus = "SESSION_CANCELLED"
 			return nil
 		end
@@ -240,6 +264,10 @@ local function loadPlayer(player: Player)
 	state.profile = result
 	state.sessionToken = claimToken
 	state.sessionGeneration = result.collectionSessionGeneration
+	if not IslandSessionService.canWrite(userId, player) then
+		collections[userId] = nil
+		return
+	end
 	state.loading = false
 	if characterConnections[userId] then
 		characterConnections[userId]:Disconnect()
@@ -265,7 +293,8 @@ function PetCollectionService.reservePetSlot(
 		return false, "INVALID_PLAYER"
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY"
 	end
 	local processedAt = os.time()
@@ -307,11 +336,13 @@ function PetCollectionService.isReady(player: Player): boolean
 	end
 	local state = collections[player.UserId]
 	return state ~= nil and state.player == player and not state.loading and state.profile ~= nil
+		and IslandSessionService.canWrite(player.UserId, player)
 end
 
 local function handleRequest(player: Player, action: any, payload: any): (boolean, any)
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY"
 	end
 
@@ -519,7 +550,8 @@ function PetCollectionService.grantExperience(player: Player, petId: string, amo
 		return false, "INVALID_PLAYER"
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY"
 	end
 
@@ -570,7 +602,8 @@ function PetCollectionService.grantExperienceWithProgress(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
@@ -625,7 +658,8 @@ function PetCollectionService.grantExperienceWithProgressOnce(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
@@ -704,7 +738,8 @@ function PetCollectionService.grantPet(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.player ~= player or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
