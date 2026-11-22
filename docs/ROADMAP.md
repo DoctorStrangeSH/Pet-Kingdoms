@@ -576,3 +576,15 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Implement source-specific reward validation and durable event/outbox integration after each source's gameplay event model exists.
 - [ ] Approve reward amounts, progression curve, and pet recipient policy before enabling live XP issuance.
 - [ ] Execute the new API boundary test in Roblox Studio.
+
+
+### Pet interaction hardening (2026-11-22)
+
+- [x] Harden server interaction request validation: bounded safe pet IDs and finite non-negative safe-integer expected revisions.
+- [x] Harden the pure interaction mutation with the same pet ID contract.
+- [x] Test that interaction grants Bond XP but never pet progression XP.
+- [x] Test exact cooldown boundary, rapid repeat rejection, and clock rollback rejection.
+- [x] Test that an interaction mutates only the selected pet in a multi-pet collection.
+- [x] Keep unsupported `feed` requests rejected until food inventory and cost rules are specified.
+- [ ] Design species personality/preferences only after the approved pet roster and behavior matrix are finalized.
+- [ ] Execute interaction tests and RemoteFunction/DataStore behavior in Roblox Studio.
