@@ -123,6 +123,7 @@
 - [ ] Implement companion states and mobile-safe movement.
   - [x] Reuse one per-companion RaycastParams instance for ground projection instead of allocating a new filter object every RenderStepped update; mobile/terrain verification pending.
 - [ ] Implement actual pet levels (maximum 50), gameplay XP, core stats, skill tree, abilities, equipment, and Bond. Bond is a separate relationship progression; the current Bond prototype is not the pet-level system.
+  - [x] Add a pure PetStatsData schema for the five approved stats, level 1–50, and six neutral rarity-tier identifiers. Validation only; no base values, rarity names, scaling formulas, modifiers, or combat behavior are defined.
   - [x] Add a trusted server-only `PetCollectionService.grantExperience(player, petId, amount)` API backed by DataStore UpdateAsync and a pure validated `PetCollectionData.grantExperience` mutation. It rejects invalid amounts and unowned pets. It is not exposed to clients; no XP reward amounts, level thresholds, or gameplay source callers are defined yet.
   - [x] Bound pet XP, timestamps, acquisition times, and collection revisions to Luau's maximum safe integer; reject XP rewards and collection mutations that would exceed exact integer precision.
   - [x] Validate the complete collection profile at the start of every pure mutation (Interact, Equip, XP reward), returning a structured error for nil or malformed input instead of indexing invalid data; Studio tests added.
