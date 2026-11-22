@@ -71,6 +71,10 @@
 - [x] Add pure Studio contract tests for resource validation, grants, and atomic spending (execution pending).
 - [x] Spawn two Wood and two Stone gathering nodes on each personal island using server-owned reward values.
 - [x] Add server-authoritative ProximityPrompt gathering with ownership/distance checks, duplicate-trigger protection, wallet grant, and 60-second node respawn (Studio verification pending).
+- [x] Persist each canonical Wood/Stone node's last-gathered and available-at timestamps in the island profile; grant its wallet reward and set the 60-second cooldown in one profile revision, waiting for DataStore durability before acknowledging the reward.
+- [x] Restore depleted node visuals/prompts from saved timestamps on island load; offline time counts toward regeneration and expired nodes return without an extra reward.
+- [x] Migrate legacy schema-v1 profiles to an empty resource-node state list; validate node IDs, resource mapping, unique records, timestamp order, and the server-owned cooldown duration.
+- [x] Add Studio contract tests for independent node cooldowns, duplicate collection prevention, cooldown expiry, invalid node/resource state, profile validation, legacy migration, and DataStore save/load persistence (execution pending).
 - [x] Require the exact current writable Player session for gathering prompts and client wallet snapshot requests.
 - [x] Add client resource HUD for Wood/Stone/Gold/Gems with server snapshot bootstrap, authoritative update event, and gathering reward toast (Studio/device verification pending).
 - [ ] Add gathering feedback animation and final polished art treatment.
