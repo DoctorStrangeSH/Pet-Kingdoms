@@ -4,7 +4,10 @@ local PetCollectionData = {}
 
 PetCollectionData.SCHEMA_VERSION = 1
 PetCollectionData.MAX_OWNED_PETS = 100
-PetCollectionData.MAX_EQUIPPED_PETS = 3
+PetCollectionData.MAX_EQUIPPED_PETS = 3,
+	MAX_BOND_LEVEL = 10,
+	BOND_XP_PER_INTERACTION = 10,
+	BOND_INTERACTION_COOLDOWN_SECONDS = 30
 
 local VALID_SPECIES: { [string]: boolean } = {
 	bunny = true,
@@ -32,6 +35,9 @@ function PetCollectionData.createDefault(userId: number): any?
 				petId = "starter-bunny",
 				speciesId = "bunny",
 				acquiredAt = 0,
+				bondXp = 0,
+				bondLevel = 1,
+				lastInteractionAt = 0,
 			},
 		},
 		equipped = { "starter-bunny" },
@@ -76,6 +82,9 @@ function PetCollectionData.validate(profile: any, expectedUserId: number): (bool
 			or record.acquiredAt < 0
 			or record.acquiredAt ~= record.acquiredAt
 			or record.acquiredAt == math.huge
+			or (record.bondXp ~= nil and (type(record.bondXp) ~= "number" or record.bondXp < 0 or record.bondXp ~= record.bondXp or record.bondXp == math.huge))
+			or (record.bondLevel ~= nil and (type(record.bondLevel) ~= "number" or record.bondLevel < 1 or record.bondLevel > PetCollectionData.MAX_BOND_LEVEL or record.bondLevel ~= math.floor(record.bondLevel)))
+			or (record.lastInteractionAt ~= nil and (type(record.lastInteractionAt) ~= "number" or record.lastInteractionAt < 0 or record.lastInteractionAt ~= record.lastInteractionAt or record.lastInteractionAt == math.huge))
 		then
 			return false, "INVALID_OWNED_RECORD"
 		end
@@ -115,9 +124,45 @@ function PetCollectionData.clone(profile: any): any
 		equipped = table.clone(profile.equipped),
 	}
 	for index, record in ipairs(profile.owned) do
-		copy.owned[index] = table.clone(record)
+		local clonedRecord = table.clone(record)
+		clonedRecord.bondXp = clonedRecord.bondXp or 0
+		clonedRecord.bondLevel = clonedRecord.bondLevel or 1
+		clonedRecord.lastInteractionAt = clonedRecord.lastInteractionAt or 0
+		copy.owned[index] = clonedRecord
 	end
 	return copy
+end
+
+function PetCollectionData.interact(profile: any, petId: string, interactionType: string, now: number): (boolean, string, any?)
+	if type(petId) ~= "string" or petId == "" then
+		return false, "INVALID_PET_ID", nil
+	end
+	if interactionType ~= "pet" and interactionType ~= "play" then
+		return false, "INVALID_INTERACTION", nil
+	end
+	if type(now) ~= "number" or now < 0 or now ~= now or now == math.huge then
+		return false, "INVALID_TIMESTAMP", nil
+	end
+	local updated = PetCollectionData.clone(profile)
+	local selected = nil
+	for _, record in ipairs(updated.owned) do
+		if record.petId == petId then selected = record break end
+	end
+	if selected == nil then
+		return false, "PET_NOT_OWNED", nil
+	end
+	local lastInteractionAt = selected.lastInteractionAt or 0
+	if now - lastInteractionAt < PetCollectionData.BOND_INTERACTION_COOLDOWN_SECONDS then
+		return false, "INTERACTION_COOLDOWN", nil
+	end
+	selected.bondXp = (selected.bondXp or 0) + PetCollectionData.BOND_XP_PER_INTERACTION
+	selected.bondLevel = math.min(
+		PetCollectionData.MAX_BOND_LEVEL,
+		1 + math.floor(selected.bondXp / 50)
+	)
+	selected.lastInteractionAt = now
+	updated.revision += 1
+	return true, "UPDATED", updated
 end
 
 function PetCollectionData.setEquipped(profile: any, petIds: { string }): (boolean, string, any?)
