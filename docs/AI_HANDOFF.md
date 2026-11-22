@@ -557,3 +557,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Collection `isReady` and equipped pet spawning also require an active writable island session, so hatch recovery will not proceed on a stale island lease.
 - Fixed a pre-existing Luau lexical forward-reference issue in `IslandSessionService.applyHatchOperation`: `saveSession` is now forward-declared as a local typed function and assigned later. Without this, the transaction persistence loop could attempt to call a missing global.
 - Scope: this is code-level verification only; Roblox Studio/MemoryStore integration and failure injection remain NOT DONE. Neither two DataStores nor the lease can form one atomic cross-store transaction; journal-based recovery and idempotent acquisition receipts remain necessary.
+
+
+## Hatch recovery readiness and reconnect hardening (2026-11-22)
+
+- Previous mismatch: PetCollectionService can wait 120 seconds for the island lease, while hatch recovery gave up after 45 seconds. This could silently defer recovery until the next login even during an otherwise valid delayed load. Recovery now waits up to 150 seconds; shared constants and a Studio-only test enforce the ordering.
+- Recovery runs are scoped to (Player instance, run token) instead of comparing only a UserId-keyed token. A late PlayerRemoving from a previous instance cannot clear a new recovery run.
+- The readiness polling loop only checks run identity before testing live island lease and collection readiness, so it correctly waits for an island that does not yet exist. Each pending operation checks run identity, island write authority and collection readiness again.
+- All changes are source-verified and committed to main. Roblox Studio tests and multi-server failure injection remain NOT DONE.
+- Important unresolved issue: acquisition receipts are retained for seven days, whereas unfinished CHARGED hatch journals can persist longer. A grant succeeded just before an acknowledgement failure can become indistinguishable from a never-granted transaction once its acquisition receipt expires. Live paid hatching remains blocked until an unambiguous long-lived completion/deduplication strategy is implemented.
