@@ -10,8 +10,10 @@
 - [x] Add the initial Rojo project mapping and source folder structure.
 - [x] Add server and client bootstrap entrypoints.
 - [x] Document the local build/live-sync workflow.
-- [ ] Run a real Rojo build and record the result.
-- [ ] Add CI checks appropriate to the chosen workflow.
+- [x] Pin Rojo 7.7.1 in `rokit.toml` for reproducible local and CI builds.
+- [x] Add GitHub Actions CI for the full Rojo project build and upload a Studio-ready `.rbxlx` artifact (14-day retention).
+- [x] Run and verify a real CI Rojo build: workflow run `45021287072` succeeded on 2026-11-22; artifact `pet-kingdoms-studio-build` was uploaded.
+- [ ] Open the generated place in Roblox Studio and verify the runtime hierarchy, Workspace island bounds, scripts, and playtest behavior.
 
 ## Stage 1 — Pet Art Pipeline
 
@@ -359,3 +361,11 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Keep transaction-owned wallet changes inside their existing atomic profile operations; generic wallet helpers cannot interleave while those operations wait for DataStore durability.
 - [ ] Add an executable Studio service-level regression harness for busy-session rejection and exact-Player identity, then run it in Roblox Studio.
 - [ ] Run the complete Studio suite and multi-server DataStore/MemoryStore fault-injection scenarios before treating the persistence layer as accepted.
+
+
+### Temporary Creator Store assets for prototype testing (2026-11-22)
+
+- [x] Owner approved free Creator Store/Toolbox assets as temporary placeholders so the playable prototype can be tested before original art is complete.
+- [x] Update PROJECT_SPEC.md, ART_BIBLE.md, README.md, and ASSET_TRACKER.md to distinguish temporary test assets from approved production assets.
+- [x] Require exact source/creator/provenance records, license/attribution review, script audit, mobile/performance review, isolation from gameplay authority, and a documented replacement target.
+- [ ] Select and review the first free environment kit in Roblox Studio; no third-party candidate is imported or approved yet.
