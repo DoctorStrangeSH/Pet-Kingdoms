@@ -355,7 +355,9 @@ local function updateDetail()
 	petDescription.Text = "Твой верный спутник. Впереди ждёт много приключений!"
 	local bondLevel = selected.bondLevel or 1
 	local bondXp = selected.bondXp or 0
-	bondLabel.Text = string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
+	bondLabel.Text = if bondLevel >= 10
+		then string.format("ДРУЖБА • УРОВЕНЬ %d  •  МАКСИМУМ", bondLevel)
+		else string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
 	local equipped = isEquipped(selected.petId)
 	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
 	equipButton.BackgroundColor3 = if equipped then COLORS.rose else COLORS.mint
