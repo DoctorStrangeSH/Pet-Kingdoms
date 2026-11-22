@@ -472,6 +472,7 @@ local function loadPlayer(player: Player)
 		setPlayerLoadState(player, "Loading", "Создаём твоё королевство...")
 		local width, depth = getConfiguredBounds()
 		if width == nil or depth == nil then
+			setPlayerLoadState(player, "Failed", "Не настроены размеры стартового острова.")
 			loading[userId] = nil
 			releaseLoadingLease()
 			warn("[PetKingdoms] IslandGridWidth/IslandGridDepth Workspace attributes are missing; refusing to create an island profile.")
@@ -481,6 +482,7 @@ local function loadPlayer(player: Player)
 
 		profile = IslandData.create(userId, width, depth)
 		if profile == nil then
+			setPlayerLoadState(player, "Failed", "Не удалось создать профиль острова.")
 			loading[userId] = nil
 			releaseLoadingLease()
 			player:Kick("Не удалось создать остров. Пожалуйста, попробуйте позже.")
