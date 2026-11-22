@@ -1,6 +1,11 @@
 --!strict
 -- Server startup and player island profile lifecycle.
 
+local Players = game:GetService("Players")
+-- Do not spawn characters into an empty default Workspace while profile/DataStore
+-- loading is in progress. IslandSessionService loads the character after the island exists.
+Players.CharacterAutoLoads = false
+
 local services = script.Parent:WaitForChild("Services")
 local IslandWorldConfig = require(services:WaitForChild("IslandWorldConfig"))
 local IslandSessionService = require(services:WaitForChild("IslandSessionService"))
