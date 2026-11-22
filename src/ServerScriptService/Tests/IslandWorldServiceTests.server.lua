@@ -67,7 +67,6 @@ local ok, failure = pcall(function()
 
 	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
-	table.remove(spawnedUsers, table.find(spawnedUsers, firstUserId))
 
 	local thirdOk, thirdCode = IslandWorldService.spawn({ UserId = thirdUserId } :: any, profileFor(thirdUserId))
 	assert(thirdOk and thirdCode == "SPAWNED", "released spawn slot must be reusable")
