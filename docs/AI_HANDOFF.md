@@ -354,3 +354,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The base stat resolver and modifier arithmetic remain caller-supplied. No percentage interpretation, stacking rule, progression curve, or balance value is defined here.
 - Added calculator tests for a successful integrated result, retained level/rarity, modified output, source immutability, missing policy, and empty-list behavior. Tests are committed but not executed in Roblox Studio.
 - The calculator currently returns the existing generic resolver failure reason if an injected resolver or modifier policy throws. More granular structured errors can be added when the public error contract is finalized.
+
+
+## Pet progression threshold resolver foundation (2026-11-22)
+
+- Added `ReplicatedStorage/Shared/Pets/PetProgressionData.lua`.
+- The module validates an exact 50-entry cumulative-XP threshold array: level 1 must start at 0; thresholds must be safe non-negative integers and strictly increasing; sparse, extra-key, incomplete, fractional, NaN, and infinite entries are rejected.
+- `getProgress(totalXp, thresholds)` validates total XP and resolves the current level with binary search, plus XP within the level, next cumulative threshold, amount required for the next level, normalized progress, and max-level state.
+- The threshold table is injected. The tests use a clearly synthetic 100-XP-per-level table solely to verify boundary behavior; this is not approved game balance and must not be reused as production configuration.
+- Added Studio-only tests for level 1, below/exact/midway thresholds, level 50, malformed threshold tables, and invalid XP. Tests are committed but not executed in Roblox Studio.
+- This module does not mutate collection records, award XP, save data, or emit level-up events. Existing trusted `PetCollectionService.grantExperience` continues to store XP without changing pet level until the real XP curve is approved.
