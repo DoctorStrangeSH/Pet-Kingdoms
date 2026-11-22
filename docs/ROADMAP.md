@@ -386,3 +386,9 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Update PROJECT_SPEC.md, ART_BIBLE.md, README.md, and ASSET_TRACKER.md to distinguish temporary test assets from approved production assets.
 - [x] Require exact source/creator/provenance records, license/attribution review, script audit, mobile/performance review, isolation from gameplay authority, and a documented replacement target.
 - [ ] Select and review the first free environment kit in Roblox Studio; no third-party candidate is imported or approved yet.
+
+
+### Companion environment awareness
+
+- [x] Add cosmetic Bunny curiosity/sniff reactions when an available, visible wood/stone node on the owner's island is nearby; movement and player-triggered interaction retain higher priority (Studio verification pending).
+- [ ] Expand ambient reactions to approved points of interest after the first world biome exists.
