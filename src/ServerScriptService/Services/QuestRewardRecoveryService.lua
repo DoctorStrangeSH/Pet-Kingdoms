@@ -25,14 +25,18 @@ local function isCurrentRun(player: Player, token: {}): boolean
 end
 
 local function waitForPlayerData(player: Player, token: {}): boolean
-	local deadline = os.clock() + READY_TIMEOUT_SECONDS
-	while os.clock() < deadline do
-		if not isCurrentRun(player, token) then return false end
+	local startedAt = os.clock()
+	local warned = false
+	while isCurrentRun(player, token) do
 		if IslandSessionService.canWrite(player.UserId, player)
 			and IslandSessionService.getProfile(player.UserId) ~= nil
 			and PetCollectionService.isReady(player)
 		then
 			return true
+		end
+		if not warned and os.clock() - startedAt >= READY_TIMEOUT_SECONDS then
+			warned = true
+			warnOnce(player, "readiness", "player data is still loading; recovery will keep waiting")
 		end
 		task.wait(READY_POLL_SECONDS)
 	end
@@ -128,15 +132,15 @@ local function deliverPendingReward(player: Player, record: any): (boolean, stri
 end
 
 local function processPlayer(player: Player)
+	local existing = activeRuns[player.UserId]
+	if existing ~= nil and existing.player == player then return end
 	local token = {}
 	activeRuns[player.UserId] = { player = player, token = token }
 	if not waitForPlayerData(player, token) then
-		if isCurrentRun(player, token) then
-			warnOnce(player, "readiness", "player data did not become ready within the recovery window")
-			activeRuns[player.UserId] = nil
-		end
+		if isCurrentRun(player, token) then activeRuns[player.UserId] = nil end
 		return
 	end
+	clearWarning(player, "readiness")
 
 	while isPlayerReady(player, token) do
 		local pending = IslandSessionService.getPendingQuestRewards(player.UserId)
