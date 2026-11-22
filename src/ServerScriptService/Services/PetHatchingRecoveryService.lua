@@ -21,14 +21,14 @@ local function isCurrentRun(player: Player, token: {}): boolean
 	local run = activeRuns[player.UserId]
 	return player.Parent == Players and run ~= nil
 		and run.player == player and run.token == token
-		and IslandSessionService.canWrite(player.UserId, player)
 end
 
 local function waitForPlayerData(player: Player, token: {}): boolean
 	local deadline = os.clock() + READY_TIMEOUT_SECONDS
 	while os.clock() < deadline do
 		if not isCurrentRun(player, token) then return false end
-		if IslandSessionService.getProfile(player.UserId) ~= nil
+		if IslandSessionService.canWrite(player.UserId, player)
+			and IslandSessionService.getProfile(player.UserId) ~= nil
 			and PetCollectionService.isReady(player)
 		then
 			return true
@@ -95,7 +95,7 @@ local function recoverPlayer(player: Player)
 
 	local profile = IslandSessionService.getProfile(player.UserId)
 	if profile == nil then
-		activeRuns[player.UserId] = nil
+		if isCurrentRun(player, token) then activeRuns[player.UserId] = nil end
 		return
 	end
 
@@ -110,7 +110,10 @@ local function recoverPlayer(player: Player)
 	end
 
 	for _, record in ipairs(pending) do
-		if not isCurrentRun(player, token) then break end
+		if not isCurrentRun(player, token)
+			or not IslandSessionService.canWrite(player.UserId, player)
+			or not PetCollectionService.isReady(player)
+		then break end
 		local ok, status = recoverTransaction(player, record)
 		if ok then
 			print("[PetKingdoms] Hatch transaction recovered", player.UserId, record.transactionId, status)
