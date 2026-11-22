@@ -104,10 +104,15 @@ local function validateOutboxRecord(record: any): (boolean, string)
 		or record.deliveredAt < record.createdAt) then
 		return false, "INVALID_DELIVERY_TIMESTAMP"
 	end
+	if record.acknowledgedAt ~= nil and (record.deliveredAt == nil
+		or not isValidTimestamp(record.acknowledgedAt)
+		or record.acknowledgedAt < record.deliveredAt) then
+		return false, "INVALID_ACKNOWLEDGEMENT_TIMESTAMP"
+	end
 	for key in pairs(record) do
 		if key ~= "rewardId" and key ~= "questId" and key ~= "petId"
 			and key ~= "amount" and key ~= "progressionVersion"
-			and key ~= "createdAt" and key ~= "deliveredAt" then
+			and key ~= "createdAt" and key ~= "deliveredAt" and key ~= "acknowledgedAt" then
 			return false, "INVALID_OUTBOX_RECORD"
 		end
 	end
@@ -188,12 +193,50 @@ function QuestRewardOutboxData.markDelivered(
 	return nil, "REWARD_NOT_FOUND"
 end
 
+function QuestRewardOutboxData.markAcknowledged(
+	outbox: any,
+	rewardId: string,
+	acknowledgedAt: number
+): (any?, string)
+	local valid, reason = QuestRewardOutboxData.validateOutbox(outbox)
+	if not valid then return nil, reason end
+	if not isNonEmptyString(rewardId, QuestRewardOutboxData.MAX_REWARD_ID_LENGTH)
+		or not isValidTimestamp(acknowledgedAt) then
+		return nil, "INVALID_ACKNOWLEDGEMENT"
+	end
+	local nextOutbox = table.clone(outbox)
+	for index, record in ipairs(outbox) do
+		if record.rewardId == rewardId then
+			if record.deliveredAt == nil then return nil, "NOT_DELIVERED" end
+			if record.acknowledgedAt ~= nil then return nil, "ALREADY_ACKNOWLEDGED" end
+			if acknowledgedAt < record.deliveredAt then return nil, "INVALID_ACKNOWLEDGEMENT_TIMESTAMP" end
+			local updated = table.clone(record)
+			updated.acknowledgedAt = acknowledgedAt
+			nextOutbox[index] = updated
+			return nextOutbox, "ACKNOWLEDGED"
+		end
+	end
+	return nil, "REWARD_NOT_FOUND"
+end
+
 function QuestRewardOutboxData.listPending(outbox: any): { any }
 	local valid = QuestRewardOutboxData.validateOutbox(outbox)
 	if not valid then return {} end
 	local pending = {}
 	for _, record in ipairs(outbox) do
 		if record.deliveredAt == nil then table.insert(pending, table.clone(record)) end
+	end
+	return pending
+end
+
+function QuestRewardOutboxData.listAwaitingAcknowledgement(outbox: any): { any }
+	local valid = QuestRewardOutboxData.validateOutbox(outbox)
+	if not valid then return {} end
+	local pending = {}
+	for _, record in ipairs(outbox) do
+		if record.deliveredAt ~= nil and record.acknowledgedAt == nil then
+			table.insert(pending, table.clone(record))
+		end
 	end
 	return pending
 end
