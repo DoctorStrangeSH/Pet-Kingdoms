@@ -88,6 +88,10 @@ function IslandSessionService.applyHatchOperation(
 	local nextProfile: any = nil
 	local status: string
 	if operation == "PREPARE" then
+		if type(record) ~= "table" or record.transactionId ~= transactionId then
+			session.hatchMutationBusy = false
+			return false, "TRANSACTION_ID_MISMATCH"
+		end
 		nextProfile, status = IslandHatchLedgerData.prepare(session.profile, record, os.time())
 	elseif operation == "CHARGE" then
 		nextProfile, status = IslandHatchLedgerData.charge(session.profile, transactionId)
