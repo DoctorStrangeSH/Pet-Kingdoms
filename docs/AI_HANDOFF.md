@@ -947,3 +947,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Four neon edge ribbons pulse/fade over the newly added perimeter; a particle burst uses a transient attachment contained in the effect folder. Debris removes the entire effect folder after 3.5 seconds.
 - The effect is visual only: no terrain/profile mutation, collision, touch, query, or saved state. If refresh generation fails, no effect is emitted.
 - Added a Studio integration assertion that a successful size increase creates the transient effect and particle emitter. Roblox Studio visual verification remains pending.
+
+
+## Expansion retry side-effect fix (2026-11-22)
+
+- Fixed commitIslandExpansion so an `ALREADY_APPLIED` retry returns after confirming the durable revision and releases the mutation lock without calling IslandWorldService.refresh again.
+- A lost acknowledgement retry therefore cannot regenerate the active world or replay the expansion completion effect. Only the first successful transition performs the world refresh.
+- Expansion pricing remains deliberately undefined because the project economy specification does not approve costs/rates yet. No prices were invented and purchase remains disabled.
