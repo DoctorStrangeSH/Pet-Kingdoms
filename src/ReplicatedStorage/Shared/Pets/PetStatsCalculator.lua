@@ -6,6 +6,7 @@ local PetStatsCalculator = {}
 local PetStatsData = require(script.Parent:WaitForChild("PetStatsData"))
 local PetSpeciesStatsData = require(script.Parent:WaitForChild("PetSpeciesStatsData"))
 local PetStatModifierPipeline = require(script.Parent:WaitForChild("PetStatModifierPipeline"))
+local PetStatModifiersData = require(script.Parent:WaitForChild("PetStatModifiersData"))
 
 function PetStatsCalculator.calculate(
 	speciesId: any,
@@ -90,6 +91,14 @@ function PetStatsCalculator.calculateWithModifiers(
 ): (any?, string?)
 	if type(resolveStats) ~= "function" then
 		return nil, "MISSING_BALANCE_RESOLVER"
+	end
+
+	local validModifiers, modifierReason = PetStatModifiersData.validateList(modifiers)
+	if not validModifiers then
+		return nil, "INVALID_MODIFIERS:" .. modifierReason
+	end
+	if #modifiers > 0 and type(applyModifier) ~= "function" then
+		return nil, "MISSING_MODIFIER_POLICY"
 	end
 
 	local function resolveWithModifiers(baseStats, requestedLevel, requestedRarity)
