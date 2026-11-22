@@ -804,6 +804,60 @@ function PetCollectionService.grantPet(
 	return true, "UPDATED", cloneForClient(state.profile)
 end
 
+-- Trusted server-only acknowledgement from the durable source outbox.
+-- This is the only operation that starts the retention clock for an XP receipt.
+function PetCollectionService.acknowledgeExperienceReward(
+	player: Player,
+	rewardId: string
+): (boolean, string)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then
+		return false, "INVALID_PLAYER"
+	end
+	local state = collections[player.UserId]
+	if state == nil or state.player ~= player or state.loading or state.profile == nil
+		or not IslandSessionService.canWrite(player.UserId, player) then
+		return false, "COLLECTION_NOT_READY"
+	end
+	if IslandSessionService.isProfileMutationBusy(player.UserId) then
+		return false, "ISLAND_PROFILE_BUSY"
+	end
+
+	local mutationStatus = "NOT_UPDATED"
+	local now = os.time()
+	local ok, result = updateWithRetry(player.UserId, function(current)
+		if type(current) ~= "table" then
+			mutationStatus = "PROFILE_MISSING"
+			return current
+		end
+		local valid, reason = PetCollectionData.validate(current, player.UserId)
+		if not valid then
+			mutationStatus = "INVALID_SAVED_PROFILE:" .. reason
+			return current
+		end
+		local changed, status, nextProfile =
+			PetCollectionData.acknowledgeExperienceReward(current, rewardId, now)
+		mutationStatus = status
+		if changed then return nextProfile end
+		return current
+	end)
+	if not ok then return false, "DATASTORE_UNAVAILABLE" end
+	if mutationStatus == "ALREADY_ACKNOWLEDGED" then
+		if type(result) == "table" then syncProfileIfNewer(state, result) end
+		return true, mutationStatus
+	end
+	if mutationStatus ~= "ACKNOWLEDGED" or type(result) ~= "table" then
+		return false, mutationStatus
+	end
+	local valid, reason = PetCollectionData.validate(result, player.UserId)
+	if not valid then
+		warn("[PetKingdoms] XP receipt acknowledgement result invalid:", player.UserId, reason)
+		return false, "INVALID_SAVE_RESULT"
+	end
+	syncProfileIfNewer(state, result)
+	return true, "ACKNOWLEDGED"
+end
+
+
 -- Called only after the corresponding island hatch journal is durably GRANTED.
 -- The receipt remains permanent while the transaction is PREPARED/CHARGED;
 -- after this acknowledgement it may be compacted after the journal retention window.
