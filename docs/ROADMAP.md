@@ -66,6 +66,8 @@
 - [x] Add persistent resource wallet to island profiles (provisional starter: 2 Wood, 1 Stone; Gold/Gems start at 0).
 - [x] Add backward-compatible migration for existing schema-v1 profiles without a wallet during session claim.
 - [x] Add server-only atomic resource grant/spend API with rollback when a session is not writable.
+- [x] Centralize atomic multi-resource grants; reject empty reward/spend transactions and validate every reward/cap before changing any wallet balance.
+- [x] Align saved island wallet validation with the live wallet's resource IDs and 2,000,000,000 balance cap; add an over-cap profile regression test.
 - [x] Add pure Studio contract tests for resource validation, grants, and atomic spending (execution pending).
 - [x] Spawn two Wood and two Stone gathering nodes on each personal island using server-owned reward values.
 - [x] Add server-authoritative ProximityPrompt gathering with ownership/distance checks, duplicate-trigger protection, wallet grant, and 60-second node respawn (Studio verification pending).
@@ -87,9 +89,11 @@
 - [x] Expand the starter decor catalogue with flower_bed and wooden_fence blockout models, selection cards, and the shared placement/move/demolition flow (Studio verification pending).
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
-- [x] Add server-authoritative placement/move/demolition transaction endpoint with idempotency and world/profile rollback (Studio integration verification pending).
+- [x] Add server-authoritative placement/move/demolition transaction endpoint with recent request deduplication and world/profile rollback (Studio integration verification pending).
+- [x] Require the exact current Player instance and writable island lease before building mutations.
+- [ ] Persist building request receipts so a retry after cache eviction, server restart, or cross-server reconnect cannot repeat a successful purchase.
   - [x] Add per-player token-bucket rate limiting to the building RemoteFunction (12-request burst, refill 4/sec; Studio spam test pending).
-- [x] Add server transaction handling for new placement resource charging from server-owned provisional catalog prices; move remains free; rollback refund is atomic across resource types (Studio transaction/failure-injection verification pending).
+- [x] Add server transaction handling for new placement resource charging from server-owned provisional catalog prices; move remains free; wallet cost and building record now share one profile revision and restore the original wallet on rollback (Studio transaction/failure-injection verification pending).
 - [x] Show provisional resource costs in the client construction catalogue and localize insufficient-resource/placement errors.
 - [x] Add Studio catalog economy contract tests for resource IDs and positive integer prices (execution pending).
 - [ ] Add durable transaction journal for crash-safe charge/placement recovery.
