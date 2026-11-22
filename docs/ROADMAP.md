@@ -14,6 +14,9 @@
 - [x] Add GitHub Actions CI for the full Rojo project build and upload a Studio-ready `.rbxlx` artifact (14-day retention).
 - [x] Run and verify a real CI Rojo build: workflow run `45021287072` succeeded on 2026-11-22; artifact `pet-kingdoms-studio-build` was uploaded.
 - [ ] Open the generated place in Roblox Studio and verify the runtime hierarchy, Workspace island bounds, scripts, and playtest behavior.
+- [x] Add an idempotent server startup configuration for provisional 24×24 islands, 8-stud grid cells, and eight generated spawn slots; preserve valid owner-authored Workspace configuration.
+- [x] Add Studio-only configuration contract coverage for defaults, spawn-slot count, and repeated initialization.
+- [ ] Execute the configuration and two-player island spawn tests in Roblox Studio.
 
 ## Stage 1 — Pet Art Pipeline
 
