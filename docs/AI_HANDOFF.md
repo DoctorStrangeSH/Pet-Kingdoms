@@ -504,7 +504,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 
 - Critical issue found: `reservePetSlotOnce` previously reserved a collection slot but not an acquisition-receipt ledger slot. Since `addPetOnce` could later fail with `ACQUISITION_LEDGER_FULL`, a hatch could be charged while its pet grant became impossible if other acquisitions filled the bounded ledger in between.
 - Fixed by counting retained acquisition receipts plus all pending reservations before accepting a new reservation. The invariant is `retained acquisition receipts + pending acquisition reservations <= MAX_ACQUISITION_RECEIPTS`.
-- Reservation prunes expired acquisition receipts using the existing seven-day `REWARD_RECEIPT_RETENTION_SECONDS` window and persists the pruned ledger together with the reservation.
+- Current policy supersedes this historical note: reservation prunes only acknowledged acquisition receipts after seven days from `completedAt`; receipts without a durable completion acknowledgement never expire.
 - `addPetOnce` accounts for all other pending reservations while consuming the matching reservation and receipt slot atomically.
 - The direct `addPet` pet-ID reuse guard now respects the same retention window: an ID is blocked while its acquisition receipt is retained, but not forever after expiry.
 - Added regression tests for reserving the final receipt slot, refusing another pending hatch, consuming the reserved receipt slot, pruning expired receipts, and allowing pet-ID reuse after expiry.
@@ -565,7 +565,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Recovery runs are scoped to (Player instance, run token) instead of comparing only a UserId-keyed token. A late PlayerRemoving from a previous instance cannot clear a new recovery run.
 - The readiness polling loop only checks run identity before testing live island lease and collection readiness, so it correctly waits for an island that does not yet exist. Each pending operation checks run identity, island write authority and collection readiness again.
 - All changes are source-verified and committed to main. Roblox Studio tests and multi-server failure injection remain NOT DONE.
-- Important unresolved issue: acquisition receipts are retained for seven days, whereas unfinished CHARGED hatch journals can persist longer. A grant succeeded just before an acknowledgement failure can become indistinguishable from a never-granted transaction once its acquisition receipt expires. Live paid hatching remains blocked until an unambiguous long-lived completion/deduplication strategy is implemented.
+- Historical issue, resolved in the durable receipt update below: unresolved hatch receipts now have no age-based expiry and remain bound to their source transaction until the island journal is durably GRANTED and the collection receipt is acknowledged. Studio fault-injection is still required before live paid hatching.
 
 
 ## Active-session hatch recovery retries (2026-11-22)
@@ -573,7 +573,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Recovery already waits 150 seconds for readiness (collection may need 120 seconds for the island lease); current recovery source was found updated independently before this change.
 - Updated `PetHatchingRecoveryService.recoverPlayer`: it now repeatedly reads the current island journal and attempts outstanding PREPARED/CHARGED transactions while `isCurrentRun`, `IslandSessionService.canWrite`, and `PetCollectionService.isReady` hold. A failed transaction no longer has to wait until the next login for another attempt.
 - The retry delay is 15 seconds; the worker stops on an empty pending journal, disconnect, lease loss, or collection unavailability. It does not spin while a transaction cannot yet complete.
-- Roblox Studio fault injection remains NOT DONE. A separate unresolved reliability issue is the seven-day expiry of acquisition receipts while CHARGED hatch transactions can persist longer. Until addressed, do not claim unlimited-duration duplicate prevention for a grant whose journal completion never persisted.
+- Roblox Studio fault injection remains NOT DONE. The seven-day receipt gap is resolved in code by transaction-bound completion acknowledgement; do not treat this as production-verified until the cross-store crash/rejoin tests pass.
 
 
 ## Durable hatch acquisition receipts (2026-11-22)
