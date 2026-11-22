@@ -288,3 +288,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The module validates a resolved snapshot shape containing `level` (1–50), `rarityTier` (neutral numeric tier identifier 1–6), and all five finite non-negative stat values. It also provides a defensive clone and a copied stat-key list.
 - No stat values, rarity names, growth curve, stat scaling, additive/multiplicative modifier order, equipment bonuses, or combat interpretation are invented. The module is a data-contract foundation only and is not wired into collection persistence or runtime yet.
 - Added Studio-only pure tests for all six tier identifiers, level boundaries, missing/negative/NaN/Infinity stats, invalid snapshots, and clone isolation. Tests are committed but not executed in Studio.
+
+
+## Pet stat schema key hardening (2026-11-22)
+
+- `PetStatsData.validate` now requires exactly the five approved stat keys. Unknown keys (including misspelled or future unapproved stats), non-string keys, and incomplete maps are rejected with explicit statuses.
+- Added regression tests for extra `mana`, numeric keys, and missing stat count. This prevents silent acceptance of typoed or client-injected stat fields while the contract is still being established.
+- No balance values or runtime integration were added. Studio test execution remains pending.
