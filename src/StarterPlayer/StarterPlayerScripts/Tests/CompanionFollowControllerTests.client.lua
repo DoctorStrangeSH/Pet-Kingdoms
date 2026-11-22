@@ -147,6 +147,7 @@ edgeFloor:Destroy()
 
 -- Direct raycasts + terrain samples are expensive when 3 companions follow
 -- a stationary owner. Reuse a recent result until the owner or pet moves.
+controllers[2]:update(1 / 60)
 local firstProbeCount = controllers[2].directCheckCount
 controllers[2]:update(1 / 60)
 expect("stationary companion reuses recent direct-route check",
