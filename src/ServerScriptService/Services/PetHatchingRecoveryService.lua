@@ -37,6 +37,16 @@ local function recoverTransaction(player: Player, record: any): (boolean, string
 	if action == nil then return false, actionStatus end
 	if action == "COMPLETE" then return true, actionStatus end
 
+	-- Reserve capacity before charging. A full collection leaves PREPARED/CHARGED
+	-- untouched so no player pays for an unstoreable pet.
+	local reserved, reserveStatus = PetCollectionService.reservePetSlot(
+		player,
+		record.speciesId,
+		record.rarityTier,
+		record.acquisitionId
+	)
+	if not reserved then return false, "CAPACITY_RESERVATION_FAILED:" .. reserveStatus end
+
 	if action == "CHARGE" then
 		local charged, chargeStatus = IslandSessionService.applyHatchOperation(
 			player.UserId,
