@@ -9,6 +9,7 @@ local IslandSessionService = require(services:WaitForChild("IslandSessionService
 local BuildingCatalog = require(services:WaitForChild("BuildingCatalog"))
 local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
+local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -159,6 +160,38 @@ local function handleRequest(player: Player, request: any): any
 		return result
 	end
 
+	local definition = BuildingCatalog[validation.catalogId :: string]
+	local isMoving = request.movingInstanceId ~= nil
+	local chargedCost: { [string]: number }? = nil
+	if not isMoving and definition.cost ~= nil then
+		local paid, paymentCode = IslandResourceService.spend(userId, definition.cost)
+		if not paid then
+			local result = fail(paymentCode)
+			remember(userId, request.requestId, result)
+			return result
+		end
+		chargedCost = table.clone(definition.cost)
+	end
+
+	local function refundPlacementCost()
+		if chargedCost ~= nil then
+			local refunded, refundCode = false, "NOT_ATTEMPTED"
+			for resourceId, amount in pairs(chargedCost) do
+				local ok, code = IslandResourceService.grant(userId, resourceId, amount)
+				if ok then
+					refunded = true
+				else
+					refundCode = code
+					warn(string.format("[PetKingdoms] CRITICAL: placement rollback refund failed for %d (%s): %s", userId, resourceId, code))
+					break
+				end
+			end
+			if not refunded and refundCode ~= "NOT_ATTEMPTED" then
+				warn(string.format("[PetKingdoms] CRITICAL: placement cost may need recovery for %d", userId))
+			end
+		end
+	end
+
 	local record
 	local previousRecord: any = nil
 	local movingIndex: number? = nil
@@ -212,6 +245,7 @@ local function handleRequest(player: Player, request: any): any
 		else
 			table.remove(profile.buildings, #profile.buildings)
 		end
+		refundPlacementCost()
 		return fail(syncCode)
 	end
 
@@ -223,6 +257,7 @@ local function handleRequest(player: Player, request: any): any
 			table.remove(profile.buildings, #profile.buildings)
 			IslandWorldService.removeBuilding(userId, record.instanceId)
 		end
+		refundPlacementCost()
 		return fail("SESSION_NOT_WRITABLE")
 	end
 
