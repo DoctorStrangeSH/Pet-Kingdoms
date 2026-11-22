@@ -120,6 +120,30 @@ local ok, failure = pcall(function()
 		"expansion coordinate shift must preserve existing building world position")
 
 	IslandWorldService.remove(firstUserId)
+	local maxExpandedProfile = profileFor(firstUserId)
+	maxExpandedProfile.boundsWidth = 40
+	maxExpandedProfile.boundsDepth = 40
+	maxExpandedProfile.expansionLevel = 2
+	for _, building in ipairs(maxExpandedProfile.buildings) do
+		building.x += 8
+		building.z += 8
+	end
+	local maxExpandedOk, maxExpandedCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, maxExpandedProfile)
+	assert(maxExpandedOk and maxExpandedCode == "SPAWNED", "maximum expanded island profile must render")
+	table.insert(spawnedUsers, firstUserId)
+	local maxExpandedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	assert(maxExpandedWorld and maxExpandedWorld:GetAttribute("GridWidth") == 40 and maxExpandedWorld:GetAttribute("GridDepth") == 40,
+		"maximum expanded world must expose 40x40 bounds")
+	local maxExpandedGrass = maxExpandedWorld and maxExpandedWorld:FindFirstChild("Island_GrassTop")
+	assert(maxExpandedGrass and maxExpandedGrass:IsA("BasePart")
+		and maxExpandedGrass.Size.X == 320 and maxExpandedGrass.Size.Z == 320,
+		"maximum expanded terrain must render at 320x320 studs")
+	local maxExpandedHouse = maxExpandedWorld and maxExpandedWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
+	assert(maxExpandedHouse and maxExpandedHouse:IsA("Model"), "maximum expanded world must retain the main house")
+	assert((maxExpandedHouse:GetPivot().Position - originalHousePivot.Position).Magnitude < 0.01,
+		"two expansion levels must preserve the original main-house world position")
+
+	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
 
 	local thirdOk, thirdCode = IslandWorldService.spawn({ UserId = thirdUserId } :: any, profileFor(thirdUserId))
