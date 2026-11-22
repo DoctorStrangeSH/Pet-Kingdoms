@@ -99,13 +99,18 @@ local function getSlotOffset(slotIndex: number, sideSpacing: number, followDista
 	return Vector3.new(0, 0, followDistance + sideSpacing * 0.8)
 end
 
-local function resolveGroundPosition(desired: Vector3, params: RaycastParams, groundLift: number): Vector3
+local function resolveSurfacePosition(desired: Vector3, params: RaycastParams): Vector3
 	local origin = desired + Vector3.new(0, 8, 0)
 	local result = Workspace:Raycast(origin, Vector3.new(0, -32, 0), params)
 	if result then
-		return Vector3.new(desired.X, result.Position.Y + groundLift, desired.Z)
+		return Vector3.new(desired.X, result.Position.Y, desired.Z)
 	end
 	return desired
+end
+
+local function resolveGroundPosition(desired: Vector3, params: RaycastParams, groundLift: number): Vector3
+	local surface = resolveSurfacePosition(desired, params)
+	return Vector3.new(desired.X, surface.Y + groundLift, desired.Z)
 end
 
 function CompanionFollowController.new(
@@ -260,8 +265,8 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 			self.pathNextComputeAt = os.clock() + PATH_RETRY_SECONDS
 			self.pathGeneration += 1
 			local generation = self.pathGeneration
-			local startPosition = currentPosition
-			local goalPosition = desired
+			local startPosition = resolveSurfacePosition(currentPosition, self.groundRaycastParams)
+			local goalPosition = resolveSurfacePosition(desired, self.groundRaycastParams)
 			task.spawn(function()
 				local computedPath = PathfindingService:CreatePath({
 					AgentRadius = 1.25,
