@@ -120,11 +120,11 @@
 - [ ] Implement pet inventory and collection UI.
 - [ ] Implement up to 3 active companions and team management.
 - [ ] Implement companion states and mobile-safe movement.
-- [ ] Implement pet levels, XP, stats, skills, equipment, and Bond.
-  - [ ] First per-pet companionship Bond loop is coded: Pet and Play each grant 10 provisional XP; both share a persisted 30-second per-pet cooldown; Bond level starts at 1, advances every 50 XP, and caps at 10; XP is capped at 450 and validation enforces XP/level consistency. Studio/DataStore verification is pending.
+- [ ] Implement actual pet levels (maximum 50), gameplay XP, core stats, skill tree, abilities, equipment, and Bond. Bond is a separate relationship progression; the current Bond prototype is not the pet-level system.
+  - [x] Implement first per-pet companionship Bond loop: Pet and Play each grant 10 provisional Bond XP; shared per-pet 30-second cooldown; Bond level 1–10 at 50 XP per level; 450 XP cap; validation enforces XP/level consistency. Studio/DataStore verification remains pending.
   - [x] Collection UI now reflows when the active camera viewport changes (window resize, device rotation, or CurrentCamera replacement); Studio/device verification pending.
-- [ ] Collection UI now exposes Pet/Play actions and per-pet Bond progress; server replicates happy/curious emotion cues to the companion animation controller. PC/touch layout verification is pending.
-  - [ ] PetCollectionData tests cover ownership, XP, cooldown, revision, invalid actions, legacy records, XP/level mismatch, fractional values, and max-XP behavior; execute the tests in Roblox Studio before marking complete.
+- [x] Implement Pet/Play actions and per-pet Bond progress in collection UI; server replicates happy/curious emotion cues to the companion animation controller. PC/touch Studio verification remains pending.
+  - [x] Add PetCollectionData tests for ownership, XP, cooldown, revision, invalid actions, legacy records, XP/level mismatch, fractional values, non-finite values, and max-XP behavior. Execute the tests in Roblox Studio before marking verification complete.
 - [x] Apply a shared server-side one-second mutation rate limit to pet Equip and Interact requests; clear limiter state on PlayerRemoving (Studio spam/race verification pending).
 - [ ] Verify all six rarity tiers can reach level 50.
 
