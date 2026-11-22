@@ -26,6 +26,12 @@ local beforeWood = wallet.wood
 local insufficient, insufficientCode = IslandResources.spend(wallet, { wood = 2, stone = 1 })
 expect("insufficient multi-resource spend changes nothing", not insufficient and insufficientCode == "INSUFFICIENT_RESOURCES" and wallet.wood == beforeWood and wallet.stone == 0)
 
+local beforeEmptySpend = table.clone(wallet)
+local emptySpend, emptySpendCode = IslandResources.spend(wallet, {})
+expect("empty spend transaction is rejected", not emptySpend and emptySpendCode == "EMPTY_COSTS"
+	and wallet.wood == beforeEmptySpend.wood and wallet.stone == beforeEmptySpend.stone
+	and wallet.gold == beforeEmptySpend.gold and wallet.gems == beforeEmptySpend.gems)
+
 local unknown, unknownCode = IslandResources.grant(wallet, "dragon_scale", 1)
 expect("unknown resource rejected", not unknown and unknownCode == "UNKNOWN_RESOURCE")
 
