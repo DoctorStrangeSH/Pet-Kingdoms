@@ -75,3 +75,7 @@ Rewards call `IslandResourceService.grant`, which mutates the server-owned profi
 ## Repeatable resource visibility tests (2026-11-22)
 
 The shared `ResourceNodeVisibility.setVisible` now owns cooldown hide/restore behavior and is covered by a Studio-only test fixture. The fixture checks alpha-preserving restoration of a partially transparent model, permanently invisible `GatherAnchor`, disabled prompt/marker during cooldown, re-enabled cues on respawn, and a second hide/restore cycle. Run in Studio before claiming resource respawn behavior fully verified.
+
+## Respawn scheduler and writable-session guard (2026-11-22)
+
+The server tracks each resource node's scheduled cooldown timestamp instead of a generic active boolean. Scheduling the same deadline twice does not create duplicate callbacks, and stale callbacks cannot clear a newer deadline. A resource will not reappear until the deadline has expired and its owner's session is writable; the periodic reconciliation loop retries recovery if writing was unavailable when the timer fired. Restored nodes are not reprocessed every sweep after their gather prompt has been enabled. Live Studio QA is still pending.
