@@ -425,3 +425,19 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Audit current wallet defaults, resource-node rewards/respawn, and server building costs; document theoretical gathering ceilings and explicitly keep expansion prices unapproved until the full balance sheet is decided.
 
 See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current values and open balancing decisions.
+
+
+## Quest reward outbox foundation (2026-11-22)
+
+- [x] Add pure QuestRewardOutboxData contracts for permanent quest-claim receipts and durable pet-XP outbox entries.
+- [x] Validate quest IDs, stable reward IDs, pet IDs, positive bounded XP amounts, progression configuration version, timestamps, unique IDs, and contiguous bounded outbox storage.
+- [x] Make duplicate claim and enqueue attempts idempotent; reject reuse of a reward ID with a different payload.
+- [x] Record delivery only after a caller confirms the pet-side XP write; repeated delivery acknowledgement is idempotent.
+- [x] Never expire or evict pending XP records; a full outbox fails closed.
+- [x] Add the claim/outbox fields to newly created island profiles, preserve compatibility with legacy schema-v1 profiles, and deep-clone the ledgers before DataStore saves.
+- [x] Add Studio-only contract tests for claim receipts, enqueue deduplication, payload conflicts, pending lookup, delivery acknowledgement, malformed records, and profile compatibility.
+- [ ] Execute the new Studio tests in Roblox Studio.
+- [ ] Integrate the durable quest claim transaction into IslandSessionService; no client claim endpoint is exposed.
+- [ ] Add an outbox recovery worker that retries the same reward ID, durably marks delivery, then acknowledges the pet-side receipt.
+- [ ] Decide approved reward amounts, XP progression configuration, and deterministic pet recipient policy before enabling claims. No economy values or recipient rule were invented.
+- [ ] Add DataStore fault-injection coverage for island commit, pet XP commit, lost acknowledgement, player leave, server restart, and recovery after rejoin.
