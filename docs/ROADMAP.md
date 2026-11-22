@@ -126,7 +126,7 @@
   - [x] Implement first per-pet companionship Bond loop: Pet and Play each grant 10 provisional Bond XP; shared per-pet 30-second cooldown; Bond level 1–10 at 50 XP per level; 450 XP cap; validation enforces XP/level consistency. Studio/DataStore verification remains pending.
   - [x] Collection UI now reflows when the active camera viewport changes (window resize, device rotation, or CurrentCamera replacement); Studio/device verification pending.
 - [x] Implement Pet/Play actions and per-pet Bond progress in collection UI; server replicates happy/curious emotion cues to the companion animation controller. PC/touch Studio verification remains pending.
-  - [x] Add PetCollectionData tests for ownership, XP, cooldown, revision, invalid actions, legacy records, XP/level mismatch, fractional values, non-finite values, and max-XP behavior. Execute the tests in Roblox Studio before marking verification complete.
+  - [x] Add PetCollectionData tests for ownership, XP, cooldown, revision, invalid actions, legacy records, XP/level mismatch, fractional values, NaN/Infinity, and max-XP behavior. Execute the tests in Roblox Studio before marking verification complete.
 - [x] Apply a shared server-side one-second mutation rate limit to pet Equip and Interact requests; clear limiter state on PlayerRemoving (Studio spam/race verification pending).
 - [ ] Verify all six rarity tiers can reach level 50.
 
