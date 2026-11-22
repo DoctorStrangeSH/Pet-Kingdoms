@@ -66,7 +66,23 @@ These are project standards to validate in Roblox Studio before finalizing:
 - Record source, creator, license, attribution requirements, and modification history for every external asset.
 - Do not ship Toolbox assets without review and documented provenance.
 
-## 7. Asset acceptance checklist
+## 7. Temporary Creator Store / Toolbox assets
+
+Free Creator Store assets may be used to make the prototype playable and testable before original art is ready. This is a deliberate temporary exception, not a change to the final visual direction.
+
+Before importing a temporary model:
+- Confirm it is free to use and record its exact Creator Store URL/asset ID and creator.
+- Review every Script, LocalScript, and ModuleScript in the model. Remove scripts that are not essential and fully understood; reject assets with obfuscated code, unexpected remote calls, require-by-ID loaders, or unrelated backdoors.
+- Check mesh/texture dependencies, physical properties, collision, scale, pivots, and mobile cost.
+- Prefer models that contain no scripts. Rebuild interaction behavior in project-owned systems.
+- Keep temporary assets under a clearly named temporary/prototype folder or a dedicated Studio folder such as `_TemporaryToolbox`.
+- Never let a temporary model become an authoritative source for currency, ownership, rewards, progression, or server validation.
+- Keep the game functional if the temporary model is removed or replaced.
+- Mark the asset TEMPORARY in the tracker and record the replacement target.
+
+Do not treat "free" as proof of safety, license clarity, quality, or performance. An asset that fails review must not be imported.
+
+## 8. Asset acceptance checklist
 
 An asset is not DONE until:
 - [ ] It matches this art direction.
@@ -77,6 +93,6 @@ An asset is not DONE until:
 - [ ] Source files and license/provenance are documented.
 - [ ] It is integrated into the game and verified in context.
 
-## 8. Concept art vs production asset
+## 9. Concept art vs production asset
 
 Generated concept images are references only. They are not Roblox-ready 3D models, rigs, textures, animations, or implemented UI. Keep this distinction explicit in the roadmap and asset tracker.
