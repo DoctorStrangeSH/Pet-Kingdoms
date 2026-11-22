@@ -236,7 +236,7 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Add safe permanent removal with protections for the starter Bunny, the last remaining pet, locked pets, and currently equipped pets.
 - [x] Add server-validated `Delete` action with expected-revision checks; successful deletion immediately frees one collection slot.
 - [x] Add pure data tests for flag validation/persistence, lock protection, equipped protection, starter protection, last-pet protection, and successful removal.
-- [ ] Add a player-facing confirmation UX and collection sorting/filtering; UI remains intentionally out of scope for current technical pass.
+- [x] Add player-facing collection management UX: filter all/team/favorites, sort by newest/name/Bond, toggle favorite/lock, and require explicit confirmation before permanent deletion. Server remains authoritative and revision-checked (Studio/device verification pending).
 - [ ] Run Studio tests and DataStore integration tests before release.
 
 
