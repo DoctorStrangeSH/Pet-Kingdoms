@@ -210,7 +210,7 @@ function PetCollectionService.reservePetSlot(
 		return false, "INVALID_PLAYER"
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY"
 	end
 	local processedAt = os.time()
@@ -256,7 +256,7 @@ end
 
 local function handleRequest(player: Player, action: any, payload: any): (boolean, any)
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY"
 	end
 
@@ -464,7 +464,7 @@ function PetCollectionService.grantExperience(player: Player, petId: string, amo
 		return false, "INVALID_PLAYER"
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY"
 	end
 
@@ -515,7 +515,7 @@ function PetCollectionService.grantExperienceWithProgress(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
@@ -570,7 +570,7 @@ function PetCollectionService.grantExperienceWithProgressOnce(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
@@ -649,7 +649,7 @@ function PetCollectionService.grantPet(
 		return false, "INVALID_PLAYER", nil
 	end
 	local state = collections[player.UserId]
-	if state == nil or state.loading or state.profile == nil then
+	if state == nil or state.player ~= player or state.loading or state.profile == nil then
 		return false, "COLLECTION_NOT_READY", nil
 	end
 
