@@ -353,10 +353,68 @@ function IslandSessionService.commitQuestRewardDelivery(
 	return true, "DELIVERY_DURABLE", targetRevision
 end
 
+-- Persist the source-side acknowledgement only after the pet collection has
+-- durably acknowledged its XP receipt. Recovery can resume this exact phase.
+function IslandSessionService.commitQuestRewardAcknowledgement(
+	userId: number,
+	player: Player,
+	rewardId: string
+): (boolean, string, number?)
+	local session = sessions[userId]
+	if session == nil then return false, "SESSION_NOT_READY", nil end
+	if not IslandSessionService.canWrite(userId, player) then
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	if session.gatheringMutationBusy or session.buildingMutationBusy or session.hatchMutationBusy then
+		return false, "PROFILE_MUTATION_BUSY", nil
+	end
+	session.gatheringMutationBusy = true
+	local nextOutbox, status = QuestRewardOutboxData.markAcknowledged(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox(),
+		rewardId,
+		os.time()
+	)
+	if nextOutbox == nil then
+		session.gatheringMutationBusy = false
+		return status == "ALREADY_ACKNOWLEDGED", status, session.profile.revision
+	end
+	local previousOutbox = session.profile.questRewardOutbox
+	session.profile.questRewardOutbox = nextOutbox
+	if not IslandSessionService.markDirty(userId) then
+		session.profile.questRewardOutbox = previousOutbox
+		session.gatheringMutationBusy = false
+		return false, "SESSION_NOT_WRITABLE", nil
+	end
+	local targetRevision = session.profile.revision
+	local deadline = os.clock() + 30
+	while session.persistedRevision < targetRevision do
+		if sessions[userId] ~= session or not IslandSessionService.canWrite(userId, player) then
+			session.gatheringMutationBusy = false
+			return false, "SESSION_NOT_WRITABLE", targetRevision
+		end
+		if os.clock() >= deadline then
+			session.gatheringMutationBusy = false
+			return false, "PERSIST_PENDING", targetRevision
+		end
+		local saved = saveSession(userId, session)
+		if not saved then task.wait(0.5) end
+	end
+	session.gatheringMutationBusy = false
+	return true, "ACKNOWLEDGEMENT_DURABLE", targetRevision
+end
+
 function IslandSessionService.getPendingQuestRewards(userId: number): { any }
 	local session = sessions[userId]
 	if session == nil then return {} end
 	return QuestRewardOutboxData.listPending(
+		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox()
+	)
+end
+
+function IslandSessionService.getQuestRewardsAwaitingAcknowledgement(userId: number): { any }
+	local session = sessions[userId]
+	if session == nil then return {} end
+	return QuestRewardOutboxData.listAwaitingAcknowledgement(
 		session.profile.questRewardOutbox or QuestRewardOutboxData.createOutbox()
 	)
 end
