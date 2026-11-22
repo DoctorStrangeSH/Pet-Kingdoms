@@ -1,0 +1,4 @@
+# Pin the Roblox project toolchain for local development and CI.
+# Install with: rokit install
+[tools]
+rojo = "rojo-rbx/rojo@7.7.1"
