@@ -54,3 +54,6 @@ Before rendering, IslandWorldService checks the profile's saved bounds against t
 ## Canonical transition preparation
 
 `IslandExpansion.prepareNextProfile(profile, baseWidth, baseDepth)` is the pure preparation boundary for the future server transaction. It validates the current saved bounds against the configured base and level, derives exactly one next level using the existing immutable profile transformation, then validates the resulting bounds again. It returns `PREPARED` only for a canonical transition. It intentionally does not charge, persist, or mutate the active world.
+
+
+Preparation contract tests additionally verify rejection at maximum level, invalid building records, and incorrect configured base dimensions.
