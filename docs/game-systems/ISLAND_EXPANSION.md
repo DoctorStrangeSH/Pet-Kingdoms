@@ -56,3 +56,8 @@ Before rendering, IslandWorldService checks the profile's saved bounds against t
 
 
 Preparation contract tests additionally verify rejection at maximum level, invalid building records, and incorrect configured base dimensions.
+
+
+## Server-session commit foundation
+
+`IslandSessionService.commitIslandExpansion(userId, player, expectedLevel)` applies one canonical level transition under the existing shared profile mutation lock. It verifies the exact active Player and writable island lease, validates the expected level and configured base bounds, prepares a cloned next profile, advances its revision, and waits for that revision to persist. Repeating the same expected-level request after the transition returns `ALREADY_APPLIED` after confirming durability rather than applying a second level. This is not yet a purchase endpoint: there is no resource debit, request receipt ledger, client remote, or live world respawn.
