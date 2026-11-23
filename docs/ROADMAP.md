@@ -626,3 +626,12 @@ Source commits: e94ec80, bb89e36, e91d298, ddc4ab5, 94f5570. Studio/device verif
 - [ ] Close Stage 1 only after Studio/device regression and visual review.
 
 Source commits: `348a47d`, `99410fd`, `e94ec80`, `bb89e36`, `e91d298`, `ddc4ab5`, `94f5570`, `b9626d6`. Studio/device verification remains outstanding.
+
+### Stage 1 — Pet preview search performance (2026-11-23)
+
+- [x] Avoid recreating the 3D pet preview model on every search keystroke; refresh the detail pane only when the selected pet actually changes. Server-driven collection mutations still refresh the detail explicitly.
+- [x] CI passed for the combined UI changes through Expansion header commit `94f5570` (run `45195330456`, Studio-ready place artifact uploaded).
+- [ ] Complete CI for Resource HUD truncation and preview-search optimization (runs queued at documentation time).
+- [ ] Perform Studio/device runtime regression before Stage 1 sign-off.
+
+Source commit: `0404d0d`; preceding successful build commit: `94f5570`.
