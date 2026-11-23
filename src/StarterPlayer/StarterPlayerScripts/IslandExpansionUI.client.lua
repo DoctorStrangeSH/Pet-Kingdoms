@@ -16,6 +16,7 @@ end
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GetIslandExpansionPreview") :: RemoteFunction
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -83,14 +84,14 @@ local title = make("TextLabel", {
 
 local closeButton = make("TextButton", {
 	Position = UDim2.new(1, -52, 0, 14),
-	Size = UDim2.fromOffset(36, 36),
+	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
 	Text = "×",
-	TextSize = 26,
+	TextSize = 24,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 11) }, closeButton)
+InterfaceComponents.StyleCloseButton(closeButton)
 
 local subtitle = make("TextLabel", {
 	BackgroundTransparency = 1,
