@@ -689,3 +689,13 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Confirm CI for the new backdrop-detection changes (`5bb6df5`, `00be4a4`, `652290e`).
 - [ ] Verify outside-tap, touch-confirmation, panel-interior interaction, and close control on 320/360/390 px and desktop in Roblox Studio.
 - [ ] Do not mark Stage 1 done without in-game visual and input checks.
+
+### Stage 1 — Backdrop input correction (2026-11-23)
+
+- [x] Confirmed CI success for all three pointer-bound backdrop handlers (5bb6df5, 00be4a4, 652290e).
+- [x] Removed competing shade.Activated close handlers from Quest Journal, Pet Collection and Island Expansion. Noninteractive labels, frames and cards nested inside the backdrop could otherwise trigger unintended closure via the ancestor TextButton.
+- [x] Retained explicit mouse/touch panel-bound hit testing for dismissal outside the visible panel, close buttons and Escape handling.
+- [x] Kept the nested Pet Collection deletion confirmation non-destructive when dismissing it with a background tap.
+- [ ] CI validation for the handler-removal commits bb90b70, 5f56397, e4c15e8.
+- [ ] Runtime acceptance in Roblox Studio: tapping empty space inside a modal must keep it open; tapping outside must close it. Verify close X, Escape, switching modals and touch/desktop at 320/360/390 px plus landscape.
+- [ ] Stage 1 cannot be marked complete based solely on code/CI.
