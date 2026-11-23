@@ -291,7 +291,7 @@ local petButton = make("TextButton", {
 	TextColor3 = COLORS.cream,
 	AutoButtonColor = true,
 }, interactionRow) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 10) }, petButton)
+InterfaceComponents.StyleActionButton(petButton, "secondary")
 
 local playButton = make("TextButton", {
 	Position = UDim2.new(0.5, 5, 0, 0),
@@ -303,7 +303,7 @@ local playButton = make("TextButton", {
 	TextColor3 = COLORS.cream,
 	AutoButtonColor = true,
 }, interactionRow) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 10) }, playButton)
+InterfaceComponents.StyleActionButton(playButton, "secondary")
 
 local equipButton = make("TextButton", {
 	Position = UDim2.new(0, 14, 1, -58),
@@ -327,7 +327,7 @@ local mainButton = make("TextButton", {
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
 }, detail) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 13) }, mainButton)
+InterfaceComponents.StyleActionButton(mainButton, "gold")
 
 local deleteButton = make("TextButton", {
 	Name = "DeletePet",
