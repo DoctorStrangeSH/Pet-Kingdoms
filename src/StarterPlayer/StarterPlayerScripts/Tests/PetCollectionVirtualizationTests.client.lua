@@ -49,6 +49,11 @@ local empty = VirtualList.GetWindow(0, 0, viewportHeight, cardStep, overscan)
 expect("empty list has an empty window", empty.count == 0 and empty.firstIndex == 0 and empty.lastIndex == 0)
 expect("empty list has zero content height", VirtualList.GetContentHeight(0, cardStep, cardGap) == 0)
 
+expect("filter/sort keeps a valid scroll position", VirtualList.ClampCanvasY(180, 1200, 420) == 180)
+expect("shorter filtered results clamp scroll to their end", VirtualList.ClampCanvasY(900, 600, 420) == 180)
+expect("empty filtered results reset scroll to zero", VirtualList.ClampCanvasY(900, 0, 420) == 0)
+expect("negative saved scroll is clamped", VirtualList.ClampCanvasY(-40, 1200, 420) == 0)
+
 local negativeScroll = VirtualList.GetWindow(100, -500, viewportHeight, cardStep, overscan)
 expect("negative canvas position is clamped", negativeScroll.firstIndex == 1)
 
