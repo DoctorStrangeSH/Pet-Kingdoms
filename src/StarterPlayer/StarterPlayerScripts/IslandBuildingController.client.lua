@@ -11,6 +11,19 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local function getPanelSignal(): BindableEvent
+	local existing = playerGui:FindFirstChild("PetKingdomsPanelSignal")
+	if existing and existing:IsA("BindableEvent") then return existing end
+	local signal = Instance.new("BindableEvent")
+	signal.Name = "PetKingdomsPanelSignal"
+	signal.Parent = playerGui
+	return signal
+end
+local panelSignal = getPanelSignal()
+local function announcePanelOpened()
+	panelSignal:Fire(script.Name)
+end
+
 local camera = Workspace.CurrentCamera
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceBuilding") :: RemoteFunction
 
@@ -587,6 +600,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
+	announcePanelOpened()
 	movingInstanceId = nil
 	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
@@ -935,10 +949,19 @@ local function refreshKingdomOverview()
 end
 
 local function openKingdomOverview()
+	announcePanelOpened()
+	stopPlacing()
 	refreshKingdomOverview()
 	overviewShade.Visible = true
 	overview.Visible = true
 end
+
+panelSignal.Event:Connect(function(origin)
+	if origin ~= script.Name then
+		closeKingdomOverview()
+		stopPlacing()
+	end
+end)
 
 overviewClose.Activated:Connect(closeKingdomOverview)
 overviewShade.Activated:Connect(closeKingdomOverview)
