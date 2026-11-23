@@ -15,6 +15,7 @@ local function announcePanelOpened()
 end
 
 local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
+local VirtualList = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("VirtualList"))
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
 
 -- Bound every collection request so a stalled RemoteFunction cannot lock the
@@ -577,13 +578,15 @@ end
 
 local function renderVisibleCards()
 	if collection == nil then return end
-	local total = #filteredRecords
-	local viewportHeight = math.max(1, list.AbsoluteWindowSize.Y)
-	local firstVisible = math.floor(list.CanvasPosition.Y / PET_CARD_STEP) + 1
-	local firstIndex = math.max(1, firstVisible - PET_LIST_OVERSCAN)
-	local visibleCount = math.ceil(viewportHeight / PET_CARD_STEP) + PET_LIST_OVERSCAN * 2
-	local lastIndex = math.min(total, firstIndex + visibleCount - 1)
-	if total == 0 then firstIndex = 0; lastIndex = 0 end
+	local window = VirtualList.GetWindow(
+		#filteredRecords,
+		list.CanvasPosition.Y,
+		list.AbsoluteWindowSize.Y,
+		PET_CARD_STEP,
+		PET_LIST_OVERSCAN
+	)
+	local firstIndex = window.firstIndex
+	local lastIndex = window.lastIndex
 	if firstIndex == renderedWindowStart and lastIndex == renderedWindowEnd then return end
 
 	clearRenderedCards()
@@ -678,7 +681,7 @@ local function renderList(preserveScroll: boolean?)
 		return a.acquiredAt > b.acquiredAt
 	end)
 
-	local contentHeight = if #filteredRecords > 0 then #filteredRecords * PET_CARD_STEP - PET_CARD_GAP else 0
+	local contentHeight = VirtualList.GetContentHeight(#filteredRecords, PET_CARD_STEP, PET_CARD_GAP)
 	list.CanvasSize = UDim2.fromOffset(0, contentHeight)
 	if preserveScroll then
 		local maxY = math.max(0, contentHeight - list.AbsoluteWindowSize.Y)
