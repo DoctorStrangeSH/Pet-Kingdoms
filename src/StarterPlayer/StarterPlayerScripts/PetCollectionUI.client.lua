@@ -960,13 +960,20 @@ local function confirmDeleteSelected()
 	if busy or collectionRefreshing or collection == nil or pendingDeletePetId == nil then return end
 	busy = true
 	confirmDeleteButton.Active = false
+	cancelDeleteButton.Active = false
+	confirmDeleteButton.AutoButtonColor = false
+	cancelDeleteButton.AutoButtonColor = false
 	confirmDeleteButton.Text = "УДАЛЯЕМ..."
+	local deleteTargetPetId = pendingDeletePetId
 	local ok, success, result, requestError = invokeCollection("Delete", {
-		petId = pendingDeletePetId,
+		petId = deleteTargetPetId,
 		expectedRevision = collection.revision,
 	})
 	busy = false
 	confirmDeleteButton.Active = true
+	cancelDeleteButton.Active = true
+	confirmDeleteButton.AutoButtonColor = true
+	cancelDeleteButton.AutoButtonColor = true
 	confirmDeleteButton.Text = "УДАЛИТЬ"
 	confirmPanel.Visible = false
 	pendingDeletePetId = nil
@@ -1286,6 +1293,7 @@ end)
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not ModalManager.IsActive(script.Name) then return end
 	if confirmPanel.Visible then
+		if busy then return end
 		pendingDeletePetId = nil
 		confirmPanel.Visible = false
 	elseif panel.Visible then
@@ -1295,6 +1303,7 @@ end)
 
 shade.Activated:Connect(function()
 	if confirmPanel.Visible then
+		if busy then return end
 		pendingDeletePetId = nil
 		confirmPanel.Visible = false
 	elseif panel.Visible then
@@ -1330,6 +1339,7 @@ lockButton.Activated:Connect(function()
 end)
 deleteButton.Activated:Connect(requestDeleteSelected)
 cancelDeleteButton.Activated:Connect(function()
+	if busy then return end
 	pendingDeletePetId = nil
 	confirmPanel.Visible = false
 end)
