@@ -1235,3 +1235,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pet Collection follows modal stacking: if the destructive delete confirmation is visible, Escape dismisses only that confirmation and clears its pending target; a second Escape closes the collection. It does not cancel an already-running server transaction.
 - Quest Journal and Island Expansion close through their existing `setOpen(false)` paths, preserving their normal cleanup (including clearing island world preview).
 - This improves desktop keyboard usability only. Roblox Studio verification remains required; mobile users still need visible close/back controls. Building placement already maps Escape to cancel; kingdom overview Escape behavior remains to audit. Stage 1 is not complete.
+
+
+## Stage 1 — Interface & usability: short-viewport modal fit (2026-11-23)
+
+- Quest Journal and Island Expansion now use a child `UIScale` to fit their fixed-height layouts into short/landscape viewports, rather than clipping the top close button or bottom actions. Scale is derived from current viewport height and clamped to 0.72–1.0; viewport-change listeners already call `resize()` and now update the scale too.
+- Reduced minimum size constraints to 250x300 (Quest Journal) and 250x320 (Island Expansion), allowing narrow phone widths while keeping a sensible minimum. The quest list remains scrollable; expansion information cards scale as one composition.
+- This is a targeted responsive correction, not a full mobile sign-off. Verify 320x568, 390x844, 568x320 and tablet/desktop sizes in Studio; inspect text legibility at minimum scale, button hitboxes, safe-area inset, and expansion preview cleanup. Pet Collection and Building have separate responsive logic and still need the same viewport audit. No runtime verification claimed.
