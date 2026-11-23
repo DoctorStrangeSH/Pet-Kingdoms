@@ -905,3 +905,11 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Preserve each button's original label and interaction state; repeated loading/reset calls are idempotent.
 - [x] Extend InterfaceComponents Studio smoke tests for progress text, interaction lock, duplicate loading calls, and exact state restoration.
 - [ ] Run the updated InterfaceComponents tests and delayed/failing mutation scenarios in Roblox Studio.
+
+### Stage 1 — Pet Collection transitions and animation lifecycle (2026-11-23)
+
+- [x] Animate collection opening with a short fade, position ease, and subtle scale-in.
+- [x] Animate collection closing instead of hiding the panel immediately; hide it only after the transition finishes.
+- [x] Cancel in-flight shade, panel-position, and panel-scale tweens when a new open/close transition begins, so rapid reopen cannot be overwritten by stale animation.
+- [x] Add a short horizontal entrance transition when selecting a pet in compact mobile detail mode; cancel it when navigating back or closing the collection.
+- [ ] Verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Roblox Studio at low frame rates and on touch.
