@@ -425,3 +425,15 @@ The repository now contains the documentation baseline, Rojo mapping, grid math,
 - [x] Audit current wallet defaults, resource-node rewards/respawn, and server building costs; document theoretical gathering ceilings and explicitly keep expansion prices unapproved until the full balance sheet is decided.
 
 See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current values and open balancing decisions.
+
+
+## Owner-requested improvements — Stage 1: Interface & usability
+
+- [x] Harden shared modal coordinator: deterministic peer-window closure, protected close callbacks, explicit focused-window query, and true close-all recovery.
+- [x] Route Escape only to the focused top-level window across Island Expansion, Quest Journal, Pet Collection, and Island Building; preserve nested pet-delete confirmation as the first Escape target.
+- [x] Add a Studio-only ModalManager smoke suite for focus transfer, peer closure, CloseAll, focus query, and unregister behavior.
+- [ ] Execute `ModalManagerTests.client.lua` in Roblox Studio with `RunPetKingdomsStudioTests = true`.
+- [ ] Runtime-test every modal-to-modal transition, interrupted close/reopen tweens, Escape behavior, and close-all while requests are pending.
+- [ ] Finish the remaining Stage 1 items (visual consistency, icon coverage, mobile layout audit, and full usability regression) before starting Stage 2.
+
+Implementation status above is source/CI status only; no Roblox Studio runtime test is claimed as passed.
