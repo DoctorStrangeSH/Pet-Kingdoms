@@ -1627,3 +1627,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Escape, backdrop dismissal, and Cancel now refuse to dismiss the confirmation while `busy` is true. This avoids presenting a false impression that an already-sent server deletion was cancelled.
 - Closing the entire collection remains available; the in-flight request retains its captured target and its completion updates authoritative collection state.
 - Next: test delayed Delete, timeout/reconciliation, close/reopen during request, and retry behavior in Studio.
+
+## Stage 1 — Main-pet action loading feedback (2026-11-23)
+
+- `setMainPet()` now changes the button label to a compact loading indicator, disables interaction and automatic button feedback while the Equip request is pending, and snapshots the prior label.
+- On either success or failure, the button's Active/AutoButtonColor state and prior label are restored before rendering the new state or starting a refresh. This closes a gap where the button was disabled but did not visibly communicate progress.
+- Next: delay and fail the Equip request in Studio; verify the main-pet action returns to a usable state and that refresh failure cannot leave stale loading UI.
