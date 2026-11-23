@@ -375,12 +375,12 @@ local function resizeBuildingPanel()
 	demolishButton.TextSize = if compact then 11 else 13
 
 	if short then
-		status.Position = UDim2.fromOffset(0, 26)
+		status.Position = UDim2.fromOffset(0, 30)
 		status.Size = UDim2.new(1, 0, 0, 24)
 		status.TextSize = 10
 		status.TextWrapped = false
 		status.TextTruncate = Enum.TextTruncate.AtEnd
-		catalogRow.Position = UDim2.fromOffset(0, 54)
+		catalogRow.Position = UDim2.fromOffset(0, 56)
 		catalogRow.Size = UDim2.new(1, 0, 0, 42)
 		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 			button.Size = UDim2.fromOffset(104, 36)
