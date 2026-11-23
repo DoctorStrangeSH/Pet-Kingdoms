@@ -482,3 +482,16 @@ Source implementation complete; Studio/device validation pending. CI `4513961356
 - [ ] Continue Stage 1 audit with Resource HUD and remaining floating controls.
 
 Source changes are in main; CI runs `45139857411` and `45139876120` were pending at the time of this entry. Roblox Studio/device validation remains outstanding.
+
+
+### Stage 1 — Resource HUD responsive layout (2026-11-23)
+
+- [x] Keep four resource counters in one row on desktop and use a 2×2 grid on compact screens.
+- [x] Add a tighter layout for screens below 360 px and truncate long values/labels safely.
+- [x] Move kingdom-bond status and gather toast below the taller mobile resource bar.
+- [x] Rebind viewport updates safely when CurrentCamera changes.
+- [x] Bound initial wallet snapshot request with RequestRunner (12-second timeout) and preserve retry/backoff.
+- [ ] Studio test 320/360/390 px portrait, desktop, gather toast, long balances, bond status, respawn/camera replacement, and push update ordering.
+- [ ] Continue Stage 1 audit of floating controls, safe-area collisions, and full visual consistency.
+
+Source implementation committed as `da22105`; CI `45140354173` was in progress at the time of this entry. Roblox Studio/device validation remains outstanding.
