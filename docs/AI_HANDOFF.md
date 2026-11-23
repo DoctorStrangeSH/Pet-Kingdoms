@@ -1308,3 +1308,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `InterfaceComponents.StyleText(TextLabel, role)` to apply role-based font, size and non-scaled text consistently.
 - Migrated Pet Collection and Quest Journal main titles/subtitles, and Island Expansion title/subtitle/current-level/next-level labels. This is a targeted header hierarchy pass; dynamic content, body copy and small status labels retain their existing sizes until individually reviewed for fit.
 - Static source audit confirms helper and role definitions exist in the shared modules and the three migrated screens call them. Roblox Studio visual checks remain pending: title clipping at 320px width, long localized strings, font legibility at minimum scale, and construction/kingdom overview typography consistency. No runtime or visual sign-off claimed.
+
+
+## Stage 1 — Interface & usability: shared notification system (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/NotificationManager.lua`, a client-side toast stack using the shared theme. It supports success, info, warning, error and reward variants; semantic accent/icon treatment; short entrance/exit tweens; configurable duration clamped to 1.5–8 seconds; and a four-toast visible cap.
+- Replaced the Quest Journal's private completion-toast implementation with the shared manager. Quest completion now uses the common success style.
+- Integrated global feedback for Island Expansion preview failures and construction outcomes (successful place/move/demolish and server/network rejections). Existing contextual status text remains in each panel, so detailed guidance is still available.
+- Static source checks confirm the manager and integrations exist. Studio verification pending: multiple simultaneous notifications, mobile width/text wrapping, safe-area positioning, toast overlap with other HUD elements, success/error contrast, and rapid expiry/removal. No runtime or visual sign-off claimed.
