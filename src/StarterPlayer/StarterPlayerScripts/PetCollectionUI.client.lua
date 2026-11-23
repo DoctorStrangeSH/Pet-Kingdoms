@@ -860,7 +860,8 @@ resize = function()
 	openButton.Size = UDim2.fromOffset(launcherCompact and 52 or 62, launcherCompact and 52 or 62)
 	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
 	if compactCollection then
-		panel.Size = UDim2.new(0.94, 0, 0.84, 0)
+		-- Give the mobile detail view as much vertical room as the viewport allows.
+		panel.Size = UDim2.new(0.94, 0, 0.90, 0)
 		panelScale.Scale = 1
 		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
 		search.Position = UDim2.fromOffset(24, 88)
@@ -874,9 +875,45 @@ resize = function()
 		search.Visible = not mobileDetailVisible
 		filterBar.Visible = not mobileDetailVisible
 		detail.Position = UDim2.fromOffset(24, if mobileDetailVisible then 130 else 172)
-		detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -154 else -196)
+		detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -150 else -196)
 		detail.Visible = mobileDetailVisible
+
+		if mobileDetailVisible then
+			-- A compact two-column summary avoids stacking the desktop preview,
+			-- description, team and interaction rows on top of one another.
+			preview.Position = UDim2.fromOffset(8, 8)
+			preview.Size = UDim2.new(0.34, -8, 0, 64)
+			petName.Position = UDim2.new(0.36, 0, 0, 8)
+			petName.Size = UDim2.new(0.64, -16, 0, 22)
+			petName.TextSize = 16
+			petRarity.Position = UDim2.new(0.36, 0, 0, 31)
+			petRarity.Size = UDim2.new(0.64, -16, 0, 16)
+			petRarity.TextSize = 9
+			petDescription.Visible = false
+			bondLabel.Position = UDim2.new(0.36, 0, 0, 50)
+			bondLabel.Size = UDim2.new(0.64, -16, 0, 18)
+			bondLabel.TextSize = 9
+			favoriteButton.Position = UDim2.new(1, -76, 0, 76)
+			lockButton.Position = UDim2.new(1, -38, 0, 76)
+			favoriteButton.Size = UDim2.fromOffset(30, 28)
+			lockButton.Size = UDim2.fromOffset(30, 28)
+			teamLabel.Visible = false
+			interactionRow.Visible = false
+			equipButton.Position = UDim2.new(0, 8, 1, -42)
+			equipButton.Size = UDim2.new(0.50, -12, 0, 34)
+			mainButton.Position = UDim2.new(0.50, 2, 1, -42)
+			mainButton.Size = UDim2.new(0.18, -4, 0, 34)
+			deleteButton.Position = UDim2.new(0.68, 4, 1, -42)
+			deleteButton.Size = UDim2.new(0.32, -12, 0, 34)
+		else
+			petDescription.Visible = true
+			teamLabel.Visible = true
+			interactionRow.Visible = true
+		end
 	else
+		petDescription.Visible = true
+		teamLabel.Visible = true
+		interactionRow.Visible = true
 		panel.Size = if viewport.X < 900 then UDim2.new(0.9, 0, 0.8, 0) else UDim2.fromScale(0.78, 0.78)
 		panelScale.Scale = if viewport.X < 900 then 0.96 else 1
 		if viewport.Y < 540 then
