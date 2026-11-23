@@ -30,6 +30,31 @@ function Components.StyleCloseButton(button: TextButton)
 	end
 end
 
+function Components.SetButtonLoading(button: TextButton, isLoading: boolean, loadingText: string?)
+	if isLoading then
+		if button:GetAttribute("PKLoading") == true then return end
+		button:SetAttribute("PKLoading", true)
+		button:SetAttribute("PKOriginalText", button.Text)
+		button:SetAttribute("PKOriginalActive", button.Active)
+		button:SetAttribute("PKOriginalAutoButtonColor", button.AutoButtonColor)
+		button.Active = false
+		button.AutoButtonColor = false
+		button.Text = loadingText or "ЗАГРУЗКА..."
+	else
+		if button:GetAttribute("PKLoading") ~= true then return end
+		local originalText = button:GetAttribute("PKOriginalText")
+		local originalActive = button:GetAttribute("PKOriginalActive")
+		local originalAuto = button:GetAttribute("PKOriginalAutoButtonColor")
+		if type(originalText) == "string" then button.Text = originalText end
+		button.Active = if type(originalActive) == "boolean" then originalActive else true
+		button.AutoButtonColor = if type(originalAuto) == "boolean" then originalAuto else true
+		button:SetAttribute("PKLoading", false)
+		button:SetAttribute("PKOriginalText", nil)
+		button:SetAttribute("PKOriginalActive", nil)
+		button:SetAttribute("PKOriginalAutoButtonColor", nil)
+	end
+end
+
 function Components.StyleText(label: TextLabel, role: string?)
 	local typography = Theme.Typography
 	local sizes = typography.Sizes
