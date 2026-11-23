@@ -111,7 +111,7 @@ local currentCard = make("Frame", {
 	Size = UDim2.new(1, -44, 0, 82),
 	BackgroundColor3 = COLORS.panelSoft,
 }, panel) :: Frame
-make("UICorner", { CornerRadius = UDim.new(0, 15) }, currentCard)
+InterfaceComponents.StyleCard(currentCard, "surface")
 
 local currentTitle = make("TextLabel", {
 	BackgroundTransparency = 1,
