@@ -1581,3 +1581,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionQueryTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It exercises a synthetic 500-record inventory, team/favorite correctness, localized Bunny search, no-match and empty cases, newest ordering, bond-level/XP priority, and normalized-name caching.
 - The same production query module is used by tests, avoiding a test-only reimplementation of filtering/sorting.
 - Next: execute the test in Studio, profile query latency on desktop/mobile, and manually verify selection/detail continuity when the selected record is filtered out or its flags change.
+
+## Stage 1 — Pet Collection selection continuity and empty-state correction (2026-11-23)
+
+- Fixed the no-results branch in `PetCollectionUI.renderList()`: after extracting query logic, it still referenced the removed local `filter`; it now checks `search.Text` directly.
+- Added `PetCollectionQuery.ResolveSelection(owned, selectedPetId)`. Detail selection is resolved against the authoritative owned collection, not the currently filtered subset. A pet hidden by Team/Favorites/search remains the selected pet in the detail panel.
+- If the selected ID is no longer owned (for example after deletion), selection falls back to the first owned pet; empty ownership clears the selection.
+- Added Studio query tests for selected pet hidden by a filter, fallback when the selected pet is no longer owned, and empty collection selection clearing.
+- Search debounce already uses `searchRenderVersion`; every text change invalidates the previous delayed render, so only the latest scheduled search rebuild runs.
+- Next: Studio test favorite removal while Favorites is active, unequip while Team is active, rapid search typing, and server refresh while a search is active.
