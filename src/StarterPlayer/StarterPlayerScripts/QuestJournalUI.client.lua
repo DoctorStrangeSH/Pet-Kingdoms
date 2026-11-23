@@ -271,12 +271,11 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		make("UICorner", { CornerRadius = UDim.new(0, 8) }, trackButton)
 		trackButton.Activated:Connect(function()
 			if quest.completed == true then return end
-			trackButton.Text = "СОХРАНЕНИЕ..."
-			trackButton.Active = false
+			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
 			local ok, result = pcall(function()
 				return trackingRequest:InvokeServer(quest.id)
 			end)
-			trackButton.Active = true
+			InterfaceComponents.SetButtonLoading(trackButton, false)
 			if ok and type(result) == "table" and result.ok == true then
 				trackedQuestId = quest.id
 				updateTracker(lastQuests)
