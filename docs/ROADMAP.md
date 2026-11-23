@@ -782,3 +782,11 @@ Source-level serialization added; live RemoteFunction timing verification remain
 - [ ] In Studio, delay both read RemoteFunctions, close and reopen each modal before the first response returns, and verify only the newest session updates labels/previews and loading state.
 
 Source-level stale-session protection added; delayed-response runtime verification remains pending.
+
+### Stage 1 — Resource HUD initial snapshot ordering (2026-11-23)
+
+- [x] Prevent a delayed startup `Get` response from overwriting a newer pushed resource snapshot.
+- [x] Stop startup retries once the live update stream has delivered a snapshot.
+- [ ] In Studio, delay the initial resource `Get`, trigger a resource update before it returns, and confirm the HUD retains the pushed balance without a stale rollback.
+
+Source-level event-vs-startup ordering guard added; runtime timing verification remains pending.
