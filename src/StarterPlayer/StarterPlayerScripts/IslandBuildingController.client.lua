@@ -470,60 +470,60 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 	return false
 end
 
-local function updatePreview(screenPosition: Vector2)
-	if not placing or currentPreview == nil then
-		return
-	end
+-- Re-check the selected grid cell without using the screen pointer.
+local function updatePreviewAtCell(x: number, z: number)
+	if not placing or currentPreview == nil then return end
 	local top, width, depth, cellSize = getIslandGrid()
 	if top == nil or width == nil or depth == nil or cellSize == nil then
 		currentValid = false
 		setStatus("Не удалось найти поверхность острова", false)
 		return
 	end
-
-	local ray = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y)
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	local excluded: { Instance } = { currentPreview }
-	if player.Character then
-		table.insert(excluded, player.Character)
-	end
-	if movingInstanceId ~= nil and selectedBuildingModel ~= nil then
-		table.insert(excluded, selectedBuildingModel)
-	end
-	params.FilterDescendantsInstances = excluded
-	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
-	if result == nil or result.Instance ~= top then
-		currentValid = false
-		currentCellX = nil
-		currentCellZ = nil
-		setStatus("Наведи на траву своего острова", false)
-		return
-	end
-
-	local localPoint = top.CFrame:PointToObjectSpace(result.Position)
-	local x = math.floor((localPoint.X + top.Size.X / 2) / cellSize)
-	local z = math.floor((localPoint.Z + top.Size.Z / 2) / cellSize)
 	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
 	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
 	local inside = x >= 0 and z >= 0 and x + footprintWidth <= width and z + footprintDepth <= depth
 	local overlaps = inside and hasBuildingOverlap(x, z, footprintWidth, footprintDepth)
 	local valid = inside and not overlaps
-	currentCellX = x
-	currentCellZ = z
+	currentCellX, currentCellZ = x, z
 	currentValid = valid
-
 	local centerX = (x + footprintWidth / 2 - width / 2) * cellSize
 	local centerZ = (z + footprintDepth / 2 - depth / 2) * cellSize
 	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 elseif selectedCatalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
-	local target = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ)
-	if currentPreview:IsA("BasePart") then
-		currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
-		currentPreview.CFrame = target * CFrame.Angles(0, math.rad(rotation), 0)
-	end
+	currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
+	currentPreview.CFrame = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0)
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
 	local message = if not inside then "Объект выходит за границы острова" elseif overlaps then "Это место уже занято другим объектом" else "Место подходит — можно разместить"
 	setStatus(message, valid)
+end
+
+local function updatePreview(screenPosition: Vector2)
+	if not placing or currentPreview == nil then return end
+	local top, _, _, cellSize = getIslandGrid()
+	if top == nil or cellSize == nil then
+		currentValid = false
+		setStatus("Не удалось найти поверхность острова", false)
+		return
+	end
+	local activeCamera = Workspace.CurrentCamera
+	if activeCamera == nil then return end
+	local ray = activeCamera:ScreenPointToRay(screenPosition.X, screenPosition.Y)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local excluded: { Instance } = { currentPreview }
+	if player.Character then table.insert(excluded, player.Character) end
+	if movingInstanceId ~= nil and selectedBuildingModel ~= nil then table.insert(excluded, selectedBuildingModel) end
+	params.FilterDescendantsInstances = excluded
+	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+	if result == nil or result.Instance ~= top then
+		currentValid = false
+		currentCellX, currentCellZ = nil, nil
+		setStatus("Нажми на траву своего острова", false)
+		return
+	end
+	local localPoint = top.CFrame:PointToObjectSpace(result.Position)
+	local x = math.floor((localPoint.X + top.Size.X / 2) / cellSize)
+	local z = math.floor((localPoint.Z + top.Size.Z / 2) / cellSize)
+	updatePreviewAtCell(x, z)
 end
 
 local function setSelectedBuilding(catalogId: string)
@@ -563,21 +563,9 @@ local function setSelectedBuilding(catalogId: string)
 		wooden_fence = "Выбран деревянный забор",
 	}
 	setStatus(labels[catalogId] or "Выбран объект")
-	-- A different footprint may invalidate the previously locked cell.
-	if placing and placementLocked then
-		-- Revalidate the saved cell, not the current mouse position over the catalog.
-		local x, z = currentCellX, currentCellZ
-		local top, width, depth, cellSize = getIslandGrid()
-		if x ~= nil and z ~= nil and top ~= nil and width ~= nil and depth ~= nil and cellSize ~= nil then
-			local centerX = (x + 0.5 - width / 2) * cellSize
-			local centerZ = (z + 0.5 - depth / 2) * cellSize
-			local screenPoint, onScreen = camera:WorldToViewportPoint((top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ)).Position)
-			if onScreen then
-				pointerPosition = Vector2.new(screenPoint.X, screenPoint.Y)
-				updatePreview(pointerPosition)
-			end
-		end
-		if not currentValid then placementLocked = false end
+	-- Keep the saved cell fixed while the player changes the catalog item.
+	if placing and placementLocked and currentCellX ~= nil and currentCellZ ~= nil then
+		updatePreviewAtCell(currentCellX, currentCellZ)
 	end
 end
 
@@ -692,7 +680,7 @@ end
 rotateButton.Activated:Connect(function()
 	if not placing then return end
 	rotation = (rotation + 90) % 360
-	if placementLocked then updatePreview(pointerPosition) end
+	if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
 end)
 
 cancelButton.Activated:Connect(stopPlacing)
@@ -772,7 +760,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if not placing then return end
 	if input.KeyCode == Enum.KeyCode.R then
 		rotation = (rotation + 90) % 360
-		if placementLocked then updatePreview(pointerPosition) end
+		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
 	elseif input.KeyCode == Enum.KeyCode.Escape then
 		stopPlacing()
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1
