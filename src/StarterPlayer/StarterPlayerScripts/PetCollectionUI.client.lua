@@ -16,6 +16,19 @@ end
 
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
 
+-- Bound every collection request so a stalled RemoteFunction cannot lock the
+-- collection UI forever. Mutations carry expectedRevision and are server-checked.
+local function invokeCollection(action: string, payload: { [string]: any }?)
+	local response = RequestRunner.Invoke(function()
+		return table.pack(remote:InvokeServer(action, payload))
+	end, 12)
+	if not response.ok then
+		return false, nil, nil, response.errorCode
+	end
+	local values = response.value :: { [number]: any, n: number }
+	return true, values[1], values[2], nil
+end
+
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
@@ -748,15 +761,13 @@ local function setMainPet()
 	local nextEquipped = table.clone(collection.equipped)
 	table.remove(nextEquipped, currentIndex)
 	table.insert(nextEquipped, 1, selectedPetId)
-	local ok, success, result = pcall(function()
-		return remote:InvokeServer("Equip", {
-			petIds = nextEquipped,
-			expectedRevision = collection.revision,
-		})
-	end)
+	local ok, success, result, requestError = invokeCollection("Equip", {
+		petIds = nextEquipped,
+		expectedRevision = collection.revision,
+	})
 	busy = false
 	if not ok or success ~= true or type(result) ~= "table" then
-		showStatus("Не удалось сменить главного питомца. Обновляю данные...", true)
+		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние команды..." else "Не удалось сменить главного питомца. Обновляю данные...", true)
 		refreshCollection()
 		return
 	end
@@ -785,16 +796,14 @@ local function toggleEquip()
 		return
 	end
 
-	local ok, success, result = pcall(function()
-		return remote:InvokeServer("Equip", {
-			petIds = nextEquipped,
-			expectedRevision = collection.revision,
-		})
-	end)
+	local ok, success, result, requestError = invokeCollection("Equip", {
+		petIds = nextEquipped,
+		expectedRevision = collection.revision,
+	})
 	busy = false
 	equipButton.Active = true
 	if not ok or success ~= true or type(result) ~= "table" then
-		showStatus("Не удалось изменить команду. Обновляю данные...", true)
+		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние команды..." else "Не удалось изменить команду. Обновляю данные...", true)
 		refreshCollection()
 		return
 	end
@@ -814,13 +823,11 @@ local function interactWithSelected(interactionType: string)
 	local originalPlayText = playButton.Text
 	petButton.Text = "..."
 	playButton.Text = "..."
-	local ok, success, result = pcall(function()
-		return remote:InvokeServer("Interact", {
-			petId = selectedPetId,
-			interactionType = interactionType,
-			expectedRevision = collection.revision,
-		})
-	end)
+	local ok, success, result, requestError = invokeCollection("Interact", {
+		petId = selectedPetId,
+		interactionType = interactionType,
+		expectedRevision = collection.revision,
+	})
 	busy = false
 	petButton.Active = true
 	playButton.Active = true
@@ -835,7 +842,7 @@ local function interactWithSelected(interactionType: string)
 			DATASTORE_UNAVAILABLE = "Не удалось сохранить дружбу. Проверь соединение и попробуй позже.",
 			COLLECTION_NOT_READY = "Коллекция ещё загружается. Попробуй немного позже.",
 		}
-		showStatus(messages[reason] or "Не удалось выполнить действие. Обновляю данные...", true)
+		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние питомца..." else (messages[reason] or "Не удалось выполнить действие. Обновляю данные..."), true)
 		refreshCollection()
 		return
 	end
@@ -850,20 +857,18 @@ local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 	busy = true
 	favoriteButton.Active = false
 	lockButton.Active = false
-	local ok, success, result = pcall(function()
-		return remote:InvokeServer("Protect", {
-			petId = selectedPetId,
-			isFavorite = isFavorite,
-			isLocked = isLocked,
-			expectedRevision = collection.revision,
-		})
-	end)
+	local ok, success, result, requestError = invokeCollection("Protect", {
+		petId = selectedPetId,
+		isFavorite = isFavorite,
+		isLocked = isLocked,
+		expectedRevision = collection.revision,
+	})
 	busy = false
 	favoriteButton.Active = true
 	lockButton.Active = true
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
-		showStatus(if reason == "STALE_REVISION" then "Коллекция обновилась. Загружаю..." else "Не удалось сохранить настройки питомца.", true)
+		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю настройки питомца..." elseif reason == "STALE_REVISION" then "Коллекция обновилась. Загружаю..." else "Не удалось сохранить настройки питомца.", true)
 		refreshCollection()
 		return
 	end
@@ -895,12 +900,10 @@ local function confirmDeleteSelected()
 	busy = true
 	confirmDeleteButton.Active = false
 	confirmDeleteButton.Text = "УДАЛЯЕМ..."
-	local ok, success, result = pcall(function()
-		return remote:InvokeServer("Delete", {
-			petId = pendingDeletePetId,
-			expectedRevision = collection.revision,
-		})
-	end)
+	local ok, success, result, requestError = invokeCollection("Delete", {
+		petId = pendingDeletePetId,
+		expectedRevision = collection.revision,
+	})
 	busy = false
 	confirmDeleteButton.Active = true
 	confirmDeleteButton.Text = "УДАЛИТЬ"
@@ -915,7 +918,7 @@ local function confirmDeleteSelected()
 			PET_EQUIPPED = "Сначала убери питомца из команды.",
 			STALE_REVISION = "Коллекция обновилась. Загружаю изменения...",
 		}
-		showStatus(messages[reason] or "Не удалось удалить питомца. Обновляю коллекцию...", true)
+		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю результат удаления..." else (messages[reason] or "Не удалось удалить питомца. Обновляю коллекцию..."), true)
 		refreshCollection()
 		return
 	end
