@@ -913,3 +913,10 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Cancel in-flight shade, panel-position, and panel-scale tweens when a new open/close transition begins, so rapid reopen cannot be overwritten by stale animation.
 - [x] Add a short horizontal entrance transition when selecting a pet in compact mobile detail mode; cancel it when navigating back or closing the collection.
 - [ ] Verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Roblox Studio at low frame rates and on touch.
+
+### Stage 1 — Pet Collection filter and card transitions (2026-11-23)
+
+- [x] Replace instant filter-selection color changes with short cancellable color tweens for All, Team, Favorites, and Sort controls.
+- [x] Fade newly created virtualized pet cards and their icon/name/metadata labels into view; reused cards remain untouched during overlapping scroll windows.
+- [x] Keep the existing data/filter/sort pipeline and scroll restoration unchanged; only presentation transitions are animated.
+- [ ] Verify repeated rapid filter/sort taps, 500-pet scrolling, no stale tween callbacks, and low-frame-rate behavior in Roblox Studio.
