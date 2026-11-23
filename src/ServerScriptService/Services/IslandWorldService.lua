@@ -219,11 +219,21 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 		makePart(model, "Sign", Vector3.new(width * 0.38, unit * 0.13, 0.12),
 			CFrame.new(0, unit * 0.82, -depth * 0.37), Color3.fromRGB(255, 218, 137), Enum.Material.SmoothPlastic)
 	elseif catalogId == "stone_path" then
-		local slab = makePart(model, "StoneSlab", Vector3.new(width * 0.92, unit * 0.1, depth * 0.92),
-			CFrame.new(0, unit * 0.05, 0), Color3.fromRGB(157, 157, 150), Enum.Material.Slate)
-		slab.TopSurface = Enum.SurfaceType.Smooth
-		makePart(model, "StoneAccent", Vector3.new(width * 0.24, unit * 0.035, depth * 0.16),
-			CFrame.new(-width * 0.18, unit * 0.12, -depth * 0.12), Color3.fromRGB(190, 184, 166), Enum.Material.Rock)
+		-- A repeatable stepping-stone pattern with irregular spacing, not a giant tile.
+		local stones = {
+			{ -0.25, -0.24, 0.39, 0.34, 0.10, 156 },
+			{ 0.23, -0.20, 0.40, 0.31, -0.08, 180 },
+			{ -0.22, 0.23, 0.36, 0.34, -0.06, 170 },
+			{ 0.23, 0.22, 0.41, 0.37, 0.07, 150 },
+		}
+		for index, stone in ipairs(stones) do
+			local tint = stone[6]
+			local slab = makePart(model, "PavingStone_" .. index,
+				Vector3.new(width * stone[3], unit * 0.085, depth * stone[4]),
+				CFrame.new(width * stone[1], unit * 0.045, depth * stone[2]) * CFrame.Angles(0, stone[5], 0),
+				Color3.fromRGB(tint, tint - 3, tint - 9), Enum.Material.Slate)
+			slab.TopSurface = Enum.SurfaceType.Smooth
+		end
 	elseif catalogId == "garden_lantern" then
 		makePart(model, "Foot", Vector3.new(width * 0.5, unit * 0.08, depth * 0.5),
 			CFrame.new(0, unit * 0.04, 0), Color3.fromRGB(102, 78, 57), Enum.Material.Wood)
@@ -262,13 +272,19 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 	elseif catalogId == "wooden_fence" then
 		local postColor = Color3.fromRGB(128, 88, 55)
 		for index, x in ipairs({ -width * 0.4, width * 0.4 }) do
-			makePart(model, "Post_" .. tostring(index), Vector3.new(width * 0.12, unit * 0.62, depth * 0.12),
-				CFrame.new(x, unit * 0.31, 0), postColor, Enum.Material.Wood)
+			makePart(model, "Post_" .. tostring(index), Vector3.new(width * 0.12, unit * 0.70, depth * 0.12),
+				CFrame.new(x, unit * 0.35, 0), postColor, Enum.Material.Wood)
+			local cap = makePart(model, "PostCap_" .. index, Vector3.new(width * 0.17, unit * 0.075, depth * 0.17),
+				CFrame.new(x, unit * 0.73, 0), Color3.fromRGB(192, 147, 91), Enum.Material.WoodPlanks)
+			cap.CanCollide = false
 		end
-		makePart(model, "Rail_Lower", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1),
-			CFrame.new(0, unit * 0.24, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
-		makePart(model, "Rail_Upper", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1),
-			CFrame.new(0, unit * 0.52, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
+		for index, height in ipairs({ 0.25, 0.53 }) do
+			makePart(model, "Rail_" .. index, Vector3.new(width * 0.86, unit * 0.095, depth * 0.10),
+				CFrame.new(0, unit * height, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
+		end
+		local medallion = makePart(model, "CenterMedallion", Vector3.new(width * 0.16, unit * 0.16, depth * 0.13),
+			CFrame.new(0, unit * 0.53, -depth * 0.035), Color3.fromRGB(221, 174, 102), Enum.Material.Wood)
+		medallion.CanCollide = false
 	else
 		makePart(model, "Foundation", Vector3.new(width, unit * 0.16, depth),
 			CFrame.new(0, unit * 0.08, 0), Color3.fromRGB(119, 91, 72), Enum.Material.WoodPlanks)
