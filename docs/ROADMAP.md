@@ -469,3 +469,16 @@ Source implementation complete; Roblox Studio/device validation remains pending.
 - [ ] Continue responsive audit of Island Expansion, Resource HUD, and floating controls.
 
 Source implementation complete; Studio/device validation pending. CI `45139613564` passed; follow-up spacing CI `45139635202` was in progress at the time of this entry.
+
+
+### Stage 1 — Island Expansion responsive preview UX (2026-11-23)
+
+- [x] Adapt panel sizing/typography to narrow and short screens; avoid fixed 250 px minimum width on very narrow viewports.
+- [x] Increase refresh touch target to 44 px and prevent long dimension values from overflowing.
+- [x] Rebind viewport listener when CurrentCamera changes.
+- [x] Clarify that this screen currently previews geometry only; purchase is not implemented by the existing read-only remote.
+- [x] Validate preview dimensions and required fields before calculating/rendering the expanded area.
+- [ ] Studio test 320/360/390 px portrait, short landscape, missing island, malformed payload, max level, and preview cleanup on close/modal switch.
+- [ ] Continue Stage 1 audit with Resource HUD and remaining floating controls.
+
+Source changes are in main; CI runs `45139857411` and `45139876120` were pending at the time of this entry. Roblox Studio/device validation remains outstanding.
