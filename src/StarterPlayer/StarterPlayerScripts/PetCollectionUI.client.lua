@@ -640,6 +640,8 @@ local function renderVisibleCards()
 				TextSize = 14,
 				Font = Enum.Font.GothamBold,
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextWrapped = false,
 				TextColor3 = COLORS.cream,
 			}, button)
 			make("TextLabel", {
@@ -650,6 +652,8 @@ local function renderVisibleCards()
 				TextSize = 10,
 				Font = Enum.Font.GothamMedium,
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextWrapped = false,
 			}, button)
 			button.Activated:Connect(function()
 				local previousPetId = selectedPetId
@@ -669,6 +673,24 @@ local function renderVisibleCards()
 		local icon = button:FindFirstChild("PetIcon") :: TextLabel?
 		local nameLabel = button:FindFirstChild("PetName") :: TextLabel?
 		local metaLabel = button:FindFirstChild("PetMeta") :: TextLabel?
+		-- Narrow phones have less horizontal room for the icon and labels. Keep
+		-- the card readable by reclaiming width and truncating long metadata.
+		local narrowCard = list.AbsoluteSize.X < 360
+		if icon then
+			icon.Position = UDim2.new(0, narrowCard and 8 or 12, 0, 5)
+			icon.Size = UDim2.fromOffset(narrowCard and 40 or 46, 54)
+			icon.TextSize = narrowCard and 25 or 29
+		end
+		if nameLabel then
+			nameLabel.Position = UDim2.new(0, narrowCard and 56 or 66, 0, 12)
+			nameLabel.Size = UDim2.new(1, narrowCard and -68 or -112, 0, 22)
+			nameLabel.TextSize = narrowCard and 12 or 14
+		end
+		if metaLabel then
+			metaLabel.Position = UDim2.new(0, narrowCard and 56 or 66, 0, 34)
+			metaLabel.Size = UDim2.new(1, narrowCard and -68 or -112, 0, 18)
+			metaLabel.TextSize = narrowCard and 9 or 10
+		end
 		local stroke = button:FindFirstChild("CardStroke") :: UIStroke?
 		if icon then icon.Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet end
 		if nameLabel then nameLabel.Text = name end
