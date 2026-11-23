@@ -17,10 +17,10 @@ local update = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local COLORS = InterfaceTheme.Colors
 
 local RESOURCES = {
-	{ id = "wood", icon = "🌲", label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
-	{ id = "stone", icon = "🪨", label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
-	{ id = "gold", icon = "🪙", label = "ЗОЛОТО", color = COLORS.gold },
-	{ id = "gems", icon = "💎", label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
+	{ id = "wood", icon = "♣", label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
+	{ id = "stone", icon = "◆", label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
+	{ id = "gold", icon = "●", label = "ЗОЛОТО", color = COLORS.gold },
+	{ id = "gems", icon = "♦", label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
 }
 
 local screen = Instance.new("ScreenGui")
@@ -85,7 +85,7 @@ for _, resource in ipairs(RESOURCES) do
 	amount.Size = UDim2.new(1, -36, 0.58, 0)
 	amount.TextTruncate = Enum.TextTruncate.AtEnd
 	amount.Font = InterfaceTheme.Typography.Display
-	amount.Text = "—"
+	amount.Text = "…"
 	amount.TextSize = InterfaceTheme.Typography.Sizes.Numeric
 	amount.TextXAlignment = Enum.TextXAlignment.Left
 	amount.TextColor3 = resource.color
@@ -280,7 +280,9 @@ update.OnClientEvent:Connect(function(snapshot, resourceId, amount, code)
 end)
 
 task.spawn(function()
-	for attempt = 1, 6 do
+	local attempt = 0
+	while player.Parent ~= nil do
+		attempt += 1
 		local result = RequestRunner.Invoke(function()
 			return request:InvokeServer("Get")
 		end, 12)
@@ -291,7 +293,8 @@ task.spawn(function()
 				return
 			end
 		end
-		task.wait(math.min(1.5, 0.25 * attempt))
+		-- Island profile/session startup can outlast the first HUD render.
+		-- Keep retrying with a capped delay instead of leaving permanent dashes.
+		task.wait(math.min(2.5, 0.35 + attempt * 0.15))
 	end
-	warn("[PetKingdoms] Resource HUD could not load initial wallet snapshot.")
 end)
