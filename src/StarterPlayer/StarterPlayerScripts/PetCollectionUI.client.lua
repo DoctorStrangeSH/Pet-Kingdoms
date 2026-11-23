@@ -700,6 +700,10 @@ list:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
 	if #filteredRecords > 0 then renderVisibleCards() end
 end)
 
+list:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+	if #filteredRecords > 0 then renderVisibleCards() end
+end)
+
 
 local function refreshCollection()
 	local requestResult = RequestRunner.Invoke(function()
