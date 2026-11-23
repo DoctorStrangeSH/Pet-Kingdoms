@@ -818,6 +818,9 @@ local function setMainPet()
 
 	busy = true
 	mainButton.Active = false
+	mainButton.AutoButtonColor = false
+	local previousMainButtonText = mainButton.Text
+	mainButton.Text = "..."
 	local nextEquipped = table.clone(collection.equipped)
 	table.remove(nextEquipped, currentIndex)
 	table.insert(nextEquipped, 1, selectedPetId)
@@ -826,6 +829,9 @@ local function setMainPet()
 		expectedRevision = collection.revision,
 	})
 	busy = false
+	mainButton.Active = true
+	mainButton.AutoButtonColor = true
+	mainButton.Text = previousMainButtonText
 	if not ok or success ~= true or type(result) ~= "table" then
 		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние команды..." else "Не удалось сменить главного питомца. Обновляю данные...", true)
 		refreshCollection()
