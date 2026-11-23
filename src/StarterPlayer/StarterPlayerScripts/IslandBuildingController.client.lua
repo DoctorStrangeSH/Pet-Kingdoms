@@ -287,6 +287,8 @@ local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВ
 local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА\n1 🌲")
 local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР\n1 🌲")
 local setStatus: (string, boolean?) -> ()
+local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
+local clearPendingBuildingOperation: () -> ()
 local findOwnIsland: () -> Model?
 
 -- Filled after the overview UI is created farther down in this controller.
@@ -488,7 +490,7 @@ setStatus = function(message: string, good: boolean?)
 	status.TextColor3 = if good == true then COLORS.valid elseif good == false then COLORS.invalid else COLORS.text
 end
 
-local function setPendingBuildingOperation(key: string, requestId: string, payload: { [string]: any }, description: string)
+setPendingBuildingOperation = function(key: string, requestId: string, payload: { [string]: any }, description: string)
 	pendingBuildingOperationKey = key
 	pendingBuildingOperation = {
 		key = key,
@@ -500,7 +502,7 @@ local function setPendingBuildingOperation(key: string, requestId: string, paylo
 	recoveryPanel.Visible = true
 end
 
-local function clearPendingBuildingOperation()
+clearPendingBuildingOperation = function()
 	if pendingBuildingOperation then
 		clearPendingRequestId(pendingBuildingOperation.key)
 	end
