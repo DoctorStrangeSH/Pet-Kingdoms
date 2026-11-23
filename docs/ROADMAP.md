@@ -635,3 +635,24 @@ Source commits: `348a47d`, `99410fd`, `e94ec80`, `bb89e36`, `e91d298`, `ddc4ab5`
 - [ ] Perform Studio/device runtime regression before Stage 1 sign-off.
 
 Source commit: `0404d0d`; preceding successful build commit: `94f5570`.
+
+### Stage 1 — Live-play feedback fixes: responsive UI, modal layering, icons and gathering (2026-11-23)
+
+- [x] Lower the building ScreenGui display order below collection, expansion and quest modals so the persistent build launcher cannot cover open windows.
+- [x] Hide the build launcher while construction/move mode is active; restore it when placement mode closes or cannot start.
+- [x] Add viewport-based scaling and compact text sizing to construction controls; provide explicit touch placement instructions.
+- [x] Replace emoji-only launcher/catalogue/resource symbols that rendered as missing-glyph squares with compact supported symbol tokens.
+- [x] Keep the resource HUD retrying its initial server snapshot until the island profile is ready instead of stopping after six attempts.
+- [x] Add visible “ДЕРЕВО +3” and “КАМЕНЬ +2” world markers to gathering nodes; hide markers during node cooldown and restore them on respawn.
+- [x] Publish active-modal changes from ModalManager and hide the tracked-quest HUD whenever any modal window is open, preventing it from covering Quest Journal, Pet Collection or construction.
+- [x] Scale compact launcher, header, filter, tracker and touch-control typography for Pet Collection, Quest Journal and Island Expansion.
+- [x] Refresh building catalogue, controller and gathering documentation to match the code that is actually present, including six building entries, server-owned costs, move/demolish and gathering amounts.
+- [x] CI passed for the main runtime fixes through Quest Journal overlay commit `f9f394e` (run `45198607456`).
+- [ ] CI for the ModalManager event smoke-test update `6471a44` is queued.
+- [ ] Verify that the new glyph set renders on Windows desktop, Roblox mobile and console; replace any remaining unsupported symbols with actual image assets if needed.
+- [ ] In Roblox Studio, verify the build preview is visible and follows mouse/touch, tap-to-place works, confirmation charges the correct price, and all six entries create persisted structures.
+- [ ] Verify 320/360/390 px portrait, short landscape, desktop, safe areas, modal close buttons, click-outside dismissal, Escape, and no floating HUD overlap.
+- [ ] Verify initial resource values appear before gathering; test both Wood nodes (+3 each) and Stone nodes (+2 each), including 60-second respawn.
+- [ ] Stage 1 remains open until the owner confirms the Studio/device checks; CI build success alone is not visual/runtime acceptance.
+
+Source commits: `6dafbf3`, `5bfb83d`, `5af9026`, `3ac8ff6`, `ff679e8`, `8b12c58`, `7f09c81`, `42fae44`, `8193c20`, `acdaa62`, `86f1c15`, `e282612`, `f9f394e`, `7f09c81`, `6471a44`. Runtime verification in Roblox Studio remains outstanding.
