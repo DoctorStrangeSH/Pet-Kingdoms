@@ -9,17 +9,9 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local function getPanelSignal(): BindableEvent
-	local existing = playerGui:FindFirstChild("PetKingdomsPanelSignal")
-	if existing and existing:IsA("BindableEvent") then return existing end
-	local signal = Instance.new("BindableEvent")
-	signal.Name = "PetKingdomsPanelSignal"
-	signal.Parent = playerGui
-	return signal
-end
-local panelSignal = getPanelSignal()
+local ModalManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ModalManager"))
 local function announcePanelOpened()
-	panelSignal:Fire(script.Name)
+	ModalManager.Open(script.Name)
 end
 
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
@@ -900,6 +892,7 @@ local function closeCollection()
 	confirmPanel.Visible = false
 	if not busy then pendingDeletePetId = nil end
 	panel.Visible = false
+	ModalManager.Close(script.Name)
 	TweenService:Create(shade, TweenInfo.new(0.12), { BackgroundTransparency = 1 }):Play()
 	task.delay(0.13, function()
 		-- A quick reopen invalidates this delayed hide, preventing a stuck/hidden modal.
@@ -909,8 +902,8 @@ local function closeCollection()
 	end)
 end
 
-panelSignal.Event:Connect(function(origin)
-	if origin ~= script.Name then closeCollection() end
+ModalManager.Register(script.Name, function(_reason: string)
+	closeCollection()
 end)
 
 -- Escape closes the topmost layer first, never the collection behind a confirmation.
