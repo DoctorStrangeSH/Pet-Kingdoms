@@ -80,13 +80,15 @@ local openButton = make("TextButton", {
 make("UICorner", { CornerRadius = UDim.new(1, 0) }, openButton)
 make("UIStroke", { Color = COLORS.gold, Thickness = 2, Transparency = 0.12 }, openButton)
 
-local shade = make("Frame", {
+local shade = make("TextButton", {
 	Name = "Shade",
 	Size = UDim2.fromScale(1, 1),
 	BackgroundColor3 = Color3.new(0, 0, 0),
 	BackgroundTransparency = 0.42,
+	Text = "",
+	AutoButtonColor = false,
 	Visible = false,
-}, screen) :: Frame
+}, screen) :: TextButton
 
 local panel = make("Frame", {
 	Name = "CollectionPanel",
@@ -900,6 +902,15 @@ end)
 -- Escape closes the topmost layer first, never the collection behind a confirmation.
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.KeyCode ~= Enum.KeyCode.Escape then return end
+	if confirmPanel.Visible then
+		pendingDeletePetId = nil
+		confirmPanel.Visible = false
+	elseif panel.Visible then
+		closeCollection()
+	end
+end)
+
+shade.Activated:Connect(function()
 	if confirmPanel.Visible then
 		pendingDeletePetId = nil
 		confirmPanel.Visible = false
