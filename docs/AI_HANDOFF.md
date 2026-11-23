@@ -1062,3 +1062,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Wrapped the compact building status label for longer Russian hints.
 - On a catalog switch with a locked cell, the controller now projects that saved cell back into screen space before revalidating the new footprint, instead of accidentally using the pointer's current location over a catalog button.
 - Roblox Studio and mobile device emulator checks remain pending, including selected-card outline legibility, raycast revalidation, rotate and confirmation, and switching to larger footprints near boundaries.
+
+
+## Locked construction cell rotation correction (2026-11-23)
+
+- Split placement preview into `updatePreviewAtCell(x, z)` (authoritative local grid-cell presentation and overlap/bounds feedback) and `updatePreview(screenPosition)` (raycast from a deliberate world pointer).
+- Rotation with the on-screen button or R key and switching catalog cards now re-evaluate the exact locked grid coordinates directly. They no longer raycast through the current pointer position over UI, preventing the selected destination from drifting or being cleared by a UI interaction.
+- Kept server-authoritative placement and idempotent request IDs unchanged. A locked footprint that becomes invalid displays red and cannot be confirmed; the player can select a new world cell.
+- Roblox Studio runtime test still needed: lock a cell, move cursor over panel, rotate via button and R, swap 1x1/3x3 catalog entries, confirm valid and invalid placements, and check touch input and camera changes in mobile emulator.
