@@ -11,17 +11,9 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local function getPanelSignal(): BindableEvent
-	local existing = playerGui:FindFirstChild("PetKingdomsPanelSignal")
-	if existing and existing:IsA("BindableEvent") then return existing end
-	local signal = Instance.new("BindableEvent")
-	signal.Name = "PetKingdomsPanelSignal"
-	signal.Parent = playerGui
-	return signal
-end
-local panelSignal = getPanelSignal()
+local ModalManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ModalManager"))
 local function announcePanelOpened()
-	panelSignal:Fire(script.Name)
+	ModalManager.Open(script.Name)
 end
 
 local camera = Workspace.CurrentCamera
@@ -1324,17 +1316,15 @@ local function openKingdomOverview()
 	overview.Visible = true
 end
 
-panelSignal.Event:Connect(function(origin)
-	if origin ~= script.Name then
-		closeKingdomOverview()
-		if not demolitionRequestInFlight then selectBuilding(nil) end
-		if buildRequestInFlight then
-			-- Another panel takes focus immediately; do not cancel an in-flight transaction.
-			panel.Visible = false
-			closeAfterBuildResponse = true
-		else
-			stopPlacing()
-		end
+ModalManager.Register(script.Name, function(_reason: string)
+	closeKingdomOverview()
+	if not demolitionRequestInFlight then selectBuilding(nil) end
+	if buildRequestInFlight then
+		-- Another modal takes focus immediately; do not cancel an in-flight transaction.
+		panel.Visible = false
+		closeAfterBuildResponse = true
+	else
+		stopPlacing()
 	end
 end)
 
