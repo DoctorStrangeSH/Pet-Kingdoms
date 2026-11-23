@@ -567,3 +567,14 @@ Source commits: `3f7b6a7`, `84450d3`, `9856117`, `e70029a`. CI passed for helper
 - [ ] Complete desktop and 320/360/390 px mobile visual regression in Roblox Studio before Stage 1 sign-off.
 
 Source commits: `0bbf4f0`, `1606f79`, `9d3a189`, `c553373`, `cc7dd65`, `c5fa285`, `b8fc05a`, `2392b1c`, `34920b9`. Icon-token CI passed; typography CI runs `45151960757`, `45151969028`, `45151976802` were pending at documentation time. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Final UI cleanup and icon migration (2026-11-23)
+
+- [x] Remove redundant corner/stroke creation before shared launcher and action-button style helpers.
+- [x] Move remaining Pet Collection favorite/lock/bunny glyphs and Build rotate glyph to `InterfaceTheme.Icons`; add shared Bunny token.
+- [x] Static audit: no `TextScaled=true`, no TODO/FIXME/HACK or legacy AI attribution comments in the primary UI scripts.
+- [ ] Align Resource HUD palette/typography with shared `InterfaceTheme`.
+- [ ] Finish spacing/overflow audit and run desktop + 320/360/390 px mobile regression in Roblox Studio before Stage 1 sign-off.
+
+Source commits: `639d343`, `a9fcfe5`, `3d6cd07`, `742be87`, `a32852e`, `035659b`, `a43e98f`, `996901c`. Cleanup CI passed through commit `a32852e`; latest build `45152892961` was pending. Studio/device validation remains outstanding.
