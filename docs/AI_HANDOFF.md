@@ -1664,3 +1664,4 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - After the server accepts pet flag changes, Favorite and Lock detail controls receive a short size pulse. The pulse is presentation-only and starts only after a successful response.
 - Validation still required in Studio: rapid selection, Favorite/Lock feedback, mobile taps, and 500-pet scroll performance.
 - GitHub Actions #552 was a transient external installer failure: `setup-rokit` received HTTP 503 from `raw.githubusercontent.com` before Rojo verification or place build. Failed jobs were re-queued for retry; this is not a Luau or place-build failure.
+- Tween lifecycle cleanup: completed card surface/outline and Favorite/Lock pulse tweens remove their stored references; replaced outline/action tweens are cancelled before new transitions. This avoids retaining destroyed virtualized card instances in tween maps.
