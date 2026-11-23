@@ -92,7 +92,7 @@ local gui = make("ScreenGui", {
 	Name = "IslandBuildingGui",
 	ResetOnSpawn = false,
 	IgnoreGuiInset = false,
-	DisplayOrder = 30,
+	DisplayOrder = 16,
 }, playerGui) :: ScreenGui
 
 local recoveryPanel = make("Frame", {
@@ -158,6 +158,7 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UISizeConstraint", { MinSize = Vector2.new(220, 210), MaxSize = Vector2.new(540, 245) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
@@ -337,19 +338,27 @@ local function resizeBuildingPanel()
 	local compact = viewport.X < 520
 	compactBuildingUI = compact
 	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
+	panelScale.Scale = math.clamp((viewport.Y - 72) / 228, 0.76, 1)
 	panel.Size = UDim2.fromOffset(panelWidth, 228)
 	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
 	local gap = 8
 	local available = contentWidth - 2 * gap
 	local narrow = panelWidth < 370
+	local tiny = viewport.X < 360
+	local title = panel:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then title.TextSize = if compact then 15 else 18 end
+	status.TextSize = if tiny then 10 else (if compact then 11 else 12)
+	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+		button.TextSize = if tiny then 10 else (if compact then 11 else 13)
+	end
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth
 	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
 	rotateButton.Text = if narrow then InterfaceTheme.Icons.Rotate else InterfaceTheme.Icons.Rotate .. "  ПОВОРОТ"
 	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
-	confirmButton.TextSize = if narrow then 12 else 14
+	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
 	cancelButton.Text = if narrow then "✕" else "ОТМЕНА"
 	-- Selection actions share a row and remain within the mobile viewport.
@@ -359,6 +368,12 @@ local function resizeBuildingPanel()
 	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
 	local demolishWidth = math.min(180, actionAvailable - moveWidth)
 	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
+	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
+	if buildLauncher and buildLauncher:IsA("TextButton") then
+		buildLauncher.Size = UDim2.fromOffset(compact and 128 or 154, compact and 42 or 48)
+		buildLauncher.Position = UDim2.new(1, compact and -10 or -22, 0, compact and 12 or 24)
+		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
+	end
 	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
 	moveButton.Text = if compact then InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ" else InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ"
@@ -1015,7 +1030,7 @@ local function beginPlacing()
 		return
 	end
 	placementLocked = false
-	setStatus("Нажми на свободную траву, чтобы закрепить место")
+	setStatus(if touchPlacement then "1. Выбери здание  2. Коснись свободной травы  3. Нажми «ПОСТРОИТЬ»" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
 rotateButton.Activated:Connect(function()
