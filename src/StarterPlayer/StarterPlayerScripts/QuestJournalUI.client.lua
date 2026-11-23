@@ -515,7 +515,10 @@ local function resize()
 	title.TextSize = if compact then 15 else 18
 	subtitle.Text = if narrow then "Твои текущие задания" else "Небольшие дела — большие открытия"
 	subtitle.TextSize = if compact then 10 else 12
-	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
+	openButton.Size = UDim2.fromOffset(compact and 48 or 58, compact and 48 or 58)
+	openButton.TextSize = if compact then 23 else 27
+	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
+	refreshButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
 	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), 280)
@@ -524,7 +527,10 @@ local function resize()
 	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.68, 1)
 	refreshButton.Position = UDim2.new(1, compact and -62 or -62, 0, 14)
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, short and -8 or -12)
-	tracker.Size = UDim2.fromOffset(math.max(200, math.min(compact and 220 or 260, viewport.X - 20)), 78)
+	tracker.Size = UDim2.fromOffset(math.max(190, math.min(compact and 220 or 260, viewport.X - 20)), compact and 68 or 78)
+	trackerTitle.TextSize = if compact then 9 else 10
+	trackerName.TextSize = if compact then 11 else 12
+	trackerProgress.TextSize = if compact then 10 else 11
 end
 
 local viewportConnection: RBXScriptConnection? = nil
