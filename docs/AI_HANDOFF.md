@@ -1423,3 +1423,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Existing close buttons, modal cards, pet actions, expansion refresh, and building actions already used shared component helpers; this pass extends coverage to the floating launchers and quest tracking. Static checks confirm all four launchers call the shared helper and quest tracking no longer has a duplicate one-off corner style.
 - CI passed for shared component addition and each launcher application (`45142855564`, `45142875810`, `45142881523`, `45142889014`, `45142895588`); quest tracking style CI `45142944796` passed. Latest label-shortening change is commit `7f35991`; its CI should be checked before treating the final pass as green. No Roblox Studio/device visual regression has been run.
 - Next: unify status badges/empty/error states and audit typography/spacing in the remaining building and resource interfaces. Do not begin Stage 2 until Stage 1's visual audit and Studio/device regression are complete.
+
+
+## Stage 1 — Interface & usability: responsive global notifications (2026-11-23)
+
+- Updated `NotificationManager` toast sizing for narrow screens: minimum width reduced from 220 to 180 px, max width bounded by viewport, compact message/icon typography, and a 58 px toast height for wrapped messages. This prevents global notifications from being forced wider than small phone screens.
+- Added viewport resize handling that disconnects and rebinds when `Workspace.CurrentCamera` changes, and reapplies constraints to already-visible notifications. Existing semantic variants (success/info/warning/error/reward), stacking, animation, and safe GUI inset are preserved.
+- CI run `45147513350` was in progress when this note was written. No Studio/device visual test has been performed. Next verify long Russian messages, 320/360 px portrait, 4-toast overflow replacement, notifications during modal open, and camera replacement.
+- Stage 1 remains open: standardize per-panel status/empty/loading presentation, finish icon coverage, and perform desktop/mobile Studio regression before moving to Stage 2.
