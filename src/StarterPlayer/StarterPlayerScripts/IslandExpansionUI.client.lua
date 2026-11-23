@@ -361,7 +361,10 @@ local function resize()
 	local short = viewport.Y < 500
 	title.Text = if compact then "РАСШИРЕНИЕ" else "РАСШИРЕНИЕ ОСТРОВА"
 	title.TextSize = if compact then 15 else 18
-	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
+	openButton.Size = UDim2.fromOffset(compact and 48 or 62, compact and 48 or 62)
+	openButton.TextSize = if compact then 22 else 28
+	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
+	refreshButton.TextSize = if compact then 11 else 12
 	-- Keep the expansion launcher below the pet launcher on compact screens.
 	openButton.Position = UDim2.new(1, compact and -12 or -22, compact and 0.72 or 0.70, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
