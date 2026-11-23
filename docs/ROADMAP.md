@@ -890,3 +890,10 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Disable both confirmation actions and their automatic hover/click feedback while deletion is in progress; restore them after the request resolves.
 - [x] Ignore Escape, backdrop, and Cancel dismissal while the delete request is active, preventing the dialog from implying cancellation after the server request has already started.
 - [ ] Verify delayed Delete responses, timeout recovery, close/reopen behavior, and retry flow in Roblox Studio.
+
+### Stage 1 — Main-pet action loading feedback (2026-11-23)
+
+- [x] Show an in-progress indicator while changing the main pet.
+- [x] Disable the main-pet action and its automatic button feedback while the server request is pending.
+- [x] Restore the original button label, active state, and automatic feedback after the request resolves, before either success rendering or failure refresh.
+- [ ] In Studio, delay/fail the Equip request and verify the main-pet button never remains disabled or stuck on the loading glyph.
