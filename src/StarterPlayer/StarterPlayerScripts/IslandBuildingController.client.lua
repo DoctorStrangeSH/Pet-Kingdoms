@@ -330,6 +330,7 @@ make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, dem
 -- Fit all construction actions inside the actual panel content width.
 -- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
 local compactBuildingUI = false
+local buildEntryButton: TextButton? = nil
 
 local function resizeBuildingPanel()
 	local activeCamera = Workspace.CurrentCamera
@@ -952,6 +953,7 @@ local function beginMoveSelected()
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
 	panel.Visible = true
+	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
@@ -966,6 +968,7 @@ local function beginMoveSelected()
 		placing = false
 		movingInstanceId = nil
 		panel.Visible = false
+		if buildEntryButton then buildEntryButton.Visible = true end
 		confirmButton.Text = "ПОСТРОИТЬ"
 		mainHouseButton.Active = true
 		petHouseButton.Active = true
@@ -992,6 +995,7 @@ local function stopPlacing()
 	placing = false
 	movingInstanceId = nil
 	panel.Visible = false
+	if buildEntryButton then buildEntryButton.Visible = true end
 	if not overview.Visible then ModalManager.Close(script.Name) end
 	clearPreview()
 	mainHouseButton.Active = true
@@ -1017,12 +1021,14 @@ local function beginPlacing()
 	rotation = 0
 	placing = true
 	panel.Visible = true
+	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
 	demolishButton.Visible = false
 	createPreview()
 	if currentPreview == nil then
 		placing = false
 		panel.Visible = false
+		if buildEntryButton then buildEntryButton.Visible = true end
 		if selectedBuildingModel and selectedBuildingModel.Parent then
 			moveButton.Visible = true
 			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
@@ -1275,6 +1281,7 @@ local function addBuildEntry()
 		TextSize = 15,
 	}, gui) :: TextButton
 	InterfaceComponents.StyleActionButton(open, "gold")
+	buildEntryButton = open
 	open.Activated:Connect(beginPlacing)
 end
 
@@ -1598,4 +1605,5 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 end)
 
 addBuildEntry()
+resizeBuildingPanel()
 print("[PetKingdoms] Building controller loaded.")
