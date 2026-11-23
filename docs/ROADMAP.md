@@ -929,3 +929,11 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Cancel a card's previous selection tween before applying a new state.
 - [ ] Verify rapid selection changes, Favorite/Lock feedback, mobile card taps, and 500-pet scrolling in Roblox Studio.
 - [x] Clear completed card surface, outline, and Favorite/Lock pulse tween references; cancel replaced outline tweens before starting a new one.
+
+### Stage 1 — Pet Collection virtualization stress coverage (2026-11-23)
+
+- [x] Extend virtual-list test fixtures from 500 to 1,000 pets.
+- [x] Sweep deterministic scroll positions across each collection size and assert every visible item is covered by the virtual window.
+- [x] Assert the render budget throughout the scroll sweep, including the 1,000-pet fixture.
+- [x] Cover short-content scroll clamping, zero-height viewport safety, and oversized overscan bounds.
+- [ ] Execute the Studio test suite and profile actual GUI instance counts with 100/250/500/1,000 pets.
