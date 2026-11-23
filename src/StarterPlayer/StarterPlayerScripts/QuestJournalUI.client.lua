@@ -466,7 +466,16 @@ local function setOpen(value: boolean)
 		tracker.Visible = false
 	else
 		ModalManager.Close(script.Name)
-		if hasLoadedSnapshot then updateTracker(lastQuests) end
+		-- ModalManager may be in the middle of switching to another window.
+		-- Defer HUD restoration until the new active modal has been registered.
+		task.defer(function()
+			if opened then return end
+			if ModalManager.GetActive() == nil and hasLoadedSnapshot then
+				updateTracker(lastQuests)
+			else
+				tracker.Visible = false
+			end
+		end)
 	end
 	panel.Visible = value
 	shade.Visible = value
@@ -513,6 +522,8 @@ local function resize()
 	local short = viewport.Y < 500
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
+	title.TextSize = compact and 15 or 18
+	subtitle.TextSize = compact and 10 or 11
 
 	-- Use the available viewport height instead of shrinking every label and
 	-- button on short phones. The list remains the flexible part of the panel.
