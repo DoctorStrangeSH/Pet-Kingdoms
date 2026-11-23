@@ -939,6 +939,7 @@ resize = function()
 		filterBar.Size = UDim2.fromOffset(contentWidth, 32)
 		list.Position = UDim2.fromOffset(24, 172)
 		list.Size = UDim2.new(1, -48, 1, -196)
+		list.ScrollBarThickness = 5
 		mobileBackButton.Visible = mobileDetailVisible
 		list.Visible = not mobileDetailVisible
 		search.Visible = not mobileDetailVisible
