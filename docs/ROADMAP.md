@@ -815,3 +815,12 @@ The deterministic helper tests are added; actual GUI profiling remains a Studio 
 - [ ] In Studio, profile scrolling through 100/250/500 real pet records and confirm GUI instance churn is limited to cards entering/leaving the viewport, with no stale labels or click targets.
 
 Source-level incremental reconciliation and overlap regression coverage added; live GUI profiling remains pending.
+
+### Stage 1 — Pet Collection search/filter/sort hot-path optimization (2026-11-23)
+
+- [x] Cache normalized display/search names per species so repeated searches and name sorting do not lowercase/format every record inside the sort comparator.
+- [x] Build an equipped-pet lookup once per list rebuild so team filtering uses constant-time membership checks rather than repeated linear `table.find` calls.
+- [x] Make sort ordering deterministic for equal favorites/name/bond/acquisition values by applying acquisition time and pet ID tie-breakers.
+- [ ] Profile search/filter/sort with 100, 250, and 500 records in Studio; verify responsive typing, correct team/favorite membership, stable ordering, and no selection loss.
+
+Source-level hot-path optimization added; actual device timing remains a Studio profiling task.
