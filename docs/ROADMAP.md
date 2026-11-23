@@ -711,3 +711,11 @@ This pass reduces unnecessary GUI instance churn but does not yet implement virt
 - [ ] Profile with 100, 250, and 500 owned pets in Roblox Studio; confirm the visible GUI count stays near viewport capacity, no blank gaps appear while fast-scrolling, and selected cards remain correct when they scroll out/in.
 
 The list now virtualizes rendered cards; the full owned-pet dataset is still filtered/sorted in memory, as expected for this collection size. Runtime profiling remains pending.
+
+### Stage 1 — Shared button feedback safety (2026-11-23)
+
+- [x] Validate feedback state (`success`, `error`, `warning`) before advancing the button feedback generation token; unsupported calls can no longer cancel a valid reset timer and leave stale feedback styling on the button.
+- [x] Add an opt-in Roblox Studio client smoke test covering valid feedback, unsupported-state no-op behavior, and restoration of original text/colors after the timer.
+- [ ] Run `InterfaceComponentsTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; verify all assertions pass and the temporary ScreenGui is removed.
+
+Source-level guard and regression test added. Studio execution remains pending.
