@@ -15,6 +15,10 @@ local function expect(name: string, condition: boolean)
 end
 
 local closeOrder = {}
+local activeChanges: { string } = {}
+local activeChangedConnection = ModalManager.ActiveChanged:Connect(function(name: string?)
+	table.insert(activeChanges, name or "none")
+end)
 local firstOpen = false
 local secondOpen = false
 local firstClose = function(reason: string)
@@ -32,6 +36,7 @@ ModalManager.Register("ModalManagerTestSecond", secondClose)
 firstOpen = true
 ModalManager.Open("ModalManagerTestFirst")
 expect("registered first modal receives focus", ModalManager.IsActive("ModalManagerTestFirst"))
+expect("active modal change is published", activeChanges[#activeChanges] == "ModalManagerTestFirst")
 
 secondOpen = true
 ModalManager.Open("ModalManagerTestSecond")
@@ -51,7 +56,9 @@ expect("only focused modal reports active", ModalManager.IsActive("ModalManagerT
 	and not ModalManager.IsActive("ModalManagerTestSecond"))
 ModalManager.Close("ModalManagerTestFirst")
 expect("closing focused modal clears focus", ModalManager.GetActive() == nil)
+expect("closing modal publishes empty focus", activeChanges[#activeChanges] == "none")
 
+activeChangedConnection:Disconnect()
 ModalManager.Unregister("ModalManagerTestFirst")
 ModalManager.Unregister("ModalManagerTestSecond")
 expect("unregistered modal cannot retain focus", ModalManager.GetActive() == nil)
