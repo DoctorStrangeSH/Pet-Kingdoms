@@ -45,6 +45,7 @@ local busy = false
 local collectionRefreshing = false
 local cardButtons: { [string]: TextButton } = {}
 local filteredRecords: { PetRecord } = {}
+local filterButtonTweens: { [TextButton]: Tween } = {}
 local renderedWindowStart = 0
 local renderedWindowEnd = 0
 local searchRenderVersion = 0
@@ -615,6 +616,7 @@ local function renderVisibleCards()
 				Name = "Pet_" .. petId,
 				Size = UDim2.new(1, -8, 0, PET_CARD_HEIGHT),
 				Text = "",
+				BackgroundTransparency = 1,
 				AutoButtonColor = true,
 			}, list) :: TextButton
 			make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
@@ -630,6 +632,7 @@ local function renderVisibleCards()
 				Position = UDim2.new(0, 12, 0, 5),
 				Size = UDim2.fromOffset(46, 54),
 				TextSize = 29,
+				TextTransparency = 1,
 				Font = Enum.Font.Gotham,
 				TextColor3 = COLORS.cream,
 			}, button)
@@ -639,6 +642,7 @@ local function renderVisibleCards()
 				Position = UDim2.new(0, 66, 0, 12),
 				Size = UDim2.new(1, -112, 0, 22),
 				TextSize = 14,
+				TextTransparency = 1,
 				Font = Enum.Font.GothamBold,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextTruncate = Enum.TextTruncate.AtEnd,
@@ -651,6 +655,7 @@ local function renderVisibleCards()
 				Position = UDim2.new(0, 66, 0, 34),
 				Size = UDim2.new(1, -112, 0, 18),
 				TextSize = 10,
+				TextTransparency = 1,
 				Font = Enum.Font.GothamMedium,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextTruncate = Enum.TextTruncate.AtEnd,
@@ -668,6 +673,14 @@ local function renderVisibleCards()
 				animateMobileDetailIn()
 			end)
 			cardButtons[petId] = button
+			local fadeInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			TweenService:Create(button, fadeInfo, { BackgroundTransparency = 0 }):Play()
+			for _, labelName in ipairs({ "PetIcon", "PetName", "PetMeta" }) do
+				local label = button:FindFirstChild(labelName)
+				if label and label:IsA("TextLabel") then
+					TweenService:Create(label, fadeInfo, { TextTransparency = 0 }):Play()
+				end
+			end
 		end
 
 		button.Position = UDim2.fromOffset(0, (index - 1) * PET_CARD_STEP)
@@ -759,9 +772,20 @@ local function renderList(preserveScroll: boolean?)
 	else
 		renderVisibleCards()
 	end
-	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
-	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
-	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
+	local function animateFilterButton(button: TextButton, selected: boolean)
+		local previousTween = filterButtonTweens[button]
+		if previousTween then previousTween:Cancel() end
+		local targetColor = if selected then COLORS.cardSelected else COLORS.panelSoft
+		local tween = TweenService:Create(button, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundColor3 = targetColor,
+		})
+		filterButtonTweens[button] = tween
+		tween:Play()
+	end
+	animateFilterButton(allFilterButton, activeFilter == "all")
+	animateFilterButton(teamFilterButton, activeFilter == "team")
+	animateFilterButton(favoriteFilterButton, activeFilter == "favorites")
+	animateFilterButton(sortButton, true)
 	sortButton.Text = if sortMode == "newest" then "НОВЫЕ" elseif sortMode == "name" then "ИМЯ" else "ДРУЖБА"
 end
 
