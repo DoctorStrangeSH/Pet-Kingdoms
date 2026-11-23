@@ -1352,3 +1352,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Remaining limitation: the recovery panel is session-local. If the player disconnects or the client resets before resolving the operation, this panel state is lost. The server journal still prevents duplicate successful operations for the same ID, but the client does not yet persist pending intent across reconnect. Do not mark the recovery UX complete until Studio/device tests pass.
 
 - Follow-up verification: GitHub Actions Roblox project build succeeded on source commit `edfd36d` (run `45138284051`). This verifies the Rojo project build pipeline only; it is not a substitute for Roblox Studio runtime/device testing.
+
+
+## Stage 1 — Interface & usability: modal focus coordination (2026-11-23)
+
+- Hardened `ReplicatedStorage/Shared/ModalManager.lua`: registered modal names are closed in deterministic sorted order on focus changes; close handlers are isolated with `pcall`; focus is cleared before peer windows close; added `IsActive(name)`; `CloseAll()` now invokes every registered close handler to repair stale visibility instead of closing only the remembered active window.
+- Updated Island Expansion, Quest Journal, Pet Collection, and Island Building Escape handling to act only when their top-level window owns modal focus. The construction overview is now dismissed by Escape before exiting placement, and nested pet deletion confirmation still closes before its parent collection.
+- Added `Tests/ModalManagerTests.client.lua`, a Studio-only smoke suite gated by `RunPetKingdomsStudioTests`, covering focus transfer, peer closure, CloseAll cleanup, active-window checks, and unregister behavior. The suite is committed but not yet executed in Roblox Studio.
+- Static source checks passed for the new APIs and all four client integrations. Roblox project build CI was triggered by test commit `a47e990`; check run `45138727077` before claiming CI success. Remaining runtime checks: open each modal from every other modal, rapid switch/reopen during close tweens, Escape with nested dialogs, CloseAll during a pending request, and phone/tablet input.
