@@ -1046,3 +1046,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A second unprocessed world tap/click selects a different cell. Rotation revalidates the locked location; changing the catalog selection revalidates its new footprint. Confirm requires both a locked cell and current valid collision/bounds results.
 - On touch devices the preview no longer raycasts every rendered frame based on stale/recycled touch movement; taps are the explicit position selector. Existing server-authoritative placement requests and idempotency logic are preserved.
 - This code is committed but Roblox Studio runtime/mobile verification is pending. Test: touch a valid patch, tap Confirm, select a new cell, rotate a 3x3 item, switch catalog footprint, click UI outside world, and check overlap/out-of-bounds rejection. Also check PC mouse placement and moving an existing building.
+
+
+## Compact construction tray (2026-11-23)
+
+- Reworked the existing in-game IslandBuildingController panel into a 228px-tall bottom tray (previously 340px). The six catalog items are presented in a horizontally scrolling row rather than a 2-column/3-row grid, leaving more visible island space for placement.
+- Adjusted action-row positioning and responsive button sizes for narrow screens; panel width follows the active camera viewport, and move/demolish controls shift lower on compact screens.
+- No catalog costs, building authority, or persistence rules changed. This is integrated into the live controller rather than a mockup.
+- Studio device emulator testing remains pending: verify horizontal swipe scrolling, confirm/cancel/rotate hit targets, status visibility, safe-area overlap, and move/demolish access at 320px, 375px, tablet, and desktop resolutions. Also verify catalog switching while a grid cell is locked.
