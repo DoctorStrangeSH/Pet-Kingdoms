@@ -1377,3 +1377,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `resize` is forward-declared so pet-card callbacks can safely call it in Luau lexical scope. The viewport handler continues to rebind when CurrentCamera changes.
 - Static source checks passed for compact list/detail visibility, back navigation, resize forward declaration, and bounded confirmation width. CI run `45139318637` for the first mobile-flow commit passed; follow-up build for confirmation scaling (`45139348449`) was still running at documentation time. No Roblox Studio/device runtime testing has been performed.
 - Next: test 320/360/390 px portrait and short landscape, selection/back while list is scrolled, opening delete confirmation on a phone, no-pets/empty-filter states, and orientation changes while the collection is open. Continue the mobile audit with Quest Journal, Island Expansion, and Resource HUD.
+
+
+## Stage 1 — Interface & usability: Quest Journal mobile readability and recovery (2026-11-23)
+
+- Added an explicit refresh button to the Quest Journal header. Previously the timeout/error status instructed the player to press refresh even though no refresh control existed.
+- On viewports narrower than 520 px, quest cards now use a taller vertical layout: full-width title, wrapped two-line description, separated progress row, and a dedicated tracking action lower in the card. Desktop card layout is unchanged. Follow-up adjustment separates the mobile tracking button from the progress row to avoid overlap.
+- Quest tracking now uses the bounded 12-second `RequestRunner` rather than an unbounded direct `InvokeServer` wrapped in `pcall`; the UI can recover from a stalled response instead of waiting indefinitely.
+- The tracked-quest HUD truncates long names rather than overflowing. Responsive sizing now rebinds to the active CurrentCamera's ViewportSize signal and updates the panel constraints for narrow screens and short landscape. Tracker width is bounded by viewport width.
+- Static source checks passed for refresh control, mobile wrapped descriptions, tracking timeout, camera rebind, and separated card actions. CI run `45139613564` passed for the main changes; follow-up CI for the final spacing adjustment (`45139635202`) was in progress when recorded. No Roblox Studio/device runtime tests have been run.
+- Next verification: 320/360/390 px portrait, short landscape, long localized quest titles/descriptions, tracking timeout/retry, refresh while loading, tracked HUD clipping, and open modal during orientation change. Then continue Stage 1 audit with Island Expansion and Resource HUD.
