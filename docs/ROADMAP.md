@@ -589,3 +589,352 @@ Source commits: `639d343`, `a9fcfe5`, `3d6cd07`, `742be87`, `a32852e`, `035659b`
 - [ ] Finish cross-screen overflow/spacing audit and complete Roblox Studio desktop/mobile regression before Stage 1 sign-off.
 
 Source commit: `bce0786`. CI `45153168859` was running at documentation time. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Compact Pet Collection detail layout (2026-11-23)
+
+- [x] Give the mobile collection panel more vertical space on compact viewports.
+- [x] Reflow the selected-pet detail into a compact preview/summary layout instead of stacking desktop-only description, team, and interaction rows.
+- [x] Keep equip, main-pet, delete, favorite, and lock actions reachable in the compact detail view.
+- [x] Restore desktop detail positions and sizes when the viewport grows again.
+- [ ] Verify at 320/360/390 px and desktop in Roblox Studio; confirm text truncation, touch targets, and no overlap.
+
+Source branch: `chore/ui-icon-token-audit`. Studio/device validation is still required; this is not a Stage 1 sign-off.
+
+
+### Stage 1 — Quest Journal compact viewport pass (2026-11-23)
+
+- [x] Size the journal panel from the available viewport height instead of shrinking all text and controls on short screens.
+- [x] Keep the quest list as the flexible content region while preserving the header and status footer.
+- [x] Hide the tracked-quest HUD while the journal modal is open so it cannot float over the modal backdrop.
+- [x] Restore the tracked-quest HUD after the journal closes only when no other modal is active; defer the check so modal-to-modal switches do not flash the HUD above the next window.
+- [ ] Verify at 320/360/390 px, short-height mobile, and desktop in Roblox Studio.
+
+Studio/device validation remains required; Stage 1 is still open.
+
+- [x] Preserve the pet description, friendship level, team status, and care/play actions on normal-height mobile screens; keep the reduced summary only on very short screens.
+
+### Stage 1 — Construction panel short-screen layout (2026-11-23)
+
+- [x] Make the construction panel width and size constraint follow the actual viewport instead of enforcing a fixed 220 px minimum on every device.
+- [x] Add a short-height layout for landscape/compact screens: title, single-line status, horizontally scrollable catalogue, and all placement actions remain visible without scaling the entire panel.
+- [x] Reduce catalogue card and action-button heights only in the short-height layout; restore the normal catalogue card sizes and wrapped status text on taller screens.
+- [x] Keep rotate/confirm/cancel controls inside the measured panel content width.
+- [ ] Verify at 320×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio. Check catalogue scrolling, button hit targets, selection, rotation, placement, and recovery-panel interaction.
+
+This is a source-level responsive pass only. Roblox Studio touch/visual verification remains pending; Stage 1 is not complete.
+
+### Stage 1 — Resource HUD and Build launcher collision pass (2026-11-23)
+
+- [x] Reserve a dedicated top-right launcher lane below 780 px viewport width; the Build launcher becomes a compact 48×48 shared floating action instead of covering resource balances.
+- [x] Align the compact Resource HUD to the top-left and size it to the remaining width, keeping the two-column mobile resource cards readable.
+- [x] Keep the four-column resource bar centered on wider screens and retain the labelled Build action on desktop.
+- [ ] Verify 320/360/390/560/700/780 px widths in Roblox Studio; check all resource values, icon readability, Build launcher hitbox, and no collision with pet/expansion launchers or gather notifications.
+
+Source-level layout pass only; runtime visual/touch verification remains pending.
+
+- [x] On very short landscape screens, collapse the four resource chips into one compact row and hide only their redundant text labels (balances and resource icons remain visible).
+- [x] Separate Build, Pet Collection, and Island Expansion launchers vertically with 40–44 px targets; move gather feedback below the left-side quest launcher and hide the optional kingdom-bond caption while the short-screen controls occupy that space.
+- [ ] Verify the 320×180 and 360×180 layouts in Roblox Studio, including toast visibility, all launcher hit targets, and resource amount legibility.
+
+### Stage 1 — Island Expansion landscape layout (2026-11-23)
+
+- [x] Replace whole-panel downscaling on very short landscape screens with a dedicated compact layout.
+- [x] Keep the current and next island dimensions visible side by side.
+- [x] Preserve a readable title, close control, status line, and refresh action within the available height.
+- [x] Restore the standard vertical card layout and original text wrapping when returning to taller screens.
+- [ ] Verify at 320×180, 360×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio; confirm no clipping, overlapping text, or inaccessible close/refresh controls.
+
+The expansion window remains a read-only preview: purchase/expansion execution is not implemented by this UI pass. Runtime visual/touch verification remains pending.
+- [x] CI validation for the Island Expansion landscape pass: GitHub Actions #453 completed successfully; Rojo verification, Roblox place build, and Studio-ready artifact upload passed.
+
+### Stage 1 — Modal lifecycle cleanup (2026-11-23)
+
+- [x] Ensure unregistering an active modal invokes its close handler before removing the registration, preventing orphaned visible panels/shades when a controller is removed.
+- [x] Clear active focus before running the unregister close callback so Escape routing cannot target a controller during teardown.
+- [x] Add a Studio smoke regression asserting active unregister closes the window and clears modal focus.
+- [x] Preserve existing exclusive-window switching, `CloseAll` stale-visibility repair, and nested pet delete-confirmation behavior.
+- [ ] Run the Studio modal smoke test and manually verify switching among Pet Collection, Quest Journal, and Island Expansion; check Escape, outside click, close buttons, and modal-to-modal transitions.
+- [x] GitHub Actions #457 passed after the unregister lifecycle fix and regression-test addition; pinned Rojo verification, place build, and Studio-ready artifact upload completed.
+
+Source-level fix and regression coverage added. Studio interaction checks remain pending.
+
+### Stage 1 — Global notification layout and lifecycle (2026-11-23)
+
+- [x] Move global toast notifications below the Resource HUD instead of covering the top resource bar.
+- [x] Adapt the toast stack to short viewports: one visible toast below 220 px height, two below 360 px, and up to four on taller screens.
+- [x] Reflow the stack holder to the remaining viewport height and trim excess active toasts when the viewport becomes shorter.
+- [x] Make toast slot release idempotent so eviction and delayed expiry cannot both release the same visible slot.
+- [x] Add a Studio smoke test for the four-toast cap, eviction, expiry, and subsequent reuse of the stack.
+- [ ] Verify toast placement at 320×180, 320×240, 360×640, 390×844, tablet landscape, and desktop; confirm notifications do not cover Resource HUD, launchers, or gather feedback.
+- [ ] Run NotificationManager smoke tests in Roblox Studio and verify success/info/warning/error/reward variants.
+
+Source-level layout and lifecycle changes added; Studio visual/runtime checks remain pending.
+
+### Stage 1 — Pet Collection short-landscape layout (2026-11-23)
+
+- [x] Replace portrait-only fixed offsets on very short displays with a dedicated compact landscape collection layout.
+- [x] Keep title/close, search, filters, and the pet list inside the visible panel at 320×180 and 360×180 class resolutions.
+- [x] Provide a compact selected-pet detail view with reachable back, equip, main-pet, and delete actions; hide secondary detail labels only where vertical space cannot support them.
+- [x] Restore normal mobile/portrait scrollbar thickness and control layout when returning to taller screens.
+- [ ] Verify list scrolling, selection, search, filters, detail navigation, equip/main/delete controls, and delete confirmation in Roblox Studio at 320×180, 360×180, 360×640, 390×844, tablet, and desktop.
+
+Source-level layout fix added. Roblox Studio visual and interaction checks remain pending.
+
+### Stage 1 — Pet Collection empty-state consistency (2026-11-23)
+
+- [x] Ensure an empty owned-pet collection hides favorite, lock, delete, main-pet, equip, and care/play actions instead of leaving controls from a previously selected pet visible.
+- [x] Add a friendly empty preview message and reset team/bond details when no pet exists.
+- [x] Re-apply empty-state visibility after viewport changes so responsive layout code cannot resurrect inactive controls.
+- [x] Keep existing distinct list messages for a truly empty collection, no search results, empty team filter, and empty favorites filter.
+- [ ] Verify empty collection, no-result search, empty filters, and resize transitions in Roblox Studio; confirm no stale pet action is clickable.
+
+Source-level consistency fix added; runtime Studio checks remain pending.
+
+### Stage 1 — Pet Collection list performance and scroll stability (2026-11-23)
+
+- [x] Selecting a pet updates only the previous/current card highlight instead of destroying and rebuilding every visible card.
+- [x] Debounce search rendering by 120 ms so rapid typing produces one list rebuild after the user pauses.
+- [x] Preserve the current scroll offset after server-confirmed collection mutations (equip, main-pet selection, care/play, favorite/lock settings); clamp the offset if the result set becomes shorter.
+- [x] Keep intentional scroll reset for new search queries, filter changes, and sort changes.
+- [ ] Profile and verify interaction smoothness with 100, 250, and 500 owned pets in Roblox Studio on desktop and mobile emulation; confirm no selection, filtering, or scroll regressions.
+
+This pass reduces unnecessary GUI instance churn but does not yet implement virtualized/infinite scrolling; all filtered records still have card instances. Performance profiling in Studio remains pending.
+
+### Stage 1 — Pet Collection virtualized scrolling (2026-11-23)
+
+- [x] Replace full-list GUI creation with a virtualized scrolling window; only visible pet cards plus two rows of overscan above/below are instantiated.
+- [x] Use fixed card geometry and an explicit canvas height so large collections retain correct scroll range without creating hundreds of GUI instances.
+- [x] Rebuild the small visible card window only when the scroll window changes; selection still updates the two visible highlights directly.
+- [x] Recalculate the visible window when the list viewport size changes, including orientation/viewport transitions.
+- [x] Keep filtering, sorting, empty states, selection, server-confirmed mutations, and scroll preservation integrated with the virtual list.
+- [ ] Profile with 100, 250, and 500 owned pets in Roblox Studio; confirm the visible GUI count stays near viewport capacity, no blank gaps appear while fast-scrolling, and selected cards remain correct when they scroll out/in.
+
+The list now virtualizes rendered cards; the full owned-pet dataset is still filtered/sorted in memory, as expected for this collection size. Runtime profiling remains pending.
+
+### Stage 1 — Shared button feedback safety (2026-11-23)
+
+- [x] Validate feedback state (`success`, `error`, `warning`) before advancing the button feedback generation token; unsupported calls can no longer cancel a valid reset timer and leave stale feedback styling on the button.
+- [x] Add an opt-in Roblox Studio client smoke test covering valid feedback, unsupported-state no-op behavior, and restoration of original text/colors after the timer.
+- [ ] Run `InterfaceComponentsTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; verify all assertions pass and the temporary ScreenGui is removed.
+
+Source-level guard and regression test added. Studio execution remains pending.
+
+### Stage 1 — Pet Collection request timeout handling (2026-11-23)
+
+- [x] Route equip/main-pet, care/play, favorite/lock, and delete requests through the shared 12-second `RequestRunner` timeout instead of unbounded client waits.
+- [x] Keep server-side `expectedRevision` checks on every mutation; after a timeout, show a reconciliation message and refresh authoritative collection state rather than assuming success or failure.
+- [x] Centralize request result unpacking so transport errors and server business-rule failures remain distinguishable.
+- [ ] Verify in Roblox Studio with delayed/failed RemoteFunction responses: controls recover after timeout, collection refreshes, and late server completion does not duplicate mutations or corrupt the selected pet.
+
+Source-level timeout handling added; delayed-server Studio verification remains pending.
+
+### Stage 1 — Island loading screen responsive layout (2026-11-23)
+
+- [x] Add a compact loading-card layout for short landscape viewports; at 320×180 class resolutions the panel height is reduced to 148 px and all title/status/progress elements are repositioned inside it.
+- [x] Scale title, subtitle, status, progress track, and panel constraints with viewport height while preserving the existing full-size layout on taller screens.
+- [x] Rebind viewport-size tracking when `Workspace.CurrentCamera` changes.
+- [ ] Verify the loading panel at 320×180, 360×180, 320×240, 360×640, 390×844, tablet, and desktop; verify Loading/Ready/Failed states and no clipped text.
+
+Source-level responsive layout added; Studio visual checks remain pending.
+
+### Stage 1 — RequestRunner regression coverage (2026-11-23)
+
+- [x] Add an opt-in Roblox Studio smoke test for successful request values, callback errors, and the bounded timeout result.
+- [x] Verify the timeout result remains stable when the original yielding callback completes later; this documents that a client timeout does not cancel the underlying server invocation.
+- [ ] Run `RequestRunnerTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; confirm all assertions pass and no unexpected errors appear.
+
+Test source added; Studio execution remains pending.
+
+### Stage 1 — Modal controller lifecycle hardening (2026-11-23)
+
+- [x] Close the previous controller callback before replacing an existing modal registration, including active-window focus cleanup.
+- [x] Always invoke modal cleanup during unregister, even when focus bookkeeping says the modal is inactive; this repairs stale visible panels/shades after interrupted transitions.
+- [x] Extend the opt-in Studio modal smoke test for active controller re-registration and inactive unregister cleanup.
+- [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `RunPetKingdomsStudioTests=true`; verify switching, CloseAll, unregister, re-register, Escape routing, and no orphaned shades/input blockers.
+
+Source and regression coverage updated; Studio execution remains pending.
+
+### Stage 1 — Quest Journal duplicate-action protection (2026-11-23)
+
+- [x] Add a single-flight guard for tracked-quest changes so rapid taps across multiple quest cards cannot race the single server-side tracked-quest setting.
+- [x] Show loading state on the selected action and reject new tracking actions while a quest refresh or tracking request is active.
+- [x] Route automatic fallback tracking through the shared 12-second RequestRunner instead of an unbounded `pcall` call.
+- [x] After a tracking timeout, refresh authoritative quest state rather than assuming the timed-out operation failed.
+- [ ] Verify in Studio with rapid taps on several quest cards and delayed SetTrackedQuest responses; confirm only one request runs at a time, buttons recover, and the server-selected quest matches the UI.
+
+Source-level guard and timeout reconciliation added; Studio runtime verification remains pending.
+
+### Stage 1 — Pet Collection refresh/mutation serialization (2026-11-23)
+
+- [x] Make collection `Get` requests single-flight so repeated opens or refresh triggers cannot return overlapping snapshots that race to update the UI.
+- [x] Do not start a collection read while a mutation is active; successful mutations publish their returned authoritative snapshot, while failed/timed-out mutations start a refresh after releasing the mutation lock.
+- [x] Block mutation actions while a collection refresh is active, preventing a user action from being based on an in-flight/stale snapshot.
+- [ ] Verify in Studio by reopening the collection rapidly, tapping refresh repeatedly, and triggering a mutation near a refresh; confirm only one request is active and the final UI matches the server snapshot.
+
+Source-level serialization added; live RemoteFunction timing verification remains pending.
+
+### Stage 1 — Modal-session stale response protection (2026-11-23)
+
+- [x] Add request-generation guards to Island Expansion preview reads; closing the modal invalidates its in-flight response.
+- [x] Add request-generation guards to Quest Journal progress reads; close/reopen starts a fresh UI session and ignores the prior session's late response.
+- [x] Release the visible loading state on close so reopening does not remain blocked by a request that belongs to the previous session.
+- [ ] In Studio, delay both read RemoteFunctions, close and reopen each modal before the first response returns, and verify only the newest session updates labels/previews and loading state.
+
+Source-level stale-session protection added; delayed-response runtime verification remains pending.
+
+### Stage 1 — Resource HUD initial snapshot ordering (2026-11-23)
+
+- [x] Prevent a delayed startup `Get` response from overwriting a newer pushed resource snapshot.
+- [x] Stop startup retries once the live update stream has delivered a snapshot.
+- [ ] In Studio, delay the initial resource `Get`, trigger a resource update before it returns, and confirm the HUD retains the pushed balance without a stale rollback.
+
+Source-level event-vs-startup ordering guard added; runtime timing verification remains pending.
+
+### Stage 1 — Notification burst regression coverage (2026-11-23)
+
+- [x] Extend the opt-in NotificationManager Studio smoke test with a 25-toast burst, checking the visible queue cap, retention of the newest toast, and cleanup after evicted-toast timers complete.
+- [ ] Run the notification smoke test in Roblox Studio on desktop, narrow portrait, and short landscape viewports; verify no clipping, stale slot counts, or stuck toasts.
+
+Regression source added; Studio execution remains pending.
+
+### Stage 1 — Pet Collection virtualization budget tests (2026-11-23)
+
+- [x] Extract fixed-height virtual-list window and content-height calculations into a pure shared helper used by Pet Collection.
+- [x] Add Studio smoke coverage for 100, 250, and 500 records at top, middle, and bottom scroll positions; assert bounds, final-item reachability, empty-list behavior, negative-scroll clamping, and a viewport-derived render budget.
+- [ ] Run `PetCollectionVirtualizationTests.client.lua` in Studio and profile actual GUI instance counts/scroll smoothness with 100, 250, and 500 live pet records.
+
+The deterministic helper tests are added; actual GUI profiling remains a Studio task.
+
+### Stage 1 — Pet Collection incremental card reconciliation (2026-11-23)
+
+- [x] Reconcile the virtualized visible window by pet ID instead of destroying/recreating every visible card whenever the scroll window moves.
+- [x] Preserve cards in the overlap between adjacent windows; create only newly entering cards and destroy only cards leaving the window.
+- [x] Refresh card labels, selection background, and equipped stroke from the current record while reusing an existing card.
+- [x] Extend virtualization tests to assert adjacent windows have an overlap that can be reused.
+- [ ] In Studio, profile scrolling through 100/250/500 real pet records and confirm GUI instance churn is limited to cards entering/leaving the viewport, with no stale labels or click targets.
+
+Source-level incremental reconciliation and overlap regression coverage added; live GUI profiling remains pending.
+
+### Stage 1 — Pet Collection search/filter/sort hot-path optimization (2026-11-23)
+
+- [x] Cache normalized display/search names per species so repeated searches and name sorting do not lowercase/format every record inside the sort comparator.
+- [x] Build an equipped-pet lookup once per list rebuild so team filtering uses constant-time membership checks rather than repeated linear `table.find` calls.
+- [x] Make sort ordering deterministic for equal favorites/name/bond/acquisition values by applying acquisition time and pet ID tie-breakers.
+- [ ] Profile search/filter/sort with 100, 250, and 500 records in Studio; verify responsive typing, correct team/favorite membership, stable ordering, and no selection loss.
+
+Source-level hot-path optimization added; actual device timing remains a Studio profiling task.
+
+### Stage 1 — Collection filter/sort scroll continuity (2026-11-23)
+
+- [x] Preserve the current scroll position when switching All/Team/Favorites filters or cycling sort modes; clamp only when the filtered content is shorter than the previous position.
+- [x] Extract scroll restoration clamping into `VirtualList.ClampCanvasY` and add tests for valid, shortened, empty, and negative scroll positions.
+- [ ] In Studio, switch filters/sort while scrolled through 100/250/500 records and confirm the selected pet/detail remains stable and the list does not jump unexpectedly.
+
+Source-level continuity fix and pure helper tests added; live UI validation remains pending.
+
+### Stage 1 — Pet Collection query pipeline and regression coverage (2026-11-23)
+
+- [x] Extract production search/filter/sort into `Shared/PetCollectionQuery.lua`; `PetCollectionUI` now uses the same pure pipeline that Studio tests exercise.
+- [x] Cover a 500-record fixture: all/team/favorites filters, exact equipped membership, localized case-insensitive Bunny search, no-match search, favorite priority, bond-level/XP sorting, newest ordering, empty input, and normalized-name caching.
+- [ ] Run `PetCollectionQueryTests.client.lua` in Roblox Studio and verify actual typing/filter/sort latency on desktop and mobile.
+- [ ] Verify selected pet detail remains stable while search/filter changes and while favorite/equipped flags update the current filtered set.
+
+Source-level query extraction and deterministic regression coverage added; Studio execution/profiling remains pending.
+
+### Stage 1 — Pet Collection selection continuity and empty-state correction (2026-11-23)
+
+- [x] Fix the no-results message to read the current `search.Text` after search/filter logic moved into `PetCollectionQuery` (removes a stale reference to the deleted local `filter`).
+- [x] Resolve selected pet against the authoritative owned collection, not the filtered view, so Team/Favorites/search can hide the selected card without silently changing the detail selection.
+- [x] Fall back to the first owned pet only if the previously selected pet is no longer owned; clear selection for an empty collection.
+- [x] Add query-module regression coverage for retained selection, removed-pet fallback, and empty collection.
+- [ ] Run search/filter/selection regressions in Roblox Studio, including favorite removal while Favorites is active and unequipping while Team is active.
+
+### Stage 1 — Pet Collection live filter updates and refresh reconciliation (2026-11-23)
+
+- [x] Reconcile the selected pet against the authoritative collection after a server refresh; preserve its ID when still owned and choose a fallback only when it has disappeared.
+- [x] Avoid repainting the hidden collection panel when a refresh completes after the user closes it; keep the refreshed data ready for the next open.
+- [x] Add query regressions for selected pet entering/leaving Favorites after protection changes and entering/leaving Team after equip/unequip, while preserving selected identity.
+- [ ] In Studio, verify actual server responses for favorite toggle under Favorites, unequip under Team, refresh while search is active, close/reopen during a delayed Get, and delete selected pet.
+
+### Stage 1 — Compact touch-target sizing (2026-11-23)
+
+- [x] Increase compact/short-viewport search control height from 28 to 30 px and filter row from 24 to 28 px.
+- [x] Move the virtualized list below the resized controls and recalculate its height to avoid overlap.
+- [x] Increase short-landscape detail action buttons from 26 to 30 px and rebalance widths so Main/Delete retain usable hit areas.
+- [ ] Verify touch interaction and clipping in Roblox Studio at 320×180, 360×180, and 320×240; check all four filter controls and detail actions.
+
+Compact layout touch targets improved at the source level; Studio/device validation remains pending.
+
+### Stage 1 — Narrow Pet Collection cards and touch actions (2026-11-23)
+
+- [x] Adapt pet card icon/name/metadata columns when the list is narrower than 360 px; reclaim horizontal space for labels.
+- [x] Truncate long pet names and metadata at the end rather than allowing text to overflow or wrap into neighboring content.
+- [x] Increase portrait-mode favorite and lock controls from 30×28 to 36×34 px and separate their hit targets.
+- [ ] Verify long localized/species names, metadata, favorite/lock taps, and selected-card state in Studio at 320×640, 360×640, and 390×844.
+
+Source-level narrow-card layout and hit-area improvements are in place; device interaction checks remain pending.
+
+### Stage 1 — Pet card selection and delete-confirmation clarity (2026-11-23)
+
+- [x] Give the selected card a clear gold outline (2.5 px, low transparency); equipped but unselected cards use a thinner mint outline, and ordinary cards retain the neutral outline.
+- [x] Include the selected pet's display name in the destructive confirmation message so the player can verify which pet is about to be removed.
+- [x] Increase compact delete-confirmation actions to 50 px before viewport scaling (38 px in regular layout); the dialog's existing UIScale keeps it within short viewports.
+- [ ] Verify selected/equipped visual states, long pet names in the confirmation, cancel/backdrop/Escape behavior, and delete action hit areas in Roblox Studio.
+
+Rarity is intentionally not fabricated: the current client collection record does not expose a rarity field. Add rarity visuals only after a server-authoritative rarity value and its data contract are established.
+
+### Stage 1 — Delete confirmation request lifecycle (2026-11-23)
+
+- [x] Capture the target pet ID before starting the destructive request, so the request identity cannot be affected by later UI state changes.
+- [x] Disable both confirmation actions and their automatic hover/click feedback while deletion is in progress; restore them after the request resolves.
+- [x] Ignore Escape, backdrop, and Cancel dismissal while the delete request is active, preventing the dialog from implying cancellation after the server request has already started.
+- [ ] Verify delayed Delete responses, timeout recovery, close/reopen behavior, and retry flow in Roblox Studio.
+
+### Stage 1 — Main-pet action loading feedback (2026-11-23)
+
+- [x] Show an in-progress indicator while changing the main pet.
+- [x] Disable the main-pet action and its automatic button feedback while the server request is pending.
+- [x] Restore the original button label, active state, and automatic feedback after the request resolves, before either success rendering or failure refresh.
+- [ ] In Studio, delay/fail the Equip request and verify the main-pet button never remains disabled or stuck on the loading glyph.
+
+### Stage 1 — Shared action-button loading lifecycle (2026-11-23)
+
+- [x] Route Pet Collection mutation buttons through `InterfaceComponents.SetButtonLoading` instead of maintaining separate manual Active/Text/AutoButtonColor snapshots.
+- [x] Standardize progress feedback for Equip, Set Main Pet, Pet/Play interactions, Favorite/Lock updates, and Delete confirmation.
+- [x] Preserve each button's original label and interaction state; repeated loading/reset calls are idempotent.
+- [x] Extend InterfaceComponents Studio smoke tests for progress text, interaction lock, duplicate loading calls, and exact state restoration.
+- [ ] Run the updated InterfaceComponents tests and delayed/failing mutation scenarios in Roblox Studio.
+
+### Stage 1 — Pet Collection transitions and animation lifecycle (2026-11-23)
+
+- [x] Animate collection opening with a short fade, position ease, and subtle scale-in.
+- [x] Animate collection closing instead of hiding the panel immediately; hide it only after the transition finishes.
+- [x] Cancel in-flight shade, panel-position, and panel-scale tweens when a new open/close transition begins, so rapid reopen cannot be overwritten by stale animation.
+- [x] Add a short horizontal entrance transition when selecting a pet in compact mobile detail mode; cancel it when navigating back or closing the collection.
+- [ ] Verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Roblox Studio at low frame rates and on touch.
+
+### Stage 1 — Pet Collection filter and card transitions (2026-11-23)
+
+- [x] Replace instant filter-selection color changes with short cancellable color tweens for All, Team, Favorites, and Sort controls.
+- [x] Fade newly created virtualized pet cards and their icon/name/metadata labels into view; reused cards remain untouched during overlapping scroll windows.
+- [x] Keep the existing data/filter/sort pipeline and scroll restoration unchanged; only presentation transitions are animated.
+- [ ] Verify repeated rapid filter/sort taps, 500-pet scrolling, no stale tween callbacks, and low-frame-rate behavior in Roblox Studio.
+
+### Stage 1 — Pet card selection and action feedback (2026-11-23)
+
+- [x] Animate selected/unselected card background and outline transitions with cancellable tweens.
+- [x] Keep equipped cards visually distinct with mint outlines and selected cards with gold outlines.
+- [x] Add a compact icon-size pulse after Favorite/Lock settings are accepted by the server.
+- [x] Cancel a card's previous selection tween before applying a new state.
+- [ ] Verify rapid selection changes, Favorite/Lock feedback, mobile card taps, and 500-pet scrolling in Roblox Studio.
+- [x] Clear completed card surface, outline, and Favorite/Lock pulse tween references; cancel replaced outline tweens before starting a new one.
+
+### Stage 1 — Pet Collection virtualization stress coverage (2026-11-23)
+
+- [x] Extend virtual-list test fixtures from 500 to 1,000 pets.
+- [x] Sweep deterministic scroll positions across each collection size and assert every visible item is covered by the virtual window.
+- [x] Assert the render budget throughout the scroll sweep, including the 1,000-pet fixture.
+- [x] Cover short-content scroll clamping, zero-height viewport safety, and oversized overscan bounds.
+- [ ] Execute the Studio test suite and profile actual GUI instance counts with 100/250/500/1,000 pets.
+- [x] Reflow existing visible pet cards when the collection width changes, even if the virtualized index window remains identical; avoid stale narrow-phone spacing after orientation/resolution changes.

@@ -161,7 +161,10 @@ local status = make("TextLabel", {
 
 local opened = false
 local loading = false
+local requestGeneration = 0
+local trackingInFlight = false
 local refreshQueued = false
+local refresh: () -> ()
 local lastQuests: { any } = {}
 local trackedQuestId: string? = nil
 local hasLoadedSnapshot = false
@@ -236,7 +239,8 @@ local function updateTracker(quests: { any })
 	trackerName.Text = selected.name
 	trackerProgress.Text = string.format("%d/%d", selected.count, selected.target)
 	trackerFill.Size = UDim2.new(math.clamp(selected.count / math.max(selected.target, 1), 0, 1), 0, 1, 0)
-	tracker.Visible = true
+	-- Keep the tracked-quest HUD from floating above the modal backdrop.
+	tracker.Visible = not opened
 end
 
 local function clearCards()
@@ -288,12 +292,16 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		InterfaceComponents.StyleActionButton(trackButton, if trackedQuestId == quest.id then "primary" else "secondary")
 		trackButton.TextTruncate = Enum.TextTruncate.AtEnd
 		trackButton.Activated:Connect(function()
-			if quest.completed == true then return end
+			-- Tracking is a single global server setting. Lock it before yielding so
+			-- rapid taps on this or another quest cannot race and overwrite the result.
+			if quest.completed == true or trackingInFlight or loading then return end
+			trackingInFlight = true
 			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
 			local trackingResult = RequestRunner.Invoke(function()
 				return trackingRequest:InvokeServer(quest.id)
 			end, 12)
 			local result = if trackingResult.ok then trackingResult.value else nil
+			trackingInFlight = false
 			InterfaceComponents.SetButtonLoading(trackButton, false)
 			if trackingResult.ok and type(result) == "table" and result.ok == true then
 				trackedQuestId = quest.id
@@ -312,6 +320,11 @@ local function render(quests: any, serverTrackedQuestId: string?)
 				InterfaceComponents.SetButtonFeedback(trackButton, "success", "СЛЕЖУ", 1.2)
 			else
 				InterfaceComponents.SetButtonFeedback(trackButton, "error", "ПОВТОРИТЬ", 2.2)
+				NotificationManager.Notify(
+					if trackingResult.errorCode == "TIMEOUT" then "Сервер долго отвечает. Проверяю актуальное задание." else "Не удалось изменить отслеживаемое задание.",
+					"warning"
+				)
+				if trackingResult.errorCode == "TIMEOUT" and opened then task.defer(refresh) end
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
@@ -321,7 +334,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = UDim2.new(0, 15, 0, 9),
 			Size = UDim2.new(1, if compactCard then -30 else -126, 0, 23),
 			Font = Enum.Font.GothamBold,
-			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else "✦  ") .. quest.name,
+			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else InterfaceTheme.Icons.Sparkle .. "  ") .. quest.name,
 			TextSize = 14,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = if done then COLORS.mint else COLORS.cream,
@@ -383,7 +396,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextWrapped = true,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(emptyState, "📜")
+		InterfaceComponents.StyleEmptyState(emptyState, InterfaceTheme.Icons.Quest)
 		if #quests > 0 then
 			status.Text = "Данные заданий повреждены. Нажми обновить."
 			status.TextColor3 = COLORS.rose
@@ -412,10 +425,18 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		for _, quest in ipairs(quests) do
 			if quest.completed ~= true then trackedQuestId = quest.id break end
 		end
-		if trackedQuestId ~= nil then
+		if trackedQuestId ~= nil and not trackingInFlight then
 			local nextTrackedId = trackedQuestId
+			trackingInFlight = true
 			task.spawn(function()
-				pcall(function() trackingRequest:InvokeServer(nextTrackedId) end)
+				local trackingResult = RequestRunner.Invoke(function()
+					return trackingRequest:InvokeServer(nextTrackedId)
+				end, 12)
+				trackingInFlight = false
+				if not trackingResult.ok then
+					warn("[PetKingdomsUI] Could not restore tracked quest: " .. tostring(trackingResult.errorCode))
+					if trackingResult.errorCode == "TIMEOUT" and opened then task.defer(refresh) end
+				end
 			end)
 		end
 	end
@@ -424,14 +445,19 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	hasLoadedSnapshot = true
 end
 
-local function refresh()
-	if loading then return end
+refresh = function()
+	if loading or not opened then return end
 	loading = true
+	requestGeneration += 1
+	local generation = requestGeneration
 	status.Text = "Получаем прогресс с сервера..."
 	status.TextColor3 = COLORS.muted
 	local requestResult = RequestRunner.Invoke(function()
 		return request:InvokeServer()
 	end, 12)
+	-- A closed/reopened journal is a new UI session. Never let an older
+	-- response overwrite the snapshot belonging to the new session.
+	if generation ~= requestGeneration or not opened then return end
 	local result = requestResult.value
 	if requestResult.ok and type(result) == "table" and result.ok == true then
 		render(result.quests, result.trackedQuestId)
@@ -462,8 +488,21 @@ local function setOpen(value: boolean)
 	opened = value
 	if value then
 		-- ModalManager.Open is called before the panel becomes visible.
+		tracker.Visible = false
 	else
+		requestGeneration += 1
+		loading = false
 		ModalManager.Close(script.Name)
+		-- ModalManager may be in the middle of switching to another window.
+		-- Defer HUD restoration until the new active modal has been registered.
+		task.defer(function()
+			if opened then return end
+			if ModalManager.GetActive() == nil and hasLoadedSnapshot then
+				updateTracker(lastQuests)
+			else
+				tracker.Visible = false
+			end
+		end)
 	end
 	panel.Visible = value
 	shade.Visible = value
@@ -510,12 +549,17 @@ local function resize()
 	local short = viewport.Y < 500
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
+	title.TextSize = compact and 15 or 18
+	subtitle.TextSize = compact and 10 or 11
+
+	-- Use the available viewport height instead of shrinking every label and
+	-- button on short phones. The list remains the flexible part of the panel.
+	local panelHeight = math.min(440, math.max(280, viewport.Y - 24))
+	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, panelHeight)
 	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), 280)
-	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), 440)
-	local baseHeight = if compact then 390 else 410
-	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.68, 1)
-	refreshButton.Position = UDim2.new(1, compact and -62 or -62, 0, 14)
+	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), math.max(280, panelHeight))
+	panelScale.Scale = if viewport.Y < 304 then math.clamp((viewport.Y - 16) / 280, 0.75, 1) else 1
+	refreshButton.Position = UDim2.new(1, -62, 0, 14)
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, short and -8 or -12)
 	tracker.Size = UDim2.fromOffset(math.max(200, math.min(compact and 220 or 260, viewport.X - 20)), 78)
 end

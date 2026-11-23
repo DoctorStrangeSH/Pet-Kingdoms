@@ -31,14 +31,22 @@ end
 function ModalManager.Register(name: string, closeHandler: CloseHandler)
 	assert(name ~= "", "Modal name cannot be empty")
 	assert(type(closeHandler) == "function", "Modal close handler must be a function")
+
+	-- A LocalScript can be rebound while its old controller still owns a visible
+	-- panel. Close the previous registration before replacing its cleanup callback.
+	if handlers[name] ~= nil then
+		if activeWindow == name then activeWindow = nil end
+		invokeClose(name, "reregister")
+	end
 	handlers[name] = closeHandler
 end
 
 function ModalManager.Unregister(name: string)
+	-- Clean up even when the manager has lost focus bookkeeping: a stale panel
+	-- or input-blocking shade must not survive controller teardown.
+	if activeWindow == name then activeWindow = nil end
+	invokeClose(name, "unregister")
 	handlers[name] = nil
-	if activeWindow == name then
-		activeWindow = nil
-	end
 end
 
 function ModalManager.Open(name: string)

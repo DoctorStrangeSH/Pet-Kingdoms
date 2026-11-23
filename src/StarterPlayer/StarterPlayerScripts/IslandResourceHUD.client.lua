@@ -145,18 +145,23 @@ bondStroke.Color = COLORS.gold
 bondStroke.Transparency = 0.55
 bondStroke.Parent = bondLabel
 
+local hasKingdomBond = false
+
 local function applyKingdomBond(world: Instance)
 	local stageName = world:GetAttribute("KingdomBondStageName")
 	local points = world:GetAttribute("KingdomBondPoints")
 	local nextPoints = world:GetAttribute("KingdomBondNextStagePoints")
 	if type(stageName) ~= "string" or type(points) ~= "number" then
+		hasKingdomBond = false
 		bondLabel.Visible = false
 		return
 	end
+	hasKingdomBond = true
 	bondLabel.Text = if type(nextPoints) == "number"
 		then string.format("%s %s  •  %d очков  •  дальше: %d", InterfaceTheme.Icons.Build, stageName, points, nextPoints)
 		else string.format("%s %s  •  %d очков  •  максимум", InterfaceTheme.Icons.Build, stageName, points)
-	bondLabel.Visible = true
+	local camera = Workspace.CurrentCamera
+	bondLabel.Visible = camera == nil or camera.ViewportSize.Y >= 360
 end
 
 local function bindKingdomBond(world: Instance)
@@ -224,10 +229,22 @@ local function resize()
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 560
 	local tiny = viewport.X < 360
-	root.Size = UDim2.new(compact and 0.96 or 0, compact and 0 or 420, 0, compact and 92 or 54)
-	layout.FillDirectionMaxCells = if compact then 2 else 4
-	layout.CellSize = if compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
-	layout.CellPadding = UDim2.fromOffset(compact and 4 or 6, compact and 4 or 0)
+	local short = viewport.Y < 360
+	local shortTiny = short and viewport.X < 420
+	local reserveBuildLauncher = viewport.X < 780
+	if reserveBuildLauncher then
+		-- Keep the resource bar out of the dedicated top-right Build launcher lane.
+		root.AnchorPoint = Vector2.new(0, 0)
+		root.Position = UDim2.fromOffset(8, 10)
+		root.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), if short then 54 else (if compact then 92 else 54))
+	else
+		root.AnchorPoint = Vector2.new(0.5, 0)
+		root.Position = UDim2.new(0.5, 0, 0, 10)
+		root.Size = UDim2.fromOffset(420, 54)
+	end
+	layout.FillDirectionMaxCells = if short then 4 else (if compact then 2 else 4)
+	layout.CellSize = if short then UDim2.new(0.25, -2, 0, 36) elseif compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
+	layout.CellPadding = UDim2.fromOffset(if short then 2 else (if compact then 4 else 6), if short then 0 else (if compact then 4 else 0))
 	padding.PaddingLeft = UDim.new(0, compact and 6 or 7)
 	padding.PaddingRight = UDim.new(0, compact and 6 or 7)
 	for _, child in ipairs(root:GetChildren()) do
@@ -236,26 +253,39 @@ local function resize()
 			local amount = child:FindFirstChild("Amount")
 			local label = child:FindFirstChild("ResourceName")
 			if icon and icon ~= amount and icon ~= label then
-				icon.Size = UDim2.fromOffset(tiny and 22 or 27, 36)
-				icon.TextSize = tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric
+				local iconWidth = if short then (tiny and 16 or 18) else (tiny and 22 or 27)
+				icon.Size = UDim2.fromOffset(iconWidth, 36)
+				icon.TextSize = if short then (tiny and 12 or 14) else (tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric)
 			end
 			if amount and amount:IsA("TextLabel") then
-				amount.Position = UDim2.new(0, tiny and 27 or 32, 0, 1)
-				amount.Size = UDim2.new(1, tiny and -30 or -36, 0.62, 0)
-				amount.TextSize = tiny and 12 or (compact and InterfaceTheme.Typography.Sizes.Body or InterfaceTheme.Typography.Sizes.Numeric)
+				local amountOffset = if short then (tiny and 22 or 24) else (tiny and 27 or 32)
+				amount.Position = UDim2.new(0, amountOffset, 0, 1)
+				amount.Size = UDim2.new(1, -amountOffset - 3, 0.62, 0)
+				amount.TextSize = if short then (tiny and 9 or 10) else (tiny and 12 or (compact and InterfaceTheme.Typography.Sizes.Body or InterfaceTheme.Typography.Sizes.Numeric))
 			end
 			if label and label:IsA("TextLabel") then
+				label.Visible = not shortTiny
 				label.Position = UDim2.new(0, tiny and 28 or 33, 0.58, 0)
 				label.Size = UDim2.new(1, tiny and -30 or -35, 0, 12)
 				label.TextSize = tiny and 8 or InterfaceTheme.Typography.Sizes.Micro
 			end
 		end
 	end
-	toast.Position = UDim2.new(0.5, 0, 0, compact and 108 or 106)
-	toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
+	if short then
+		-- Keep transient feedback below the side launchers and hide the optional
+		-- kingdom-bond caption while the vertical space is occupied by controls.
+		toast.AnchorPoint = Vector2.new(0, 0)
+		toast.Position = UDim2.fromOffset(8, 128)
+		toast.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), 36)
+	else
+		toast.AnchorPoint = Vector2.new(0.5, 0)
+		toast.Position = UDim2.new(0.5, 0, 0, compact and 108 or 106)
+		toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
+	end
 	bondLabel.Position = UDim2.new(0.5, 0, 0, compact and 148 or 70)
 	bondLabel.Size = UDim2.fromOffset(math.max(200, math.min(300, viewport.X - 32)), 28)
 	bondLabel.TextSize = tiny and 9 or InterfaceTheme.Typography.Sizes.Caption
+	bondLabel.Visible = hasKingdomBond and not short
 end
 
 local viewportConnection: RBXScriptConnection? = nil
@@ -273,16 +303,22 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
+-- A live push may arrive while the initial Get is still in flight. Its
+-- snapshot is newer than the startup read, so never let that older read win.
+local receivedLiveUpdate = false
 update.OnClientEvent:Connect(function(snapshot, resourceId, amount, code)
+	receivedLiveUpdate = true
 	applySnapshot(snapshot)
 	showToast(resourceId, amount, code)
 end)
 
 task.spawn(function()
 	for attempt = 1, 6 do
+		if receivedLiveUpdate then return end
 		local result = RequestRunner.Invoke(function()
 			return request:InvokeServer("Get")
 		end, 12)
+		if receivedLiveUpdate then return end
 		if result.ok then
 			local success, snapshot = result.value
 			if success == true then
@@ -292,5 +328,7 @@ task.spawn(function()
 		end
 		task.wait(math.min(1.5, 0.25 * attempt))
 	end
-	warn("[PetKingdoms] Resource HUD could not load initial wallet snapshot.")
+	if not receivedLiveUpdate then
+		warn("[PetKingdoms] Resource HUD could not load initial wallet snapshot.")
+	end
 end)

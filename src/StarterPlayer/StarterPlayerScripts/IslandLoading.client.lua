@@ -2,6 +2,7 @@
 -- Clear, player-facing startup feedback while the server loads the profile and island.
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -120,6 +121,36 @@ fill.BorderSizePixel = 0
 fill.Parent = track
 Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
 
+-- The loading card must remain fully visible even on very short landscape
+-- displays (for example 320×180 phones). Keep normal typography on taller screens.
+local function resizeLoadingCard()
+	local camera = Workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local tiny = viewport.Y < 210
+	local compact = viewport.Y < 280
+	local cardHeight = if tiny then 148 else (if compact then 176 else 224)
+	local horizontalMargin = if viewport.X < 360 then 20 else 40
+
+	panel.Size = UDim2.new(1, -horizontalMargin, 0, cardHeight)
+	panelConstraint.MinSize = Vector2.new(240, cardHeight)
+	panelConstraint.MaxSize = Vector2.new(440, cardHeight)
+
+	title.Position = UDim2.new(0, 16, 0, if tiny then 10 else (if compact then 14 else 25))
+	title.Size = UDim2.new(1, -32, 0, if tiny then 30 else (if compact then 34 else 42))
+	title.TextSize = if tiny then 20 else (if compact then 22 else 27)
+
+	subtitle.Position = UDim2.new(0, 16, 0, if tiny then 43 else (if compact then 52 else 78))
+	subtitle.Size = UDim2.new(1, -32, 0, if tiny then 22 else (if compact then 24 else 28))
+	subtitle.TextSize = if tiny then 13 else (if compact then 14 else 17)
+
+	status.Position = UDim2.new(0, 18, 0, if tiny then 70 else (if compact then 82 else 118))
+	status.Size = UDim2.new(1, -36, 0, if tiny then 34 else (if compact then 38 else 42))
+	status.TextSize = if tiny then 10 else (if compact then 11 else 13)
+
+	track.Position = UDim2.new(0, 18, 1, if tiny then -19 else (if compact then -23 else -34))
+	track.Size = UDim2.new(1, -36, 0, if tiny then 5 else 7)
+end
+
 local activeTween: Tween? = nil
 local function applyState()
 	local state = player:GetAttribute("PetKingdomsLoadStatus")
@@ -155,6 +186,21 @@ local function applyState()
 	end
 end
 
+local viewportConnection: RBXScriptConnection? = nil
+local function bindViewportCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
+	end
+	local camera = Workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeLoadingCard)
+	end
+	resizeLoadingCard()
+end
+
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
+bindViewportCamera()
 player:GetAttributeChangedSignal("PetKingdomsLoadStatus"):Connect(applyState)
 player:GetAttributeChangedSignal("PetKingdomsLoadMessage"):Connect(applyState)
 applyState()

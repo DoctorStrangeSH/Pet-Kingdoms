@@ -1475,3 +1475,201 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Replaced local font declarations and common text sizes with `InterfaceTheme.Typography` tokens for resource amounts, resource labels, gather toast, kingdom-bond status, and responsive resizing. Replaced local corner radii with `InterfaceTheme.Radii` and the kingdom-bond house glyph with `InterfaceTheme.Icons.Build`.
 - Static audit confirms no remaining local duplicate base palette, no direct Gotham font declarations, and all color references resolve to defined shared theme tokens. Responsive 2×2 mobile / 4-column desktop layout and resource-specific accent colors remain unchanged.
 - CI run `45153168859` for this HUD migration was in progress at documentation time. No Roblox Studio visual/device test has been performed. Next: run the final screen overflow/spacing audit and prepare a focused Studio checklist; Stage 1 remains open pending user-side runtime verification.
+
+## Stage 1 — Shared button feedback safety (2026-11-23)
+
+- Fixed `InterfaceComponents.SetButtonFeedback`: unsupported states are now rejected before incrementing `PKFeedbackToken`. Previously an invalid state call could invalidate the pending restore timer and leave the button stuck in feedback styling.
+- Added `src/StarterPlayer/StarterPlayerScripts/Tests/InterfaceComponentsTests.client.lua`, gated by `RunPetKingdomsStudioTests`, to verify supported feedback, unsupported-state no-op behavior, restoration of original text/colors, and timer cleanup.
+- Next: run this smoke test in a dedicated Studio test place, then complete the Stage 1 cross-screen visual/touch regression at desktop and 320/360/390 px widths. No inventory UI or item model exists in the current repository yet; do not claim inventory work is implemented or begin an unapproved inventory feature before MVP scope is confirmed.
+
+## Stage 1 — Pet Collection request timeout handling (2026-11-23)
+
+- Added a shared local `invokeCollection` wrapper around `RequestRunner.Invoke` with a 12-second bound for all collection mutations: equip/main-pet selection, care/play interaction, favorite/lock settings, and delete.
+- Preserved server-authoritative `expectedRevision` values on each mutation. On timeout the UI reports that it is reconciling state, then refreshes the collection instead of leaving `busy` stuck behind an indefinitely yielding `InvokeServer` call.
+- The wrapper is declared after the shared `RequestRunner` require and returns transport status separately from the server's `(success, result)` values.
+- Next: inspect CI and verify delayed/failed RemoteFunction behavior in Studio. A timeout does not cancel server work; retries remain guarded by collection revision checks.
+
+## Stage 1 — Island loading screen responsive layout (2026-11-23)
+
+- Added `resizeLoadingCard()` to `IslandLoading.client.lua`. On very short viewports (<210 px tall), the loading panel shrinks to 148 px and repositions/scales its title, subtitle, status, and progress track; short screens below 280 px use a 176 px card. Taller screens retain the original 224 px layout.
+- The panel size constraints now follow the active layout, and viewport listeners are rebound when `Workspace.CurrentCamera` changes.
+- Next: verify 320×180 and 360×180 landscape plus portrait/tablet/desktop, including Loading, Ready, and Failed states. No Studio runtime check has yet been performed.
+
+## Stage 1 — RequestRunner regression coverage (2026-11-23)
+
+- Added `src/StarterPlayer/StarterPlayerScripts/Tests/RequestRunnerTests.client.lua`, gated by `RunPetKingdomsStudioTests=true` in Studio.
+- Covers successful values, callback errors (`REMOTE_ERROR`), the two-second minimum timeout, nil timeout value, and late callback completion without changing the already-returned timeout result.
+- This test explicitly captures the important contract: RequestRunner bounds the client wait; it does not cancel the server-side RemoteFunction invocation.
+- Next: execute this and the other UI smoke tests in Roblox Studio. CI place compilation does not substitute for runtime test execution.
+
+## Stage 1 — Modal controller lifecycle hardening (2026-11-23)
+
+- `ModalManager.Register` now runs the previous close handler before replacing an existing registration. If that registration owned focus, focus is cleared before the replacement is stored.
+- `ModalManager.Unregister` now always invokes the registered cleanup callback, not only when `activeWindow == name`. This intentionally repairs stale GUI visibility if focus bookkeeping was lost during an interrupted transition.
+- Extended `ModalManagerTests.client.lua` to cover re-registering an active controller and unregistering an inactive-but-stale visible controller.
+- Next: run modal smoke tests in Studio and manually verify no orphaned shades or input blockers after switching, Escape, CloseAll, and controller teardown.
+
+## Stage 1 — Quest Journal duplicate-action protection (2026-11-23)
+
+- Added a global `trackingInFlight` single-flight guard. Since the server stores one tracked quest per player, all quest-card tracking buttons now reject additional actions while any tracking request or quest refresh is active.
+- Tracking buttons show their loading state during the request and restore it after the bounded 12-second RequestRunner call.
+- Automatic fallback selection (when the server has no valid tracked quest) now uses RequestRunner rather than an unbounded `pcall`/`InvokeServer` task.
+- A timeout triggers a fresh authoritative quest-progress read; the UI does not assume the late server operation failed.
+- Next: validate rapid multi-card taps, delayed responses, and timeout reconciliation in Roblox Studio.
+
+## Stage 1 — Pet Collection refresh/mutation serialization (2026-11-23)
+
+- Added `collectionRefreshing` single-flight state to `refreshCollection()`. Repeated opens/refreshes while a Get request is in progress are coalesced by returning without launching another RemoteFunction.
+- Collection reads are not started while `busy` is true (a mutation is active). A successful mutation already returns the authoritative updated collection; failed/timed-out mutations release `busy` before requesting a fresh snapshot.
+- All six mutation entry points (main pet, equip, pet/play interaction, favorite/lock, delete confirmation) now reject actions while a collection refresh is active, so they cannot act on a snapshot currently being replaced.
+- Next: verify rapid open/refresh and refresh-vs-mutation timing in Roblox Studio with delayed server responses.
+
+## Stage 1 — Modal-session stale response protection (2026-11-23)
+
+- `IslandExpansionUI` now tracks `requestGeneration`. Each refresh captures a generation; closing increments it, releases the loading state, and makes any prior response a no-op. Reopening can immediately start a new request.
+- `QuestJournalUI` now applies the same generation/session rule. Closing invalidates the in-flight progress read and clears its loading lock; reopening starts a new read. A late result from the previous open session cannot render into the new session.
+- Important: RequestRunner timeouts do not cancel the underlying RemoteFunction. The generation check protects client UI state only; server read completion may still happen later.
+- Next: use delayed RemoteFunction responses in Studio, close/reopen both modals, and verify only the latest session updates UI.
+
+## Stage 1 — Resource HUD initial snapshot ordering (2026-11-23)
+
+- Added `receivedLiveUpdate` to `IslandResourceHUD`. If `IslandResourceUpdate` arrives while the initial `IslandResourceRequest("Get")` is pending, the pushed snapshot wins; the delayed startup response is ignored.
+- Startup retries stop once a live update has been received, avoiding unnecessary reads after the HUD has authoritative pushed state.
+- Next: delay the initial Get in Studio, trigger a resource change before it returns, and verify no balance rollback occurs.
+
+## Stage 1 — Notification burst regression coverage (2026-11-23)
+
+- Extended `NotificationManagerTests.client.lua` with a 25-toast burst. The test verifies the stack stays within the four-toast desktop cap, the newest notification survives eviction, and old timers from evicted notifications do not leave stale active toasts after expiry.
+- The test checks the newest toast by its displayed message, not an assumed sequence number, so it is resilient to notifications emitted by other startup systems.
+- Next: execute on desktop, narrow portrait, and short landscape in Studio; check visual clipping and responsive max-visible behavior.
+
+## Stage 1 — Pet Collection virtualization budget tests (2026-11-23)
+
+- Extracted the fixed-height list calculations into `ReplicatedStorage/Shared/VirtualList.lua`: `GetWindow` returns a bounded visible range plus overscan; `GetContentHeight` calculates the scroll canvas height.
+- `PetCollectionUI` now uses this helper for both visible-card selection and canvas sizing, so the production code and tests exercise the same calculation.
+- Added `PetCollectionVirtualizationTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It tests 100/250/500 item lists at top/middle/bottom positions, render-budget bounds, bottom reachability, empty lists, and negative canvas positions.
+- The render budget is viewport-derived (`ceil(viewportHeight / cardStep) + 2 * overscan`); this verifies the algorithm does not scale instantiated card count with total inventory size.
+- Next: run the test in Studio and profile actual instance counts and scrolling with live collections of 100, 250, and 500 pets. The pure helper test is not a substitute for GUI profiling.
+
+## Stage 1 — Pet Collection incremental card reconciliation (2026-11-23)
+
+- `renderVisibleCards()` no longer calls `clearRenderedCards()` for every scroll-window change. It computes the desired pet IDs, destroys only cards outside the new window, preserves overlapping cards, and creates only cards entering the viewport/overscan.
+- Reused cards have their position, selected background, species icon/name, equipped/favorite/locked metadata, and equipped outline refreshed from the latest record.
+- Full `renderList()` still clears cards when the underlying filtered/sorted dataset is rebuilt, so stale records cannot survive a data refresh or filter change.
+- Extended `PetCollectionVirtualizationTests.client.lua` with an adjacent-window overlap assertion, validating the overlap the renderer now reuses.
+- Next: profile actual GUI instance churn and scroll behavior in Studio with 100/250/500 live records, including rapid filter/search changes and selection.
+
+## Stage 1 — Pet Collection search/filter/sort hot-path optimization (2026-11-23)
+
+- Added a normalized species display-name cache keyed by `speciesId`; the search loop and name sort reuse the cached lowercase string (including the localized Bunny display name).
+- Build `equippedSet` once per `renderList()` and use dictionary membership for the team filter instead of calling `table.find(collection.equipped, petId)` for every owned record.
+- Sorting now has deterministic tie-breakers: favorite priority, selected sort key, acquisition time, then `petId`. This avoids unstable order when two records share the same sort values.
+- Next: profile 100/250/500 live records in Studio, measure search/filter/sort responsiveness, and confirm stable selection and correct membership.
+
+## Stage 1 — Collection filter/sort scroll continuity (2026-11-23)
+
+- Switching between All, Team, and Favorites filters and cycling sort modes now calls `renderList(true)`, preserving the user's scroll position instead of jumping to the top.
+- Scroll restoration uses `VirtualList.ClampCanvasY`, which clamps to the new content's valid maximum when the filtered list is shorter, and safely returns zero for empty content.
+- Added deterministic tests for preserved in-range position, shorter filtered results, empty results, and negative saved positions.
+- Selection remains keyed by `petId`; filtering/sorting does not rewrite `selectedPetId`, so the detail panel continues to refer to the same owned pet even if it is not in the current filtered subset.
+- Next: verify in Studio with large inventories while switching filters/sort from the middle and bottom of the list.
+
+## Stage 1 — Pet Collection query pipeline and regression coverage (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/PetCollectionQuery.lua` as a pure filtering/sorting module. `PetCollectionUI.renderList()` delegates to this module instead of maintaining an inline query implementation.
+- The module builds the equipped-ID lookup once, uses cached normalized species display names, applies literal case-insensitive substring search, supports All/Team/Favorites filters, and applies favorite priority plus deterministic sort tie-breakers.
+- Added `PetCollectionQueryTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It exercises a synthetic 500-record inventory, team/favorite correctness, localized Bunny search, no-match and empty cases, newest ordering, bond-level/XP priority, and normalized-name caching.
+- The same production query module is used by tests, avoiding a test-only reimplementation of filtering/sorting.
+- Next: execute the test in Studio, profile query latency on desktop/mobile, and manually verify selection/detail continuity when the selected record is filtered out or its flags change.
+
+## Stage 1 — Pet Collection selection continuity and empty-state correction (2026-11-23)
+
+- Fixed the no-results branch in `PetCollectionUI.renderList()`: after extracting query logic, it still referenced the removed local `filter`; it now checks `search.Text` directly.
+- Added `PetCollectionQuery.ResolveSelection(owned, selectedPetId)`. Detail selection is resolved against the authoritative owned collection, not the currently filtered subset. A pet hidden by Team/Favorites/search remains the selected pet in the detail panel.
+- If the selected ID is no longer owned (for example after deletion), selection falls back to the first owned pet; empty ownership clears the selection.
+- Added Studio query tests for selected pet hidden by a filter, fallback when the selected pet is no longer owned, and empty collection selection clearing.
+- Search debounce already uses `searchRenderVersion`; every text change invalidates the previous delayed render, so only the latest scheduled search rebuild runs.
+- Next: Studio test favorite removal while Favorites is active, unequip while Team is active, rapid search typing, and server refresh while a search is active.
+
+## Stage 1 — Pet Collection live filter updates and refresh reconciliation (2026-11-23)
+
+- `refreshCollection()` now resolves `selectedPetId` against the newly received authoritative `owned` list using `PetCollectionQuery.ResolveSelection`; it keeps the same ID if still owned and falls back only when the server snapshot no longer contains it.
+- Refresh completion updates the backing collection even if the modal was closed during the request, but only rebuilds visible cards/details while the collection panel is open. This avoids repainting a hidden modal; the next open performs its own refresh.
+- Extended `PetCollectionQueryTests.client.lua` to simulate a selected pet becoming/removing from Favorites and entering/leaving Team. Tests assert the active filter changes membership while selection remains tied to the same pet ID.
+- The Studio tests cover the pure production query/selection logic. They do not simulate actual RemoteFunction latency or the Roblox modal lifecycle; those remain manual Studio checks.
+- Next: verify favorite toggle while Favorites is active, unequip while Team is active, refresh during search, close/reopen during a delayed Get, and deletion of the selected pet.
+
+## Stage 1 — Compact touch-target sizing (2026-11-23)
+
+- In the `veryShort` compact layout, increased search height to 30 px and filter bar height to 28 px; moved the list start to y=98 and recalculated its height so controls do not overlap.
+- Increased short-landscape detail action buttons (Equip/Main/Delete) from 26 to 30 px. Rebalanced widths from 50/18/32 to 50/22/28 percent so the compact Main and Delete hit areas are less cramped.
+- This is a constrained 180–359 px viewport compromise; controls are still smaller than ideal 44 px touch guidance. Verify in Roblox Studio at 320×180, 360×180, and 320×240 before considering mobile usability complete.
+
+## Stage 1 — Narrow Pet Collection cards and touch actions (2026-11-23)
+
+- In `renderVisibleCards()`, cards with `list.AbsoluteSize.X < 360` use a narrower icon column and shift name/meta labels left, reclaiming horizontal space for text.
+- Pet names and metadata now use `TextTruncate.AtEnd` with wrapping disabled, preventing long species names/status strings from spilling into adjacent UI.
+- In normal-height compact/portrait detail view, Favorite and Lock controls increased from 30×28 to 36×34 px with separated positions.
+- Next: inspect long localized names and metadata, tap the Favorite/Lock controls, and verify selected-card state at 320×640, 360×640, and 390×844 in Studio/device emulation.
+
+## Stage 1 — Pet card selection and delete-confirmation clarity (2026-11-23)
+
+- Strengthened card state hierarchy: selected card receives a gold 2.5 px outline; equipped but unselected cards receive a thinner mint outline; ordinary cards keep a neutral outline. This makes selection distinguishable from team membership.
+- Delete confirmation now names the target pet (`Зайчик` localized; other species IDs use their current species name) rather than showing only a generic irreversible-action warning.
+- Compact delete-confirmation buttons increased to 50 px before the existing viewport UIScale; regular layout uses 38 px. The panel still scales to fit short screens.
+- Rarity badges were not added because the current client `PetRecord` and server `cloneForClient` contract do not expose rarity. Do not infer rarity from species IDs; add it only with an authoritative server data field and validation.
+- Next: verify selected/equipped outlines, long-name confirmation text, cancel/backdrop/Escape, and destructive action hit targets in Studio.
+
+## Stage 1 — Delete confirmation request lifecycle (2026-11-23)
+
+- `confirmDeleteSelected()` now snapshots `pendingDeletePetId` into `deleteTargetPetId` before invoking the server, preserving the exact destructive target throughout the request.
+- While Delete is pending, both Confirm and Cancel controls are disabled and automatic button feedback is suppressed; both are restored after the request resolves.
+- Escape, backdrop dismissal, and Cancel now refuse to dismiss the confirmation while `busy` is true. This avoids presenting a false impression that an already-sent server deletion was cancelled.
+- Closing the entire collection remains available; the in-flight request retains its captured target and its completion updates authoritative collection state.
+- Next: test delayed Delete, timeout/reconciliation, close/reopen during request, and retry behavior in Studio.
+
+## Stage 1 — Main-pet action loading feedback (2026-11-23)
+
+- `setMainPet()` now changes the button label to a compact loading indicator, disables interaction and automatic button feedback while the Equip request is pending, and snapshots the prior label.
+- On either success or failure, the button's Active/AutoButtonColor state and prior label are restored before rendering the new state or starting a refresh. This closes a gap where the button was disabled but did not visibly communicate progress.
+- Next: delay and fail the Equip request in Studio; verify the main-pet action returns to a usable state and that refresh failure cannot leave stale loading UI.
+
+## Stage 1 — Shared action-button loading lifecycle (2026-11-23)
+
+- Pet Collection mutation actions now use `InterfaceComponents.SetButtonLoading` for Equip, Set Main Pet, Pet/Play, Favorite/Lock, and Delete confirmation rather than hand-maintained Active/Text/AutoButtonColor changes.
+- The shared helper snapshots the original text, Active, and AutoButtonColor values once; duplicate loading calls do not overwrite the snapshot, and reset restores the original state.
+- Delete's Cancel button also enters a disabled `ПОДОЖДИ...` state during the destructive request; its existing Escape/backdrop guards remain in place.
+- Added InterfaceComponents Studio smoke coverage for loading text, disabled interaction, repeated loading calls, restoration of original label/interaction, and idempotent reset.
+- Next: run updated InterfaceComponents smoke tests and delayed/failing Equip, Interact, Protect, and Delete scenarios in Roblox Studio.
+
+## Stage 1 — Pet Collection transitions and animation lifecycle (2026-11-23)
+
+- Collection opening now fades in the shade and eases the panel from a slightly lower position with a subtle scale-in.
+- Collection closing now animates shade, panel position, and panel scale; the panel remains visible until the close transition completes.
+- Active shade, panel-position, and panel-scale tweens are stored and cancelled before a new transition. The delayed hide remains guarded by `collectionModalRevision`, so rapid reopen cannot be hidden by an earlier close callback.
+- Compact mobile selection animates the detail pane in from a small horizontal offset. The detail tween is cancelled on Back and on modal open/close. Its callback is forward-declared because card activation handlers are defined earlier in the module.
+- Next: verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Studio under touch and low frame rates.
+
+## Stage 1 — Pet Collection filter and card transitions (2026-11-23)
+
+- Filter selection now animates the background color of All, Team, Favorites, and Sort controls over 0.14 seconds. A new selection cancels the previous tween for that button, preventing rapid taps from fighting over the final color.
+- Newly created virtualized cards fade in over 0.12 seconds: card surface and icon/name/metadata labels. Cards reused within an overlapping scroll window are not recreated or re-faded.
+- The query, sort, and scroll-preservation logic remains unchanged. This is presentation-only.
+- Next: test rapid filter/sort changes, 500-pet scrolling, stale tween behavior, and low frame rates in Studio.
+
+## Stage 1 — Pet card selection and action feedback (2026-11-23)
+
+- Selecting a pet now animates the card surface and outline (gold for selected, mint for equipped) rather than changing only the background instantly. Selecting another visible pet animates the previous card back to its correct equipped/unselected appearance.
+- Per-card selection tweens are cancelled before replacement so rapid taps cannot leave conflicting transitions.
+- After the server accepts pet flag changes, Favorite and Lock detail controls receive a short size pulse. The pulse is presentation-only and starts only after a successful response.
+- Validation still required in Studio: rapid selection, Favorite/Lock feedback, mobile taps, and 500-pet scroll performance.
+- GitHub Actions #552 was a transient external installer failure: `setup-rokit` received HTTP 503 from `raw.githubusercontent.com` before Rojo verification or place build. Failed jobs were re-queued for retry; this is not a Luau or place-build failure.
+- Tween lifecycle cleanup: completed card surface/outline and Favorite/Lock pulse tweens remove their stored references; replaced outline/action tweens are cancelled before new transitions. This avoids retaining destroyed virtualized card instances in tween maps.
+
+## Pet Collection virtualization stress coverage (2026-11-23)
+
+- Expanded `PetCollectionVirtualizationTests.client.lua` fixture sizes to 100, 250, 500, and 1,000 records.
+- Added deterministic full-scroll-range sweeps at one-third viewport intervals. Each sweep asserts that every item intersecting the viewport is included in the returned virtual window and that the number of rendered records stays within the fixed viewport/overscan budget.
+- Added edge cases for content shorter than the viewport, zero-height viewport safety, and oversized overscan bounds.
+- Tests remain Studio-only and require `workspace:SetAttribute("RunPetKingdomsStudioTests", true)`. They have been authored but not executed in this environment; Studio profiling of actual GUI instance counts remains required.
+- Responsive card-width fix: `renderVisibleCards` now includes the measured list width in its early-return condition. If the viewport width changes while first/last virtualized indices remain the same, existing cards are revisited and their icon/name/meta offsets and sizes are recalculated. The cached width resets when the rendered card set is cleared.

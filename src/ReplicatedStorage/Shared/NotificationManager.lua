@@ -14,6 +14,7 @@ local colors = Theme.Colors
 local NotificationManager = {}
 local MAX_VISIBLE = 4
 local activeCount = 0
+local maxVisibleCount = MAX_VISIBLE
 local sequence = 0
 local viewportConnection: RBXScriptConnection? = nil
 
@@ -58,7 +59,24 @@ local function resize()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 520
-	holder.Size = UDim2.new(1, 0, 0, 250)
+	-- Leave the Resource HUD visible: it occupies the top band on desktop
+	-- and a taller two-row band on narrow portrait screens.
+	local topOffset = if compact and viewport.Y >= 360 then 110 else 72
+	maxVisibleCount = if viewport.Y < 220 then 1 elseif viewport.Y < 360 then 2 else MAX_VISIBLE
+	holder.Position = UDim2.new(0.5, 0, 0, topOffset)
+	holder.Size = UDim2.new(1, 0, 0, math.max(58, math.min(250, viewport.Y - topOffset - 8)))
+	while activeCount > maxVisibleCount do
+		local oldest = holder:FindFirstChildWhichIsA("Frame")
+		if oldest == nil then
+			activeCount = 0
+			break
+		end
+		if oldest:GetAttribute("PKToastCounted") == true then
+			oldest:SetAttribute("PKToastCounted", false)
+			activeCount = math.max(0, activeCount - 1)
+		end
+		oldest:Destroy()
+	end
 	for _, child in ipairs(holder:GetChildren()) do
 		if child:IsA("Frame") then
 			local constraint = child:FindFirstChildOfClass("UISizeConstraint")
@@ -98,9 +116,17 @@ bindCamera()
 
 function NotificationManager.Notify(message: string, variant: string?, duration: number?)
 	if type(message) ~= "string" or message == "" then return end
-	if activeCount >= MAX_VISIBLE then
+	if activeCount >= maxVisibleCount then
 		local oldest = holder:FindFirstChildWhichIsA("Frame")
-		if oldest then oldest:Destroy(); activeCount = math.max(0, activeCount - 1) end
+		if oldest then
+			-- A toast may be evicted before its lifetime timer fires. Release its
+			-- slot exactly once so the old timer cannot decrement a newer toast.
+			if oldest:GetAttribute("PKToastCounted") == true then
+				oldest:SetAttribute("PKToastCounted", false)
+				activeCount = math.max(0, activeCount - 1)
+			end
+			oldest:Destroy()
+		end
 	end
 
 	sequence += 1
@@ -158,6 +184,13 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	label.Parent = toast
 
 	activeCount += 1
+	toast:SetAttribute("PKToastCounted", true)
+	local function releaseSlot()
+		if toast:GetAttribute("PKToastCounted") ~= true then return end
+		toast:SetAttribute("PKToastCounted", false)
+		activeCount = math.max(0, activeCount - 1)
+	end
+
 	toast.Position = UDim2.fromOffset(0, -8)
 	TweenService:Create(toast, TweenInfo.new(Theme.Motion.Standard, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		BackgroundTransparency = 0.04,
@@ -166,7 +199,10 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	TweenService:Create(stroke, TweenInfo.new(Theme.Motion.Standard), { Transparency = 0.3 }):Play()
 
 	task.delay(math.clamp(duration or 3, 1.5, 8), function()
-		if toast.Parent == nil then return end
+		if toast.Parent == nil then
+			releaseSlot()
+			return
+		end
 		local fade = TweenService:Create(toast, TweenInfo.new(Theme.Motion.Fast), {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(0, -8),
@@ -175,7 +211,7 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 		fade:Play()
 		fade.Completed:Wait()
 		if toast.Parent then toast:Destroy() end
-		activeCount = math.max(0, activeCount - 1)
+		releaseSlot()
 	end)
 end
 

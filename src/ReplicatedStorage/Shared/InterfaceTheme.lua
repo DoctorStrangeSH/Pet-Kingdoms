@@ -40,6 +40,9 @@ return table.freeze({
 		Demolish = "⌫",
 		Confirm = "✓",
 		Search = "⌕",
+		Affection = "♡",
+		Play = "✦",
+		Sparkle = "✦",
 	}),
 	Typography = table.freeze({
 		Display = Enum.Font.GothamBold,
