@@ -889,16 +889,36 @@ resize = function()
 			petRarity.Position = UDim2.new(0.36, 0, 0, 31)
 			petRarity.Size = UDim2.new(0.64, -16, 0, 16)
 			petRarity.TextSize = 9
-			petDescription.Visible = false
-			bondLabel.Position = UDim2.new(0.36, 0, 0, 50)
-			bondLabel.Size = UDim2.new(0.64, -16, 0, 18)
-			bondLabel.TextSize = 9
 			favoriteButton.Position = UDim2.fromOffset(8, 68)
 			lockButton.Position = UDim2.fromOffset(42, 68)
 			favoriteButton.Size = UDim2.fromOffset(30, 28)
 			lockButton.Size = UDim2.fromOffset(30, 28)
-			teamLabel.Visible = false
-			interactionRow.Visible = false
+
+			if viewport.Y >= 500 then
+				-- On normal-height phones keep useful pet information and care
+				-- actions visible instead of leaving a large empty detail area.
+				petDescription.Visible = true
+				petDescription.Position = UDim2.fromOffset(8, 98)
+				petDescription.Size = UDim2.new(1, -16, 0, 40)
+				petDescription.TextSize = 11
+				bondLabel.Position = UDim2.fromOffset(8, 142)
+				bondLabel.Size = UDim2.new(1, -16, 0, 18)
+				bondLabel.TextSize = 10
+				teamLabel.Visible = true
+				teamLabel.Position = UDim2.fromOffset(8, 164)
+				teamLabel.Size = UDim2.new(1, -16, 0, 18)
+				teamLabel.TextSize = 10
+				interactionRow.Visible = true
+				interactionRow.Position = UDim2.fromOffset(8, 190)
+				interactionRow.Size = UDim2.new(1, -16, 0, 38)
+			else
+				petDescription.Visible = false
+				bondLabel.Position = UDim2.new(0.36, 0, 0, 50)
+				bondLabel.Size = UDim2.new(0.64, -16, 0, 18)
+				bondLabel.TextSize = 9
+				teamLabel.Visible = false
+				interactionRow.Visible = false
+			end
 			equipButton.Position = UDim2.new(0, 8, 1, -42)
 			equipButton.Size = UDim2.new(0.50, -12, 0, 34)
 			equipButton.TextSize = 10
