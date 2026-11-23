@@ -706,6 +706,15 @@ local function makePreviewVisual(catalogId: string, unit: number): Model
 			end
 		end
 	end
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "PlacementHighlight"
+	highlight.Adornee = model
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.FillColor = COLORS.valid
+	highlight.FillTransparency = 0.78
+	highlight.OutlineColor = COLORS.valid
+	highlight.OutlineTransparency = 0.04
+	highlight.Parent = model
 	return model
 end
 
@@ -819,8 +828,16 @@ local function updatePreviewAtCell(x: number, z: number)
 		previewVisual:PivotTo(top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0))
 		for _, descendant in ipairs(previewVisual:GetDescendants()) do
 			if descendant:IsA("BasePart") and descendant ~= previewVisual.PrimaryPart then
-				descendant.Transparency = if valid then 0.3 else 0.65
+				descendant.Transparency = if valid then 0.18 else 0.52
 			end
+		end
+		local highlight = previewVisual:FindFirstChild("PlacementHighlight")
+		if highlight and highlight:IsA("Highlight") then
+			highlight.Enabled = true
+			highlight.FillColor = if valid then COLORS.valid else COLORS.invalid
+			highlight.OutlineColor = if valid then COLORS.valid else COLORS.invalid
+			highlight.FillTransparency = 0.78
+			highlight.OutlineTransparency = 0.02
 		end
 	end
 	currentPreview.Transparency = 0.65
@@ -855,6 +872,8 @@ local function updatePreview(screenPosition: Vector2)
 			for _, descendant in ipairs(previewVisual:GetDescendants()) do
 				if descendant:IsA("BasePart") then descendant.Transparency = 1 end
 			end
+			local highlight = previewVisual:FindFirstChild("PlacementHighlight")
+			if highlight and highlight:IsA("Highlight") then highlight.Enabled = false end
 		end
 		setStatus("Нажми на траву своего острова", false)
 		return
