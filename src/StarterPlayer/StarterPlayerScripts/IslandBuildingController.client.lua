@@ -51,6 +51,7 @@ local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
+local buildRequestInFlight = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
 
@@ -653,6 +654,7 @@ local function updatePreview(screenPosition: Vector2)
 end
 
 local function setSelectedBuilding(catalogId: string)
+	if buildRequestInFlight then return end
 	local size = BUILDING_SIZES[catalogId]
 	if size == nil then return end
 	selectedCatalogId = catalogId
@@ -715,6 +717,7 @@ woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
 local function beginMoveSelected()
+	if buildRequestInFlight then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -763,6 +766,10 @@ moveButton.Activated:Connect(beginMoveSelected)
 
 
 local function stopPlacing()
+	if buildRequestInFlight then
+		setStatus("Дождись ответа о строительстве", false)
+		return
+	end
 	placing = false
 	movingInstanceId = nil
 	panel.Visible = false
@@ -782,6 +789,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
+	if buildRequestInFlight then return end
 	announcePanelOpened()
 	movingInstanceId = nil
 	setSelectedBuilding(selectedCatalogId)
@@ -805,7 +813,7 @@ local function beginPlacing()
 end
 
 rotateButton.Activated:Connect(function()
-	if not placing then return end
+	if not placing or buildRequestInFlight then return end
 	rotation = (rotation + 90) % 360
 	if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
 end)
@@ -813,40 +821,51 @@ end)
 cancelButton.Activated:Connect(stopPlacing)
 
 confirmButton.Activated:Connect(function()
-	if not placing or not placementLocked or not currentValid or currentCellX == nil or currentCellZ == nil then
+	if buildRequestInFlight or not placing or not placementLocked or not currentValid or currentCellX == nil or currentCellZ == nil then
 		setStatus("Сначала выбери подходящее место", false)
 		return
 	end
+	-- Freeze the complete payload before InvokeServer yields to other UI input.
+	local requestedCatalogId = selectedCatalogId
+	local requestedX, requestedZ = currentCellX, currentCellZ
+	local requestedRotation = rotation
+	local requestedMoveId = movingInstanceId
+	buildRequestInFlight = true
 	confirmButton.Active = false
 	confirmButton.Text = "..."
+	rotateButton.Active = false
+	cancelButton.Active = false
 	local operationKey = table.concat({
 		"build",
-		selectedCatalogId,
-		tostring(currentCellX),
-		tostring(currentCellZ),
-		tostring(rotation),
-		tostring(movingInstanceId or ""),
+		requestedCatalogId,
+		tostring(requestedX),
+		tostring(requestedZ),
+		tostring(requestedRotation),
+		tostring(requestedMoveId or ""),
 	}, ":")
 	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
 		return remote:InvokeServer({
 			requestId = requestId,
-			catalogId = selectedCatalogId,
-			x = currentCellX,
-			z = currentCellZ,
-			rotation = rotation,
-			movingInstanceId = movingInstanceId,
+			catalogId = requestedCatalogId,
+			x = requestedX,
+			z = requestedZ,
+			rotation = requestedRotation,
+			movingInstanceId = requestedMoveId,
 		})
 	end)
+	buildRequestInFlight = false
 	confirmButton.Active = true
-	confirmButton.Text = if movingInstanceId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
+	rotateButton.Active = true
+	cancelButton.Active = true
+	confirmButton.Text = if requestedMoveId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		local wasMoving = movingInstanceId ~= nil
+		local wasMoving = requestedMoveId ~= nil
 		local successLabels = {
 			main_house = "Главный дом построен!",
 			pet_house = "Домик питомцев построен!",
@@ -855,7 +874,7 @@ confirmButton.Activated:Connect(function()
 			flower_bed = "Клумба размещена!",
 			wooden_fence = "Секция забора установлена!",
 		}
-		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[selectedCatalogId] or "Объект размещён!"), true)
+		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[requestedCatalogId] or "Объект размещён!"), true)
 		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
@@ -873,7 +892,7 @@ confirmButton.Activated:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed then return end
+	if processed or buildRequestInFlight then return end
 	if not placing and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 		local mousePosition = if input.UserInputType == Enum.UserInputType.Touch then Vector2.new(input.Position.X, input.Position.Y) else UserInputService:GetMouseLocation()
 		local ray = camera:ScreenPointToRay(mousePosition.X, mousePosition.Y)
@@ -909,7 +928,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 RunService.RenderStepped:Connect(function()
-	if placing and not placementLocked and not touchPlacement then
+	if placing and not buildRequestInFlight and not placementLocked and not touchPlacement then
 		updatePreview(pointerPosition)
 	end
 end)
