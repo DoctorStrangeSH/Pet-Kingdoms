@@ -1467,3 +1467,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Finished migrating remaining repeated icon literals in Pet Collection (favorite filter/actions, lock state, bunny/pet list glyphs) and the Build rotate control to `InterfaceTheme.Icons`; added the missing `Bunny` token. Earlier cleanup CI passed for Pet Collection, Quest Journal, Expansion, and Build (`45152712568`, `45152719063`, `45152727753`, `45152749170`, `45152771679`). The latest icon migration is building in `45152892961` and has not yet completed at this note.
 - Static audit of primary UI scripts found no `TextScaled=true`, no TODO/FIXME/HACK or old AI-attribution comments, and no remaining duplicate corner/stroke setup before floating-launcher style helpers. Remaining icon literals are deliberate domain-specific decoration (e.g. quest/star markers), not common action icons.
 - Stage 1 is not signed off yet: resource HUD still has its own local color palette and should be aligned with the shared theme; full visual overflow/spacing audit and Roblox Studio desktop/mobile regression remain. Stage 2 remains blocked.
+
+
+## Stage 1 — Interface & usability: Resource HUD theme alignment (2026-11-23)
+
+- Migrated `IslandResourceHUD.client.lua` from a private panel/text/accent palette to `InterfaceTheme.Colors`; retained only resource-specific semantic tints for wood, stone, and crystals. The HUD now uses shared panel, soft-panel, cream, muted, gold, mint, and panel-light tokens.
+- Replaced local font declarations and common text sizes with `InterfaceTheme.Typography` tokens for resource amounts, resource labels, gather toast, kingdom-bond status, and responsive resizing. Replaced local corner radii with `InterfaceTheme.Radii` and the kingdom-bond house glyph with `InterfaceTheme.Icons.Build`.
+- Static audit confirms no remaining local duplicate base palette, no direct Gotham font declarations, and all color references resolve to defined shared theme tokens. Responsive 2×2 mobile / 4-column desktop layout and resource-specific accent colors remain unchanged.
+- CI run `45153168859` for this HUD migration was in progress at documentation time. No Roblox Studio visual/device test has been performed. Next: run the final screen overflow/spacing audit and prepare a focused Studio checklist; Stage 1 remains open pending user-side runtime verification.
