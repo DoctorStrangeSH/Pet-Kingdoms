@@ -132,16 +132,33 @@ local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, d
 	makePart(world, "Island_StoneCore", Vector3.new(sizeX * 0.88, 8, sizeZ * 0.88),
 		top * CFrame.new(0, -12.5, 0), ROCK_COLOR, Enum.Material.Slate)
 
+	-- Layered rock faces are entirely beneath the playable grass surface.
+	-- Stable variations add depth without changing the island grid or collisions.
+	local edgeRockTints = {
+		Color3.fromRGB(112, 112, 116), Color3.fromRGB(125, 119, 116),
+		Color3.fromRGB(99, 107, 111), Color3.fromRGB(119, 110, 109),
+	}
 	for index = 1, 8 do
 		local angle = (math.pi * 2 * index) / 8
 		local radiusX = sizeX * 0.42
 		local radiusZ = sizeZ * 0.42
 		local x = math.cos(angle) * radiusX
 		local z = math.sin(angle) * radiusZ
-		local rockSize = Vector3.new(maxDimension * 0.12, 5 + (index % 3) * 2, maxDimension * 0.14)
-		makePart(world, "Island_CliffRock_" .. tostring(index), rockSize,
+		local scale = 0.88 + (index % 4) * 0.08
+		local rockSize = Vector3.new(maxDimension * 0.12 * scale, 5 + (index % 3) * 2, maxDimension * 0.14 * scale)
+		local rock = makePart(world, "Island_CliffRock_" .. tostring(index), rockSize,
 			top * CFrame.new(x, -9 - (index % 2) * 2, z) * CFrame.Angles(0, angle, math.rad((index % 3 - 1) * 9)),
-			ROCK_COLOR:Lerp(DIRT_COLOR, 0.18), Enum.Material.Rock, Enum.PartType.Ball)
+			edgeRockTints[((index - 1) % #edgeRockTints) + 1], Enum.Material.Rock, Enum.PartType.Ball)
+		rock.CanQuery = false
+		local stratum = makePart(world, "Island_CliffStratum_" .. tostring(index),
+			Vector3.new(rockSize.X * 0.91, 1.15 + (index % 2) * 0.3, rockSize.Z * 0.84),
+			top * CFrame.new(x * 0.94, -11.7 - (index % 2) * 1.4, z * 0.94) * CFrame.Angles(0, angle, math.rad((index % 3 - 1) * 7)),
+			Color3.fromRGB(135 + (index % 3) * 6, 116 + (index % 3) * 4, 103 + (index % 3) * 3),
+			Enum.Material.Slate, Enum.PartType.Ball)
+		stratum.CanCollide = false
+		stratum.CanTouch = false
+		stratum.CanQuery = false
+		stratum.CastShadow = false
 	end
 
 	-- Deterministic perimeter greenery; kept away from the central building area.
