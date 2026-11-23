@@ -390,7 +390,7 @@ local confirmDeleteButton = make("TextButton", {
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 }, confirmPanel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 10) }, confirmDeleteButton)
+InterfaceComponents.StyleActionButton(confirmDeleteButton, "danger")
 
 local statusLabel = make("TextLabel", {
 	BackgroundTransparency = 1,
