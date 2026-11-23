@@ -107,6 +107,41 @@ function Components.StyleCard(card: GuiObject, variant: string?)
 	stroke.Transparency = transparency
 end
 
+function Components.StyleFloatingButton(button: TextButton, variant: string?)
+	local colors = Theme.Colors
+	local accent = colors.gold
+	if variant == "mint" then
+		accent = colors.mint
+	elseif variant == "rose" then
+		accent = colors.rose
+	end
+
+	button.BackgroundColor3 = colors.panel
+	button.TextColor3 = colors.cream
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Theme.Typography.Display
+	button.TextScaled = false
+	button.TextStrokeTransparency = 1
+	button.ClipsDescendants = false
+
+	local corner = button:FindFirstChildOfClass("UICorner")
+	if corner == nil then
+		corner = Instance.new("UICorner")
+		corner.Parent = button
+	end
+	corner.CornerRadius = UDim.new(1, 0)
+
+	local stroke = button:FindFirstChildOfClass("UIStroke")
+	if stroke == nil then
+		stroke = Instance.new("UIStroke")
+		stroke.Parent = button
+	end
+	stroke.Color = accent
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.18
+end
+
 function Components.StyleActionButton(button: TextButton, variant: string?)
 	local colors = Theme.Colors
 	local background = colors.panelLight
