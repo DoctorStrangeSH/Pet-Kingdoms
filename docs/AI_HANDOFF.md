@@ -1665,3 +1665,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Validation still required in Studio: rapid selection, Favorite/Lock feedback, mobile taps, and 500-pet scroll performance.
 - GitHub Actions #552 was a transient external installer failure: `setup-rokit` received HTTP 503 from `raw.githubusercontent.com` before Rojo verification or place build. Failed jobs were re-queued for retry; this is not a Luau or place-build failure.
 - Tween lifecycle cleanup: completed card surface/outline and Favorite/Lock pulse tweens remove their stored references; replaced outline/action tweens are cancelled before new transitions. This avoids retaining destroyed virtualized card instances in tween maps.
+
+## Pet Collection virtualization stress coverage (2026-11-23)
+
+- Expanded `PetCollectionVirtualizationTests.client.lua` fixture sizes to 100, 250, 500, and 1,000 records.
+- Added deterministic full-scroll-range sweeps at one-third viewport intervals. Each sweep asserts that every item intersecting the viewport is included in the returned virtual window and that the number of rendered records stays within the fixed viewport/overscan budget.
+- Added edge cases for content shorter than the viewport, zero-height viewport safety, and oversized overscan bounds.
+- Tests remain Studio-only and require `workspace:SetAttribute("RunPetKingdomsStudioTests", true)`. They have been authored but not executed in this environment; Studio profiling of actual GUI instance counts remains required.
