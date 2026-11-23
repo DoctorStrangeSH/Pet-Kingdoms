@@ -30,6 +30,30 @@ function Components.StyleCloseButton(button: TextButton)
 	end
 end
 
+function Components.StyleText(label: TextLabel, role: string?)
+	local typography = Theme.Typography
+	local sizes = typography.Sizes
+	local roleName = role or "Body"
+	local font = typography.Body
+	local size = sizes.Body
+	if roleName == "Display" then
+		font, size = typography.Display, sizes.Display
+	elseif roleName == "Heading" then
+		font, size = typography.Display, sizes.Heading
+	elseif roleName == "Caption" then
+		font, size = typography.Body, sizes.Caption
+	elseif roleName == "Micro" then
+		font, size = typography.Emphasis, sizes.Micro
+	elseif roleName == "Numeric" then
+		font, size = typography.Emphasis, sizes.Numeric
+	elseif roleName == "Emphasis" then
+		font, size = typography.Emphasis, sizes.Body
+	end
+	label.Font = font
+	label.TextSize = size
+	label.TextScaled = false
+end
+
 function Components.StyleCard(card: GuiObject, variant: string?)
 	local colors = Theme.Colors
 	local strokeColor = colors.panelLight
