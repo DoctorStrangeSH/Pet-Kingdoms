@@ -876,6 +876,25 @@ resize = function()
 		detail.Position = UDim2.fromOffset(24, if mobileDetailVisible then 130 else 172)
 		detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -154 else -196)
 		detail.Visible = mobileDetailVisible
+
+		-- The two-column desktop detail layout is too tall for a phone.
+		-- Reflow it into a compact vertical card and remove secondary actions
+		-- that would otherwise collide with the bond/equip controls.
+		preview.Size = UDim2.new(1, -20, 0.38, -10)
+		petName.Position = UDim2.new(0, 16, 0.42, 0)
+		petName.Size = UDim2.new(1, -112, 0, 27)
+		petName.TextSize = 18
+		petRarity.Position = UDim2.new(0, 16, 0.42, 28)
+		petRarity.TextSize = 9
+		petDescription.Position = UDim2.new(0, 16, 0.42, 50)
+		petDescription.Size = UDim2.new(1, -32, 0, 36)
+		petDescription.TextSize = 11
+		favoriteButton.Position = UDim2.new(1, -88, 0.42, 0)
+		lockButton.Position = UDim2.new(1, -48, 0.42, 0)
+		bondLabel.Position = UDim2.new(0, 16, 0.42, 88)
+		bondLabel.TextSize = 10
+		teamLabel.Visible = false
+		interactionRow.Visible = false
 	else
 		panel.Size = if viewport.X < 900 then UDim2.new(0.9, 0, 0.8, 0) else UDim2.fromScale(0.78, 0.78)
 		panelScale.Scale = if viewport.X < 900 then 0.96 else 1
@@ -894,6 +913,21 @@ resize = function()
 		detail.Position = UDim2.new(0.52, 0, 0, 88)
 		detail.Size = UDim2.new(0.48, -24, 1, -112)
 		detail.Visible = true
+		preview.Size = UDim2.new(1, -20, 0.53, -10)
+		petName.Position = UDim2.new(0, 16, 0.55, 0)
+		petName.Size = UDim2.new(1, -112, 0, 30)
+		petName.TextSize = 21
+		petRarity.Position = UDim2.new(0, 16, 0.55, 31)
+		petRarity.TextSize = 10
+		petDescription.Position = UDim2.new(0, 16, 0.55, 57)
+		petDescription.Size = UDim2.new(1, -32, 0, 44)
+		petDescription.TextSize = 12
+		favoriteButton.Position = UDim2.new(1, -88, 0.55, 0)
+		lockButton.Position = UDim2.new(1, -48, 0.55, 0)
+		bondLabel.Position = UDim2.new(0, 16, 0.55, 103)
+		bondLabel.TextSize = 12
+		teamLabel.Visible = true
+		interactionRow.Visible = true
 		mobileBackButton.Visible = false
 	end
 	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
