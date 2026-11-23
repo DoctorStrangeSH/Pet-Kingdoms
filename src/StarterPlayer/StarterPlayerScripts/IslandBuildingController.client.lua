@@ -1179,8 +1179,12 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == Enum.KeyCode.R and placing then
 		rotation = (rotation + 90) % 360
 		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
-	elseif input.KeyCode == Enum.KeyCode.Escape and placing then
-		stopPlacing()
+	elseif input.KeyCode == Enum.KeyCode.Escape and ModalManager.IsActive(script.Name) then
+		if overview.Visible then
+			dismissKingdomOverview()
+		elseif placing then
+			stopPlacing()
+		end
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
 		-- Some touch devices emit a synthetic mouse event for the same tap.
 		if UserInputService.TouchEnabled and os.clock() - lastTouchTime < TOUCH_MOUSE_SUPPRESSION then return end
