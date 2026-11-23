@@ -589,67 +589,102 @@ local function renderVisibleCards()
 	local lastIndex = window.lastIndex
 	if firstIndex == renderedWindowStart and lastIndex == renderedWindowEnd then return end
 
-	clearRenderedCards()
+	-- Reconcile the visible window instead of destroying every card on each
+	-- scroll step. Cards in the overlap remain alive; only leaving/entering
+	-- records are destroyed/created.
+	local wanted: { [string]: boolean } = {}
+	for index = firstIndex, lastIndex do
+		local record = filteredRecords[index]
+		if record then wanted[record.petId] = true end
+	end
+	for petId, button in pairs(cardButtons) do
+		if not wanted[petId] then
+			cardButtons[petId] = nil
+			button:Destroy()
+		end
+	end
+
 	renderedWindowStart = firstIndex
 	renderedWindowEnd = lastIndex
 	for index = firstIndex, lastIndex do
 		local record = filteredRecords[index]
+		if record == nil then continue end
+		local petId = record.petId
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
-		local equipped = isEquipped(record.petId)
-		local button = make("TextButton", {
-			Name = "Pet_" .. record.petId,
-			Position = UDim2.fromOffset(0, (index - 1) * PET_CARD_STEP),
-			Size = UDim2.new(1, -8, 0, PET_CARD_HEIGHT),
-			BackgroundColor3 = if selectedPetId == record.petId then COLORS.cardSelected else COLORS.card,
-			Text = "",
-			AutoButtonColor = true,
-		}, list) :: TextButton
-		make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
-		make("UIStroke", { Color = if equipped then COLORS.mint else COLORS.cardSelected, Thickness = 1, Transparency = 0.25 }, button)
-		make("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 12, 0, 5),
-			Size = UDim2.fromOffset(46, 54),
-			Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet,
-			TextSize = 29,
-			Font = Enum.Font.Gotham,
-			TextColor3 = COLORS.cream,
-		}, button)
-		make("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 66, 0, 12),
-			Size = UDim2.new(1, -112, 0, 22),
-			Text = name,
-			TextSize = 14,
-			Font = Enum.Font.GothamBold,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextColor3 = COLORS.cream,
-		}, button)
-		make("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 66, 0, 34),
-			Size = UDim2.new(1, -112, 0, 18),
-			Text = table.concat({
+		local equipped = isEquipped(petId)
+		local button = cardButtons[petId]
+		if button == nil then
+			button = make("TextButton", {
+				Name = "Pet_" .. petId,
+				Size = UDim2.new(1, -8, 0, PET_CARD_HEIGHT),
+				Text = "",
+				AutoButtonColor = true,
+			}, list) :: TextButton
+			make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
+			make("UIStroke", {
+				Name = "CardStroke",
+				Color = COLORS.cardSelected,
+				Thickness = 1,
+				Transparency = 0.25,
+			}, button)
+			make("TextLabel", {
+				Name = "PetIcon",
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 12, 0, 5),
+				Size = UDim2.fromOffset(46, 54),
+				TextSize = 29,
+				Font = Enum.Font.Gotham,
+				TextColor3 = COLORS.cream,
+			}, button)
+			make("TextLabel", {
+				Name = "PetName",
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 66, 0, 12),
+				Size = UDim2.new(1, -112, 0, 22),
+				TextSize = 14,
+				Font = Enum.Font.GothamBold,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = COLORS.cream,
+			}, button)
+			make("TextLabel", {
+				Name = "PetMeta",
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 66, 0, 34),
+				Size = UDim2.new(1, -112, 0, 18),
+				TextSize = 10,
+				Font = Enum.Font.GothamMedium,
+				TextXAlignment = Enum.TextXAlignment.Left,
+			}, button)
+			button.Activated:Connect(function()
+				local previousPetId = selectedPetId
+				selectedPetId = petId
+				local previousButton = if previousPetId then cardButtons[previousPetId] else nil
+				if previousButton then previousButton.BackgroundColor3 = COLORS.card end
+				button.BackgroundColor3 = COLORS.cardSelected
+				if compactCollection then mobileDetailVisible = true end
+				updateDetail()
+				resize()
+			end)
+			cardButtons[petId] = button
+		end
+
+		button.Position = UDim2.fromOffset(0, (index - 1) * PET_CARD_STEP)
+		button.BackgroundColor3 = if selectedPetId == petId then COLORS.cardSelected else COLORS.card
+		local icon = button:FindFirstChild("PetIcon") :: TextLabel?
+		local nameLabel = button:FindFirstChild("PetName") :: TextLabel?
+		local metaLabel = button:FindFirstChild("PetMeta") :: TextLabel?
+		local stroke = button:FindFirstChild("CardStroke") :: UIStroke?
+		if icon then icon.Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet end
+		if nameLabel then nameLabel.Text = name end
+		if metaLabel then
+			metaLabel.Text = table.concat({
 				if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
 				if record.isLocked then InterfaceTheme.Icons.Locked else "",
 				if record.isFavorite then InterfaceTheme.Icons.FavoriteOn else "",
-			}, "  "),
-			TextSize = 10,
-			Font = Enum.Font.GothamMedium,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextColor3 = if equipped then COLORS.mint else COLORS.muted,
-		}, button)
-		cardButtons[record.petId] = button
-		button.Activated:Connect(function()
-			local previousPetId = selectedPetId
-			selectedPetId = record.petId
-			local previousButton = if previousPetId then cardButtons[previousPetId] else nil
-			if previousButton then previousButton.BackgroundColor3 = COLORS.card end
-			button.BackgroundColor3 = COLORS.cardSelected
-			if compactCollection then mobileDetailVisible = true end
-			updateDetail()
-			resize()
-		end)
+			}, "  ")
+			metaLabel.TextColor3 = if equipped then COLORS.mint else COLORS.muted
+		end
+		if stroke then stroke.Color = if equipped then COLORS.mint else COLORS.cardSelected end
 	end
 end
 
