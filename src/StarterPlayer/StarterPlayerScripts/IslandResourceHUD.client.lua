@@ -145,18 +145,23 @@ bondStroke.Color = COLORS.gold
 bondStroke.Transparency = 0.55
 bondStroke.Parent = bondLabel
 
+local hasKingdomBond = false
+
 local function applyKingdomBond(world: Instance)
 	local stageName = world:GetAttribute("KingdomBondStageName")
 	local points = world:GetAttribute("KingdomBondPoints")
 	local nextPoints = world:GetAttribute("KingdomBondNextStagePoints")
 	if type(stageName) ~= "string" or type(points) ~= "number" then
+		hasKingdomBond = false
 		bondLabel.Visible = false
 		return
 	end
+	hasKingdomBond = true
 	bondLabel.Text = if type(nextPoints) == "number"
 		then string.format("%s %s  •  %d очков  •  дальше: %d", InterfaceTheme.Icons.Build, stageName, points, nextPoints)
 		else string.format("%s %s  •  %d очков  •  максимум", InterfaceTheme.Icons.Build, stageName, points)
-	bondLabel.Visible = true
+	local camera = Workspace.CurrentCamera
+	bondLabel.Visible = camera == nil or camera.ViewportSize.Y >= 360
 end
 
 local function bindKingdomBond(world: Instance)
@@ -266,11 +271,21 @@ local function resize()
 			end
 		end
 	end
-	toast.Position = UDim2.new(0.5, 0, 0, compact and 108 or 106)
-	toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
+	if short then
+		-- Keep transient feedback below the side launchers and hide the optional
+		-- kingdom-bond caption while the vertical space is occupied by controls.
+		toast.AnchorPoint = Vector2.new(0, 0)
+		toast.Position = UDim2.fromOffset(8, 128)
+		toast.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), 36)
+	else
+		toast.AnchorPoint = Vector2.new(0.5, 0)
+		toast.Position = UDim2.new(0.5, 0, 0, compact and 108 or 106)
+		toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
+	end
 	bondLabel.Position = UDim2.new(0.5, 0, 0, compact and 148 or 70)
 	bondLabel.Size = UDim2.fromOffset(math.max(200, math.min(300, viewport.X - 32)), 28)
 	bondLabel.TextSize = tiny and 9 or InterfaceTheme.Typography.Sizes.Caption
+	bondLabel.Visible = hasKingdomBond and not short
 end
 
 local viewportConnection: RBXScriptConnection? = nil
