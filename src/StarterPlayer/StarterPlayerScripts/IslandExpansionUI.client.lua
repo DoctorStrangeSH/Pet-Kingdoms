@@ -276,7 +276,7 @@ end
 local function refresh()
 	if loading then return end
 	loading = true
-	refreshButton.Text = "ЗАГРУЗКА..."
+	InterfaceComponents.SetButtonLoading(refreshButton, true, "ЗАГРУЗКА...")
 	status.TextColor3 = COLORS.muted
 	status.Text = "Получаем актуальные данные с сервера..."
 	local ok, result = pcall(function()
@@ -290,7 +290,7 @@ local function refresh()
 		NotificationManager.Notify("Не удалось обновить данные острова", "error")
 	end
 	loading = false
-	refreshButton.Text = "ОБНОВИТЬ ДАННЫЕ"
+	InterfaceComponents.SetButtonLoading(refreshButton, false)
 end
 
 local function setOpen(value: boolean)
