@@ -646,3 +646,4 @@ Source-level layout pass only; runtime visual/touch verification remains pending
 - [ ] Verify at 320×180, 360×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio; confirm no clipping, overlapping text, or inaccessible close/refresh controls.
 
 The expansion window remains a read-only preview: purchase/expansion execution is not implemented by this UI pass. Runtime visual/touch verification remains pending.
+- [x] CI validation for the Island Expansion landscape pass: GitHub Actions #453 completed successfully; Rojo verification, Roblox place build, and Studio-ready artifact upload passed.
