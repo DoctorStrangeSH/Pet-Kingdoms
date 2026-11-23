@@ -85,6 +85,17 @@ expect("bond sort prioritizes favorites, level, and XP", bondSorted)
 local empty = PetCollectionQuery.Build({}, {}, "", "all", "newest", normalizedNames)
 expect("empty collection produces empty results", #empty == 0)
 
+-- Selection resolves against the authoritative owned list, not the filtered
+-- subset, so a pet remains selected while hidden by Team/Favorites/search.
+local selectedRecord, selectedId = PetCollectionQuery.ResolveSelection(owned, "pet-123")
+expect("selection keeps the requested pet even when query filters would hide it", selectedId == "pet-123" and selectedRecord ~= nil and selectedRecord.petId == "pet-123")
+
+local fallbackRecord, fallbackId = PetCollectionQuery.ResolveSelection(owned, "pet-no-longer-owned")
+expect("selection falls back only when the pet is no longer owned", fallbackId == owned[1].petId and fallbackRecord == owned[1])
+
+local emptySelection, emptySelectionId = PetCollectionQuery.ResolveSelection({}, "pet-123")
+expect("empty collection clears stale selection", emptySelection == nil and emptySelectionId == nil)
+
 local cacheHasLocalizedBunny = normalizedNames.bunny == string.lower("Зайчик")
 expect("species display names are cached", cacheHasLocalizedBunny)
 
