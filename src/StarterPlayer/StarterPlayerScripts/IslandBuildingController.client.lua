@@ -49,6 +49,7 @@ local demolitionRequestInFlight = false
 local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
+local pendingBuildingOperationKey: string? = nil
 
 local function getPendingRequestId(operationKey: string): string
 	local requestId = pendingRequestIds[operationKey]
@@ -378,6 +379,10 @@ demolishButton.Activated:Connect(function()
 	moveButton.Active = false
 	setStatus("Удаляем постройку…")
 	local operationKey = "demolish:" .. instanceId
+	if pendingBuildingOperationKey ~= nil and pendingBuildingOperationKey ~= operationKey then
+		setStatus("Сначала проверь результат предыдущей операции", false)
+		return
+	end
 	local requestId = getPendingRequestId(operationKey)
 	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer({
@@ -392,7 +397,12 @@ demolishButton.Activated:Connect(function()
 	moveButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
-	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
+	if ok and not shouldKeepPendingRequest(response) then
+		clearPendingRequestId(operationKey)
+		if pendingBuildingOperationKey == operationKey then pendingBuildingOperationKey = nil end
+	elseif not ok or shouldKeepPendingRequest(response) then
+		pendingBuildingOperationKey = operationKey
+	end
 	if not ok then
 		if requestResult.errorCode == "TIMEOUT" then
 			setStatus("Ответ задерживается. Результат демонтажа пока неизвестен — повтори попытку для проверки", false)
@@ -918,6 +928,14 @@ confirmButton.Activated:Connect(function()
 		tostring(requestedRotation),
 		tostring(requestedMoveId or ""),
 	}, ":")
+	if pendingBuildingOperationKey ~= nil and pendingBuildingOperationKey ~= operationKey then
+		buildRequestInFlight = false
+		InterfaceComponents.SetButtonLoading(confirmButton, false)
+		rotateButton.Active = true
+		cancelButton.Active = true
+		setStatus("Сначала проверь результат предыдущей операции", false)
+		return
+	end
 	local requestId = getPendingRequestId(operationKey)
 	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer({
@@ -937,7 +955,12 @@ confirmButton.Activated:Connect(function()
 	rotateButton.Active = true
 	cancelButton.Active = true
 	confirmButton.Text = if requestedMoveId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
-	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
+	if ok and not shouldKeepPendingRequest(response) then
+		clearPendingRequestId(operationKey)
+		if pendingBuildingOperationKey == operationKey then pendingBuildingOperationKey = nil end
+	elseif not ok or shouldKeepPendingRequest(response) then
+		pendingBuildingOperationKey = operationKey
+	end
 	if not ok then
 		if requestResult.errorCode == "TIMEOUT" then
 			setStatus("Ответ задерживается. Результат операции пока неизвестен — нажми повторить", false)
