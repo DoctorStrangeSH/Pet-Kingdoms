@@ -1649,3 +1649,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Active shade, panel-position, and panel-scale tweens are stored and cancelled before a new transition. The delayed hide remains guarded by `collectionModalRevision`, so rapid reopen cannot be hidden by an earlier close callback.
 - Compact mobile selection animates the detail pane in from a small horizontal offset. The detail tween is cancelled on Back and on modal open/close. Its callback is forward-declared because card activation handlers are defined earlier in the module.
 - Next: verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Studio under touch and low frame rates.
+
+## Stage 1 — Pet Collection filter and card transitions (2026-11-23)
+
+- Filter selection now animates the background color of All, Team, Favorites, and Sort controls over 0.14 seconds. A new selection cancels the previous tween for that button, preventing rapid taps from fighting over the final color.
+- Newly created virtualized cards fade in over 0.12 seconds: card surface and icon/name/metadata labels. Cards reused within an overlapping scroll window are not recreated or re-faded.
+- The query, sort, and scroll-preservation logic remains unchanged. This is presentation-only.
+- Next: test rapid filter/sort changes, 500-pet scrolling, stale tween behavior, and low frame rates in Studio.
