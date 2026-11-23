@@ -744,8 +744,11 @@ local function renderList(preserveScroll: boolean?)
 	local contentHeight = VirtualList.GetContentHeight(#filteredRecords, PET_CARD_STEP, PET_CARD_GAP)
 	list.CanvasSize = UDim2.fromOffset(0, contentHeight)
 	if preserveScroll then
-		local maxY = math.max(0, contentHeight - list.AbsoluteWindowSize.Y)
-		list.CanvasPosition = Vector2.new(0, math.clamp(savedCanvasPosition.Y, 0, maxY))
+		list.CanvasPosition = Vector2.new(0, VirtualList.ClampCanvasY(
+			savedCanvasPosition.Y,
+			contentHeight,
+			list.AbsoluteWindowSize.Y
+		))
 	else
 		list.CanvasPosition = Vector2.zero
 	end
@@ -1310,12 +1313,12 @@ shade.Activated:Connect(function()
 end)
 
 openButton.Activated:Connect(openCollection)
-allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
-teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList() end)
-favoriteFilterButton.Activated:Connect(function() activeFilter = "favorites" renderList() end)
+allFilterButton.Activated:Connect(function() activeFilter = "all" renderList(true) end)
+teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList(true) end)
+favoriteFilterButton.Activated:Connect(function() activeFilter = "favorites" renderList(true) end)
 sortButton.Activated:Connect(function()
 	sortMode = if sortMode == "newest" then "name" elseif sortMode == "name" then "bond" else "newest"
-	renderList()
+	renderList(true)
 end)
 favoriteButton.Activated:Connect(function()
 	if collection == nil or selectedPetId == nil then return end
