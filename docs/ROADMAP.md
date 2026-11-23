@@ -865,3 +865,12 @@ Source-level query extraction and deterministic regression coverage added; Studi
 - [ ] Verify touch interaction and clipping in Roblox Studio at 320×180, 360×180, and 320×240; check all four filter controls and detail actions.
 
 Compact layout touch targets improved at the source level; Studio/device validation remains pending.
+
+### Stage 1 — Narrow Pet Collection cards and touch actions (2026-11-23)
+
+- [x] Adapt pet card icon/name/metadata columns when the list is narrower than 360 px; reclaim horizontal space for labels.
+- [x] Truncate long pet names and metadata at the end rather than allowing text to overflow or wrap into neighboring content.
+- [x] Increase portrait-mode favorite and lock controls from 30×28 to 36×34 px and separate their hit targets.
+- [ ] Verify long localized/species names, metadata, favorite/lock taps, and selected-card state in Studio at 320×640, 360×640, and 390×844.
+
+Source-level narrow-card layout and hit-area improvements are in place; device interaction checks remain pending.
