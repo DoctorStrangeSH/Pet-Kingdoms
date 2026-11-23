@@ -539,6 +539,7 @@ end
 
 local function renderList()
 	if collection == nil then return end
+	local previousSelectedPetId = selectedPetId
 	for _, child in ipairs(list:GetChildren()) do
 		if child:IsA("GuiObject") and not child:IsA("UIListLayout") then
 			child:Destroy()
@@ -654,7 +655,8 @@ local function renderList()
 	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
 	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
 	sortButton.Text = if sortMode == "newest" then "НОВЫЕ" elseif sortMode == "name" then "ИМЯ" else "ДРУЖБА"
-	updateDetail()
+	-- Avoid rebuilding the 3D ViewportFrame model on every search keystroke.
+	if previousSelectedPetId ~= selectedPetId then updateDetail() end
 end
 
 local function refreshCollection()
