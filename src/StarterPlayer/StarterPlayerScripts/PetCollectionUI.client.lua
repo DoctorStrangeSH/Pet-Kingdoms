@@ -44,6 +44,8 @@ local selectedPetId: string? = nil
 local busy = false
 local collectionRefreshing = false
 local cardButtons: { [string]: TextButton } = {}
+local cardSelectionTweens: { [TextButton]: Tween } = {}
+local actionButtonTweens: { [TextButton]: Tween } = {}
 local filteredRecords: { PetRecord } = {}
 local filterButtonTweens: { [TextButton]: Tween } = {}
 local renderedWindowStart = 0
@@ -54,6 +56,44 @@ local sortMode = "newest"
 local normalizedSpeciesNames: { [string]: string } = {}
 
 local pendingDeletePetId: string? = nil
+
+local function animateCardState(button: TextButton, selected: boolean, equipped: boolean)
+	local previousTween = cardSelectionTweens[button]
+	if previousTween then previousTween:Cancel() end
+	local stroke = button:FindFirstChild("CardStroke") :: UIStroke?
+	local targets = {
+		BackgroundColor3 = if selected then COLORS.cardSelected else COLORS.card,
+	}
+	local tween = TweenService:Create(button, TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), targets)
+	cardSelectionTweens[button] = tween
+	tween:Play()
+	if stroke then
+		TweenService:Create(stroke, TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Color = if selected then COLORS.gold elseif equipped then COLORS.mint else COLORS.cardSelected,
+			Thickness = if selected then 2.5 else if equipped then 1.5 else 1,
+			Transparency = if selected then 0.05 else 0.25,
+		}):Play()
+	end
+end
+
+local function animateActionButton(button: TextButton)
+	local previousTween = actionButtonTweens[button]
+	if previousTween then previousTween:Cancel() end
+	local baseSize = button.TextSize
+	local growTween = TweenService:Create(button, TweenInfo.new(0.09, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		TextSize = baseSize + 3,
+	})
+	actionButtonTweens[button] = growTween
+	growTween.Completed:Connect(function(playbackState)
+		if playbackState ~= Enum.PlaybackState.Completed or actionButtonTweens[button] ~= growTween then return end
+		local settleTween = TweenService:Create(button, TweenInfo.new(0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			TextSize = baseSize,
+		})
+		actionButtonTweens[button] = settleTween
+		settleTween:Play()
+	end)
+	growTween:Play()
+end
 local mobileDetailVisible = false
 local compactCollection = false
 local resize: () -> ()
@@ -665,8 +705,8 @@ local function renderVisibleCards()
 				local previousPetId = selectedPetId
 				selectedPetId = petId
 				local previousButton = if previousPetId then cardButtons[previousPetId] else nil
-				if previousButton then previousButton.BackgroundColor3 = COLORS.card end
-				button.BackgroundColor3 = COLORS.cardSelected
+				if previousButton then animateCardState(previousButton, false, isEquipped(previousPetId :: string)) end
+				animateCardState(button, true, isEquipped(petId))
 				if compactCollection then mobileDetailVisible = true end
 				updateDetail()
 				resize()
@@ -955,6 +995,8 @@ local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 	collection = result :: Collection
 	renderList(true)
 	updateDetail()
+	animateActionButton(favoriteButton)
+	animateActionButton(lockButton)
 	showStatus("Настройки питомца сохранены.")
 end
 
