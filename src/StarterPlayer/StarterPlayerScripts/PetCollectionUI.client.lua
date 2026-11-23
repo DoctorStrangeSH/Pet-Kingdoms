@@ -648,7 +648,7 @@ local function renderList()
 			Font = Enum.Font.Gotham,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then "🐾" else "⌕")
+		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then InterfaceTheme.Icons.Pet else InterfaceTheme.Icons.Search)
 	end
 	list.CanvasPosition = Vector2.zero
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
