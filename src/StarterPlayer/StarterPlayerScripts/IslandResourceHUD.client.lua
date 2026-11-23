@@ -134,6 +134,7 @@ bondLabel.Size = UDim2.fromOffset(300, 28)
 bondLabel.BackgroundColor3 = COLORS.panel
 bondLabel.BackgroundTransparency = 0.12
 bondLabel.Text = InterfaceTheme.Icons.Build .. " Тихий остров"
+bondLabel.TextTruncate = Enum.TextTruncate.AtEnd
 bondLabel.TextColor3 = COLORS.gold
 bondLabel.TextSize = InterfaceTheme.Typography.Sizes.Caption
 bondLabel.Font = InterfaceTheme.Typography.Display
