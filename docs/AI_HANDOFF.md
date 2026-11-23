@@ -1284,3 +1284,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `ReplicatedStorage/Shared/InterfaceComponents.lua` with `StyleCloseButton(TextButton)`. It applies the shared 40x40 hit target, semantic panel background, standard × glyph, shared display font, cream text, medium corner radius and subtle gold outline. Existing buttons retain their screen-specific close callbacks and ZIndex.
 - Migrated the close buttons in Pet Collection, Quest Journal, Island Expansion and Island Building to the shared style helper. Aligned the first three to the same top-right header inset; construction keeps its panel-edge placement while sharing the same visual component.
 - The shared component obtains its colors/typography/radii from `InterfaceTheme`, so visual adjustments now have one source of truth. Static source inspection confirms all four scripts call the helper after creating their button. Visual hit-target and overlap verification in Roblox Studio remains pending, especially on 320px-wide screens. No visual approval or mobile sign-off claimed.
+
+
+## Stage 1 — Interface & usability: semantic action button styles (2026-11-23)
+
+- Extended `ReplicatedStorage/Shared/InterfaceComponents.lua` with `StyleActionButton(button, variant)`. Supported semantic variants: `primary` (mint), `secondary` (slate), `danger` (rose/red), and `gold` (reward/highlight). The helper standardizes text contrast, font, 12–16px text size, rounded corners, subtle outline and interaction color behavior.
+- Migrated key actions: construction rotate/confirm/cancel; pet interaction/play/equip/favorite/delete and delete confirmation/cancel; island expansion refresh. Existing button event handlers, enabled state logic and request flows remain unchanged.
+- Dynamic quest tracking buttons and per-pet list selection buttons were intentionally left alone in this pass because their colors encode live selection/progress state; they need state-aware styling rather than a static variant.
+- Static audit confirms all helper imports and calls are present in the migrated scripts. Roblox Studio visual verification is still pending: confirm text legibility, touch targets, contrast, disabled/loading state appearance, and that runtime state updates are not visually overridden. This is a shared component foundation, not a full UI polish sign-off.
