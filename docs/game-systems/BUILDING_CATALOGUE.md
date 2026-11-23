@@ -1,42 +1,48 @@
 # Client Building Catalogue
 
-> Status: six starter entries are selectable in the client construction panel. This is a minimal functional catalogue, not the final card art or full building inventory. Studio/device verification is pending.
+> Status: six starter entries are present in the construction panel. The server owns prices, footprints, unlock validation and placement. Procedural blockout previews are functional in source; Studio/device input and visual verification remain pending.
 
 ## Available entries
 
-| Stable ID | Display name | Footprint | Unlock |
-|---|---|---:|---|
-| `main_house` | Главный дом | 3 × 3 | Default unlocked |
-| `pet_house` | Домик питомцев | 3 × 3 | Default unlocked |
-| `stone_path` | Каменная дорожка | 1 × 1 | Default unlocked |
-| `garden_lantern` | Садовый фонарь | 1 × 1 | Default unlocked |
-| `flower_bed` | Цветочная клумба | 1 × 1 | Default unlocked |
-| `wooden_fence` | Деревянный забор (секция) | 1 × 1 | Default unlocked |
+| Entry | Display name | Footprint | Current placement cost |
+|---|---|---:|---:|
+| `main_house` | Главный дом | 3 × 3 | Free |
+| `pet_house` | Домик питомцев | 3 × 3 | 5 Wood, 2 Stone |
+| `stone_path` | Каменная дорожка | 1 × 1 | 1 Wood, 1 Stone |
+| `garden_lantern` | Садовый фонарь | 1 × 1 | 2 Wood, 1 Stone |
+| `flower_bed` | Цветочная клумба | 1 × 1 | 1 Wood |
+| `wooden_fence` | Забор (секция) | 1 × 1 | 1 Wood |
 
-The server's `BuildingCatalog.lua` remains the authority for footprints, unlocks, and allowed rotations. The client currently mirrors the starter footprint dimensions solely to size its cosmetic preview; server validation is always authoritative.
+All six entries are currently marked unlocked in the server catalog. The client mirrors footprint dimensions only for its local preview; server validation and charging remain authoritative.
 
 ## Player flow
 
-1. Open `СТРОИТЬ`.
-2. Select one of the six catalogue entries: Главный дом, Домик питомцев, Каменная дорожка, Садовый фонарь, Клумба, or Забор.
-3. The selected card receives a highlighted state.
-4. The preview footprint follows the pointer/touch and rotates with the existing 90-degree control.
-5. Confirm sends the selected stable catalog ID to `PlaceBuilding`.
-6. The server creates the corresponding production template or temporary fallback blockout.
+1. Open `СТРОИТЬ` from the top-right launcher.
+2. Select one of the six catalogue entries. The selected card is highlighted.
+3. PC: move the pointer over free island grass. Touch: tap the desired free grass cell.
+4. A green preview indicates a valid location; red indicates an invalid/out-of-bounds/occupied location.
+5. Rotate with the rotate button (or `R` on PC).
+6. Press `ПОСТРОИТЬ` to submit the placement. The server validates and charges the catalog cost atomically.
+7. Use `ОТМЕНА`, the panel close control, or `Escape` to leave placement mode.
+
+## Other construction actions
+
+- Select an existing building on the island to reveal Move and Demolish actions.
+- Move uses the same grid preview and does not charge a second placement cost.
+- Demolish requires a second confirmation and protects the main house.
+- Server operations use request IDs and a recovery panel to avoid duplicate transactions after timeouts.
 
 ## Current limitations
 
-- The six entries use text/emoji buttons; production illustrations, rarity/category filters, search, prices, and unlock messaging are not implemented.
-- The two houses use 3 × 3 footprints; path and lantern use 1 × 1 footprints.
-- Resource costs are intentionally absent until economy values are approved.
-- Selection and placement have not yet been verified in Roblox Studio or on a touch device.
-- Move and demolish UX are not part of this milestone.
+- The client catalogue uses text and compact symbols, not approved illustrated building cards.
+- The visible building preview and fallback buildings are procedural blockouts, not final production art.
+- Catalogue search, categories, rarity, unlock progression and upgrade controls are not yet exposed in the client UI.
+- Move/demolish, touch targeting, safe areas and all six placements still require Studio/device regression.
 
 ## Acceptance
 
-- Both cards can be selected and selection highlight updates.
-- Selected ID is the one sent to the server.
-- Preview size and rotation remain correct after switching entries.
-- Server rejects unknown or locked IDs regardless of client UI.
-- All six entries create the corresponding fallback blockout and persist after rejoin.
-- Test at 375 px and on a touch device.
+- All six entries select and show the matching preview.
+- Preview tracks mouse/touch, rotates correctly, and indicates invalid bounds/overlap.
+- Costs match the server catalog and are charged only after successful server validation.
+- Move, demolish, cancellation, recovery and rejoin persistence work without duplicate operations.
+- Test desktop and 320/360/390 px portrait plus short landscape in Roblox Studio.
