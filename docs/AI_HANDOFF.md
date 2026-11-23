@@ -1656,3 +1656,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Newly created virtualized cards fade in over 0.12 seconds: card surface and icon/name/metadata labels. Cards reused within an overlapping scroll window are not recreated or re-faded.
 - The query, sort, and scroll-preservation logic remains unchanged. This is presentation-only.
 - Next: test rapid filter/sort changes, 500-pet scrolling, stale tween behavior, and low frame rates in Studio.
+
+## Stage 1 — Pet card selection and action feedback (2026-11-23)
+
+- Selecting a pet now animates the card surface and outline (gold for selected, mint for equipped) rather than changing only the background instantly. Selecting another visible pet animates the previous card back to its correct equipped/unselected appearance.
+- Per-card selection tweens are cancelled before replacement so rapid taps cannot leave conflicting transitions.
+- After the server accepts pet flag changes, Favorite and Lock detail controls receive a short size pulse. The pulse is presentation-only and starts only after a successful response.
+- Validation still required in Studio: rapid selection, Favorite/Lock feedback, mobile taps, and 500-pet scroll performance.
+- GitHub Actions #552 was a transient external installer failure: `setup-rokit` received HTTP 503 from `raw.githubusercontent.com` before Rojo verification or place build. Failed jobs were re-queued for retry; this is not a Luau or place-build failure.
