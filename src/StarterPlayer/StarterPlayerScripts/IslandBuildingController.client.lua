@@ -103,13 +103,13 @@ local panel = make("Frame", {
 	Name = "Panel",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.new(0.5, 0, 1, -22),
-	Size = UDim2.new(1, -24, 0, 340),
+	Size = UDim2.new(1, -24, 0, 228),
 	BackgroundColor3 = COLORS.panel,
 	BackgroundTransparency = 0.04,
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(320, 340), MaxSize = Vector2.new(420, 340) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(260, 210), MaxSize = Vector2.new(540, 245) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -145,8 +145,8 @@ local status = make("TextLabel", {
 local buttons = make("Frame", {
 	Name = "Buttons",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 244),
-	Size = UDim2.new(1, 0, 0, 54),
+	Position = UDim2.fromOffset(0, 157),
+	Size = UDim2.new(1, 0, 0, 48),
 }, panel)
 make("UIListLayout", {
 	FillDirection = Enum.FillDirection.Horizontal,
@@ -158,7 +158,7 @@ make("UIListLayout", {
 local function makeButton(name: string, label: string, width: number, color: Color3): TextButton
 	local button = make("TextButton", {
 		Name = name,
-		Size = UDim2.fromOffset(width, 48),
+		Size = UDim2.fromOffset(width, 44),
 		BackgroundColor3 = color,
 		BorderSizePixel = 0,
 		AutoButtonColor = true,
@@ -175,22 +175,31 @@ local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 94, COLORS.pane
 local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
 
-local catalogRow = make("Frame", {
+local catalogRow = make("ScrollingFrame", {
 	Name = "Catalog",
 	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
 	Position = UDim2.fromOffset(0, 62),
-	Size = UDim2.new(1, 0, 0, 176),
-}, panel)
-make("UIGridLayout", {
-	CellSize = UDim2.new(0.5, -5, 0, 50),
-	CellPadding = UDim2.fromOffset(10, 8),
+	Size = UDim2.new(1, 0, 0, 84),
+	ScrollingDirection = Enum.ScrollingDirection.X,
+	ScrollBarThickness = 4,
+	ScrollBarImageColor3 = COLORS.gold,
+	CanvasSize = UDim2.fromOffset(0, 0),
+	AutomaticCanvasSize = Enum.AutomaticSize.X,
+	ElasticBehavior = Enum.ElasticBehavior.WhenScrollable,
+	Active = true,
+}, panel) :: ScrollingFrame
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+	Padding = UDim.new(0, 8),
 	SortOrder = Enum.SortOrder.LayoutOrder,
 }, catalogRow)
 
 local function makeCatalogButton(name: string, label: string): TextButton
 	local button = make("TextButton", {
 		Name = name,
-		Size = UDim2.new(0.5, -5, 0, 50),
+		Size = UDim2.fromOffset(130, 70),
 		BackgroundColor3 = COLORS.panelLight,
 		BorderSizePixel = 0,
 		AutoButtonColor = true,
@@ -245,6 +254,34 @@ local demolishButton = make("TextButton", {
 }, gui) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
+
+-- Keep the placement canvas visible on phones and avoid clipped action buttons.
+local function resizeBuildingPanel()
+	local activeCamera = Workspace.CurrentCamera
+	if activeCamera == nil then return end
+	local viewport = activeCamera.ViewportSize
+	local compact = viewport.X < 520
+	local narrow = viewport.X < 350
+	panel.Size = UDim2.fromOffset(math.max(260, math.min(viewport.X - 20, compact and 380 or 480)), 228)
+	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
+	rotateButton.Size = UDim2.fromOffset(narrow and 66 or 94, 44)
+	rotateButton.Text = if narrow then "↻" else "↻  ПОВОРОТ"
+	confirmButton.Size = UDim2.fromOffset(narrow and 94 or 118, 44)
+	cancelButton.Size = UDim2.fromOffset(narrow and 66 or 88, 44)
+	cancelButton.Text = if narrow then "✕" else "ОТМЕНА"
+	moveButton.Position = UDim2.fromOffset(compact and 10 or 22, compact and 80 or 24)
+	demolishButton.Position = UDim2.fromOffset(compact and 146 or 160, compact and 80 or 24)
+end
+
+local function bindBuildingCamera()
+	local activeCamera = Workspace.CurrentCamera
+	if activeCamera then
+		activeCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+	end
+	resizeBuildingPanel()
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindBuildingCamera)
+bindBuildingCamera()
 
 local function findBuildingModel(target: Instance?): Model?
 	local ownIsland = findOwnIsland()
