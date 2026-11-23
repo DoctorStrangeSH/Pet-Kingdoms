@@ -224,7 +224,17 @@ local function resize()
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 560
 	local tiny = viewport.X < 360
-	root.Size = UDim2.new(compact and 0.96 or 0, compact and 0 or 420, 0, compact and 92 or 54)
+	local reserveBuildLauncher = viewport.X < 780
+	if reserveBuildLauncher then
+		-- Keep the resource bar out of the dedicated top-right Build launcher lane.
+		root.AnchorPoint = Vector2.new(0, 0)
+		root.Position = UDim2.fromOffset(8, 10)
+		root.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), compact and 92 or 54)
+	else
+		root.AnchorPoint = Vector2.new(0.5, 0)
+		root.Position = UDim2.new(0.5, 0, 0, 10)
+		root.Size = UDim2.fromOffset(420, 54)
+	end
 	layout.FillDirectionMaxCells = if compact then 2 else 4
 	layout.CellSize = if compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
 	layout.CellPadding = UDim2.fromOffset(compact and 4 or 6, compact and 4 or 0)
