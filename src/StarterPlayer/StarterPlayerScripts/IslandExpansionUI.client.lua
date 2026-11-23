@@ -75,12 +75,11 @@ local title = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 22, 0, 18),
 	Size = UDim2.new(1, -76, 0, 32),
-	Font = Enum.Font.GothamBold,
 	Text = "РАСШИРЕНИЕ ОСТРОВА",
-	TextSize = 19,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextLabel
+InterfaceComponents.StyleText(title, "Display")
 
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
@@ -98,13 +97,12 @@ local subtitle = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 24, 0, 57),
 	Size = UDim2.new(1, -48, 0, 34),
-	Font = Enum.Font.Gotham,
 	Text = "Увеличивай королевство и открывай место для новых построек.",
-	TextSize = 12,
 	TextWrapped = true,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.muted,
 }, panel) :: TextLabel
+InterfaceComponents.StyleText(subtitle, "Caption")
 
 local currentCard = make("Frame", {
 	Position = UDim2.new(0, 22, 0, 108),
@@ -117,12 +115,11 @@ local currentTitle = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 15, 0, 12),
 	Size = UDim2.new(1, -30, 0, 22),
-	Font = Enum.Font.GothamBold,
 	Text = "ТВОЙ ОСТРОВ",
-	TextSize = 11,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.gold,
 }, currentCard) :: TextLabel
+InterfaceComponents.StyleText(currentTitle, "Micro")
 
 local currentValue = make("TextLabel", {
 	BackgroundTransparency = 1,
@@ -146,12 +143,11 @@ local nextTitle = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 15, 0, 12),
 	Size = UDim2.new(1, -30, 0, 22),
-	Font = Enum.Font.GothamBold,
 	Text = "СЛЕДУЮЩИЙ УРОВЕНЬ",
-	TextSize = 11,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.mint,
 }, nextCard) :: TextLabel
+InterfaceComponents.StyleText(nextTitle, "Micro")
 
 local nextValue = make("TextLabel", {
 	BackgroundTransparency = 1,
