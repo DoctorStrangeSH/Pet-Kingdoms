@@ -161,6 +161,7 @@ local status = make("TextLabel", {
 
 local opened = false
 local loading = false
+local trackingInFlight = false
 local refreshQueued = false
 local lastQuests: { any } = {}
 local trackedQuestId: string? = nil
@@ -289,12 +290,16 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		InterfaceComponents.StyleActionButton(trackButton, if trackedQuestId == quest.id then "primary" else "secondary")
 		trackButton.TextTruncate = Enum.TextTruncate.AtEnd
 		trackButton.Activated:Connect(function()
-			if quest.completed == true then return end
+			-- Tracking is a single global server setting. Lock it before yielding so
+			-- rapid taps on this or another quest cannot race and overwrite the result.
+			if quest.completed == true or trackingInFlight or loading then return end
+			trackingInFlight = true
 			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
 			local trackingResult = RequestRunner.Invoke(function()
 				return trackingRequest:InvokeServer(quest.id)
 			end, 12)
 			local result = if trackingResult.ok then trackingResult.value else nil
+			trackingInFlight = false
 			InterfaceComponents.SetButtonLoading(trackButton, false)
 			if trackingResult.ok and type(result) == "table" and result.ok == true then
 				trackedQuestId = quest.id
@@ -313,6 +318,10 @@ local function render(quests: any, serverTrackedQuestId: string?)
 				InterfaceComponents.SetButtonFeedback(trackButton, "success", "СЛЕЖУ", 1.2)
 			else
 				InterfaceComponents.SetButtonFeedback(trackButton, "error", "ПОВТОРИТЬ", 2.2)
+				NotificationManager.Notify(
+					if trackingResult.errorCode == "TIMEOUT" then "Сервер долго отвечает. Проверь журнал перед повтором." else "Не удалось изменить отслеживаемое задание.",
+					"warning"
+				)
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
@@ -413,10 +422,17 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		for _, quest in ipairs(quests) do
 			if quest.completed ~= true then trackedQuestId = quest.id break end
 		end
-		if trackedQuestId ~= nil then
+		if trackedQuestId ~= nil and not trackingInFlight then
 			local nextTrackedId = trackedQuestId
+			trackingInFlight = true
 			task.spawn(function()
-				pcall(function() trackingRequest:InvokeServer(nextTrackedId) end)
+				local trackingResult = RequestRunner.Invoke(function()
+					return trackingRequest:InvokeServer(nextTrackedId)
+				end, 12)
+				trackingInFlight = false
+				if not trackingResult.ok then
+					warn("[PetKingdomsUI] Could not restore tracked quest: " .. tostring(trackingResult.errorCode))
+				end
 			end)
 		end
 	end
