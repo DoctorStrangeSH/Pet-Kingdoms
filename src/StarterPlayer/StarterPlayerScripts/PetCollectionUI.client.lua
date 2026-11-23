@@ -862,8 +862,75 @@ resize = function()
 	openButton.Size = UDim2.fromOffset(launcherSize, launcherSize)
 	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, if veryShort then 0.52 elseif launcherCompact then 0.46 else 0.55, 0)
 	if compactCollection then
-		-- Give the mobile detail view as much vertical room as the viewport allows.
-		panel.Size = UDim2.new(0.94, 0, 0.90, 0)
+		if veryShort then
+			-- Dedicated landscape layout: the previous portrait coordinates placed
+			-- the list below the bottom edge on 180–300 px tall displays.
+			panel.Size = UDim2.new(0.96, 0, 1, -12)
+			panelScale.Scale = 1
+			title.Position = UDim2.fromOffset(12, 5)
+			title.Size = UDim2.new(1, -92, 0, 22)
+			title.TextSize = 15
+			subtitle.Visible = false
+			closeButton.Position = UDim2.new(1, -8, 0, 4)
+			closeButton.Size = UDim2.fromOffset(30, 30)
+			closeButton.TextSize = 18
+			local contentWidth = math.max(160, math.floor(viewport.X * 0.96) - 36)
+			search.Position = UDim2.fromOffset(12, 32)
+			search.Size = UDim2.fromOffset(contentWidth, 28)
+			search.TextSize = 12
+			filterBar.Position = UDim2.fromOffset(12, 64)
+			filterBar.Size = UDim2.fromOffset(contentWidth, 24)
+			list.Position = UDim2.fromOffset(12, 94)
+			list.Size = UDim2.new(1, -24, 1, -106)
+			list.ScrollBarThickness = 3
+			mobileBackButton.Position = UDim2.fromOffset(12, 32)
+			mobileBackButton.Size = UDim2.new(1, -24, 0, 26)
+			mobileBackButton.TextSize = 10
+			mobileBackButton.Visible = mobileDetailVisible
+			list.Visible = not mobileDetailVisible
+			search.Visible = not mobileDetailVisible
+			filterBar.Visible = not mobileDetailVisible
+			detail.Position = UDim2.fromOffset(12, 64)
+			detail.Size = UDim2.new(1, -24, 1, -76)
+			detail.Visible = mobileDetailVisible
+			if mobileDetailVisible then
+				preview.Position = UDim2.fromOffset(6, 6)
+				preview.Size = UDim2.new(0.28, -6, 0, 40)
+				petName.Position = UDim2.new(0.30, 0, 0, 5)
+				petName.Size = UDim2.new(0.70, -12, 0, 20)
+				petName.TextSize = 13
+				petRarity.Position = UDim2.new(0.30, 0, 0, 25)
+				petRarity.Size = UDim2.new(0.70, -12, 0, 14)
+				petRarity.TextSize = 8
+				favoriteButton.Visible = false
+				lockButton.Visible = false
+				petDescription.Visible = false
+				bondLabel.Visible = false
+				teamLabel.Visible = false
+				interactionRow.Visible = false
+				equipButton.Position = UDim2.new(0, 6, 1, -32)
+				equipButton.Size = UDim2.new(0.50, -9, 0, 26)
+				equipButton.TextSize = 9
+				mainButton.Position = UDim2.new(0.50, 2, 1, -32)
+				mainButton.Size = UDim2.new(0.18, -4, 0, 26)
+				deleteButton.Position = UDim2.new(0.68, 4, 1, -32)
+				deleteButton.Size = UDim2.new(0.32, -10, 0, 26)
+				deleteButton.TextSize = 8
+			else
+				favoriteButton.Visible = false
+				lockButton.Visible = false
+				petDescription.Visible = false
+				bondLabel.Visible = false
+				teamLabel.Visible = false
+				interactionRow.Visible = false
+			end
+		else
+			subtitle.Visible = true
+			closeButton.Position = UDim2.new(1, -16, 0, 14)
+			closeButton.Size = UDim2.fromOffset(40, 40)
+			closeButton.TextSize = 24
+			-- Give the mobile detail view as much vertical room as the viewport allows.
+			panel.Size = UDim2.new(0.94, 0, 0.90, 0)
 		panelScale.Scale = 1
 		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
 		search.Position = UDim2.fromOffset(24, 88)
@@ -933,8 +1000,17 @@ resize = function()
 			petDescription.Visible = true
 			teamLabel.Visible = true
 			interactionRow.Visible = true
+			favoriteButton.Visible = true
+			lockButton.Visible = true
+		end
 		end
 	else
+		subtitle.Visible = true
+		closeButton.Position = UDim2.new(1, -16, 0, 14)
+		closeButton.Size = UDim2.fromOffset(40, 40)
+		closeButton.TextSize = 24
+		favoriteButton.Visible = true
+		lockButton.Visible = true
 		petDescription.Visible = true
 		teamLabel.Visible = true
 		interactionRow.Visible = true
