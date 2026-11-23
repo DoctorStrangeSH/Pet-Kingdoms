@@ -81,13 +81,15 @@ local badge = make("TextLabel", {
 }, openButton) :: TextLabel
 make("UICorner", { CornerRadius = UDim.new(1, 0) }, badge)
 
-local shade = make("Frame", {
+local shade = make("TextButton", {
 	Name = "Shade",
 	Size = UDim2.fromScale(1, 1),
 	BackgroundColor3 = Color3.new(0, 0, 0),
 	BackgroundTransparency = 1,
+	Text = "",
+	AutoButtonColor = false,
 	Visible = false,
-}, screen) :: Frame
+}, screen) :: TextButton
 
 local panel = make("Frame", {
 	Name = "QuestPanel",
@@ -489,6 +491,10 @@ end)
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not opened then return end
 	setOpen(false)
+end)
+
+shade.Activated:Connect(function()
+	if opened then setOpen(false) end
 end)
 
 openButton.Activated:Connect(function() setOpen(not opened) end)
