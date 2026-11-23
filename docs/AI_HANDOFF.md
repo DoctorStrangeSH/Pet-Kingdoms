@@ -1220,3 +1220,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Upgrade requests now fingerprint as their own journal action (not `place`), preventing idempotency collisions with other operation types.
 - `IslandWorldService` stamps `UpgradeLevel` on models both during initial island spawn and later sync. Legacy records without a level display as level 1 without requiring destructive migration.
 - IMPORTANT: this is only the server/data foundation. No upgrade button, cost preview, confirmation UI, upgrade effects or final art changes have been added yet. The configured costs are initial balancing placeholders and must be playtested. No Roblox Studio test or CI success is claimed. Next step: client selection panel with level, server-sourced available action and resource cost; then verify success, insufficient resources, max level, repeated requests, save/rejoin, rollback and other-player isolation.
+
+
+## Stage 1 — Interface & usability: pet collection modal lifecycle fix (2026-11-23)
+
+- Fixed a nested-modal lifecycle bug in `PetCollectionUI.client.lua`: closing the collection now also hides its destructive delete-confirmation panel. Reopening the collection never resurrects a stale confirmation dialog from the previous visit.
+- If no remote operation is active, the pending delete target is cleared on close/open. If a delete request is already in flight (`busy`), the target is retained until the transaction returns so the in-flight operation is not mutated/cancelled by a UI close.
+- This is one focused Stage 1 fix, not completion of the interface section. Remaining audit: consistent close/backdrop behavior across Collection, Journal, Expansion and Building; safe-area and viewport checks; modal focus/z-index; close controls; loading/error/empty states; touch targets; verify all transitions in Studio. No runtime verification claimed.
