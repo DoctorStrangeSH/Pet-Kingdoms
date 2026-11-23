@@ -363,17 +363,105 @@ local function resize()
 	openButton.Size = UDim2.fromOffset(launcherSize, launcherSize)
 	-- Keep the three right-side launchers separated on short landscape screens.
 	openButton.Position = UDim2.new(1, compact and -12 or -22, if veryShort then 0.82 elseif compact then 0.72 else 0.70, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
-	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(210, viewport.X - 20)), 280)
-	panelConstraint.MaxSize = Vector2.new(math.min(440, math.max(210, viewport.X - 12)), 390)
-	panelScale.Scale = math.clamp((viewport.Y - 24) / 390, short and 0.62 or 0.72, 1)
-	title.TextSize = if compact then 15 else 18
-	subtitle.TextSize = if narrow then 10 else 11
-	subtitle.Size = UDim2.new(1, -48, 0, if narrow then 42 else 34)
-	currentValue.TextSize = if compact then 16 else 20
-	nextValue.TextSize = if compact then 16 else 20
-	status.TextSize = if compact then 11 else 12
-	refreshButton.TextSize = if compact then 11 else 12
+	if veryShort then
+		-- A dedicated landscape layout keeps the preview readable instead of
+		-- shrinking the entire 390 px desktop panel into a tiny card.
+		local panelWidth = math.max(210, math.min(viewport.X - 16, 440))
+		local panelHeight = math.max(144, viewport.Y - 12)
+		panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
+		panel.Position = UDim2.fromScale(0.5, 0.5)
+		panelConstraint.MinSize = Vector2.new(panelWidth, panelHeight)
+		panelConstraint.MaxSize = Vector2.new(panelWidth, panelHeight)
+		panelScale.Scale = 1
+
+		title.Position = UDim2.fromOffset(12, 7)
+		title.Size = UDim2.new(1, -54, 0, 22)
+		title.TextSize = 14
+		closeButton.Position = UDim2.new(1, -10, 0, 5)
+		closeButton.Size = UDim2.fromOffset(30, 30)
+		closeButton.TextSize = 19
+		subtitle.Position = UDim2.fromOffset(12, 30)
+		subtitle.Size = UDim2.new(1, -24, 0, 18)
+		subtitle.TextSize = 9
+		subtitle.TextWrapped = false
+		subtitle.TextTruncate = Enum.TextTruncate.AtEnd
+
+		local cardGap = 8
+		local cardWidth = math.floor((panelWidth - 32 - cardGap) / 2)
+		currentCard.Position = UDim2.fromOffset(12, 53)
+		currentCard.Size = UDim2.fromOffset(cardWidth, 44)
+		nextCard.Position = UDim2.fromOffset(12 + cardWidth + cardGap, 53)
+		nextCard.Size = UDim2.fromOffset(cardWidth, 44)
+		for _, card in ipairs({ currentCard, nextCard }) do
+			local cardTitle = card:FindFirstChildWhichIsA("TextLabel")
+			if cardTitle then
+				cardTitle.Position = UDim2.fromOffset(8, 4)
+				cardTitle.Size = UDim2.new(1, -16, 0, 13)
+				cardTitle.TextSize = 8
+			end
+			local value = card:FindFirstChildWhichIsA("TextLabel", true)
+			if value and value ~= cardTitle then
+				value.Position = UDim2.fromOffset(8, 19)
+				value.Size = UDim2.new(1, -16, 0, 18)
+				value.TextSize = 11
+			end
+		end
+
+		status.Position = UDim2.fromOffset(12, 102)
+		status.Size = UDim2.new(1, -24, 0, 24)
+		status.TextSize = 9
+		status.TextWrapped = false
+		status.TextTruncate = Enum.TextTruncate.AtEnd
+		refreshButton.Position = UDim2.new(0, 12, 1, -36)
+		refreshButton.Size = UDim2.new(1, -24, 0, 28)
+		refreshButton.Text = "ОБНОВИТЬ"
+		refreshButton.TextSize = 10
+	else
+		panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
+		panelConstraint.MinSize = Vector2.new(math.min(250, math.max(210, viewport.X - 20)), 280)
+		panelConstraint.MaxSize = Vector2.new(math.min(440, math.max(210, viewport.X - 12)), 390)
+		panelScale.Scale = math.clamp((viewport.Y - 24) / 390, short and 0.72 or 0.82, 1)
+		panel.Position = UDim2.fromScale(0.5, 0.52)
+
+		title.Position = UDim2.new(0, 22, 0, 18)
+		title.Size = UDim2.new(1, -76, 0, 32)
+		title.TextSize = if compact then 15 else 18
+		closeButton.Position = UDim2.new(1, -16, 0, 14)
+		closeButton.Size = UDim2.fromOffset(40, 40)
+		closeButton.TextSize = 24
+		subtitle.Position = UDim2.new(0, 24, 0, 57)
+		subtitle.Size = UDim2.new(1, -48, 0, if narrow then 42 else 34)
+		subtitle.TextSize = if narrow then 10 else 11
+		subtitle.TextWrapped = true
+		subtitle.TextTruncate = Enum.TextTruncate.None
+		currentCard.Position = UDim2.new(0, 22, 0, 108)
+		currentCard.Size = UDim2.new(1, -44, 0, 82)
+		nextCard.Position = UDim2.new(0, 22, 0, 202)
+		nextCard.Size = UDim2.new(1, -44, 0, 82)
+		for _, card in ipairs({ currentCard, nextCard }) do
+			local cardTitle = card:FindFirstChildWhichIsA("TextLabel")
+			if cardTitle then
+				cardTitle.Position = UDim2.new(0, 15, 0, 12)
+				cardTitle.Size = UDim2.new(1, -30, 0, 22)
+				cardTitle.TextSize = 12
+			end
+			local value = card:FindFirstChildWhichIsA("TextLabel", true)
+			if value and value ~= cardTitle then
+				value.Position = UDim2.new(0, 15, 0, 36)
+				value.Size = UDim2.new(1, -30, 0, 28)
+				value.TextSize = if compact then 16 else 20
+			end
+		end
+		status.Position = UDim2.new(0, 24, 0, 296)
+		status.Size = UDim2.new(1, -48, 0, 38)
+		status.TextSize = if compact then 11 else 12
+		status.TextWrapped = true
+		status.TextTruncate = Enum.TextTruncate.None
+		refreshButton.Position = UDim2.new(0, 22, 1, -52)
+		refreshButton.Size = UDim2.new(1, -44, 0, 44)
+		refreshButton.Text = "ОБНОВИТЬ ДАННЫЕ"
+		refreshButton.TextSize = if compact then 11 else 12
+	end
 end
 
 local viewportConnection: RBXScriptConnection? = nil
