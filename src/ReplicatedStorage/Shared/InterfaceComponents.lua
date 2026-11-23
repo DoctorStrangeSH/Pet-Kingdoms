@@ -11,7 +11,7 @@ function Components.StyleCloseButton(button: TextButton)
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = true
 	button.Font = Theme.Typography.Display
-	button.Text = "×"
+	button.Text = Theme.Icons.Close
 	button.TextColor3 = colors.cream
 	button.TextSize = 24
 	button.TextScaled = false
