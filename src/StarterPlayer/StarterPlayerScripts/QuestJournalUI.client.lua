@@ -19,6 +19,7 @@ local trackingRequest = remotes:WaitForChild("SetTrackedQuest") :: RemoteFunctio
 local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -111,14 +112,14 @@ local subtitle = make("TextLabel", {
 
 local closeButton = make("TextButton", {
 	Position = UDim2.new(1, -54, 0, 14),
-	Size = UDim2.fromOffset(38, 38),
+	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
 	Text = "×",
-	TextSize = 26,
+	TextSize = 24,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 11) }, closeButton)
+InterfaceComponents.StyleCloseButton(closeButton)
 
 local list = make("ScrollingFrame", {
 	Name = "QuestList",
