@@ -63,6 +63,14 @@ local function makeTree(parent: Instance, base: CFrame, scale: number, index: nu
 		base * CFrame.new(0, trunkHeight + 1.8 * scale, 0), Color3.fromRGB(76, 139, 72), Enum.Material.Grass, Enum.PartType.Ball)
 	makePart(tree, "Canopy_Upper", Vector3.new(3.8, 3.8, 3.8) * scale,
 		base * CFrame.new(0, trunkHeight + 4 * scale, 0), Color3.fromRGB(102, 166, 86), Enum.Material.Grass, Enum.PartType.Ball)
+	for index, offset in ipairs({Vector3.new(-2.3, 1.7, 0.8), Vector3.new(2.1, 1.9, -0.7), Vector3.new(-0.8, 3.8, -1.65), Vector3.new(1, 3.7, 1.45)}) do
+		local leaf = makePart(tree, "LeafCluster_" .. index, Vector3.new(2.1, 2.2, 2) * scale,
+			base * CFrame.new(offset * scale + Vector3.new(0, trunkHeight, 0)),
+			if index % 2 == 0 then Color3.fromRGB(91, 159, 81) else Color3.fromRGB(67, 130, 72),
+			Enum.Material.Grass, Enum.PartType.Ball)
+		leaf.CanCollide = false
+		leaf.CanQuery = false
+	end
 end
 
 local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, depth: number, cellSize: number)
@@ -363,6 +371,14 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			trunk.CanQuery = true
 			makePart(node, "Canopy", Vector3.new(cellSize * 0.95, cellSize * 0.85, cellSize * 0.95),
 				base * CFrame.new(0, cellSize * 1.3, 0), Color3.fromRGB(76, 145, 78), Enum.Material.Grass, Enum.PartType.Ball)
+			for index, offset in ipairs({ Vector3.new(-0.27, 1.18, -0.23), Vector3.new(0.28, 1.31, 0.16), Vector3.new(0, 1.62, 0) }) do
+				local leaf = makePart(node, "LeafCluster_" .. index, Vector3.new(cellSize * 0.5, cellSize * 0.42, cellSize * 0.5),
+					base * CFrame.new(offset * cellSize),
+					if index == 2 then Color3.fromRGB(103, 175, 89) else Color3.fromRGB(66, 131, 71),
+					Enum.Material.Grass, Enum.PartType.Ball)
+				leaf.CanCollide = false
+				leaf.CanQuery = false
+			end
 		else
 			makePart(node, "Ore", Vector3.new(cellSize * 0.72, cellSize * 0.62, cellSize * 0.72),
 				base * CFrame.new(0, cellSize * 0.31, 0) * CFrame.Angles(0, math.rad(18), math.rad(8)),
@@ -370,6 +386,19 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			makePart(node, "OreHighlight", Vector3.new(cellSize * 0.2, cellSize * 0.13, cellSize * 0.16),
 				base * CFrame.new(-cellSize * 0.13, cellSize * 0.55, -cellSize * 0.12),
 				Color3.fromRGB(178, 194, 207), Enum.Material.Rock, Enum.PartType.Ball)
+			for index, offset in ipairs({ Vector3.new(-0.32, 0.16, 0.23), Vector3.new(0.28, 0.19, -0.23) }) do
+				local fragment = makePart(node, "OreFragment_" .. index, Vector3.new(cellSize * 0.29, cellSize * 0.31, cellSize * 0.33),
+					base * CFrame.new(offset * cellSize) * CFrame.Angles(0, math.rad(index * 31), math.rad(9)),
+					Color3.fromRGB(137 + index * 9, 147 + index * 8, 159 + index * 7), Enum.Material.Slate, Enum.PartType.Ball)
+				fragment.CanCollide = false
+				fragment.CanQuery = false
+			end
+			for index, offset in ipairs({ Vector3.new(-0.16, 0.60, -0.15), Vector3.new(0.18, 0.48, 0.12) }) do
+				local glint = makePart(node, "OreGlint_" .. index, Vector3.new(cellSize * 0.09, cellSize * 0.15, cellSize * 0.09),
+					base * CFrame.new(offset * cellSize), Color3.fromRGB(152, 207, 214), Enum.Material.Glass)
+				glint.CanCollide = false
+				glint.CanQuery = false
+			end
 		end
 
 		local promptPart = node:FindFirstChildWhichIsA("BasePart")
