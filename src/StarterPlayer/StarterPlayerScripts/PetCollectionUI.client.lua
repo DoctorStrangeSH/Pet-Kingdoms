@@ -907,7 +907,7 @@ end)
 
 -- Escape closes the topmost layer first, never the collection behind a confirmation.
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or input.KeyCode ~= Enum.KeyCode.Escape then return end
+	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not ModalManager.IsActive(script.Name) then return end
 	if confirmPanel.Visible then
 		pendingDeletePetId = nil
 		confirmPanel.Visible = false
