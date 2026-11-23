@@ -14,6 +14,7 @@ local colors = Theme.Colors
 local NotificationManager = {}
 local MAX_VISIBLE = 4
 local activeCount = 0
+local maxVisibleCount = MAX_VISIBLE
 local sequence = 0
 local viewportConnection: RBXScriptConnection? = nil
 
@@ -58,7 +59,12 @@ local function resize()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 520
-	holder.Size = UDim2.new(1, 0, 0, 250)
+	-- Leave the Resource HUD visible: it occupies the top band on desktop
+	-- and a taller two-row band on narrow portrait screens.
+	local topOffset = if compact and viewport.Y >= 360 then 110 else 72
+	maxVisibleCount = if viewport.Y < 220 then 1 elseif viewport.Y < 360 then 2 else MAX_VISIBLE
+	holder.Position = UDim2.new(0.5, 0, 0, topOffset)
+	holder.Size = UDim2.new(1, 0, 0, math.max(58, math.min(250, viewport.Y - topOffset - 8)))
 	for _, child in ipairs(holder:GetChildren()) do
 		if child:IsA("Frame") then
 			local constraint = child:FindFirstChildOfClass("UISizeConstraint")
@@ -98,7 +104,7 @@ bindCamera()
 
 function NotificationManager.Notify(message: string, variant: string?, duration: number?)
 	if type(message) ~= "string" or message == "" then return end
-	if activeCount >= MAX_VISIBLE then
+	if activeCount >= maxVisibleCount then
 		local oldest = holder:FindFirstChildWhichIsA("Frame")
 		if oldest then
 			-- A toast may be evicted before its lifetime timer fires. Release its
