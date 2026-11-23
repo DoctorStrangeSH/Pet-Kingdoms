@@ -824,3 +824,11 @@ Source-level incremental reconciliation and overlap regression coverage added; l
 - [ ] Profile search/filter/sort with 100, 250, and 500 records in Studio; verify responsive typing, correct team/favorite membership, stable ordering, and no selection loss.
 
 Source-level hot-path optimization added; actual device timing remains a Studio profiling task.
+
+### Stage 1 — Collection filter/sort scroll continuity (2026-11-23)
+
+- [x] Preserve the current scroll position when switching All/Team/Favorites filters or cycling sort modes; clamp only when the filtered content is shorter than the previous position.
+- [x] Extract scroll restoration clamping into `VirtualList.ClampCanvasY` and add tests for valid, shortened, empty, and negative scroll positions.
+- [ ] In Studio, switch filters/sort while scrolled through 100/250/500 records and confirm the selected pet/detail remains stable and the list does not jump unexpectedly.
+
+Source-level continuity fix and pure helper tests added; live UI validation remains pending.
