@@ -321,7 +321,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = UDim2.new(0, 15, 0, 9),
 			Size = UDim2.new(1, if compactCard then -30 else -126, 0, 23),
 			Font = Enum.Font.GothamBold,
-			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else "✦  ") .. quest.name,
+			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else InterfaceTheme.Icons.Sparkle .. "  ") .. quest.name,
 			TextSize = 14,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = if done then COLORS.mint else COLORS.cream,
@@ -383,7 +383,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextWrapped = true,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(emptyState, "📜")
+		InterfaceComponents.StyleEmptyState(emptyState, InterfaceTheme.Icons.Quest)
 		if #quests > 0 then
 			status.Text = "Данные заданий повреждены. Нажми обновить."
 			status.TextColor3 = COLORS.rose
