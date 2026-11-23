@@ -51,6 +51,7 @@ local filteredRecords: { PetRecord } = {}
 local filterButtonTweens: { [TextButton]: Tween } = {}
 local renderedWindowStart = 0
 local renderedWindowEnd = 0
+local renderedCardWidth = 0
 local searchRenderVersion = 0
 local activeFilter = "all"
 local sortMode = "newest"
@@ -626,6 +627,7 @@ local function clearRenderedCards()
 	table.clear(cardButtons)
 	renderedWindowStart = 0
 	renderedWindowEnd = 0
+	renderedCardWidth = 0
 end
 
 local function renderVisibleCards()
@@ -639,7 +641,8 @@ local function renderVisibleCards()
 	)
 	local firstIndex = window.firstIndex
 	local lastIndex = window.lastIndex
-	if firstIndex == renderedWindowStart and lastIndex == renderedWindowEnd then return end
+	local currentCardWidth = list.AbsoluteSize.X
+	if firstIndex == renderedWindowStart and lastIndex == renderedWindowEnd and currentCardWidth == renderedCardWidth then return end
 
 	-- Reconcile the visible window instead of destroying every card on each
 	-- scroll step. Cards in the overlap remain alive; only leaving/entering
@@ -778,6 +781,7 @@ local function renderVisibleCards()
 			stroke.Transparency = if isSelected then 0.05 else 0.25
 		end
 	end
+	renderedCardWidth = currentCardWidth
 end
 
 local function renderList(preserveScroll: boolean?)
