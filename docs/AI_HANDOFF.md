@@ -1396,3 +1396,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Corrected misleading copy: the panel is a geometry preview only and explicitly says expansion purchase is not implemented. It does not imply the player can currently buy/unlock expansion.
 - Hardened preview rendering against malformed/inconsistent server dimensions: current dimensions must be positive, next dimensions must exceed current dimensions, and required level/size/max-level fields must be numeric before formatting. This avoids division-by-zero and malformed UI output.
 - Source commits: `810e420` (responsive preview UX), `357cfd8` (dimension validation). CI runs `45139857411` and `45139876120` were still running/queued at documentation time. No Roblox Studio/device runtime tests have been performed. Purchase affordability/confirmation is intentionally not implemented because the existing remote is read-only (`GetIslandExpansionPreview`); do not add a client-only fake purchase flow. Next tests: 320/360/390 px portrait, short landscape, missing island model, malformed preview payload, maximum level, and world preview cleanup when switching modals/closing.
+
+
+## Stage 1 — Interface & usability: Resource HUD compact layout (2026-11-23)
+
+- Replaced the four-across resource strip with a responsive `UIGridLayout`: desktop retains four resource chips in one row; compact screens below 560 px use a two-by-two layout with a 92 px bar. On very narrow screens (<360 px), icons and values shrink further and long balances/resource labels truncate rather than overlap.
+- Adjusted the kingdom-bond label and gather toast positions/sizes for the taller mobile HUD so they no longer occupy the same vertical band as the resource bar. The bond label is narrower and uses smaller text on tiny screens.
+- Rebound the ViewportSize listener safely when `Workspace.CurrentCamera` changes, disconnecting the previous camera connection instead of accumulating listeners.
+- Replaced the initial wallet snapshot's unbounded direct InvokeServer/pcall with the shared 12-second RequestRunner, retaining bounded retry/backoff behavior. Live server push updates remain authoritative.
+- Static checks passed for grid layout, compact/tiny sizing, truncation, viewport rebinding, and bounded initial fetch. CI run `45140354173` was running when this note was added. No Roblox Studio/device tests have been performed. Next verify 320/360/390 px portrait, desktop 1280+, toast while collecting, long balances, bond label, respawn/camera replacement, and server push ordering.
