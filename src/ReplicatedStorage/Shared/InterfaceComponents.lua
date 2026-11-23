@@ -30,4 +30,45 @@ function Components.StyleCloseButton(button: TextButton)
 	end
 end
 
+function Components.StyleActionButton(button: TextButton, variant: string?)
+	local colors = Theme.Colors
+	local background = colors.panelLight
+	local foreground = colors.cream
+	local strokeColor = colors.track
+
+	if variant == "primary" then
+		background, foreground, strokeColor = colors.mint, colors.panel, colors.mint
+	elseif variant == "danger" then
+		background, foreground, strokeColor = colors.danger, colors.panel, colors.rose
+	elseif variant == "gold" then
+		background, foreground, strokeColor = colors.gold, colors.panel, colors.gold
+	elseif variant == "secondary" then
+		background, foreground, strokeColor = colors.panelSoft, colors.cream, colors.panelLight
+	end
+
+	button.BackgroundColor3 = background
+	button.TextColor3 = foreground
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Theme.Typography.Emphasis
+	button.TextSize = math.clamp(button.TextSize, 12, 16)
+	button.TextScaled = false
+
+	local corner = button:FindFirstChildOfClass("UICorner")
+	if corner == nil then
+		corner = Instance.new("UICorner")
+		corner.Parent = button
+	end
+	corner.CornerRadius = Theme.Radii.Medium
+
+	local stroke = button:FindFirstChildOfClass("UIStroke")
+	if stroke == nil then
+		stroke = Instance.new("UIStroke")
+		stroke.Parent = button
+	end
+	stroke.Color = strokeColor
+	stroke.Thickness = 1
+	stroke.Transparency = 0.62
+end
+
 return table.freeze(Components)
