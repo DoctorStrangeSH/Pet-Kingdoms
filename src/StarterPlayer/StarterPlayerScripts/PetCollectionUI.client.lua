@@ -16,18 +16,8 @@ end
 
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
 
-local COLORS = {
-	panel = Color3.fromRGB(31, 35, 48),
-	panelSoft = Color3.fromRGB(43, 48, 64),
-	card = Color3.fromRGB(53, 59, 78),
-	cardSelected = Color3.fromRGB(76, 91, 125),
-	cream = Color3.fromRGB(255, 245, 222),
-	muted = Color3.fromRGB(177, 185, 205),
-	gold = Color3.fromRGB(255, 205, 112),
-	mint = Color3.fromRGB(135, 225, 183),
-	rose = Color3.fromRGB(244, 151, 169),
-	danger = Color3.fromRGB(255, 135, 135),
-}
+local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local COLORS = InterfaceTheme.Colors
 
 type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
 type Collection = { revision: number, owned: { PetRecord }, equipped: { string }, maxEquipped: number }
