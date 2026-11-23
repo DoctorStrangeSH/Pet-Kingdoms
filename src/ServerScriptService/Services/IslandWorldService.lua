@@ -489,6 +489,35 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 			prompt.MaxActivationDistance = cellSize * 1.6
 			prompt.RequiresLineOfSight = false
 			prompt.Parent = promptPart
+
+			-- A readable world marker makes gathering nodes discoverable before
+			-- the player is close enough for the ProximityPrompt to appear.
+			local marker = Instance.new("BillboardGui")
+			marker.Name = "GatheringMarker"
+			marker.Size = UDim2.fromOffset(132, 30)
+			marker.StudsOffset = Vector3.new(0, cellSize * 1.8, 0)
+			marker.MaxDistance = 64
+			marker.AlwaysOnTop = true
+			marker.LightInfluence = 0
+			marker.Parent = promptPart
+			local markerText = Instance.new("TextLabel")
+			markerText.Size = UDim2.fromScale(1, 1)
+			markerText.BackgroundColor3 = Color3.fromRGB(31, 35, 48)
+			markerText.BackgroundTransparency = 0.08
+			markerText.BorderSizePixel = 0
+			markerText.Font = Enum.Font.GothamBold
+			markerText.Text = if definition.resourceId == "wood" then "♣  ДЕРЕВО  +3" else "◆  КАМЕНЬ  +2"
+			markerText.TextColor3 = if definition.resourceId == "wood" then Color3.fromRGB(190, 230, 166) else Color3.fromRGB(205, 218, 235)
+			markerText.TextSize = 12
+			markerText.Parent = marker
+			local markerCorner = Instance.new("UICorner")
+			markerCorner.CornerRadius = UDim.new(0, 9)
+			markerCorner.Parent = markerText
+			local markerStroke = Instance.new("UIStroke")
+			markerStroke.Color = if definition.resourceId == "wood" then Color3.fromRGB(117, 170, 104) else Color3.fromRGB(145, 165, 188)
+			markerStroke.Transparency = 0.3
+			markerStroke.Thickness = 1
+			markerStroke.Parent = markerText
 		end
 
 		local savedState = IslandResourceNodeData.getState(profile.resourceNodes or {}, definition.id)
