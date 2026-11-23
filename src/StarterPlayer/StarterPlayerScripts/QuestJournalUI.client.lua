@@ -323,7 +323,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 					if trackingResult.errorCode == "TIMEOUT" then "Сервер долго отвечает. Проверяю актуальное задание." else "Не удалось изменить отслеживаемое задание.",
 					"warning"
 				)
-				if trackingResult.errorCode == "TIMEOUT" then task.defer(refresh) end
+				if trackingResult.errorCode == "TIMEOUT" and opened then task.defer(refresh) end
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
