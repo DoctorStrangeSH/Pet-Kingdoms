@@ -1259,3 +1259,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added a modal revision token so a delayed close callback cannot hide the backdrop after a fast reopen. Repeated close calls are idempotent, and reopening invalidates an earlier pending hide.
 - Delete-confirmation cleanup and in-flight deletion safety are preserved. This is a focused modal-lifecycle polish, not a unified modal manager; the four scripts still use the shared BindableEvent convention and need full Studio transition/overlap verification.
 - Test pending: spam open/close/backdrop/Escape, switch to Journal/Expansion during both open and close animation, start a delete request then close, reopen before fade completes, and confirm no stale dim layer or input capture. No Studio verification claimed.
+
+
+## Stage 1 — Interface & usability: shared modal coordinator (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/ModalManager.lua` as the single client-side coordinator for top-level windows. It registers close handlers, opens one named modal at a time, closes every other registered window before assigning focus, exposes the active modal, and supports explicit close/unregister/close-all operations. Nested dialogs remain owned by their parent modal.
+- Migrated Pet Collection, Quest Journal, Island Expansion and Island Building/Kingdom Overview from the ad-hoc `PetKingdomsPanelSignal` BindableEvent to the shared manager. Switching windows now invokes the previous window's normal close path, preserving each feature's cleanup.
+- Construction keeps an in-flight server transaction intact when another modal opens; it hides the construction UI and closes after the response as before. Normal placement cancellation and kingdom overview dismissal now release modal focus so stale active-window state does not persist.
+- The manager closes all other registered handlers, not only the remembered active one, so it can recover if a UI's visible state drifts from manager state. Handler errors are isolated with `pcall` and warnings.
+- This is a code integration, not a completed UI sign-off. Studio checks pending: all 12 ordered transitions among four windows, repeated open/close, close via backdrop/Escape/X, opening while a placement request is pending, overview-to-build transition, and verifying no stale shade or input lock. Also verify no script still depends on `PetKingdomsPanelSignal` and inspect startup ordering. No runtime test claimed.
