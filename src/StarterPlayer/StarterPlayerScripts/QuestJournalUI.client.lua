@@ -256,6 +256,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	trackedQuestId = serverTrackedQuestId
 	clearCards()
 	local completedCount = 0
+	local renderedCount = 0
 	for index, quest in ipairs(quests) do
 		if type(quest) ~= "table" or type(quest.id) ~= "string"
 			or type(quest.name) ~= "string" or type(quest.description) ~= "string"
@@ -264,6 +265,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			continue
 		end
 		local done = quest.completed == true
+		renderedCount += 1
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
@@ -371,6 +373,24 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			BackgroundColor3 = if done then COLORS.mint else COLORS.gold,
 		}, track) :: Frame
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, fill)
+	end
+	if renderedCount == 0 then
+		local emptyText = if #quests == 0 then "Пока нет заданий.\\nНовые приключения появятся здесь."
+			else "Не удалось отобразить задания.\\nПопробуй обновить список."
+		local emptyState = make("TextLabel", {
+			Name = "EmptyQuestState",
+			Size = UDim2.new(1, -12, 0, 104),
+			BackgroundTransparency = 1,
+			Text = emptyText,
+			TextWrapped = true,
+			LayoutOrder = 1,
+		}, list) :: TextLabel
+		InterfaceComponents.StyleEmptyState(emptyState, "📜")
+		if #quests > 0 then
+			status.Text = "Данные заданий повреждены. Нажми обновить."
+			status.TextColor3 = COLORS.rose
+			return
+		end
 	end
 	badge.Text = if #quests == 0 then "—" else tostring(math.max(0, #quests - completedCount))
 	badge.BackgroundColor3 = if completedCount == #quests and #quests > 0 then COLORS.mint else COLORS.gold
