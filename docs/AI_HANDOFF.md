@@ -1292,3 +1292,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Migrated key actions: construction rotate/confirm/cancel; pet interaction/play/equip/favorite/delete and delete confirmation/cancel; island expansion refresh. Existing button event handlers, enabled state logic and request flows remain unchanged.
 - Dynamic quest tracking buttons and per-pet list selection buttons were intentionally left alone in this pass because their colors encode live selection/progress state; they need state-aware styling rather than a static variant.
 - Static audit confirms all helper imports and calls are present in the migrated scripts. Roblox Studio visual verification is still pending: confirm text legibility, touch targets, contrast, disabled/loading state appearance, and that runtime state updates are not visually overridden. This is a shared component foundation, not a full UI polish sign-off.
+
+
+## Stage 1 — Interface & usability: shared card styling (2026-11-23)
+
+- Added `StyleCard(GuiObject, variant)` to `ReplicatedStorage/Shared/InterfaceComponents.lua`. It applies shared corner radii and subtle semantic outlines; `surface`, `highlight` and `compact` variants support standard content, important next-step cards and dense cards.
+- Migrated Quest Journal quest cards, Island Expansion current/next level cards, and Pet Collection detail surface to the shared helper. The next island level card uses the highlight treatment; the current level and other content use the neutral surface treatment.
+- Dynamic pet-list selection/equipped outlines and construction catalog selection strokes remain state-driven and were not overwritten by the static helper. This preserves selection semantics.
+- Static source audit only. Roblox Studio visual testing remains pending for clipping, nested stroke ordering, text contrast, narrow screens, and runtime state transitions. Building catalog and kingdom overview card surfaces still need a deliberate state-aware migration.
