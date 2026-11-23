@@ -1149,3 +1149,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The controller now snapshots the full request payload before invoking the server, tracks `buildRequestInFlight`, blocks placement edits, rotation, cancel, new placement and repeat confirms while pending, and resolves messages using the snapshot. The existing request-ID retry mechanism is retained.
 - An attempt to read combined GitHub commit statuses for the previous main commit yielded no status entries; the connector's commit-workflow-runs endpoint also yielded no runs because it filters to pull-request-triggered runs. **This does not establish a successful or failed push-triggered Actions run.** Check GitHub Actions directly.
 - Still unverified in Roblox Studio: rapid double-tap Confirm, rotate/catalog switch while a slow server reply is pending, switching UI panels, server rejection, timeout/retry, move vs new build, and mobile touch inputs. These cases must pass before marking the building transaction UX DONE.
+
+
+## Construction request and exclusive-panel interaction (2026-11-23)
+
+- Fixed a UI overlap scenario in `IslandBuildingController.client.lua`: if another Pet Kingdoms panel opens while `PlaceBuilding:InvokeServer` is outstanding, the construction panel now hides immediately and its cleanup is deferred until the reply resolves. Server transaction and idempotency remain intact.
+- `openKingdomOverview()` now closes construction before announcing its own overview, while a pending request is deferred; handling other panels through `PetKingdomsPanelSignal` uses the same pending-safe path. After success, the normal construction stop logic runs. After failed or thrown remote response, a deferred stop runs so a hidden build operation cannot continue owning input.
+- The request snapshots catalog ID, cell coordinates, rotation and moving instance ID and blocks other edits and repeat confirms while waiting (prior commit).
+- Studio tests pending: slow build + open journal/collection, slow build + open overview, server rejection while another panel is open, repeated rapid confirm, slow move, and close/reopen after a response. No GitHub Actions or Roblox runtime success is claimed.
