@@ -900,8 +900,7 @@ confirmButton.Activated:Connect(function()
 	local requestedMoveId = movingInstanceId
 	buildRequestInFlight = true
 	closeAfterBuildResponse = false
-	confirmButton.Active = false
-	confirmButton.Text = "..."
+	InterfaceComponents.SetButtonLoading(confirmButton, true, "СОХРАНЕНИЕ...")
 	rotateButton.Active = false
 	cancelButton.Active = false
 	local operationKey = table.concat({
@@ -926,7 +925,7 @@ confirmButton.Activated:Connect(function()
 	buildRequestInFlight = false
 	local shouldCloseAfterResponse = closeAfterBuildResponse
 	closeAfterBuildResponse = false
-	confirmButton.Active = true
+	InterfaceComponents.SetButtonLoading(confirmButton, false)
 	rotateButton.Active = true
 	cancelButton.Active = true
 	confirmButton.Text = if requestedMoveId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
