@@ -21,6 +21,7 @@ local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEve
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
+local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -389,12 +390,19 @@ local function refresh()
 	loading = true
 	status.Text = "Получаем прогресс с сервера..."
 	status.TextColor3 = COLORS.muted
-	local ok, result = pcall(function() return request:InvokeServer() end)
-	if ok and type(result) == "table" and result.ok == true then
+	local requestResult = RequestRunner.Invoke(function()
+		return request:InvokeServer()
+	end, 12)
+	local result = requestResult.value
+	if requestResult.ok and type(result) == "table" and result.ok == true then
 		render(result.quests, result.trackedQuestId)
-	elseif ok and type(result) == "table" and result.code == "RATE_LIMITED" then
+	elseif requestResult.ok and type(result) == "table" and result.code == "RATE_LIMITED" then
 		status.Text = "Подожди немного перед обновлением."
 		status.TextColor3 = COLORS.gold
+	elseif requestResult.errorCode == "TIMEOUT" then
+		status.Text = "Сервер отвечает слишком долго. Нажми обновить ещё раз."
+		status.TextColor3 = COLORS.gold
+		NotificationManager.Notify("Превышено время ожидания загрузки заданий", "warning")
 	else
 		status.Text = "Не удалось загрузить задания. Нажми обновить."
 		status.TextColor3 = COLORS.rose
