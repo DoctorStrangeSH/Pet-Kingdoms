@@ -507,3 +507,16 @@ Source implementation committed as `da22105`; CI `45140354173` was in progress a
 - [ ] Complete full Stage 1 visual consistency, icon coverage, and in-Studio mobile regression before moving to Stage 2.
 
 Source commits: `5fbb21e`, `8061fb1`. CI: `45142089887` and `45142096293` passed. Studio/device validation remains pending.
+
+
+### Stage 1 — Shared visual language, buttons and cards (2026-11-23)
+
+- [x] Add reusable circular launcher style with semantic gold/mint/rose accents.
+- [x] Apply shared launcher style to Pet Collection, Island Expansion, and Quest Journal.
+- [x] Replace bespoke Build launcher styling with shared gold action-button style.
+- [x] Apply shared action-button styling to Quest Journal tracking control; shorten active label to `СЛЕЖУ` for compact readability.
+- [x] Keep existing shared close-button, modal-card, pet-action, expansion-refresh, and building-action styling intact.
+- [ ] Standardize status badges, empty/error/loading states, and typography/spacing in remaining screens.
+- [ ] Complete in-Studio visual regression at desktop and 320/360/390 px mobile sizes before Stage 1 sign-off.
+
+Source commits: `7d55e84`, `fd8ea0b`, `15ffb44`, `6227204`, `5927d19`, `87bab50`, `7f35991`. CI passed through quest tracking style commit (`45142944796`); latest label shortening CI pending. Studio/device validation remains outstanding.
