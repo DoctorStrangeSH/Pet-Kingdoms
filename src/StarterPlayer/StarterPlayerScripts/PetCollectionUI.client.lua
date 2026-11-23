@@ -33,6 +33,7 @@ local sortMode = "newest"
 local pendingDeletePetId: string? = nil
 local mobileDetailVisible = false
 local compactCollection = false
+local resize: () -> ()
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
@@ -365,6 +366,7 @@ local confirmPanel = make("Frame", {
 	ZIndex = 30,
 }, shade) :: Frame
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, confirmPanel)
+local confirmScale = make("UIScale", { Scale = 1 }, confirmPanel) :: UIScale
 make("UIStroke", { Color = COLORS.rose, Thickness = 1.5, Transparency = 0.15 }, confirmPanel)
 local confirmTitle = make("TextLabel", {
 	BackgroundTransparency = 1,
@@ -846,7 +848,7 @@ local function confirmDeleteSelected()
 	showStatus("Питомец удалён из коллекции.")
 end
 
-local function resize()
+resize = function()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
@@ -854,7 +856,7 @@ local function resize()
 	if compactCollection then
 		panel.Size = UDim2.new(0.94, 0, 0.84, 0)
 		panelScale.Scale = 1
-		local contentWidth = math.max(220, viewport.X - 48)
+		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
 		search.Position = UDim2.fromOffset(24, 88)
 		search.Size = UDim2.fromOffset(contentWidth, 38)
 		filterBar.Position = UDim2.fromOffset(24, 132)
@@ -888,6 +890,11 @@ local function resize()
 		detail.Visible = true
 		mobileBackButton.Visible = false
 	end
+	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
+	confirmPanel.Size = UDim2.fromOffset(confirmWidth, 178)
+	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
+	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
+	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 end
 
 local viewportConnection: RBXScriptConnection? = nil
