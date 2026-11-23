@@ -1054,3 +1054,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Adjusted action-row positioning and responsive button sizes for narrow screens; panel width follows the active camera viewport, and move/demolish controls shift lower on compact screens.
 - No catalog costs, building authority, or persistence rules changed. This is integrated into the live controller rather than a mockup.
 - Studio device emulator testing remains pending: verify horizontal swipe scrolling, confirm/cancel/rotate hit targets, status visibility, safe-area overlap, and move/demolish access at 320px, 375px, tablet, and desktop resolutions. Also verify catalog switching while a grid cell is locked.
+
+
+## Construction catalog selection clarity (2026-11-23)
+
+- Strengthened selected-building feedback in the in-game horizontal construction catalog: the active card gets a thicker fully visible gold outline, contrasted background, and a `Selected` UI attribute. Other cards retain the muted outline.
+- Wrapped the compact building status label for longer Russian hints.
+- On a catalog switch with a locked cell, the controller now projects that saved cell back into screen space before revalidating the new footprint, instead of accidentally using the pointer's current location over a catalog button.
+- Roblox Studio and mobile device emulator checks remain pending, including selected-card outline legibility, raycast revalidation, rotate and confirmation, and switching to larger footprints near boundaries.
