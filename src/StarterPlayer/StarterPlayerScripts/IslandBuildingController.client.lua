@@ -397,6 +397,19 @@ end
 local function makePreviewVisual(catalogId: string, unit: number): Model
 	local model = Instance.new("Model")
 	model.Name = "LocalBuildingSilhouette"
+	-- Match the server fallback template's ground-level PrimaryPart pivot.
+	local root = Instance.new("Part")
+	root.Name = "Pivot"
+	root.Size = Vector3.new(0.2, 0.2, 0.2)
+	root.CFrame = CFrame.new()
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanTouch = false
+	root.CanQuery = false
+	root.CastShadow = false
+	root.Parent = model
+	model.PrimaryPart = root
 	local width = BUILDING_WIDTH * unit * 0.82
 	local depth = BUILDING_DEPTH * unit * 0.82
 	local function piece(name: string, size: Vector3, offset: CFrame, color: Color3, material: Enum.Material)
@@ -411,7 +424,7 @@ local function makePreviewVisual(catalogId: string, unit: number): Model
 		part.CanTouch = false
 		part.CanQuery = false
 		part.CastShadow = false
-		part.Transparency = 0.3
+		part.Transparency = 1 -- Reveal after the player targets an island cell.
 		part.Parent = model
 	end
 	if catalogId == "stone_path" then
@@ -466,7 +479,7 @@ local function createPreview()
 	part.CanTouch = false
 	part.CanQuery = false
 	part.Material = Enum.Material.ForceField
-	part.Transparency = 0.45
+	part.Transparency = 1 -- Do not flash the footprint at world origin.
 	part.Parent = Workspace
 	currentPreview = part
 	previewVisual = makePreviewVisual(selectedCatalogId, cellSize)
@@ -556,6 +569,7 @@ local function updatePreviewAtCell(x: number, z: number)
 			end
 		end
 	end
+	currentPreview.Transparency = 0.65
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
 	local message = if not inside then "Объект выходит за границы острова" elseif overlaps then "Это место уже занято другим объектом" else "Место подходит — можно разместить"
 	setStatus(message, valid)
