@@ -504,7 +504,7 @@ local function updateDetail()
 		placeholder.Name = "EmptyCollectionPreview"
 		placeholder.BackgroundTransparency = 1
 		placeholder.Size = UDim2.fromScale(1, 1)
-		placeholder.Text = InterfaceTheme.Icons.Pet .. "\\nЗдесь появится твой первый друг"
+		placeholder.Text = InterfaceTheme.Icons.Pet .. "\nЗдесь появится твой первый друг"
 		placeholder.TextWrapped = true
 		placeholder.TextColor3 = COLORS.muted
 		placeholder.TextSize = 12
