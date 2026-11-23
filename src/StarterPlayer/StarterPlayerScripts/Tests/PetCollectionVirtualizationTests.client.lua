@@ -33,6 +33,12 @@ for _, total in ipairs({ 100, 250, 500 }) do
 	expect("middle window stays in bounds for " .. tostring(total), middle.firstIndex >= 1 and middle.lastIndex <= total)
 	expect("middle window stays within render budget for " .. tostring(total), middle.count <= maxExpectedCards)
 
+	local adjacent = VirtualList.GetWindow(total, cardStep, viewportHeight, cardStep, overscan)
+	local overlapStart = math.max(top.firstIndex, adjacent.firstIndex)
+	local overlapEnd = math.min(top.lastIndex, adjacent.lastIndex)
+	local overlapCount = math.max(0, overlapEnd - overlapStart + 1)
+	expect("adjacent scroll windows retain overlapping cards for " .. tostring(total), overlapCount > 0)
+
 	local bottomY = math.max(0, contentHeight - viewportHeight)
 	local bottom = VirtualList.GetWindow(total, bottomY, viewportHeight, cardStep, overscan)
 	expect("bottom window reaches final item for " .. tostring(total), bottom.lastIndex == total)
