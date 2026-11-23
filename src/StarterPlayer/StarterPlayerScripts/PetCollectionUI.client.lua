@@ -1091,6 +1091,19 @@ resize = function()
 	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
 	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
+
+	-- Resize can run after an empty collection was rendered. Re-apply the
+	-- empty-state visibility rules so layout changes never resurrect dead actions.
+	if collection ~= nil and #collection.owned == 0 then
+		favoriteButton.Visible = false
+		lockButton.Visible = false
+		deleteButton.Visible = false
+		mainButton.Visible = false
+		equipButton.Visible = false
+		interactionRow.Visible = false
+		bondLabel.Visible = false
+		teamLabel.Visible = false
+	end
 end
 
 local viewportConnection: RBXScriptConnection? = nil
