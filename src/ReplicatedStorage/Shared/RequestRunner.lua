@@ -13,35 +13,34 @@ export type Result<T> = {
 
 function RequestRunner.Invoke<T>(callback: () -> T, timeoutSeconds: number?): Result<T>
 	local timeout = math.clamp(timeoutSeconds or 12, 2, 30)
-	local signal = Instance.new("BindableEvent")
-	local settled = false
+	local completed = false
 	local result: Result<T>? = nil
 
 	task.spawn(function()
 		local ok, value = pcall(callback)
-		if settled then return end
-		settled = true
+		if completed then return end
+		completed = true
 		result = {
 			ok = ok,
 			value = if ok then value else nil,
 			errorCode = if ok then nil else "REMOTE_ERROR",
 		}
-		signal:Fire()
 	end)
 
-	task.delay(timeout, function()
-		if settled then return end
-		settled = true
-		result = {
+	local deadline = os.clock() + timeout
+	while not completed and os.clock() < deadline do
+		task.wait(0.05)
+	end
+
+	if not completed then
+		completed = true
+		return {
 			ok = false,
 			value = nil,
 			errorCode = "TIMEOUT",
 		}
-		signal:Fire()
-	end)
+	end
 
-	signal.Event:Wait()
-	signal:Destroy()
 	return result :: Result<T>
 end
 
