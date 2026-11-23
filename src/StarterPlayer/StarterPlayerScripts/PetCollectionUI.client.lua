@@ -857,8 +857,10 @@ resize = function()
 	local viewport = camera.ViewportSize
 	compactCollection = viewport.X < 650
 	local launcherCompact = viewport.X < 560
-	openButton.Size = UDim2.fromOffset(launcherCompact and 52 or 62, launcherCompact and 52 or 62)
-	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
+	local veryShort = viewport.Y < 360
+	local launcherSize = if veryShort then 44 elseif launcherCompact then 52 else 62
+	openButton.Size = UDim2.fromOffset(launcherSize, launcherSize)
+	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, if veryShort then 0.52 elseif launcherCompact then 0.46 else 0.55, 0)
 	if compactCollection then
 		-- Give the mobile detail view as much vertical room as the viewport allows.
 		panel.Size = UDim2.new(0.94, 0, 0.90, 0)
