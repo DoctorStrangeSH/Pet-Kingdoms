@@ -489,12 +489,35 @@ local function updateDetail()
 		petName.Text = "Пока пусто"
 		petRarity.Text = "КОЛЛЕКЦИЯ"
 		petDescription.Text = "Исследуй мир, чтобы найти новых друзей!"
+		bondLabel.Text = "ДРУЖБА ПОЯВИТСЯ С ПЕРВЫМ ПИТОМЦЕМ"
+		teamLabel.Text = "КОМАНДА: 0 / " .. tostring(collection.maxEquipped)
+		favoriteButton.Visible = false
+		lockButton.Visible = false
+		deleteButton.Visible = false
+		mainButton.Visible = false
 		equipButton.Visible = false
+		interactionRow.Visible = false
+		bondLabel.Visible = false
+		teamLabel.Visible = false
 		preview:ClearAllChildren()
+		local placeholder = Instance.new("TextLabel")
+		placeholder.Name = "EmptyCollectionPreview"
+		placeholder.BackgroundTransparency = 1
+		placeholder.Size = UDim2.fromScale(1, 1)
+		placeholder.Text = InterfaceTheme.Icons.Pet .. "\\nЗдесь появится твой первый друг"
+		placeholder.TextWrapped = true
+		placeholder.TextColor3 = COLORS.muted
+		placeholder.TextSize = 12
+		placeholder.Font = Enum.Font.GothamMedium
+		placeholder.Parent = preview
 		return
 	end
 
 	petName.Text = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
+	favoriteButton.Visible = true
+	lockButton.Visible = true
+	bondLabel.Visible = true
+	teamLabel.Visible = true
 	petRarity.Text = "ОБЫЧНЫЙ • " .. string.upper(selected.speciesId)
 	petDescription.Text = "Твой верный спутник. Впереди ждёт много приключений!"
 	local bondLevel = selected.bondLevel or 1
