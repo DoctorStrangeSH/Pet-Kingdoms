@@ -1248,6 +1248,7 @@ local function addBuildEntry()
 	}, gui) :: TextButton
 	make("UICorner", { CornerRadius = UDim.new(0, 14) }, open)
 	make("UIStroke", { Color = COLORS.gold, Transparency = 0.3, Thickness = 1.3 }, open)
+	InterfaceComponents.StyleActionButton(open, "gold")
 	open.Activated:Connect(beginPlacing)
 end
 
