@@ -56,6 +56,11 @@ function Components.SetButtonLoading(button: TextButton, isLoading: boolean, loa
 end
 
 function Components.SetButtonFeedback(button: TextButton, state: string, message: string?, duration: number?)
+	-- Reject unsupported states before touching the feedback generation token.
+	-- Otherwise an invalid call could cancel an active reset timer and leave the
+	-- button permanently styled as the previous success/error state.
+	if state ~= "success" and state ~= "error" and state ~= "warning" then return end
+
 	local colors = Theme.Colors
 	local token = (button:GetAttribute("PKFeedbackToken") or 0) + 1
 	button:SetAttribute("PKFeedbackToken", token)
@@ -76,8 +81,6 @@ function Components.SetButtonFeedback(button: TextButton, state: string, message
 		background, foreground = colors.danger, colors.cream
 	elseif state == "warning" then
 		background, foreground = colors.gold, colors.panel
-	else
-		return
 	end
 
 	button:SetAttribute("PKFeedbackActive", true)
