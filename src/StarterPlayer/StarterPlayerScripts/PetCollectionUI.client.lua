@@ -610,19 +610,23 @@ local function renderList()
 		end)
 	end
 	if #visibleRecords == 0 then
+		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\\nИсследуй остров, чтобы найти первого друга!"
+			elseif activeFilter == "favorites" then "Нет избранных питомцев.\\nОтметь понравившегося питомца звёздочкой."
+			elseif activeFilter == "team" then "Команда пока пуста.\\nВыбери питомца и добавь его в команду."
+			elseif filter ~= "" then "Ничего не найдено.\\nПопробуй изменить поисковый запрос."
+			else "Здесь пока пусто."
 		local empty = make("TextLabel", {
 			Name = "EmptyFilterState",
-			Size = UDim2.new(1, -8, 0, 64),
+			Size = UDim2.new(1, -8, 0, 92),
 			BackgroundTransparency = 1,
-			Text = if activeFilter == "favorites" then "Пока нет избранных питомцев"
-				elseif activeFilter == "team" then "В команде пока никого нет"
-				else "Ничего не найдено",
+			Text = emptyText,
 			TextWrapped = true,
 			TextColor3 = COLORS.muted,
 			TextSize = 12,
 			Font = Enum.Font.Gotham,
 			LayoutOrder = 1,
-		}, list)
+		}, list) :: TextLabel
+		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then "🐾" else "⌕")
 	end
 	list.CanvasPosition = Vector2.zero
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
