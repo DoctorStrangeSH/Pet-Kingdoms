@@ -607,7 +607,7 @@ Source branch: `chore/ui-icon-token-audit`. Studio/device validation is still re
 - [x] Size the journal panel from the available viewport height instead of shrinking all text and controls on short screens.
 - [x] Keep the quest list as the flexible content region while preserving the header and status footer.
 - [x] Hide the tracked-quest HUD while the journal modal is open so it cannot float over the modal backdrop.
-- [x] Restore the tracked-quest HUD after the journal closes when a valid tracked quest exists.
+- [x] Restore the tracked-quest HUD after the journal closes only when no other modal is active; defer the check so modal-to-modal switches do not flash the HUD above the next window.
 - [ ] Verify at 320/360/390 px, short-height mobile, and desktop in Roblox Studio.
 
 Studio/device validation remains required; Stage 1 is still open.
