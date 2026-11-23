@@ -1,6 +1,6 @@
 --!strict
--- Client-side modal coordinator. Owns exclusivity between top-level Pet Kingdoms windows.
--- Nested dialogs remain owned by their parent window and are not registered here.
+-- Client-side coordinator for mutually exclusive top-level windows.
+-- Nested confirmations remain owned by their parent window.
 
 local ModalManager = {}
 
@@ -9,6 +9,24 @@ type CloseHandler = (reason: string) -> ()
 local handlers: { [string]: CloseHandler } = {}
 local activeWindow: string? = nil
 local opening = false
+
+local function getRegisteredNames(): { string }
+	local names = {}
+	for name in pairs(handlers) do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	return names
+end
+
+local function invokeClose(name: string, reason: string)
+	local handler = handlers[name]
+	if handler == nil then return end
+	local ok, err = pcall(handler, reason)
+	if not ok then
+		warn("[PetKingdomsUI] Failed to close " .. name .. ": " .. tostring(err))
+	end
+end
 
 function ModalManager.Register(name: string, closeHandler: CloseHandler)
 	assert(name ~= "", "Modal name cannot be empty")
@@ -29,14 +47,13 @@ function ModalManager.Open(name: string)
 		warn("[PetKingdomsUI] Attempted to open an unregistered modal: " .. name)
 		return
 	end
+
 	opening = true
-	-- Close all other top-level windows before assigning focus to the new one.
-	for otherName, closeHandler in pairs(handlers) do
+	-- Clear the previous focus before closing peers. Close callbacks may call Close().
+	activeWindow = nil
+	for _, otherName in ipairs(getRegisteredNames()) do
 		if otherName ~= name then
-			-- Close every other registered window, not only the remembered active one.
-			-- This also repairs any visibility/focus drift caused by an interrupted UI transition.
-			local ok, err = pcall(closeHandler, "switch")
-			if not ok then warn("[PetKingdomsUI] Failed to close " .. otherName .. ": " .. tostring(err)) end
+			invokeClose(otherName, "switch")
 		end
 	end
 	activeWindow = name
@@ -49,19 +66,25 @@ function ModalManager.Close(name: string)
 	end
 end
 
+function ModalManager.IsActive(name: string): boolean
+	return activeWindow == name
+end
+
 function ModalManager.GetActive(): string?
 	return activeWindow
 end
 
 function ModalManager.CloseAll()
-	local current = activeWindow
-	if current == nil then return end
-	local handler = handlers[current]
+	if opening then return end
+	opening = true
 	activeWindow = nil
-	if handler then
-		local ok, err = pcall(handler, "close_all")
-		if not ok then warn("[PetKingdomsUI] Failed to close " .. current .. ": " .. tostring(err)) end
+	-- Close every registered window, not just the last focused one. This repairs
+	-- visibility drift after interrupted transitions or a stale active-window ref.
+	for _, name in ipairs(getRegisteredNames()) do
+		invokeClose(name, "close_all")
 	end
+	activeWindow = nil
+	opening = false
 end
 
-return ModalManager
+return table.freeze(ModalManager)
