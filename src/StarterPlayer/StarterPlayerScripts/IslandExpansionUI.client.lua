@@ -140,7 +140,7 @@ local nextCard = make("Frame", {
 	Size = UDim2.new(1, -44, 0, 82),
 	BackgroundColor3 = COLORS.card,
 }, panel) :: Frame
-make("UICorner", { CornerRadius = UDim.new(0, 15) }, nextCard)
+InterfaceComponents.StyleCard(nextCard, "highlight")
 
 local nextTitle = make("TextLabel", {
 	BackgroundTransparency = 1,
