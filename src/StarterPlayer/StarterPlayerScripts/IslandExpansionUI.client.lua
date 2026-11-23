@@ -18,6 +18,7 @@ local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GetIsland
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
+local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -279,15 +280,20 @@ local function refresh()
 	InterfaceComponents.SetButtonLoading(refreshButton, true, "ЗАГРУЗКА...")
 	status.TextColor3 = COLORS.muted
 	status.Text = "Получаем актуальные данные с сервера..."
-	local ok, result = pcall(function()
+	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer()
-	end)
-	if ok then
-		renderPreview(result)
+	end, 12)
+	if requestResult.ok then
+		renderPreview(requestResult.value)
 	else
 		status.TextColor3 = COLORS.rose
-		status.Text = "Связь с сервером не удалась. Попробуй ещё раз."
-		NotificationManager.Notify("Не удалось обновить данные острова", "error")
+		if requestResult.errorCode == "TIMEOUT" then
+			status.Text = "Сервер отвечает слишком долго. Попробуй обновить ещё раз."
+			NotificationManager.Notify("Превышено время ожидания ответа сервера", "warning")
+		else
+			status.Text = "Связь с сервером не удалась. Попробуй ещё раз."
+			NotificationManager.Notify("Не удалось обновить данные острова", "error")
+		end
 	end
 	loading = false
 	InterfaceComponents.SetButtonLoading(refreshButton, false)
