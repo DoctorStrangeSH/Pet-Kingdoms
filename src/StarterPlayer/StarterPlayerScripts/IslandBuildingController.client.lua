@@ -690,7 +690,9 @@ local function updatePreview(screenPosition: Vector2)
 end
 
 local function setSelectedBuilding(catalogId: string)
-	if buildRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight then return end
+	-- A move keeps the original building type; catalog entries must not mutate it.
+	if movingInstanceId ~= nil and catalogId ~= selectedCatalogId then return end
 	local size = BUILDING_SIZES[catalogId]
 	if size == nil then return end
 	selectedCatalogId = catalogId
@@ -766,8 +768,11 @@ local function beginMoveSelected()
 		setStatus("Не удалось прочитать данные постройки", false)
 		return
 	end
-	movingInstanceId = instanceId
+	-- Switching into Move is still a panel transition: close other open screens.
+	announcePanelOpened()
+	-- Select the actual catalog type before the move lock becomes active.
 	setSelectedBuilding(catalogId)
+	movingInstanceId = instanceId
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
 	panel.Visible = true
@@ -790,6 +795,8 @@ local function beginMoveSelected()
 		petHouseButton.Active = true
 		stonePathButton.Active = true
 		gardenLanternButton.Active = true
+		flowerBedButton.Active = true
+		woodenFenceButton.Active = true
 		moveButton.Visible = true
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
@@ -1284,6 +1291,7 @@ end
 panelSignal.Event:Connect(function(origin)
 	if origin ~= script.Name then
 		closeKingdomOverview()
+		if not demolitionRequestInFlight then selectBuilding(nil) end
 		if buildRequestInFlight then
 			-- Another panel takes focus immediately; do not cancel an in-flight transaction.
 			panel.Visible = false
