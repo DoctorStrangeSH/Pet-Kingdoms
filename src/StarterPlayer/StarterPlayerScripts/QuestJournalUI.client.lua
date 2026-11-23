@@ -238,8 +238,18 @@ local function updateTracker(quests: { any })
 	trackerName.Text = selected.name
 	trackerProgress.Text = string.format("%d/%d", selected.count, selected.target)
 	trackerFill.Size = UDim2.new(math.clamp(selected.count / math.max(selected.target, 1), 0, 1), 0, 1, 0)
-	tracker.Visible = true
+	-- The tracked-quest HUD is a world overlay, not part of the journal.
+	-- Hide it whenever any modal is active so it cannot cover another window.
+	tracker.Visible = ModalManager.GetActive() == nil
 end
+
+ModalManager.ActiveChanged:Connect(function(activeName)
+	if activeName ~= nil then
+		tracker.Visible = false
+	elseif trackedQuestId ~= nil then
+		tracker.Visible = true
+	end
+end)
 
 local function clearCards()
 	for _, child in ipairs(list:GetChildren()) do
