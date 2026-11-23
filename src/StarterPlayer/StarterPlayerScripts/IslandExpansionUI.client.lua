@@ -304,7 +304,6 @@ local function refresh()
 			status.Text = "Сервер отвечает слишком долго. Попробуй обновить ещё раз."
 		else
 			status.Text = "Связь с сервером не удалась. Попробуй ещё раз."
-			NotificationManager.Notify("Не удалось обновить данные острова", "error")
 		end
 	end
 	loading = false
