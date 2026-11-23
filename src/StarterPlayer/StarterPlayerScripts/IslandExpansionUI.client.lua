@@ -83,7 +83,8 @@ local title = make("TextLabel", {
 }, panel) :: TextLabel
 
 local closeButton = make("TextButton", {
-	Position = UDim2.new(1, -52, 0, 14),
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -16, 0, 14),
 	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
 	Text = "×",
