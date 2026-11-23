@@ -1271,7 +1271,11 @@ local overview = make("Frame", {
 	Visible = false,
 	ZIndex = 41,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(300, 286), MaxSize = Vector2.new(420, 286) }, overview)
+local overviewConstraint = make("UISizeConstraint", {
+	MinSize = Vector2.new(220, 286),
+	MaxSize = Vector2.new(420, 286),
+}, overview) :: UISizeConstraint
+local overviewScale = make("UIScale", { Scale = 1 }, overview) :: UIScale
 make("UICorner", { CornerRadius = UDim.new(0, 20) }, overview)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.5 }, overview)
 make("UIPadding", {
@@ -1395,6 +1399,39 @@ local overviewBuild = make("TextButton", {
 }, overview) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 
+local function resizeKingdomOverview()
+	local camera = Workspace.CurrentCamera
+	if camera == nil then return end
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	local width = math.max(220, math.min(viewport.X - 24, 420))
+	overview.Size = UDim2.fromOffset(width, 286)
+	overviewConstraint.MinSize = Vector2.new(math.min(220, width), 286)
+	overviewConstraint.MaxSize = Vector2.new(width, 286)
+	-- Keep the complete overview and its close/action buttons visible in short landscape viewports.
+	overviewScale.Scale = math.clamp((viewport.Y - 32) / 286, 0.68, 1)
+	overviewTitle.TextSize = if compact then 15 else 18
+	overviewStage.TextSize = if compact then 16 else 20
+	overviewStats.TextSize = if compact then 11 else 13
+	overviewHint.TextSize = if compact then 10 else 11
+	overviewBuild.TextSize = if compact then 12 else 14
+end
+
+local overviewCameraConnection: RBXScriptConnection? = nil
+local function bindOverviewCamera()
+	if overviewCameraConnection then
+		overviewCameraConnection:Disconnect()
+		overviewCameraConnection = nil
+	end
+	local camera = Workspace.CurrentCamera
+	if camera then
+		overviewCameraConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeKingdomOverview)
+	end
+	resizeKingdomOverview()
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindOverviewCamera)
+bindOverviewCamera()
+
 local function closeKingdomOverview()
 	overview.Visible = false
 	overviewShade.Visible = false
@@ -1461,6 +1498,7 @@ local function openKingdomOverview()
 	if not demolitionRequestInFlight then selectBuilding(nil) end
 	announcePanelOpened()
 	refreshKingdomOverview()
+	resizeKingdomOverview()
 	overviewShade.Visible = true
 	overview.Visible = true
 end
