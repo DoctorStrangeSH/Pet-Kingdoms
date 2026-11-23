@@ -702,7 +702,12 @@ local function renderVisibleCards()
 			}, "  ")
 			metaLabel.TextColor3 = if equipped then COLORS.mint else COLORS.muted
 		end
-		if stroke then stroke.Color = if equipped then COLORS.mint else COLORS.cardSelected end
+		if stroke then
+			local isSelected = selectedPetId == petId
+			stroke.Color = if isSelected then COLORS.gold elseif equipped then COLORS.mint else COLORS.cardSelected
+			stroke.Thickness = if isSelected then 2.5 else if equipped then 1.5 else 1
+			stroke.Transparency = if isSelected then 0.05 else 0.25
+		end
 	end
 end
 
@@ -946,7 +951,8 @@ local function requestDeleteSelected()
 	end
 	pendingDeletePetId = selected.petId
 	confirmTitle.Text = "Удалить питомца?"
-	confirmMessage.Text = "Питомец будет навсегда удалён из коллекции. Это действие нельзя отменить."
+	local petName = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
+	confirmMessage.Text = string.format("«%s» будет навсегда удалён из коллекции. Это действие нельзя отменить.", petName)
 	confirmPanel.Visible = true
 end
 
@@ -1199,8 +1205,10 @@ resize = function()
 	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
 	confirmPanel.Size = UDim2.fromOffset(confirmWidth, 178)
 	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
-	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
-	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
+	-- Larger hit areas on compact screens; UIScale keeps the dialog inside
+	-- very short landscape viewports without pushing actions off-screen.
+	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 50 else 38)
+	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 50 else 38)
 
 	-- Resize can run after an empty collection was rendered. Re-apply the
 	-- empty-state visibility rules so layout changes never resurrect dead actions.
