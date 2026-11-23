@@ -1118,3 +1118,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added three differently tinted foliage lobes to gatherable wood nodes. Added two slate fragments and two restrained glass highlights to stone nodes. All new details belong to the existing node Model, so its current depleted-node visibility handling can hide them together with the node.
 - Resource node IDs, interaction prompt selection, respawn timings, server rewards, DataStore schema, and building placement dimensions are unchanged. This is lightweight prototype geometry, not final vetted Creator Store assets.
 - Roblox Studio validation pending: inspect details at mobile resolution, collect a wood node and a stone node, confirm all parts hide while depleted and return appropriately on respawn, verify prompts still work and no duplicate rewards. Check frame-time and part counts on eight concurrent islands before broader environment dressing.
+
+
+## Perimeter meadow dressing (2026-11-23)
+
+- Added `createEdgeMeadow` to `IslandWorldService.createTerrain`. Eight deterministic edge patches each contain two small green bushes and two pastel blossoms (32 new visual parts per home island), grouped under `IslandEdgeMeadow`.
+- The decorations are anchored and deliberately non-colliding, non-touching, non-queryable and shadow-free. They do not occupy building grid cells, change the economy, or require new saved profile fields. The same arrangement is rebuilt when island geometry refreshes.
+- These are lightweight procedural prototype decorations rather than approved production art or audited Creator Store assets. The existing arrival pad and central build area remain unchanged.
+- Studio verification is pending: inspect plot edges at 24x24, 32x32, and 40x40, check building on/near patch locations, camera view, mobile frame time and eight concurrent islands. At eight islands this addition has up to 256 decorative BaseParts; optimize or replace with vetted mesh clusters if profiling shows a problem.
