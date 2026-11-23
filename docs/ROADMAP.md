@@ -856,3 +856,12 @@ Source-level query extraction and deterministic regression coverage added; Studi
 - [x] Avoid repainting the hidden collection panel when a refresh completes after the user closes it; keep the refreshed data ready for the next open.
 - [x] Add query regressions for selected pet entering/leaving Favorites after protection changes and entering/leaving Team after equip/unequip, while preserving selected identity.
 - [ ] In Studio, verify actual server responses for favorite toggle under Favorites, unequip under Team, refresh while search is active, close/reopen during a delayed Get, and delete selected pet.
+
+### Stage 1 — Compact touch-target sizing (2026-11-23)
+
+- [x] Increase compact/short-viewport search control height from 28 to 30 px and filter row from 24 to 28 px.
+- [x] Move the virtualized list below the resized controls and recalculate its height to avoid overlap.
+- [x] Increase short-landscape detail action buttons from 26 to 30 px and rebalance widths so Main/Delete retain usable hit areas.
+- [ ] Verify touch interaction and clipping in Roblox Studio at 320×180, 360×180, and 320×240; check all four filter controls and detail actions.
+
+Compact layout touch targets improved at the source level; Studio/device validation remains pending.
