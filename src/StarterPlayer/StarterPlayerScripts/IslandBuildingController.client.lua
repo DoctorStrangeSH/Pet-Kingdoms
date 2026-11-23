@@ -932,34 +932,78 @@ confirmButton.Activated:Connect(function()
 	end
 end)
 
-UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
-	if not placing and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-		local mousePosition = if input.UserInputType == Enum.UserInputType.Touch then Vector2.new(input.Position.X, input.Position.Y) else UserInputService:GetMouseLocation()
-		local ray = camera:ScreenPointToRay(mousePosition.X, mousePosition.Y)
-		local params = RaycastParams.new()
-		params.FilterType = Enum.RaycastFilterType.Exclude
-		if player.Character then params.FilterDescendantsInstances = { player.Character } end
-		local hit = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
-		selectBuilding(if hit then findBuildingModel(hit.Instance) else nil)
-		return
+local TAP_DRAG_THRESHOLD = 18
+local touchCandidate: InputObject? = nil
+local touchStartPosition: Vector2? = nil
+
+local function isOverInteractiveGui(screenPosition: Vector2): boolean
+	for _, object in ipairs(playerGui:GetGuiObjectsAtPosition(screenPosition.X, screenPosition.Y)) do
+		if object:IsA("GuiButton") or object:IsA("ScrollingFrame") or object:IsA("TextBox") then
+			return true
+		end
 	end
-	if not placing then return end
-	if input.KeyCode == Enum.KeyCode.R then
-		rotation = (rotation + 90) % 360
-		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
-	elseif input.KeyCode == Enum.KeyCode.Escape then
-		stopPlacing()
-	elseif input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch
-	then
-		pointerPosition = if input.UserInputType == Enum.UserInputType.Touch
-			then Vector2.new(input.Position.X, input.Position.Y)
-			else UserInputService:GetMouseLocation()
+	return false
+end
+
+local function selectBuildingAt(screenPosition: Vector2)
+	local activeCamera = Workspace.CurrentCamera
+	if activeCamera == nil then return end
+	local ray = activeCamera:ScreenPointToRay(screenPosition.X, screenPosition.Y)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	if player.Character then params.FilterDescendantsInstances = { player.Character } end
+	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+	selectBuilding(if hit then findBuildingModel(hit.Instance) else nil)
+end
+
+local function chooseWorldPoint(screenPosition: Vector2)
+	if isOverInteractiveGui(screenPosition) then return end
+	if placing then
+		pointerPosition = screenPosition
 		updatePreview(pointerPosition)
 		placementLocked = currentValid
 		if placementLocked then setStatus("Место закреплено. Нажми «Построить» или выбери другое", true) end
+	else
+		selectBuildingAt(screenPosition)
 	end
+end
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if buildRequestInFlight or demolitionRequestInFlight then return end
+	if input.UserInputType == Enum.UserInputType.Touch then
+		-- Touch controls and camera swipes must never pick construction cells.
+		-- Only an unprocessed, single-finger tap can select the world on release.
+		if processed or touchCandidate ~= nil then
+			touchCandidate = nil
+			touchStartPosition = nil
+			return
+		end
+		local position = Vector2.new(input.Position.X, input.Position.Y)
+		if isOverInteractiveGui(position) then return end
+		touchCandidate = input
+		touchStartPosition = position
+		return
+	end
+	if processed then return end
+	if input.KeyCode == Enum.KeyCode.R and placing then
+		rotation = (rotation + 90) % 360
+		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
+	elseif input.KeyCode == Enum.KeyCode.Escape and placing then
+		stopPlacing()
+	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+		chooseWorldPoint(UserInputService:GetMouseLocation())
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input ~= touchCandidate then return end
+	local startPosition = touchStartPosition
+	touchCandidate = nil
+	touchStartPosition = nil
+	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil then return end
+	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
+	if (endPosition - startPosition).Magnitude > TAP_DRAG_THRESHOLD then return end
+	chooseWorldPoint(endPosition)
 end)
 
 UserInputService.InputChanged:Connect(function(input)
