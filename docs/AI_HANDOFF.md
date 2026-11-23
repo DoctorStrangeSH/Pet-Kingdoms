@@ -1093,3 +1093,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - A player can now target the island ground even when decorations, trees, previously built houses or fences visually overlap the screen-space pointer; existing grid footprint overlap/bounds checks remain responsible for invalidating occupied cells. No server-side construction authorization, payments or persistence changed.
 - When the pointer ray misses the island, both the footprint indicator and 3D local silhouette are hidden, preventing a stale preview from remaining visibly green at its last position.
 - Verify in Roblox Studio: target a free cell behind a tree; tap an occupied building (red overlap, not accepted); move the cursor/tap outside island (preview disappears); return to grass (preview restores); test mobile camera, moving existing buildings, and island-edge restrictions. The code change is committed, but Studio verification is pending.
+
+
+## Decorated prototype paths and fences (2026-11-23)
+
+- Replaced the single oversized stone-path slab in `IslandWorldService.createFallbackBuilding` with four deterministically arranged slate stepping stones of varied size and tone. No randomness and no additional save fields: each path segment can still be rotated as before.
+- Upgraded the procedural wooden fence with taller posts, lighter post caps, slimmer rails, and a small central wooden ornament.
+- Mirrored both shapes in `IslandBuildingController.makePreviewVisual` so the local construction silhouette and fallback server-generated result use matching footprints and major geometry.
+- These are still project-owned procedural placeholder models, not reviewed third-party Creator Store assets or finished production art. `ServerStorage/BuildingModels/<catalogId>` custom models take precedence when supplied in Studio.
+- Studio runtime visual testing remains pending: create several adjacent path/fence segments, rotate all four directions, verify accurate previews, inspect mobile rendering, saved rejoin, interaction raycast and physics behavior. No construction cost, persistence schema, or server placement validation changed.
