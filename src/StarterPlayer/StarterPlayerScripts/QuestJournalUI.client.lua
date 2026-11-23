@@ -97,7 +97,8 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 340), MaxSize = Vector2.new(500, 440) }, panel)
+local panelConstraint = make("UISizeConstraint", { MinSize = Vector2.new(250, 300), MaxSize = Vector2.new(500, 440) }, panel) :: UISizeConstraint
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
@@ -499,10 +500,14 @@ end)
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
+	-- Keep the full modal, including its close button, inside short landscape viewports.
+	local baseHeight = if compact then 390 else 410
+	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.72, 1)
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, -12)
 	tracker.Size = UDim2.fromOffset(compact and 220 or 260, 78)
 end
