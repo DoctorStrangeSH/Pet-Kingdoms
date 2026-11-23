@@ -636,3 +636,13 @@ Source-level layout pass only; runtime visual/touch verification remains pending
 - [x] On very short landscape screens, collapse the four resource chips into one compact row and hide only their redundant text labels (balances and resource icons remain visible).
 - [x] Separate Build, Pet Collection, and Island Expansion launchers vertically with 40–44 px targets; move gather feedback below the left-side quest launcher and hide the optional kingdom-bond caption while the short-screen controls occupy that space.
 - [ ] Verify the 320×180 and 360×180 layouts in Roblox Studio, including toast visibility, all launcher hit targets, and resource amount legibility.
+
+### Stage 1 — Island Expansion landscape layout (2026-11-23)
+
+- [x] Replace whole-panel downscaling on very short landscape screens with a dedicated compact layout.
+- [x] Keep the current and next island dimensions visible side by side.
+- [x] Preserve a readable title, close control, status line, and refresh action within the available height.
+- [x] Restore the standard vertical card layout and original text wrapping when returning to taller screens.
+- [ ] Verify at 320×180, 360×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio; confirm no clipping, overlapping text, or inaccessible close/refresh controls.
+
+The expansion window remains a read-only preview: purchase/expansion execution is not implemented by this UI pass. Runtime visual/touch verification remains pending.
