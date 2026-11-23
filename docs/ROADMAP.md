@@ -745,3 +745,12 @@ Source-level responsive layout added; Studio visual checks remain pending.
 - [ ] Run `RequestRunnerTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; confirm all assertions pass and no unexpected errors appear.
 
 Test source added; Studio execution remains pending.
+
+### Stage 1 — Modal controller lifecycle hardening (2026-11-23)
+
+- [x] Close the previous controller callback before replacing an existing modal registration, including active-window focus cleanup.
+- [x] Always invoke modal cleanup during unregister, even when focus bookkeeping says the modal is inactive; this repairs stale visible panels/shades after interrupted transitions.
+- [x] Extend the opt-in Studio modal smoke test for active controller re-registration and inactive unregister cleanup.
+- [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `RunPetKingdomsStudioTests=true`; verify switching, CloseAll, unregister, re-register, Escape routing, and no orphaned shades/input blockers.
+
+Source and regression coverage updated; Studio execution remains pending.
