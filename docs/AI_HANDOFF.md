@@ -1110,3 +1110,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Updated the in-game construction preview to use corresponding geometry and proportions for both house types; placement costs and saved footprint dimensions remain unchanged. Custom ServerStorage/BuildingModels templates still take precedence.
 - Fixed a preview-only defect: the invisible PrimaryPart pivot is excluded from transparency reveal so it stays hidden.
 - Studio tests still pending: inspect homes from all angles, confirm front-facing details and preview/final alignment at 0/90/180/270 rotations, verify MainHousePrompt/PetHousePrompt remain usable, and test mobile framerate. Rojo CI build success does not establish runtime correctness.
+
+
+## Island foliage and resource-node detail pass (2026-11-23)
+
+- Updated procedural perimeter trees with four small leafy canopy clusters in alternating green shades; additional clusters are noncolliding and nonqueryable to avoid blocking movement or build raycasts.
+- Added three differently tinted foliage lobes to gatherable wood nodes. Added two slate fragments and two restrained glass highlights to stone nodes. All new details belong to the existing node Model, so its current depleted-node visibility handling can hide them together with the node.
+- Resource node IDs, interaction prompt selection, respawn timings, server rewards, DataStore schema, and building placement dimensions are unchanged. This is lightweight prototype geometry, not final vetted Creator Store assets.
+- Roblox Studio validation pending: inspect details at mobile resolution, collect a wood node and a stone node, confirm all parts hide while depleted and return appropriately on respawn, verify prompts still work and no duplicate rewards. Check frame-time and part counts on eight concurrent islands before broader environment dressing.
