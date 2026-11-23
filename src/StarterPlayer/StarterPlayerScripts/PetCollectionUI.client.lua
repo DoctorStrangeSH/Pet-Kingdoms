@@ -481,18 +481,32 @@ local function updateDetail()
 			break
 		end
 	end
-	if selected == nil then
+	if selected == nil and activeFilter == "all" and search.Text == "" then
 		selectedPetId = collection.owned[1] and collection.owned[1].petId or nil
 		selected = collection.owned[1]
 	end
 	if selected == nil then
-		petName.Text = "Пока пусто"
-		petRarity.Text = "КОЛЛЕКЦИЯ"
-		petDescription.Text = "Исследуй мир, чтобы найти новых друзей!"
+		local hasPets = #collection.owned > 0
+		petName.Text = if hasPets then "Ничего не найдено" else "Пока пусто"
+		petRarity.Text = if hasPets then "ПОИСК И ФИЛЬТРЫ" else "КОЛЛЕКЦИЯ"
+		petDescription.Text = if hasPets then "Измени запрос или фильтр, чтобы увидеть других питомцев." else "Исследуй мир, чтобы найти новых друзей!"
 		equipButton.Visible = false
+		favoriteButton.Visible = false
+		lockButton.Visible = false
+		deleteButton.Visible = false
+		mainButton.Visible = false
+		teamLabel.Visible = false
+		bondLabel.Visible = false
+		interactionRow.Visible = false
 		preview:ClearAllChildren()
 		return
 	end
+	favoriteButton.Visible = true
+	lockButton.Visible = true
+	deleteButton.Visible = true
+	teamLabel.Visible = not compactCollection
+	bondLabel.Visible = true
+	interactionRow.Visible = not compactCollection
 
 	petName.Text = if selected.speciesId == "bunny" then "Зайчик" else selected.speciesId
 	petRarity.Text = "ОБЫЧНЫЙ • " .. string.upper(selected.speciesId)
@@ -554,6 +568,13 @@ local function renderList()
 		end
 		return a.acquiredAt > b.acquiredAt
 	end)
+	local selectedVisible = false
+	for _, record in ipairs(visibleRecords) do
+		if record.petId == selectedPetId then selectedVisible = true break end
+	end
+	if not selectedVisible then
+		selectedPetId = visibleRecords[1] and visibleRecords[1].petId or nil
+	end
 	for index, record in ipairs(visibleRecords) do
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
 		local equipped = isEquipped(record.petId)
@@ -633,6 +654,7 @@ local function renderList()
 	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
 	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
 	sortButton.Text = if sortMode == "newest" then "НОВЫЕ" elseif sortMode == "name" then "ИМЯ" else "ДРУЖБА"
+	updateDetail()
 end
 
 local function refreshCollection()
