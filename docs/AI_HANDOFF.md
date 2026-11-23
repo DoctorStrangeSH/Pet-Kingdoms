@@ -1494,3 +1494,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `resizeLoadingCard()` to `IslandLoading.client.lua`. On very short viewports (<210 px tall), the loading panel shrinks to 148 px and repositions/scales its title, subtitle, status, and progress track; short screens below 280 px use a 176 px card. Taller screens retain the original 224 px layout.
 - The panel size constraints now follow the active layout, and viewport listeners are rebound when `Workspace.CurrentCamera` changes.
 - Next: verify 320×180 and 360×180 landscape plus portrait/tablet/desktop, including Loading, Ready, and Failed states. No Studio runtime check has yet been performed.
+
+## Stage 1 — RequestRunner regression coverage (2026-11-23)
+
+- Added `src/StarterPlayer/StarterPlayerScripts/Tests/RequestRunnerTests.client.lua`, gated by `RunPetKingdomsStudioTests=true` in Studio.
+- Covers successful values, callback errors (`REMOTE_ERROR`), the two-second minimum timeout, nil timeout value, and late callback completion without changing the already-returned timeout result.
+- This test explicitly captures the important contract: RequestRunner bounds the client wait; it does not cancel the server-side RemoteFunction invocation.
+- Next: execute this and the other UI smoke tests in Roblox Studio. CI place compilation does not substitute for runtime test execution.
