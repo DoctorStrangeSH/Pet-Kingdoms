@@ -44,6 +44,7 @@ local currentCellX: number? = nil
 local currentCellZ: number? = nil
 local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
+local previewVisual: Model? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
 local movingInstanceId: string? = nil
@@ -381,10 +382,64 @@ local function clearPreview()
 		currentPreview:Destroy()
 		currentPreview = nil
 	end
+	if previewVisual then
+		previewVisual:Destroy()
+		previewVisual = nil
+	end
 	currentCellX = nil
 	currentCellZ = nil
 	currentValid = false
 	placementLocked = false
+end
+
+-- Local, lightweight silhouettes match the procedural server blockouts.
+-- The server remains the authority for actual construction.
+local function makePreviewVisual(catalogId: string, unit: number): Model
+	local model = Instance.new("Model")
+	model.Name = "LocalBuildingSilhouette"
+	local width = BUILDING_WIDTH * unit * 0.82
+	local depth = BUILDING_DEPTH * unit * 0.82
+	local function piece(name: string, size: Vector3, offset: CFrame, color: Color3, material: Enum.Material)
+		local part = Instance.new("Part")
+		part.Name = name
+		part.Size = size
+		part.CFrame = offset
+		part.Color = color
+		part.Material = material
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanTouch = false
+		part.CanQuery = false
+		part.CastShadow = false
+		part.Transparency = 0.3
+		part.Parent = model
+	end
+	if catalogId == "stone_path" then
+		piece("StoneSlab", Vector3.new(width * 0.92, unit * 0.1, depth * 0.92), CFrame.new(0, unit * 0.05, 0), Color3.fromRGB(157, 157, 150), Enum.Material.Slate)
+	elseif catalogId == "wooden_fence" then
+		for index, x in ipairs({-width * 0.4, width * 0.4}) do
+			piece("Post_" .. index, Vector3.new(width * 0.12, unit * 0.62, depth * 0.12), CFrame.new(x, unit * 0.31, 0), Color3.fromRGB(128, 88, 55), Enum.Material.Wood)
+		end
+		for _, height in ipairs({0.24, 0.52}) do
+			piece("Rail", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1), CFrame.new(0, unit * height, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
+		end
+	elseif catalogId == "flower_bed" then
+		piece("Planter", Vector3.new(width * 0.88, unit * 0.12, depth * 0.88), CFrame.new(0, unit * 0.06, 0), Color3.fromRGB(132, 91, 61), Enum.Material.WoodPlanks)
+		piece("Soil", Vector3.new(width * 0.72, unit * 0.08, depth * 0.72), CFrame.new(0, unit * 0.15, 0), Color3.fromRGB(76, 58, 43), Enum.Material.Ground)
+		for index, x in ipairs({-width * 0.23, 0, width * 0.23}) do
+			piece("Flower_" .. index, Vector3.new(unit * 0.17, unit * 0.17, unit * 0.17), CFrame.new(x, unit * 0.43, 0), Color3.fromRGB(255, 155, 196), Enum.Material.SmoothPlastic)
+		end
+	elseif catalogId == "garden_lantern" then
+		piece("Post", Vector3.new(width * 0.12, unit * 0.62, depth * 0.12), CFrame.new(0, unit * 0.36, 0), Color3.fromRGB(111, 77, 48), Enum.Material.Wood)
+		piece("Lantern", Vector3.new(width * 0.42, unit * 0.28, depth * 0.42), CFrame.new(0, unit * 0.78, 0), Color3.fromRGB(255, 211, 125), Enum.Material.Neon)
+		piece("Cap", Vector3.new(width * 0.56, unit * 0.08, depth * 0.56), CFrame.new(0, unit * 0.96, 0), Color3.fromRGB(83, 63, 49), Enum.Material.Wood)
+	else
+		local petHouse = catalogId == "pet_house"
+		piece("Walls", Vector3.new(width * 0.82, unit * 0.55, depth * 0.72), CFrame.new(0, unit * 0.32, 0), if petHouse then Color3.fromRGB(238, 190, 132) else Color3.fromRGB(246, 218, 169), Enum.Material.Wood)
+		piece("Roof", Vector3.new(width, unit * 0.2, depth * 0.9), CFrame.new(0, unit * 0.75, 0), if petHouse then Color3.fromRGB(105, 164, 205) else Color3.fromRGB(126, 83, 139), Enum.Material.Slate)
+		piece("Door", Vector3.new(width * 0.22, unit * 0.32, 0.13), CFrame.new(0, unit * 0.2, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
+	end
+	return model
 end
 
 local function createPreview()
@@ -414,6 +469,8 @@ local function createPreview()
 	part.Transparency = 0.45
 	part.Parent = Workspace
 	currentPreview = part
+	previewVisual = makePreviewVisual(selectedCatalogId, cellSize)
+	previewVisual.Parent = Workspace
 end
 
 local function getIslandGrid(): (BasePart?, number?, number?, number?)
@@ -491,6 +548,14 @@ local function updatePreviewAtCell(x: number, z: number)
 	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 elseif selectedCatalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
 	currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
 	currentPreview.CFrame = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0)
+	if previewVisual then
+		previewVisual:PivotTo(top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0))
+		for _, descendant in ipairs(previewVisual:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				descendant.Transparency = if valid then 0.3 else 0.65
+			end
+		end
+	end
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
 	local message = if not inside then "Объект выходит за границы острова" elseif overlaps then "Это место уже занято другим объектом" else "Место подходит — можно разместить"
 	setStatus(message, valid)
@@ -550,8 +615,9 @@ local function setSelectedBuilding(catalogId: string)
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
-			local previewHeight = if catalogId == "stone_path" then 0.35 elseif catalogId == "garden_lantern" then cellSize * 0.8 elseif catalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
-			currentPreview.Size = Vector3.new(BUILDING_WIDTH * cellSize, previewHeight, BUILDING_DEPTH * cellSize)
+			if previewVisual then previewVisual:Destroy() end
+			previewVisual = makePreviewVisual(catalogId, cellSize)
+			previewVisual.Parent = Workspace
 		end
 	end
 	local labels = {
