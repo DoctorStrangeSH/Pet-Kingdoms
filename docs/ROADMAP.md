@@ -670,3 +670,13 @@ Source-level fix and regression coverage added. Studio interaction checks remain
 - [ ] Run NotificationManager smoke tests in Roblox Studio and verify success/info/warning/error/reward variants.
 
 Source-level layout and lifecycle changes added; Studio visual/runtime checks remain pending.
+
+### Stage 1 — Pet Collection short-landscape layout (2026-11-23)
+
+- [x] Replace portrait-only fixed offsets on very short displays with a dedicated compact landscape collection layout.
+- [x] Keep title/close, search, filters, and the pet list inside the visible panel at 320×180 and 360×180 class resolutions.
+- [x] Provide a compact selected-pet detail view with reachable back, equip, main-pet, and delete actions; hide secondary detail labels only where vertical space cannot support them.
+- [x] Restore normal mobile/portrait scrollbar thickness and control layout when returning to taller screens.
+- [ ] Verify list scrolling, selection, search, filters, detail navigation, equip/main/delete controls, and delete confirmation in Roblox Studio at 320×180, 360×180, 360×640, 390×844, tablet, and desktop.
+
+Source-level layout fix added. Roblox Studio visual and interaction checks remain pending.
