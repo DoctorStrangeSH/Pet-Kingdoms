@@ -1501,3 +1501,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Covers successful values, callback errors (`REMOTE_ERROR`), the two-second minimum timeout, nil timeout value, and late callback completion without changing the already-returned timeout result.
 - This test explicitly captures the important contract: RequestRunner bounds the client wait; it does not cancel the server-side RemoteFunction invocation.
 - Next: execute this and the other UI smoke tests in Roblox Studio. CI place compilation does not substitute for runtime test execution.
+
+## Stage 1 — Modal controller lifecycle hardening (2026-11-23)
+
+- `ModalManager.Register` now runs the previous close handler before replacing an existing registration. If that registration owned focus, focus is cleared before the replacement is stored.
+- `ModalManager.Unregister` now always invokes the registered cleanup callback, not only when `activeWindow == name`. This intentionally repairs stale GUI visibility if focus bookkeeping was lost during an interrupted transition.
+- Extended `ModalManagerTests.client.lua` to cover re-registering an active controller and unregistering an inactive-but-stale visible controller.
+- Next: run modal smoke tests in Studio and manually verify no orphaned shades or input blockers after switching, Escape, CloseAll, and controller teardown.
