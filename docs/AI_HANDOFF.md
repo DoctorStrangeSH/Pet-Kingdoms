@@ -1300,3 +1300,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Migrated Quest Journal quest cards, Island Expansion current/next level cards, and Pet Collection detail surface to the shared helper. The next island level card uses the highlight treatment; the current level and other content use the neutral surface treatment.
 - Dynamic pet-list selection/equipped outlines and construction catalog selection strokes remain state-driven and were not overwritten by the static helper. This preserves selection semantics.
 - Static source audit only. Roblox Studio visual testing remains pending for clipping, nested stroke ordering, text contrast, narrow screens, and runtime state transitions. Building catalog and kingdom overview card surfaces still need a deliberate state-aware migration.
+
+
+## Stage 1 — Interface & usability: shared typography scale (2026-11-23)
+
+- Added semantic text sizes to `InterfaceTheme.Typography.Sizes`: Display 22, Heading 18, Body 14, Caption 12, Micro 10, Numeric 20. Existing Gotham font roles remain centralized.
+- Added `InterfaceComponents.StyleText(TextLabel, role)` to apply role-based font, size and non-scaled text consistently.
+- Migrated Pet Collection and Quest Journal main titles/subtitles, and Island Expansion title/subtitle/current-level/next-level labels. This is a targeted header hierarchy pass; dynamic content, body copy and small status labels retain their existing sizes until individually reviewed for fit.
+- Static source audit confirms helper and role definitions exist in the shared modules and the three migrated screens call them. Roblox Studio visual checks remain pending: title clipping at 320px width, long localized strings, font legibility at minimum scale, and construction/kingdom overview typography consistency. No runtime or visual sign-off claimed.
