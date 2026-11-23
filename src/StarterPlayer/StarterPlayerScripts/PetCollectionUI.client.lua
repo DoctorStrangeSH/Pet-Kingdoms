@@ -66,6 +66,7 @@ local openButton = make("TextButton", {
 }, screen) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(1, 0) }, openButton)
 make("UIStroke", { Color = COLORS.gold, Thickness = 2, Transparency = 0.12 }, openButton)
+InterfaceComponents.StyleFloatingButton(openButton, "mint")
 
 local shade = make("TextButton", {
 	Name = "Shade",
