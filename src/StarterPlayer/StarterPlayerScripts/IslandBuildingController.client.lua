@@ -159,7 +159,7 @@ local panel = make("Frame", {
 	Visible = false,
 }, gui) :: Frame
 local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
-make("UISizeConstraint", { MinSize = Vector2.new(220, 210), MaxSize = Vector2.new(540, 245) }, panel)
+local panelConstraint = make("UISizeConstraint", { MinSize = Vector2.new(220, 190), MaxSize = Vector2.new(540, 245) }, panel) :: UISizeConstraint
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -339,8 +339,15 @@ local function resizeBuildingPanel()
 	local compact = viewport.X < 520
 	compactBuildingUI = compact
 	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
-	panelScale.Scale = math.clamp((viewport.Y - 72) / 228, 0.76, 1)
-	panel.Size = UDim2.fromOffset(panelWidth, 228)
+	local panelHeight = if compact then 198 else 228
+	panelScale.Scale = math.clamp((viewport.Y - 72) / panelHeight, 0.72, 1)
+	panelConstraint.MinSize = Vector2.new(220, if compact then 190 else 210)
+	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
+	status.Position = UDim2.fromOffset(0, compact and 28 or 30)
+	status.Size = UDim2.new(1, 0, 0, compact and 23 or 30)
+	catalogRow.Position = UDim2.fromOffset(0, compact and 54 or 62)
+	catalogRow.Size = UDim2.new(1, 0, 0, compact and 66 or 84)
+	buttons.Position = UDim2.fromOffset(0, compact and 128 or 157)
 	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
 	local gap = 8
@@ -352,6 +359,7 @@ local function resizeBuildingPanel()
 	status.TextSize = if tiny then 10 else (if compact then 11 else 12)
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 		button.TextSize = if tiny then 10 else (if compact then 11 else 13)
+		button.Size = UDim2.fromOffset(compact and 118 or 130, compact and 54 or 70)
 	end
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
@@ -846,6 +854,38 @@ local function updatePreviewAtCell(x: number, z: number)
 	setStatus(message, valid)
 end
 
+-- Show a tangible preview as soon as construction starts, even when the
+-- cursor remains over the catalogue or the player is using touch.
+-- This is a visual starting point only: the player still taps/clicks to lock it.
+local function seedPreview()
+	if not placing or currentPreview == nil then return end
+	local _, width, depth = getIslandGrid()
+	if width == nil or depth == nil then return end
+	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
+	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
+	local centerX = math.floor((width - footprintWidth) / 2)
+	local centerZ = math.floor((depth - footprintDepth) / 2)
+	local bestX: number? = nil
+	local bestZ: number? = nil
+	local bestDistance = math.huge
+	for x = 0, width - footprintWidth do
+		for z = 0, depth - footprintDepth do
+			if not hasBuildingOverlap(x, z, footprintWidth, footprintDepth) then
+				local distance = (x - centerX) ^ 2 + (z - centerZ) ^ 2
+				if distance < bestDistance then
+					bestX, bestZ, bestDistance = x, z, distance
+				end
+			end
+		end
+	end
+	if bestX ~= nil and bestZ ~= nil then
+		updatePreviewAtCell(bestX, bestZ)
+		placementLocked = false
+	else
+		setStatus("На острове нет свободного места для этой постройки", false)
+	end
+end
+
 local function updatePreview(screenPosition: Vector2)
 	if not placing or currentPreview == nil then return end
 	local top, _, _, cellSize = getIslandGrid()
@@ -925,9 +965,12 @@ local function setSelectedBuilding(catalogId: string)
 		wooden_fence = "Выбран деревянный забор",
 	}
 	setStatus(labels[catalogId] or "Выбран объект")
-	-- Keep the saved cell fixed while the player changes the catalog item.
+	-- Keep the chosen cell when locked; otherwise show the newly selected
+	-- building at a free starting position instead of an invisible preview.
 	if placing and placementLocked and currentCellX ~= nil and currentCellZ ~= nil then
 		updatePreviewAtCell(currentCellX, currentCellZ)
+	elseif placing then
+		seedPreview()
 	end
 end
 
@@ -1000,6 +1043,7 @@ local function beginMoveSelected()
 		return
 	end
 	placementLocked = false
+	seedPreview()
 	setStatus("Коснись земли, чтобы выбрать новое место")
 end
 
@@ -1055,6 +1099,7 @@ local function beginPlacing()
 		return
 	end
 	placementLocked = false
+	seedPreview()
 	setStatus(if touchPlacement then "1. Выбери здание  2. Коснись свободной травы  3. Нажми «ПОСТРОИТЬ»" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
@@ -1280,7 +1325,8 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 RunService.RenderStepped:Connect(function()
-	if placing and not buildRequestInFlight and not placementLocked and not touchPlacement then
+	if placing and not buildRequestInFlight and not placementLocked and not touchPlacement
+		and ModalManager.IsActive(script.Name) and not isOverInteractiveGui(pointerPosition) then
 		updatePreview(pointerPosition)
 	end
 end)
