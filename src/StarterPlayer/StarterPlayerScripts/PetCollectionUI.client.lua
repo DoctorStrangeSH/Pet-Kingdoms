@@ -883,7 +883,12 @@ resize = function()
 	local viewport = camera.ViewportSize
 	compactCollection = viewport.X < 650
 	local launcherCompact = viewport.X < 560
-	openButton.Size = UDim2.fromOffset(launcherCompact and 52 or 62, launcherCompact and 52 or 62)
+	openButton.Size = UDim2.fromOffset(launcherCompact and 48 or 62, launcherCompact and 48 or 62)
+	openButton.TextSize = if launcherCompact then 23 else 30
+	closeButton.Size = UDim2.fromOffset(launcherCompact and 36 or 40, launcherCompact and 36 or 40)
+	title.TextSize = if compactCollection then 16 else 22
+	subtitle.TextSize = if compactCollection then 11 else 12
+	search.TextSize = if compactCollection then 12 else 14
 	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
@@ -895,6 +900,9 @@ resize = function()
 		search.Size = UDim2.fromOffset(contentWidth, 38)
 		filterBar.Position = UDim2.fromOffset(24, 132)
 		filterBar.Size = UDim2.fromOffset(contentWidth, 32)
+		for _, filterButton in ipairs({ allFilterButton, teamFilterButton, favoriteFilterButton, sortButton }) do
+			filterButton.TextSize = if viewport.X < 360 then 8 else 9
+		end
 		list.Position = UDim2.fromOffset(24, 172)
 		list.Size = UDim2.new(1, -48, 1, -196)
 		mobileBackButton.Visible = mobileDetailVisible
