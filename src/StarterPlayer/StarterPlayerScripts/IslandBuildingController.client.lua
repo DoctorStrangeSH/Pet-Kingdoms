@@ -72,6 +72,7 @@ local function shouldKeepPendingRequest(response: any): boolean
 end
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, properties: { [string]: any }, parent: Instance): Instance
@@ -129,12 +130,12 @@ local panelCloseButton = make("TextButton", {
 	BackgroundColor3 = COLORS.panelLight,
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = "✕",
+	Text = "×",
 	TextColor3 = COLORS.text,
-	TextSize = 19,
+	TextSize = 24,
 	ZIndex = 4,
 }, panel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 12) }, panelCloseButton)
+InterfaceComponents.StyleCloseButton(panelCloseButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
