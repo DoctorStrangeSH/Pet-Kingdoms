@@ -595,7 +595,7 @@ local function renderList()
 					if record.isLocked then "🔒" else "",
 					if record.isFavorite then "★" else "",
 				}, "  "),
-				TextSize = 9,
+				TextSize = 10,
 				Font = Enum.Font.GothamMedium,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextColor3 = if equipped then COLORS.mint else COLORS.muted,
