@@ -595,7 +595,7 @@ Source commit: `bce0786`. CI `45153168859` was running at documentation time. St
 - [x] Rebind the construction panel's viewport listener when Workspace.CurrentCamera is replaced; disconnect the previous camera listener to avoid stale updates and accumulated connections.
 - [x] Shorten the demolition action label to УДАЛИТЬ on compact screens while retaining ДЕМОНТИРОВАТЬ on wider layouts, preventing the action text from competing with the reduced touch-button width.
 - [x] Keep the selection action labels synchronized when a building is selected after the initial viewport layout.
-- [ ] Run CI/static validation for the latest source commit.
+- [x] Run the Roblox place build and upload the Studio-ready artifact successfully (GitHub Actions run 45192511163).
 - [ ] Verify at 320/360/390 px portrait, short landscape, and desktop in Roblox Studio; include camera replacement and selection/move/demolish actions.
 - [ ] Continue the cross-screen overflow/spacing audit. Stage 1 remains open until Studio/device regression is completed.
 
