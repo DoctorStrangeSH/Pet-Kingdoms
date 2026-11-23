@@ -1619,3 +1619,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Compact delete-confirmation buttons increased to 50 px before the existing viewport UIScale; regular layout uses 38 px. The panel still scales to fit short screens.
 - Rarity badges were not added because the current client `PetRecord` and server `cloneForClient` contract do not expose rarity. Do not infer rarity from species IDs; add it only with an authoritative server data field and validation.
 - Next: verify selected/equipped outlines, long-name confirmation text, cancel/backdrop/Escape, and destructive action hit targets in Studio.
+
+## Stage 1 — Delete confirmation request lifecycle (2026-11-23)
+
+- `confirmDeleteSelected()` now snapshots `pendingDeletePetId` into `deleteTargetPetId` before invoking the server, preserving the exact destructive target throughout the request.
+- While Delete is pending, both Confirm and Cancel controls are disabled and automatic button feedback is suppressed; both are restored after the request resolves.
+- Escape, backdrop dismissal, and Cancel now refuse to dismiss the confirmation while `busy` is true. This avoids presenting a false impression that an already-sent server deletion was cancelled.
+- Closing the entire collection remains available; the in-flight request retains its captured target and its completion updates authoritative collection state.
+- Next: test delayed Delete, timeout/reconciliation, close/reopen during request, and retry behavior in Studio.
