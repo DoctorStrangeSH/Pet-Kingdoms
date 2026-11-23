@@ -9,11 +9,18 @@ export type BuildingDefinition = {
 	allowedRotations: { [number]: boolean },
 	defaultUnlocked: boolean,
 	cost: { [string]: number }?,
+	maxUpgradeLevel: number?,
+	upgradeCosts: { [number]: { [string]: number } }?,
 }
 
 local Catalog: { [string]: BuildingDefinition } = {
 	main_house = {
 		id = "main_house",
+		maxUpgradeLevel = 3,
+		upgradeCosts = {
+			[2] = { wood = 12, stone = 6 },
+			[3] = { wood = 24, stone = 14 },
+		},
 		footprintWidth = 3,
 		footprintDepth = 3,
 		allowedRotations = {
@@ -26,6 +33,11 @@ local Catalog: { [string]: BuildingDefinition } = {
 	},
 	pet_house = {
 		id = "pet_house",
+		maxUpgradeLevel = 3,
+		upgradeCosts = {
+			[2] = { wood = 10, stone = 5 },
+			[3] = { wood = 20, stone = 12 },
+		},
 		footprintWidth = 3,
 		footprintDepth = 3,
 		allowedRotations = {
@@ -39,6 +51,8 @@ local Catalog: { [string]: BuildingDefinition } = {
 	},
 	stone_path = {
 		id = "stone_path",
+		maxUpgradeLevel = 2,
+		upgradeCosts = { [2] = { stone = 3 } },
 		footprintWidth = 1,
 		footprintDepth = 1,
 		allowedRotations = {
@@ -52,6 +66,8 @@ local Catalog: { [string]: BuildingDefinition } = {
 	},
 	garden_lantern = {
 		id = "garden_lantern",
+		maxUpgradeLevel = 2,
+		upgradeCosts = { [2] = { wood = 4, stone = 2 } },
 		footprintWidth = 1,
 		footprintDepth = 1,
 		allowedRotations = {
@@ -65,6 +81,8 @@ local Catalog: { [string]: BuildingDefinition } = {
 	},
 	flower_bed = {
 		id = "flower_bed",
+		maxUpgradeLevel = 2,
+		upgradeCosts = { [2] = { wood = 3 } },
 		footprintWidth = 1,
 		footprintDepth = 1,
 		allowedRotations = {
@@ -78,6 +96,8 @@ local Catalog: { [string]: BuildingDefinition } = {
 	},
 	wooden_fence = {
 		id = "wooden_fence",
+		maxUpgradeLevel = 2,
+		upgradeCosts = { [2] = { wood = 3 } },
 		footprintWidth = 1,
 		footprintDepth = 1,
 		allowedRotations = {
