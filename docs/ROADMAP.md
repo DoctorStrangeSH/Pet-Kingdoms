@@ -920,3 +920,11 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Fade newly created virtualized pet cards and their icon/name/metadata labels into view; reused cards remain untouched during overlapping scroll windows.
 - [x] Keep the existing data/filter/sort pipeline and scroll restoration unchanged; only presentation transitions are animated.
 - [ ] Verify repeated rapid filter/sort taps, 500-pet scrolling, no stale tween callbacks, and low-frame-rate behavior in Roblox Studio.
+
+### Stage 1 — Pet card selection and action feedback (2026-11-23)
+
+- [x] Animate selected/unselected card background and outline transitions with cancellable tweens.
+- [x] Keep equipped cards visually distinct with mint outlines and selected cards with gold outlines.
+- [x] Add a compact icon-size pulse after Favorite/Lock settings are accepted by the server.
+- [x] Cancel a card's previous selection tween before applying a new state.
+- [ ] Verify rapid selection changes, Favorite/Lock feedback, mobile card taps, and 500-pet scrolling in Roblox Studio.
