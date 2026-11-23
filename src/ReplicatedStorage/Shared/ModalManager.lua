@@ -9,6 +9,7 @@ type CloseHandler = (reason: string) -> ()
 local handlers: { [string]: CloseHandler } = {}
 local activeWindow: string? = nil
 local opening = false
+local activeChanged = Instance.new("BindableEvent")
 
 local function getRegisteredNames(): { string }
 	local names = {}
@@ -38,6 +39,7 @@ function ModalManager.Unregister(name: string)
 	handlers[name] = nil
 	if activeWindow == name then
 		activeWindow = nil
+		activeChanged:Fire(nil)
 	end
 end
 
@@ -58,11 +60,13 @@ function ModalManager.Open(name: string)
 	end
 	activeWindow = name
 	opening = false
+	activeChanged:Fire(name)
 end
 
 function ModalManager.Close(name: string)
 	if activeWindow == name then
 		activeWindow = nil
+		activeChanged:Fire(nil)
 	end
 end
 
@@ -85,6 +89,9 @@ function ModalManager.CloseAll()
 	end
 	activeWindow = nil
 	opening = false
+	activeChanged:Fire(nil)
 end
+
+ModalManager.ActiveChanged = activeChanged.Event
 
 return table.freeze(ModalManager)
