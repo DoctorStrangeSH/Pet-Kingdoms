@@ -73,60 +73,6 @@ local function shouldKeepPendingRequest(response: any): boolean
 		or response.code == "SESSION_NOT_WRITABLE"
 end
 
-local function setPendingBuildingOperation(key: string, requestId: string, payload: { [string]: any }, description: string)
-	pendingBuildingOperationKey = key
-	pendingBuildingOperation = {
-		key = key,
-		requestId = requestId,
-		payload = table.clone(payload),
-		description = description,
-	}
-	recoveryDescription.Text = description .. " — результат пока неизвестен."
-	recoveryPanel.Visible = true
-end
-
-local function clearPendingBuildingOperation()
-	if pendingBuildingOperation then
-		clearPendingRequestId(pendingBuildingOperation.key)
-	end
-	pendingBuildingOperation = nil
-	pendingBuildingOperationKey = nil
-	recoveryPanel.Visible = false
-end
-
-recoveryButton.Activated:Connect(function()
-	local pending = pendingBuildingOperation
-	if pending == nil or recoveryButton.Active == false then return end
-	recoveryButton.Active = false
-	recoveryButton.Text = "ПРОВЕРЯЕМ..."
-	InterfaceComponents.SetButtonLoading(recoveryButton, true, "ПРОВЕРЯЕМ...")
-	local requestResult = RequestRunner.Invoke(function()
-		return remote:InvokeServer(pending.payload)
-	end, 12)
-	InterfaceComponents.SetButtonLoading(recoveryButton, false)
-	recoveryButton.Active = true
-	recoveryButton.Text = "ПРОВЕРИТЬ РЕЗУЛЬТАТ"
-	if not requestResult.ok then
-		recoveryDescription.Text = "Ответ не получен. Можно безопасно проверить ещё раз."
-		NotificationManager.Notify("Результат операции пока не подтверждён", "warning")
-		return
-	end
-	local response = requestResult.value
-	if type(response) == "table" and response.ok == true then
-		clearPendingBuildingOperation()
-		setStatus(pending.description .. " — выполнено", true)
-		NotificationManager.Notify(pending.description .. " выполнено", "success")
-	elseif shouldKeepPendingRequest(response) then
-		recoveryDescription.Text = "Сервер ещё обрабатывает операцию. Проверь немного позже."
-		NotificationManager.Notify("Операция ещё не завершена", "warning")
-	else
-		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
-		clearPendingBuildingOperation()
-		setStatus("Операция не выполнена: " .. code, false)
-		NotificationManager.Notify("Сервер подтвердил, что операция не выполнена", "error")
-	end
-end)
-
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
@@ -482,22 +428,19 @@ demolishButton.Activated:Connect(function()
 		return
 	end
 	-- Capture the exact target before InvokeServer yields.
-	demolitionRequestInFlight = true
-	InterfaceComponents.SetButtonLoading(demolishButton, true, "УДАЛЕНИЕ...")
-	moveButton.Active = false
-	setStatus("Удаляем постройку…")
 	local operationKey = "demolish:" .. instanceId
 	if pendingBuildingOperationKey ~= nil and pendingBuildingOperationKey ~= operationKey then
 		setStatus("Сначала проверь результат предыдущей операции", false)
 		return
 	end
+	demolitionRequestInFlight = true
+	InterfaceComponents.SetButtonLoading(demolishButton, true, "УДАЛЕНИЕ...")
+	moveButton.Active = false
+	setStatus("Удаляем постройку…")
 	local requestId = getPendingRequestId(operationKey)
+	local requestPayload = { requestId = requestId, action = "demolish", instanceId = instanceId }
 	local requestResult = RequestRunner.Invoke(function()
-		return remote:InvokeServer({
-			requestId = requestId,
-			action = "demolish",
-			instanceId = instanceId,
-		})
+		return remote:InvokeServer(requestPayload)
 	end, 12)
 	local ok, response = requestResult.ok, requestResult.value
 	demolitionRequestInFlight = false
@@ -506,10 +449,9 @@ demolishButton.Activated:Connect(function()
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then
-		clearPendingRequestId(operationKey)
-		if pendingBuildingOperationKey == operationKey then pendingBuildingOperationKey = nil end
+		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
 	elseif not ok or shouldKeepPendingRequest(response) then
-		pendingBuildingOperationKey = operationKey
+		setPendingBuildingOperation(operationKey, requestId, requestPayload, "Демонтаж постройки")
 	end
 	if not ok then
 		if requestResult.errorCode == "TIMEOUT" then
@@ -545,6 +487,60 @@ setStatus = function(message: string, good: boolean?)
 	status.Text = message
 	status.TextColor3 = if good == true then COLORS.valid elseif good == false then COLORS.invalid else COLORS.text
 end
+
+local function setPendingBuildingOperation(key: string, requestId: string, payload: { [string]: any }, description: string)
+	pendingBuildingOperationKey = key
+	pendingBuildingOperation = {
+		key = key,
+		requestId = requestId,
+		payload = table.clone(payload),
+		description = description,
+	}
+	recoveryDescription.Text = description .. " — результат пока неизвестен."
+	recoveryPanel.Visible = true
+end
+
+local function clearPendingBuildingOperation()
+	if pendingBuildingOperation then
+		clearPendingRequestId(pendingBuildingOperation.key)
+	end
+	pendingBuildingOperation = nil
+	pendingBuildingOperationKey = nil
+	recoveryPanel.Visible = false
+end
+
+recoveryButton.Activated:Connect(function()
+	local pending = pendingBuildingOperation
+	if pending == nil or recoveryButton.Active == false then return end
+	recoveryButton.Active = false
+	recoveryButton.Text = "ПРОВЕРЯЕМ..."
+	InterfaceComponents.SetButtonLoading(recoveryButton, true, "ПРОВЕРЯЕМ...")
+	local requestResult = RequestRunner.Invoke(function()
+		return remote:InvokeServer(pending.payload)
+	end, 12)
+	InterfaceComponents.SetButtonLoading(recoveryButton, false)
+	recoveryButton.Active = true
+	recoveryButton.Text = "ПРОВЕРИТЬ РЕЗУЛЬТАТ"
+	if not requestResult.ok then
+		recoveryDescription.Text = "Ответ не получен. Можно безопасно проверить ещё раз."
+		NotificationManager.Notify("Результат операции пока не подтверждён", "warning")
+		return
+	end
+	local response = requestResult.value
+	if type(response) == "table" and response.ok == true then
+		clearPendingBuildingOperation()
+		setStatus(pending.description .. " — выполнено", true)
+		NotificationManager.Notify(pending.description .. " выполнено", "success")
+	elseif shouldKeepPendingRequest(response) then
+		recoveryDescription.Text = "Сервер ещё обрабатывает операцию. Проверь немного позже."
+		NotificationManager.Notify("Операция ещё не завершена", "warning")
+	else
+		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
+		clearPendingBuildingOperation()
+		setStatus("Операция не выполнена: " .. code, false)
+		NotificationManager.Notify("Сервер подтвердил, что операция не выполнена", "error")
+	end
+end)
 
 findOwnIsland = function(): Model?
 	local folder = Workspace:FindFirstChild("PlayerIslands")
@@ -1045,15 +1041,16 @@ confirmButton.Activated:Connect(function()
 		return
 	end
 	local requestId = getPendingRequestId(operationKey)
+	local requestPayload = {
+		requestId = requestId,
+		catalogId = requestedCatalogId,
+		x = requestedX,
+		z = requestedZ,
+		rotation = requestedRotation,
+		movingInstanceId = requestedMoveId,
+	}
 	local requestResult = RequestRunner.Invoke(function()
-		return remote:InvokeServer({
-			requestId = requestId,
-			catalogId = requestedCatalogId,
-			x = requestedX,
-			z = requestedZ,
-			rotation = requestedRotation,
-			movingInstanceId = requestedMoveId,
-		})
+		return remote:InvokeServer(requestPayload)
 	end, 12)
 	local ok, response = requestResult.ok, requestResult.value
 	buildRequestInFlight = false
@@ -1064,10 +1061,9 @@ confirmButton.Activated:Connect(function()
 	cancelButton.Active = true
 	confirmButton.Text = if requestedMoveId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then
-		clearPendingRequestId(operationKey)
-		if pendingBuildingOperationKey == operationKey then pendingBuildingOperationKey = nil end
+		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
 	elseif not ok or shouldKeepPendingRequest(response) then
-		pendingBuildingOperationKey = operationKey
+		setPendingBuildingOperation(operationKey, requestId, requestPayload, if requestedMoveId ~= nil then "Перемещение постройки" else "Строительство")
 	end
 	if not ok then
 		if requestResult.errorCode == "TIMEOUT" then
