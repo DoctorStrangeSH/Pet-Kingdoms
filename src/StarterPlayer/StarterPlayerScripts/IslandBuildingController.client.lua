@@ -49,6 +49,8 @@ local selectedBuildingModel: Model? = nil
 local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
+local placementLocked = false
+local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
 
 local function getPendingRequestId(operationKey: string): string
@@ -344,6 +346,7 @@ local function clearPreview()
 	currentCellX = nil
 	currentCellZ = nil
 	currentValid = false
+	placementLocked = false
 end
 
 local function createPreview()
@@ -574,7 +577,8 @@ local function beginMoveSelected()
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
 	end
-	setStatus("Выбери новое место для постройки")
+	placementLocked = false
+	setStatus("Коснись земли, чтобы выбрать новое место")
 end
 
 moveButton.Activated:Connect(beginMoveSelected)
@@ -618,18 +622,20 @@ local function beginPlacing()
 		end
 		return
 	end
-	setStatus("Наведи на траву и выбери место")
+	placementLocked = false
+	setStatus("Нажми на свободную траву, чтобы закрепить место")
 end
 
 rotateButton.Activated:Connect(function()
 	if not placing then return end
 	rotation = (rotation + 90) % 360
+	if placementLocked then updatePreview(pointerPosition) end
 end)
 
 cancelButton.Activated:Connect(stopPlacing)
 
 confirmButton.Activated:Connect(function()
-	if not placing or not currentValid or currentCellX == nil or currentCellZ == nil then
+	if not placing or not placementLocked or not currentValid or currentCellX == nil or currentCellZ == nil then
 		setStatus("Сначала выбери подходящее место", false)
 		return
 	end
@@ -703,6 +709,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if not placing then return end
 	if input.KeyCode == Enum.KeyCode.R then
 		rotation = (rotation + 90) % 360
+		if placementLocked then updatePreview(pointerPosition) end
 	elseif input.KeyCode == Enum.KeyCode.Escape then
 		stopPlacing()
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1
@@ -712,19 +719,19 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			then Vector2.new(input.Position.X, input.Position.Y)
 			else UserInputService:GetMouseLocation()
 		updatePreview(pointerPosition)
+		placementLocked = currentValid
+		if placementLocked then setStatus("Место закреплено. Нажми «Построить» или выбери другое", true) end
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType == Enum.UserInputType.MouseMovement and not placementLocked then
 		pointerPosition = UserInputService:GetMouseLocation()
-	elseif input.UserInputType == Enum.UserInputType.Touch then
-		pointerPosition = Vector2.new(input.Position.X, input.Position.Y)
 	end
 end)
 
 RunService.RenderStepped:Connect(function()
-	if placing then
+	if placing and not placementLocked and not touchPlacement then
 		updatePreview(pointerPosition)
 	end
 end)
