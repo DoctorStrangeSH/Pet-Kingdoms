@@ -771,8 +771,8 @@ local function refreshCollection()
 	collection = result :: Collection
 	-- Keep the selected identity when possible; only choose a fallback when
 	-- the server confirms that the previously selected pet is no longer owned.
-	local selectedRecord: PetRecord?
-	selectedRecord, selectedPetId = PetCollectionQuery.ResolveSelection(collection.owned, selectedPetId)
+	local _, resolvedSelectedPetId = PetCollectionQuery.ResolveSelection(collection.owned, selectedPetId)
+	selectedPetId = resolvedSelectedPetId
 	if panel.Visible then
 		renderList()
 		updateDetail()
