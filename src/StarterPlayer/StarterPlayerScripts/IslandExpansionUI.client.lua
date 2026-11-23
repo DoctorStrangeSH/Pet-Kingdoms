@@ -395,4 +395,9 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
+ModalManager.ActiveChanged:Connect(function(activeName: string?)
+	openButton.Visible = activeName == nil
+end)
+openButton.Visible = ModalManager.GetActive() == nil
+
 print("[PetKingdoms] Island expansion preview UI loaded.")
