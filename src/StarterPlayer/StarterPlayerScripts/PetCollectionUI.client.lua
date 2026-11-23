@@ -817,10 +817,7 @@ local function setMainPet()
 	if currentIndex == 1 then return end
 
 	busy = true
-	mainButton.Active = false
-	mainButton.AutoButtonColor = false
-	local previousMainButtonText = mainButton.Text
-	mainButton.Text = "..."
+	InterfaceComponents.SetButtonLoading(mainButton, true, "СОХРАНЯЕМ...")
 	local nextEquipped = table.clone(collection.equipped)
 	table.remove(nextEquipped, currentIndex)
 	table.insert(nextEquipped, 1, selectedPetId)
@@ -829,9 +826,7 @@ local function setMainPet()
 		expectedRevision = collection.revision,
 	})
 	busy = false
-	mainButton.Active = true
-	mainButton.AutoButtonColor = true
-	mainButton.Text = previousMainButtonText
+	InterfaceComponents.SetButtonLoading(mainButton, false)
 	if not ok or success ~= true or type(result) ~= "table" then
 		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние команды..." else "Не удалось сменить главного питомца. Обновляю данные...", true)
 		refreshCollection()
@@ -846,8 +841,7 @@ end
 local function toggleEquip()
 	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
-	equipButton.Active = false
-	equipButton.Text = "СОХРАНЯЕМ..."
+	InterfaceComponents.SetButtonLoading(equipButton, true, "СОХРАНЯЕМ...")
 	local nextEquipped = table.clone(collection.equipped)
 	local currentIndex = table.find(nextEquipped, selectedPetId)
 	if currentIndex then
@@ -857,7 +851,7 @@ local function toggleEquip()
 	else
 		showStatus("Можно выбрать не больше трёх питомцев.", true)
 		busy = false
-		equipButton.Active = true
+		InterfaceComponents.SetButtonLoading(equipButton, false)
 		updateDetail()
 		return
 	end
@@ -867,7 +861,7 @@ local function toggleEquip()
 		expectedRevision = collection.revision,
 	})
 	busy = false
-	equipButton.Active = true
+	InterfaceComponents.SetButtonLoading(equipButton, false)
 	if not ok or success ~= true or type(result) ~= "table" then
 		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю состояние команды..." else "Не удалось изменить команду. Обновляю данные...", true)
 		refreshCollection()
@@ -883,22 +877,16 @@ end
 local function interactWithSelected(interactionType: string)
 	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
-	petButton.Active = false
-	playButton.Active = false
-	local originalPetText = petButton.Text
-	local originalPlayText = playButton.Text
-	petButton.Text = "..."
-	playButton.Text = "..."
+	InterfaceComponents.SetButtonLoading(petButton, true, "...")
+	InterfaceComponents.SetButtonLoading(playButton, true, "...")
 	local ok, success, result, requestError = invokeCollection("Interact", {
 		petId = selectedPetId,
 		interactionType = interactionType,
 		expectedRevision = collection.revision,
 	})
 	busy = false
-	petButton.Active = true
-	playButton.Active = true
-	petButton.Text = originalPetText
-	playButton.Text = originalPlayText
+	InterfaceComponents.SetButtonLoading(petButton, false)
+	InterfaceComponents.SetButtonLoading(playButton, false)
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
 		local messages = {
@@ -921,8 +909,8 @@ end
 local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
-	favoriteButton.Active = false
-	lockButton.Active = false
+	InterfaceComponents.SetButtonLoading(favoriteButton, true, "...")
+	InterfaceComponents.SetButtonLoading(lockButton, true, "...")
 	local ok, success, result, requestError = invokeCollection("Protect", {
 		petId = selectedPetId,
 		isFavorite = isFavorite,
@@ -930,8 +918,8 @@ local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 		expectedRevision = collection.revision,
 	})
 	busy = false
-	favoriteButton.Active = true
-	lockButton.Active = true
+	InterfaceComponents.SetButtonLoading(favoriteButton, false)
+	InterfaceComponents.SetButtonLoading(lockButton, false)
 	if not ok or success ~= true or type(result) ~= "table" then
 		local reason = if ok and type(result) == "string" then result else "UNKNOWN"
 		showStatus(if requestError == "TIMEOUT" then "Сервер отвечает слишком долго. Проверяю настройки питомца..." elseif reason == "STALE_REVISION" then "Коллекция обновилась. Загружаю..." else "Не удалось сохранить настройки питомца.", true)
@@ -965,22 +953,16 @@ end
 local function confirmDeleteSelected()
 	if busy or collectionRefreshing or collection == nil or pendingDeletePetId == nil then return end
 	busy = true
-	confirmDeleteButton.Active = false
-	cancelDeleteButton.Active = false
-	confirmDeleteButton.AutoButtonColor = false
-	cancelDeleteButton.AutoButtonColor = false
-	confirmDeleteButton.Text = "УДАЛЯЕМ..."
+	InterfaceComponents.SetButtonLoading(confirmDeleteButton, true, "УДАЛЯЕМ...")
+	InterfaceComponents.SetButtonLoading(cancelDeleteButton, true, "ПОДОЖДИ...")
 	local deleteTargetPetId = pendingDeletePetId
 	local ok, success, result, requestError = invokeCollection("Delete", {
 		petId = deleteTargetPetId,
 		expectedRevision = collection.revision,
 	})
 	busy = false
-	confirmDeleteButton.Active = true
-	cancelDeleteButton.Active = true
-	confirmDeleteButton.AutoButtonColor = true
-	cancelDeleteButton.AutoButtonColor = true
-	confirmDeleteButton.Text = "УДАЛИТЬ"
+	InterfaceComponents.SetButtonLoading(confirmDeleteButton, false)
+	InterfaceComponents.SetButtonLoading(cancelDeleteButton, false)
 	confirmPanel.Visible = false
 	pendingDeletePetId = nil
 	if not ok or success ~= true or type(result) ~= "table" then
