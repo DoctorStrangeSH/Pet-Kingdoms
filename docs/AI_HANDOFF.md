@@ -1227,3 +1227,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed a nested-modal lifecycle bug in `PetCollectionUI.client.lua`: closing the collection now also hides its destructive delete-confirmation panel. Reopening the collection never resurrects a stale confirmation dialog from the previous visit.
 - If no remote operation is active, the pending delete target is cleared on close/open. If a delete request is already in flight (`busy`), the target is retained until the transaction returns so the in-flight operation is not mutated/cancelled by a UI close.
 - This is one focused Stage 1 fix, not completion of the interface section. Remaining audit: consistent close/backdrop behavior across Collection, Journal, Expansion and Building; safe-area and viewport checks; modal focus/z-index; close controls; loading/error/empty states; touch targets; verify all transitions in Studio. No runtime verification claimed.
+
+
+## Stage 1 — Interface & usability: Escape closes topmost modal layer (2026-11-23)
+
+- Added Escape-key dismissal for Pet Collection, Quest Journal and Island Expansion. Handled input is ignored so focused text boxes/gameplay input are not stolen.
+- Pet Collection follows modal stacking: if the destructive delete confirmation is visible, Escape dismisses only that confirmation and clears its pending target; a second Escape closes the collection. It does not cancel an already-running server transaction.
+- Quest Journal and Island Expansion close through their existing `setOpen(false)` paths, preserving their normal cleanup (including clearing island world preview).
+- This improves desktop keyboard usability only. Roblox Studio verification remains required; mobile users still need visible close/back controls. Building placement already maps Escape to cancel; kingdom overview Escape behavior remains to audit. Stage 1 is not complete.
