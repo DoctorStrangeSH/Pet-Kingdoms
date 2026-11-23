@@ -373,9 +373,8 @@ demolishButton.Activated:Connect(function()
 	end
 	-- Capture the exact target before InvokeServer yields.
 	demolitionRequestInFlight = true
-	demolishButton.Active = false
+	InterfaceComponents.SetButtonLoading(demolishButton, true, "УДАЛЕНИЕ...")
 	moveButton.Active = false
-	demolishButton.Text = "..."
 	setStatus("Удаляем постройку…")
 	local operationKey = "demolish:" .. instanceId
 	local requestId = getPendingRequestId(operationKey)
@@ -387,7 +386,7 @@ demolishButton.Activated:Connect(function()
 		})
 	end)
 	demolitionRequestInFlight = false
-	demolishButton.Active = true
+	InterfaceComponents.SetButtonLoading(demolishButton, false)
 	moveButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
