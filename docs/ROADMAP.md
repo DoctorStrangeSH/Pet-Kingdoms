@@ -937,3 +937,4 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Assert the render budget throughout the scroll sweep, including the 1,000-pet fixture.
 - [x] Cover short-content scroll clamping, zero-height viewport safety, and oversized overscan bounds.
 - [ ] Execute the Studio test suite and profile actual GUI instance counts with 100/250/500/1,000 pets.
+- [x] Reflow existing visible pet cards when the collection width changes, even if the virtualized index window remains identical; avoid stale narrow-phone spacing after orientation/resolution changes.
