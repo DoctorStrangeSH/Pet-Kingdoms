@@ -56,6 +56,7 @@ local pendingDeletePetId: string? = nil
 local mobileDetailVisible = false
 local compactCollection = false
 local resize: () -> ()
+local animateMobileDetailIn: () -> ()
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
@@ -1245,7 +1246,7 @@ local function cancelModalTweens()
 	if panelTween then panelTween:Cancel(); panelTween = nil end
 end
 
-local function animateMobileDetailIn()
+animateMobileDetailIn = function()
 	if not compactCollection or not mobileDetailVisible or not detail.Visible then return end
 	if detailTransitionTween then detailTransitionTween:Cancel() end
 	local targetPosition = detail.Position
