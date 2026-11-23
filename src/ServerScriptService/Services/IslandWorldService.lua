@@ -73,6 +73,50 @@ local function makeTree(parent: Instance, base: CFrame, scale: number, index: nu
 	end
 end
 
+-- Lightweight perimeter dressing. Decorative parts never take ownership of grid cells.
+local function createEdgeMeadow(world: Model, top: CFrame, sizeX: number, sizeZ: number, cellSize: number)
+	local decor = Instance.new("Folder")
+	decor.Name = "IslandEdgeMeadow"
+	decor.Parent = world
+	local patches = {
+		{ -0.41, -0.14, 1 }, { 0.41, 0.12, 2 },
+		{ -0.33, 0.39, 3 }, { 0.30, -0.40, 4 },
+		{ -0.40, 0.05, 5 }, { 0.40, -0.15, 6 },
+		{ -0.18, -0.42, 7 }, { 0.17, 0.42, 8 },
+	}
+	local blossomColors = {
+		Color3.fromRGB(255, 191, 215),
+		Color3.fromRGB(255, 229, 153),
+		Color3.fromRGB(195, 177, 255),
+		Color3.fromRGB(238, 245, 225),
+	}
+	for index, patch in ipairs(patches) do
+		local center = top * CFrame.new(patch[1] * sizeX, 0, patch[2] * sizeZ)
+		for leafIndex, offset in ipairs({ Vector3.new(-0.24, 0, 0), Vector3.new(0.22, 0, 0.13) }) do
+			local bush = makePart(decor, "Bush_" .. index .. "_" .. leafIndex,
+				Vector3.new(cellSize * 0.38, cellSize * 0.29, cellSize * 0.36),
+				center * CFrame.new(offset * cellSize + Vector3.new(0, cellSize * 0.145, 0)),
+				if leafIndex == 1 then Color3.fromRGB(80, 152, 77) else Color3.fromRGB(113, 174, 88),
+				Enum.Material.Grass, Enum.PartType.Ball)
+			bush.CanCollide = false
+			bush.CanTouch = false
+			bush.CanQuery = false
+			bush.CastShadow = false
+		end
+		for blossomIndex, offset in ipairs({ Vector3.new(-0.26, 0, -0.05), Vector3.new(0.22, 0, 0.14) }) do
+			local flower = makePart(decor, "Blossom_" .. index .. "_" .. blossomIndex,
+				Vector3.new(cellSize * 0.13, cellSize * 0.13, cellSize * 0.13),
+				center * CFrame.new(offset * cellSize + Vector3.new(0, cellSize * 0.30, 0)),
+				blossomColors[((index + blossomIndex - 2) % #blossomColors) + 1],
+				Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+			flower.CanCollide = false
+			flower.CanTouch = false
+			flower.CanQuery = false
+			flower.CastShadow = false
+		end
+	end
+end
+
 local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, depth: number, cellSize: number)
 	local sizeX = width * cellSize
 	local sizeZ = depth * cellSize
@@ -111,6 +155,9 @@ local function createTerrain(world: Model, spawnCFrame: CFrame, width: number, d
 		local treeBase = top * CFrame.new(x, 0, z)
 		makeTree(world, treeBase, item[3], index)
 	end
+
+	-- Perimeter flowers remain purely decorative and can be built over.
+	createEdgeMeadow(world, top, sizeX, sizeZ, cellSize)
 
 	-- A simple stone arrival pad is a temporary gameplay landmark.
 	makePart(world, "Arrival_Pad", Vector3.new(cellSize * 2.4, 0.35, cellSize * 2.4),
