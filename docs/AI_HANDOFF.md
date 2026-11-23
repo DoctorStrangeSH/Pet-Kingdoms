@@ -1360,3 +1360,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Updated Island Expansion, Quest Journal, Pet Collection, and Island Building Escape handling to act only when their top-level window owns modal focus. The construction overview is now dismissed by Escape before exiting placement, and nested pet deletion confirmation still closes before its parent collection.
 - Added `Tests/ModalManagerTests.client.lua`, a Studio-only smoke suite gated by `RunPetKingdomsStudioTests`, covering focus transfer, peer closure, CloseAll cleanup, active-window checks, and unregister behavior. The suite is committed but not yet executed in Roblox Studio.
 - Static source checks passed for the new APIs and all four client integrations. Roblox project build CI was triggered by test commit `a47e990`; check run `45138727077` before claiming CI success. Remaining runtime checks: open each modal from every other modal, rapid switch/reopen during close tweens, Escape with nested dialogs, CloseAll during a pending request, and phone/tablet input.
+
+
+## Stage 1 — Interface & usability: narrow/short viewport fixes (2026-11-23)
+
+- Updated the Kingdom Overview in `IslandBuildingController.client.lua`: its width now follows the active viewport, the minimum width no longer forces a 300 px panel on narrow phones, and a dedicated UIScale keeps the full 286 px card within short landscape viewports. Typography is reduced on compact screens. The overview rebinds to CurrentCamera and recomputes on viewport changes and every open.
+- Fixed a mobile overlap between the pending-operation recovery panel and the Move/Demolish action row. On compact viewports the action row moves down while recovery is visible and returns to its normal position after the pending operation resolves.
+- Static source checks passed for both responsive paths. Rojo CI for the overview change passed (`45139077658`). CI for the latest overlap fix is queued (`45139112446`) at time of this note. No Roblox Studio/device runtime testing has been performed.
+- Next mobile audit targets: inspect Pet Collection's two-column layout at 320–375 px, test Quest Journal/Island Expansion in short landscape, and review Resource HUD plus all floating action buttons for safe-area/notch collisions. Then run Studio touch tests and update the Stage 1 checklist.
