@@ -45,6 +45,7 @@ local busy = false
 local collectionRefreshing = false
 local cardButtons: { [string]: TextButton } = {}
 local cardSelectionTweens: { [TextButton]: Tween } = {}
+local cardStrokeTweens: { [TextButton]: Tween } = {}
 local actionButtonTweens: { [TextButton]: Tween } = {}
 local filteredRecords: { PetRecord } = {}
 local filterButtonTweens: { [TextButton]: Tween } = {}
@@ -66,13 +67,23 @@ local function animateCardState(button: TextButton, selected: boolean, equipped:
 	}
 	local tween = TweenService:Create(button, TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), targets)
 	cardSelectionTweens[button] = tween
+	tween.Completed:Connect(function()
+		if cardSelectionTweens[button] == tween then cardSelectionTweens[button] = nil end
+	end)
 	tween:Play()
 	if stroke then
-		TweenService:Create(stroke, TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		local previousStrokeTween = cardStrokeTweens[button]
+		if previousStrokeTween then previousStrokeTween:Cancel() end
+		local strokeTween = TweenService:Create(stroke, TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Color = if selected then COLORS.gold elseif equipped then COLORS.mint else COLORS.cardSelected,
 			Thickness = if selected then 2.5 else if equipped then 1.5 else 1,
 			Transparency = if selected then 0.05 else 0.25,
-		}):Play()
+		})
+		cardStrokeTweens[button] = strokeTween
+		strokeTween.Completed:Connect(function()
+			if cardStrokeTweens[button] == strokeTween then cardStrokeTweens[button] = nil end
+		end)
+		strokeTween:Play()
 	end
 end
 
@@ -90,6 +101,9 @@ local function animateActionButton(button: TextButton)
 			TextSize = baseSize,
 		})
 		actionButtonTweens[button] = settleTween
+		settleTween.Completed:Connect(function()
+			if actionButtonTweens[button] == settleTween then actionButtonTweens[button] = nil end
+		end)
 		settleTween:Play()
 	end)
 	growTween:Play()
