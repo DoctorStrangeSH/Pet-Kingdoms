@@ -74,8 +74,9 @@ make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, 
 local title = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 22, 0, 18),
-	Size = UDim2.new(1, -76, 0, 32),
+	Size = UDim2.new(1, -92, 0, 32),
 	Text = "РАСШИРЕНИЕ ОСТРОВА",
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextLabel
@@ -358,6 +359,8 @@ local function resize()
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500
+	title.Text = if compact then "РАСШИРЕНИЕ" else "РАСШИРЕНИЕ ОСТРОВА"
+	title.TextSize = if compact then 15 else 18
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	-- Keep the expansion launcher below the pet launcher on compact screens.
 	openButton.Position = UDim2.new(1, compact and -12 or -22, compact and 0.72 or 0.70, 0)
