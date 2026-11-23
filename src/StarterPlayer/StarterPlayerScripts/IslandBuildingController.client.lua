@@ -134,11 +134,12 @@ local status = make("TextLabel", {
 	Name = "Status",
 	BackgroundTransparency = 1,
 	Position = UDim2.fromOffset(0, 30),
-	Size = UDim2.new(1, 0, 0, 25),
+	Size = UDim2.new(1, 0, 0, 30),
 	Font = Enum.Font.GothamMedium,
 	Text = "Выбери здание и место для него",
 	TextColor3 = COLORS.text,
-	TextSize = 13,
+	TextSize = 12,
+	TextWrapped = true,
 	TextXAlignment = Enum.TextXAlignment.Left,
 }, panel) :: TextLabel
 
@@ -210,7 +211,7 @@ local function makeCatalogButton(name: string, label: string): TextButton
 		TextWrapped = true,
 	}, catalogRow) :: TextButton
 	make("UICorner", { CornerRadius = UDim.new(0, 12) }, button)
-	make("UIStroke", { Color = COLORS.gold, Transparency = 0.75, Thickness = 1 }, button)
+	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.75, Thickness = 1 }, button)
 	return button
 end
 
@@ -531,12 +532,21 @@ local function setSelectedBuilding(catalogId: string)
 	selectedCatalogId = catalogId
 	BUILDING_WIDTH = size.width
 	BUILDING_DEPTH = size.depth
-	mainHouseButton.BackgroundColor3 = if catalogId == "main_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-	petHouseButton.BackgroundColor3 = if catalogId == "pet_house" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-	stonePathButton.BackgroundColor3 = if catalogId == "stone_path" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-	gardenLanternButton.BackgroundColor3 = if catalogId == "garden_lantern" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-	flowerBedButton.BackgroundColor3 = if catalogId == "flower_bed" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-	woodenFenceButton.BackgroundColor3 = if catalogId == "wooden_fence" then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+	local catalogButtons = {
+		main_house = mainHouseButton, pet_house = petHouseButton,
+		stone_path = stonePathButton, garden_lantern = gardenLanternButton,
+		flower_bed = flowerBedButton, wooden_fence = woodenFenceButton,
+	}
+	for id, button in pairs(catalogButtons) do
+		local active = id == catalogId
+		button.BackgroundColor3 = if active then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
+		local outline = button:FindFirstChild("SelectionStroke")
+		if outline and outline:IsA("UIStroke") then
+			outline.Transparency = if active then 0 else 0.75
+			outline.Thickness = if active then 2.5 else 1
+		end
+		button:SetAttribute("Selected", active)
+	end
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
@@ -555,7 +565,18 @@ local function setSelectedBuilding(catalogId: string)
 	setStatus(labels[catalogId] or "Выбран объект")
 	-- A different footprint may invalidate the previously locked cell.
 	if placing and placementLocked then
-		updatePreview(pointerPosition)
+		-- Revalidate the saved cell, not the current mouse position over the catalog.
+		local x, z = currentCellX, currentCellZ
+		local top, width, depth, cellSize = getIslandGrid()
+		if x ~= nil and z ~= nil and top ~= nil and width ~= nil and depth ~= nil and cellSize ~= nil then
+			local centerX = (x + 0.5 - width / 2) * cellSize
+			local centerZ = (z + 0.5 - depth / 2) * cellSize
+			local screenPoint, onScreen = camera:WorldToViewportPoint((top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ)).Position)
+			if onScreen then
+				pointerPosition = Vector2.new(screenPoint.X, screenPoint.Y)
+				updatePreview(pointerPosition)
+			end
+		end
 		if not currentValid then placementLocked = false end
 	end
 end
