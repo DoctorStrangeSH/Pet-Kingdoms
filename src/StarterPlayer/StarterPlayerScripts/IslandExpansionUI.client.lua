@@ -311,7 +311,7 @@ local function refresh()
 	if status.TextColor3 == COLORS.rose then
 		InterfaceComponents.SetButtonFeedback(refreshButton, "error", "ОШИБКА", 2)
 	elseif status.TextColor3 == COLORS.gold then
-		InterfaceComponents.SetButtonFeedback(refreshButton, "warning", "ПОВТОРИТЬ", 2)
+		InterfaceComponents.SetButtonFeedback(refreshButton, "warning", "ИНФО", 1.8)
 	else
 		InterfaceComponents.SetButtonFeedback(refreshButton, "success", "ГОТОВО", 1.5)
 	end
