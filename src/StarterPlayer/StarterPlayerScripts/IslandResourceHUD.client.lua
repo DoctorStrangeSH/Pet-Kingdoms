@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
+local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -56,17 +57,19 @@ padding.PaddingRight = UDim.new(0, 7)
 padding.PaddingTop = UDim.new(0, 6)
 padding.PaddingBottom = UDim.new(0, 6)
 padding.Parent = root
-local layout = Instance.new("UIListLayout")
-layout.FillDirection = Enum.FillDirection.Horizontal
+local layout = Instance.new("UIGridLayout")
+layout.FillDirectionMaxCells = 2
+layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 layout.VerticalAlignment = Enum.VerticalAlignment.Center
-layout.Padding = UDim.new(0, 6)
+layout.CellPadding = UDim2.fromOffset(6, 4)
 layout.Parent = root
 
 local amountLabels: { [string]: TextLabel } = {}
 for _, resource in ipairs(RESOURCES) do
 	local chip = Instance.new("Frame")
 	chip.Name = resource.id .. "Chip"
+	chip.LayoutOrder = #amountLabels + 1
 	chip.Size = UDim2.new(0.25, -5, 1, 0)
 	chip.BackgroundColor3 = COLORS.panelSoft
 	chip.Parent = root
@@ -86,6 +89,7 @@ for _, resource in ipairs(RESOURCES) do
 	amount.BackgroundTransparency = 1
 	amount.Position = UDim2.new(0, 32, 0, 2)
 	amount.Size = UDim2.new(1, -36, 0.58, 0)
+	amount.TextTruncate = Enum.TextTruncate.AtEnd
 	amount.Font = Enum.Font.GothamBold
 	amount.Text = "—"
 	amount.TextSize = 17
@@ -95,9 +99,11 @@ for _, resource in ipairs(RESOURCES) do
 	amountLabels[resource.id] = amount
 
 	local label = Instance.new("TextLabel")
+	label.Name = "ResourceName"
 	label.BackgroundTransparency = 1
 	label.Position = UDim2.new(0, 33, 0.57, -1)
 	label.Size = UDim2.new(1, -35, 0.36, 0)
+	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Font = Enum.Font.GothamMedium
 	label.Text = resource.label
 	label.TextSize = 7
@@ -221,32 +227,57 @@ end
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local width = camera.ViewportSize.X
-	local compact = width < 560
-	root.Size = UDim2.new(compact and 0.96 or 0, compact and 0 or 420, 0, compact and 48 or 54)
-	if compact then
-		root.Size = UDim2.new(0.96, 0, 0, 48)
-	end
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 560
+	local tiny = viewport.X < 360
+	root.Size = UDim2.new(compact and 0.96 or 0, compact and 0 or 420, 0, compact and 92 or 54)
+	layout.FillDirectionMaxCells = if compact then 2 else 4
+	layout.CellSize = if compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
+	layout.CellPadding = UDim2.fromOffset(compact and 4 or 6, compact and 4 or 0)
+	padding.PaddingLeft = UDim.new(0, compact and 6 or 7)
+	padding.PaddingRight = UDim.new(0, compact and 6 or 7)
 	for _, child in ipairs(root:GetChildren()) do
 		if child:IsA("Frame") then
-			child.Size = UDim2.new(0.25, -4, 1, 0)
+			local icon = child:FindFirstChildWhichIsA("TextLabel")
+			local amount = child:FindFirstChild("Amount")
+			local label = child:FindFirstChild("ResourceName")
+			if icon and icon ~= amount and icon ~= label then
+				icon.Size = UDim2.fromOffset(tiny and 22 or 27, 36)
+				icon.TextSize = tiny and 16 or 19
+			end
+			if amount and amount:IsA("TextLabel") then
+				amount.Position = UDim2.new(0, tiny and 27 or 32, 0, 1)
+				amount.Size = UDim2.new(1, tiny and -30 or -36, 0.62, 0)
+				amount.TextSize = tiny and 12 or (compact and 14 or 17)
+			end
+			if label and label:IsA("TextLabel") then
+				label.Position = UDim2.new(0, tiny and 28 or 33, 0.58, 0)
+				label.Size = UDim2.new(1, tiny and -30 or -35, 0, 12)
+				label.TextSize = tiny and 6 or 7
+			end
 		end
 	end
-	for _, label in pairs(amountLabels) do
-		label.TextSize = compact and 14 or 17
-	end
+	toast.Position = UDim2.new(0.5, 0, 0, compact and 108 or 106)
+	toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
+	bondLabel.Position = UDim2.new(0.5, 0, 0, compact and 148 or 70)
+	bondLabel.Size = UDim2.fromOffset(math.max(200, math.min(300, viewport.X - 32)), 28)
+	bondLabel.TextSize = tiny and 9 or 12
 end
 
-if Workspace.CurrentCamera then
-	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
-end
-Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-	if Workspace.CurrentCamera then
-		Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
-		resize()
+local viewportConnection: RBXScriptConnection? = nil
+local function bindViewportCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
 	end
-end)
-resize()
+	local camera = Workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+	end
+	resize()
+end
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
+bindViewportCamera()
 
 update.OnClientEvent:Connect(function(snapshot, resourceId, amount, code)
 	applySnapshot(snapshot)
@@ -255,12 +286,15 @@ end)
 
 task.spawn(function()
 	for attempt = 1, 6 do
-		local ok, success, snapshot = pcall(function()
+		local result = RequestRunner.Invoke(function()
 			return request:InvokeServer("Get")
-		end)
-		if ok and success == true then
-			applySnapshot(snapshot)
-			return
+		end, 12)
+		if result.ok then
+			local success, snapshot = result.value
+			if success == true then
+				applySnapshot(snapshot)
+				return
+			end
 		end
 		task.wait(math.min(1.5, 0.25 * attempt))
 	end
