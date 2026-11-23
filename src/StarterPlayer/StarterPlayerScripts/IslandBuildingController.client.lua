@@ -52,6 +52,7 @@ local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
 local buildRequestInFlight = false
+local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
 
@@ -831,6 +832,7 @@ confirmButton.Activated:Connect(function()
 	local requestedRotation = rotation
 	local requestedMoveId = movingInstanceId
 	buildRequestInFlight = true
+	closeAfterBuildResponse = false
 	confirmButton.Active = false
 	confirmButton.Text = "..."
 	rotateButton.Active = false
@@ -855,6 +857,8 @@ confirmButton.Activated:Connect(function()
 		})
 	end)
 	buildRequestInFlight = false
+	local shouldCloseAfterResponse = closeAfterBuildResponse
+	closeAfterBuildResponse = false
 	confirmButton.Active = true
 	rotateButton.Active = true
 	cancelButton.Active = true
@@ -862,6 +866,7 @@ confirmButton.Activated:Connect(function()
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
+		if shouldCloseAfterResponse then stopPlacing() end
 		return
 	end
 	if type(response) == "table" and response.ok == true then
@@ -888,6 +893,7 @@ confirmButton.Activated:Connect(function()
 			OUT_OF_BOUNDS = "Постройка выходит за границы острова",
 		}
 		setStatus(messages[code] or ("Сервер отклонил постройку: " .. code), false)
+		if shouldCloseAfterResponse then stopPlacing() end
 	end
 end)
 
@@ -1153,8 +1159,13 @@ local function refreshKingdomOverview()
 end
 
 local function openKingdomOverview()
+	if buildRequestInFlight then
+		closeAfterBuildResponse = true
+		panel.Visible = false
+	else
+		stopPlacing()
+	end
 	announcePanelOpened()
-	stopPlacing()
 	refreshKingdomOverview()
 	overviewShade.Visible = true
 	overview.Visible = true
@@ -1163,7 +1174,13 @@ end
 panelSignal.Event:Connect(function(origin)
 	if origin ~= script.Name then
 		closeKingdomOverview()
-		stopPlacing()
+		if buildRequestInFlight then
+			-- Another panel takes focus immediately; do not cancel an in-flight transaction.
+			panel.Visible = false
+			closeAfterBuildResponse = true
+		else
+			stopPlacing()
+		end
 	end
 end)
 
