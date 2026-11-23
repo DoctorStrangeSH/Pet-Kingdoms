@@ -1144,6 +1144,13 @@ search:GetPropertyChangedSignal("Text"):Connect(renderList)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
+-- Hide global launchers while a modal is open, including this collection.
+-- Otherwise floating buttons occupy space above windows on small screens.
+ModalManager.ActiveChanged:Connect(function(activeName: string?)
+	openButton.Visible = activeName == nil
+end)
+openButton.Visible = ModalManager.GetActive() == nil
+
 -- Launcher placement is handled by resize() so touch devices and narrow desktop windows share one collision-free layout.
 
 print("[PetKingdoms] Pet collection UI loaded.")
