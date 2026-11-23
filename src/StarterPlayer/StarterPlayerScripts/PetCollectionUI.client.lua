@@ -897,6 +897,17 @@ panelSignal.Event:Connect(function(origin)
 	if origin ~= script.Name then closeCollection() end
 end)
 
+-- Escape closes the topmost layer first, never the collection behind a confirmation.
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or input.KeyCode ~= Enum.KeyCode.Escape then return end
+	if confirmPanel.Visible then
+		pendingDeletePetId = nil
+		confirmPanel.Visible = false
+	elseif panel.Visible then
+		closeCollection()
+	end
+end)
+
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
 teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList() end)
