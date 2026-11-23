@@ -1242,3 +1242,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Quest Journal and Island Expansion now use a child `UIScale` to fit their fixed-height layouts into short/landscape viewports, rather than clipping the top close button or bottom actions. Scale is derived from current viewport height and clamped to 0.72–1.0; viewport-change listeners already call `resize()` and now update the scale too.
 - Reduced minimum size constraints to 250x300 (Quest Journal) and 250x320 (Island Expansion), allowing narrow phone widths while keeping a sensible minimum. The quest list remains scrollable; expansion information cards scale as one composition.
 - This is a targeted responsive correction, not a full mobile sign-off. Verify 320x568, 390x844, 568x320 and tablet/desktop sizes in Studio; inspect text legibility at minimum scale, button hitboxes, safe-area inset, and expansion preview cleanup. Pet Collection and Building have separate responsive logic and still need the same viewport audit. No runtime verification claimed.
+
+
+## Stage 1 — Interface & usability: dismiss modal by backdrop click (2026-11-23)
+
+- Converted the full-screen dimming layers for Pet Collection, Quest Journal and Island Expansion from passive `Frame`s to transparent-text `TextButton`s (`AutoButtonColor=false`). Their existing visual dimming is preserved, while tapping outside the child panel now dismisses the active modal through its normal close path.
+- Pet Collection handles nested state safely: tapping the backdrop while delete confirmation is visible dismisses only that confirmation and clears its pending target; a second backdrop tap closes the collection. An in-flight server deletion remains untouched.
+- Quest Journal and Island Expansion backdrop taps call their existing `setOpen(false)` path, preserving quest and world-preview cleanup.
+- The Building kingdom overview already uses an activated full-screen backdrop button; construction's main panel uses its own close/cancel button and is intentionally not backdrop-dismissed during an active placement transaction.
+- Studio verification pending: tap panel content and confirm no accidental close; tap backdrop; test delete confirmation backdrop twice; tap close buttons; open another modal during close animation; verify no stuck dim layer or input capture. No runtime verification claimed.
