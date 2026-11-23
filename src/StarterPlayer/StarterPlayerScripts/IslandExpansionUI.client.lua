@@ -348,6 +348,20 @@ shade.Activated:Connect(function()
 	if opened then setOpen(false) end
 end)
 
+-- Handle background taps independently of the shade's Activated event.
+UserInputService.InputBegan:Connect(function(input)
+	if not opened or not ModalManager.IsActive(script.Name) then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local point = Vector2.new(input.Position.X, input.Position.Y)
+	local origin = panel.AbsolutePosition
+	local size = panel.AbsoluteSize
+	if point.X < origin.X or point.X > origin.X + size.X
+		or point.Y < origin.Y or point.Y > origin.Y + size.Y then
+		setOpen(false)
+	end
+end)
+
 openButton.Activated:Connect(function() setOpen(not opened) end)
 closeButton.Activated:Connect(function() setOpen(false) end)
 refreshButton.Activated:Connect(refresh)
