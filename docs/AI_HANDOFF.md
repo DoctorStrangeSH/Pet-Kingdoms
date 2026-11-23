@@ -1565,3 +1565,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Build `equippedSet` once per `renderList()` and use dictionary membership for the team filter instead of calling `table.find(collection.equipped, petId)` for every owned record.
 - Sorting now has deterministic tie-breakers: favorite priority, selected sort key, acquisition time, then `petId`. This avoids unstable order when two records share the same sort values.
 - Next: profile 100/250/500 live records in Studio, measure search/filter/sort responsiveness, and confirm stable selection and correct membership.
+
+## Stage 1 — Collection filter/sort scroll continuity (2026-11-23)
+
+- Switching between All, Team, and Favorites filters and cycling sort modes now calls `renderList(true)`, preserving the user's scroll position instead of jumping to the top.
+- Scroll restoration uses `VirtualList.ClampCanvasY`, which clamps to the new content's valid maximum when the filtered list is shorter, and safely returns zero for empty content.
+- Added deterministic tests for preserved in-range position, shorter filtered results, empty results, and negative saved positions.
+- Selection remains keyed by `petId`; filtering/sorting does not rewrite `selectedPetId`, so the detail panel continues to refer to the same owned pet even if it is not in the current filtered subset.
+- Next: verify in Studio with large inventories while switching filters/sort from the middle and bottom of the list.
