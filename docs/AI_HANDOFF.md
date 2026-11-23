@@ -1277,3 +1277,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The building UI's formerly separate purple panel palette now uses the same dark slate/cream/gold/mint family as the other main windows. This is a foundational consistency pass, not a final visual redesign: typography and motion tokens are defined but not yet consumed consistently, and layouts/icons/buttons still need review.
 - Static source audit confirms all four scripts' referenced `COLORS.*` keys exist in the shared palette. No Roblox Studio runtime test, visual approval or mobile sign-off is claimed.
 - Next Stage 1 task: migrate common typography/motion/radius usage and review shared button/close-button patterns, then inspect screenshots at desktop and mobile sizes before declaring the design system complete.
+
+
+## Stage 1 — Interface & usability: shared close button component (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/InterfaceComponents.lua` with `StyleCloseButton(TextButton)`. It applies the shared 40x40 hit target, semantic panel background, standard × glyph, shared display font, cream text, medium corner radius and subtle gold outline. Existing buttons retain their screen-specific close callbacks and ZIndex.
+- Migrated the close buttons in Pet Collection, Quest Journal, Island Expansion and Island Building to the shared style helper. Aligned the first three to the same top-right header inset; construction keeps its panel-edge placement while sharing the same visual component.
+- The shared component obtains its colors/typography/radii from `InterfaceTheme`, so visual adjustments now have one source of truth. Static source inspection confirms all four scripts call the helper after creating their button. Visual hit-target and overlap verification in Roblox Studio remains pending, especially on 320px-wide screens. No visual approval or mobile sign-off claimed.
