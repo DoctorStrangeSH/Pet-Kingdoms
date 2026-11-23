@@ -1530,3 +1530,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `QuestJournalUI` now applies the same generation/session rule. Closing invalidates the in-flight progress read and clears its loading lock; reopening starts a new read. A late result from the previous open session cannot render into the new session.
 - Important: RequestRunner timeouts do not cancel the underlying RemoteFunction. The generation check protects client UI state only; server read completion may still happen later.
 - Next: use delayed RemoteFunction responses in Studio, close/reopen both modals, and verify only the latest session updates UI.
+
+## Stage 1 — Resource HUD initial snapshot ordering (2026-11-23)
+
+- Added `receivedLiveUpdate` to `IslandResourceHUD`. If `IslandResourceUpdate` arrives while the initial `IslandResourceRequest("Get")` is pending, the pushed snapshot wins; the delayed startup response is ignored.
+- Startup retries stop once a live update has been received, avoiding unnecessary reads after the HUD has authoritative pushed state.
+- Next: delay the initial Get in Studio, trigger a resource change before it returns, and verify no balance rollback occurs.
