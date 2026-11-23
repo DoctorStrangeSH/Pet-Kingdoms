@@ -1316,3 +1316,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Replaced the Quest Journal's private completion-toast implementation with the shared manager. Quest completion now uses the common success style.
 - Integrated global feedback for Island Expansion preview failures and construction outcomes (successful place/move/demolish and server/network rejections). Existing contextual status text remains in each panel, so detailed guidance is still available.
 - Static source checks confirm the manager and integrations exist. Studio verification pending: multiple simultaneous notifications, mobile width/text wrapping, safe-area positioning, toast overlap with other HUD elements, success/error contrast, and rapid expiry/removal. No runtime or visual sign-off claimed.
+
+
+## Stage 1 — Interface & usability: reusable loading button state (2026-11-23)
+
+- Added `InterfaceComponents.SetButtonLoading(TextButton, isLoading, loadingText?)`. It stores the button's original text, Active and AutoButtonColor values, disables interaction during the request, displays a localized progress label, and restores the exact prior values afterward. Repeated enter/exit calls are idempotent.
+- Integrated the helper into Island Expansion refresh, Quest Journal track/untrack action, Building placement confirmation, and demolition. Existing request guards (`loading`, `busy`, `buildRequestInFlight`, `demolitionRequestInFlight`) and server validation remain in place; this is presentation-state reuse, not a replacement for transaction guards.
+- Static source checks confirm helper and integrations. Roblox Studio verification pending: slow response, server rejection, thrown InvokeServer, rapid double taps, switching windows mid-request, and correct restoration of original labels/disabled states. Important limitation: this change does not impose a network timeout on RemoteFunction calls; if the server never returns, the current request coroutine can still remain pending. A bounded request timeout/recovery pass remains separate work before claiming the no-stuck guarantee.
