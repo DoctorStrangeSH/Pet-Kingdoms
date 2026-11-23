@@ -520,3 +520,14 @@ Source commits: `5fbb21e`, `8061fb1`. CI: `45142089887` and `45142096293` passed
 - [ ] Complete in-Studio visual regression at desktop and 320/360/390 px mobile sizes before Stage 1 sign-off.
 
 Source commits: `7d55e84`, `fd8ea0b`, `15ffb44`, `6227204`, `5927d19`, `87bab50`, `7f35991`. CI passed through quest tracking style commit (`45142944796`); latest label shortening CI pending. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Global status notifications (2026-11-23)
+
+- [x] Make global toast notifications fit narrow screens without a 220 px forced minimum width.
+- [x] Adapt toast text/icon sizing and constrain width to the active viewport.
+- [x] Rebind resize updates safely when CurrentCamera changes; update existing visible toasts.
+- [ ] Studio test long Russian messages, 320/360 px portrait, toast stack overflow, modal overlap, and camera replacement.
+- [ ] Standardize per-panel status/empty/loading states and complete icon/typography audit.
+
+Source commit `ba8b302`; CI `45147513350` was running at documentation time. Studio/device validation remains outstanding.
