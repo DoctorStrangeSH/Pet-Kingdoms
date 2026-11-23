@@ -446,3 +446,14 @@ Implementation status above is source/CI status only; no Roblox Studio runtime t
 - [ ] Audit Pet Collection at 320–375 px and short landscape; verify no clipped controls or unusable two-column regions.
 - [ ] Audit Quest Journal, Island Expansion, Resource HUD, and floating buttons for short screens and safe-area collisions.
 - [ ] Run touch/device tests in Roblox Studio. Latest source CI: overview change passed (`45139077658`); overlap fix CI pending (`45139112446`).
+
+
+### Stage 1 — Pet Collection mobile UX (2026-11-23)
+
+- [x] Replace narrow two-column pet collection layout with full-width list and a separate pet-detail view on screens under 650 px.
+- [x] Add a clear back-to-list action; preserve desktop/tablet two-column layout.
+- [x] Bound delete-confirmation width to the viewport and enlarge compact touch actions.
+- [ ] Test portrait widths 320/360/390 px, short landscape, scroll restoration, empty states, delete confirmation, and orientation changes in Roblox Studio.
+- [ ] Continue responsive audit of Quest Journal, Island Expansion, Resource HUD, and floating controls.
+
+Source implementation complete; Roblox Studio/device validation remains pending. CI: first mobile-flow build passed (`45139318637`); follow-up build for confirmation sizing `45139348449` was in progress when recorded.
