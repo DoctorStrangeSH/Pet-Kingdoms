@@ -285,7 +285,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextColor3 = if trackedQuestId == quest.id then COLORS.panel else COLORS.cream,
 			AutoButtonColor = true,
 		}, card) :: TextButton
-		make("UICorner", { CornerRadius = UDim.new(0, 8) }, trackButton)
+		InterfaceComponents.StyleActionButton(trackButton, if trackedQuestId == quest.id then "primary" else "secondary")
+		trackButton.TextTruncate = Enum.TextTruncate.AtEnd
 		trackButton.Activated:Connect(function()
 			if quest.completed == true then return end
 			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
