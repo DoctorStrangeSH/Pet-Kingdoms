@@ -4,7 +4,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
-local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local RequestRunner = require(Shared:WaitForChild("RequestRunner"))
+local InterfaceTheme = require(Shared:WaitForChild("InterfaceTheme"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -12,15 +14,7 @@ local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local request = remotes:WaitForChild("IslandResourceRequest") :: RemoteFunction
 local update = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 
-local COLORS = {
-	panel = Color3.fromRGB(34, 39, 53),
-	panelSoft = Color3.fromRGB(49, 56, 73),
-	cream = Color3.fromRGB(255, 246, 225),
-	muted = Color3.fromRGB(177, 187, 204),
-	gold = Color3.fromRGB(255, 207, 123),
-	mint = Color3.fromRGB(143, 229, 185),
-	line = Color3.fromRGB(104, 119, 148),
-}
+local COLORS = InterfaceTheme.Colors
 
 local RESOURCES = {
 	{ id = "wood", icon = "🌲", label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
@@ -45,9 +39,9 @@ root.Size = UDim2.fromOffset(420, 54)
 root.BackgroundColor3 = COLORS.panel
 root.BackgroundTransparency = 0.04
 root.Parent = screen
-Instance.new("UICorner", root).CornerRadius = UDim.new(0, 17)
+Instance.new("UICorner", root).CornerRadius = InterfaceTheme.Radii.Large
 local stroke = Instance.new("UIStroke")
-stroke.Color = COLORS.line
+stroke.Color = COLORS.panelLight
 stroke.Transparency = 0.28
 stroke.Thickness = 1.2
 stroke.Parent = root
@@ -73,15 +67,15 @@ for _, resource in ipairs(RESOURCES) do
 	chip.Size = UDim2.new(0.25, -5, 1, 0)
 	chip.BackgroundColor3 = COLORS.panelSoft
 	chip.Parent = root
-	Instance.new("UICorner", chip).CornerRadius = UDim.new(0, 12)
+	Instance.new("UICorner", chip).CornerRadius = InterfaceTheme.Radii.Medium
 
 	local icon = Instance.new("TextLabel")
 	icon.BackgroundTransparency = 1
 	icon.Position = UDim2.new(0, 5, 0, 0)
 	icon.Size = UDim2.new(0, 27, 1, 0)
-	icon.Font = Enum.Font.Gotham
+	icon.Font = InterfaceTheme.Typography.Body
 	icon.Text = resource.icon
-	icon.TextSize = 19
+	icon.TextSize = InterfaceTheme.Typography.Sizes.Numeric
 	icon.Parent = chip
 
 	local amount = Instance.new("TextLabel")
@@ -90,9 +84,9 @@ for _, resource in ipairs(RESOURCES) do
 	amount.Position = UDim2.new(0, 32, 0, 2)
 	amount.Size = UDim2.new(1, -36, 0.58, 0)
 	amount.TextTruncate = Enum.TextTruncate.AtEnd
-	amount.Font = Enum.Font.GothamBold
+	amount.Font = InterfaceTheme.Typography.Display
 	amount.Text = "—"
-	amount.TextSize = 17
+	amount.TextSize = InterfaceTheme.Typography.Sizes.Numeric
 	amount.TextXAlignment = Enum.TextXAlignment.Left
 	amount.TextColor3 = resource.color
 	amount.Parent = chip
@@ -104,9 +98,9 @@ for _, resource in ipairs(RESOURCES) do
 	label.Position = UDim2.new(0, 33, 0.57, -1)
 	label.Size = UDim2.new(1, -35, 0.36, 0)
 	label.TextTruncate = Enum.TextTruncate.AtEnd
-	label.Font = Enum.Font.GothamMedium
+	label.Font = InterfaceTheme.Typography.Emphasis
 	label.Text = resource.label
-	label.TextSize = 9
+	label.TextSize = InterfaceTheme.Typography.Sizes.Micro
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextColor3 = COLORS.muted
 	label.Parent = chip
@@ -122,11 +116,11 @@ toast.BackgroundTransparency = 1
 toast.TextTransparency = 1
 toast.Text = ""
 toast.TextColor3 = COLORS.mint
-toast.TextSize = 15
-toast.Font = Enum.Font.GothamBold
+toast.TextSize = InterfaceTheme.Typography.Sizes.Body
+toast.Font = InterfaceTheme.Typography.Display
 toast.Visible = false
 toast.Parent = screen
-Instance.new("UICorner", toast).CornerRadius = UDim.new(0, 13)
+Instance.new("UICorner", toast).CornerRadius = InterfaceTheme.Radii.Medium
 local toastStroke = Instance.new("UIStroke")
 toastStroke.Color = COLORS.mint
 toastStroke.Transparency = 1
@@ -139,13 +133,13 @@ bondLabel.Position = UDim2.new(0.5, 0, 0, 70)
 bondLabel.Size = UDim2.fromOffset(300, 28)
 bondLabel.BackgroundColor3 = COLORS.panel
 bondLabel.BackgroundTransparency = 0.12
-bondLabel.Text = "🏡 Тихий остров"
+bondLabel.Text = InterfaceTheme.Icons.Build .. " Тихий остров"
 bondLabel.TextColor3 = COLORS.gold
-bondLabel.TextSize = 12
-bondLabel.Font = Enum.Font.GothamBold
+bondLabel.TextSize = InterfaceTheme.Typography.Sizes.Caption
+bondLabel.Font = InterfaceTheme.Typography.Display
 bondLabel.Visible = false
 bondLabel.Parent = screen
-Instance.new("UICorner", bondLabel).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", bondLabel).CornerRadius = InterfaceTheme.Radii.Small
 local bondStroke = Instance.new("UIStroke")
 bondStroke.Color = COLORS.gold
 bondStroke.Transparency = 0.55
@@ -160,8 +154,8 @@ local function applyKingdomBond(world: Instance)
 		return
 	end
 	bondLabel.Text = if type(nextPoints) == "number"
-		then string.format("🏡 %s  •  %d очков  •  дальше: %d", stageName, points, nextPoints)
-		else string.format("🏡 %s  •  %d очков  •  максимум", stageName, points)
+		then string.format("%s %s  •  %d очков  •  дальше: %d", InterfaceTheme.Icons.Build, stageName, points, nextPoints)
+		else string.format("%s %s  •  %d очков  •  максимум", InterfaceTheme.Icons.Build, stageName, points)
 	bondLabel.Visible = true
 end
 
@@ -243,17 +237,17 @@ local function resize()
 			local label = child:FindFirstChild("ResourceName")
 			if icon and icon ~= amount and icon ~= label then
 				icon.Size = UDim2.fromOffset(tiny and 22 or 27, 36)
-				icon.TextSize = tiny and 16 or 19
+				icon.TextSize = tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric
 			end
 			if amount and amount:IsA("TextLabel") then
 				amount.Position = UDim2.new(0, tiny and 27 or 32, 0, 1)
 				amount.Size = UDim2.new(1, tiny and -30 or -36, 0.62, 0)
-				amount.TextSize = tiny and 12 or (compact and 14 or 17)
+				amount.TextSize = tiny and 12 or (compact and InterfaceTheme.Typography.Sizes.Body or InterfaceTheme.Typography.Sizes.Numeric)
 			end
 			if label and label:IsA("TextLabel") then
 				label.Position = UDim2.new(0, tiny and 28 or 33, 0.58, 0)
 				label.Size = UDim2.new(1, tiny and -30 or -35, 0, 12)
-				label.TextSize = tiny and 8 or 9
+				label.TextSize = tiny and 8 or InterfaceTheme.Typography.Sizes.Micro
 			end
 		end
 	end
@@ -261,7 +255,7 @@ local function resize()
 	toast.Size = UDim2.fromOffset(math.max(190, math.min(250, viewport.X - 32)), 36)
 	bondLabel.Position = UDim2.new(0.5, 0, 0, compact and 148 or 70)
 	bondLabel.Size = UDim2.fromOffset(math.max(200, math.min(300, viewport.X - 32)), 28)
-	bondLabel.TextSize = tiny and 9 or 12
+	bondLabel.TextSize = tiny and 9 or InterfaceTheme.Typography.Sizes.Caption
 end
 
 local viewportConnection: RBXScriptConnection? = nil
