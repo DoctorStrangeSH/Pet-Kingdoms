@@ -797,3 +797,11 @@ Source-level event-vs-startup ordering guard added; runtime timing verification 
 - [ ] Run the notification smoke test in Roblox Studio on desktop, narrow portrait, and short landscape viewports; verify no clipping, stale slot counts, or stuck toasts.
 
 Regression source added; Studio execution remains pending.
+
+### Stage 1 — Pet Collection virtualization budget tests (2026-11-23)
+
+- [x] Extract fixed-height virtual-list window and content-height calculations into a pure shared helper used by Pet Collection.
+- [x] Add Studio smoke coverage for 100, 250, and 500 records at top, middle, and bottom scroll positions; assert bounds, final-item reachability, empty-list behavior, negative-scroll clamping, and a viewport-derived render budget.
+- [ ] Run `PetCollectionVirtualizationTests.client.lua` in Studio and profile actual GUI instance counts/scroll smoothness with 100, 250, and 500 live pet records.
+
+The deterministic helper tests are added; actual GUI profiling remains a Studio task.
