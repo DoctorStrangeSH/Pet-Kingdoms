@@ -9,6 +9,19 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local function getPanelSignal(): BindableEvent
+	local existing = playerGui:FindFirstChild("PetKingdomsPanelSignal")
+	if existing and existing:IsA("BindableEvent") then return existing end
+	local signal = Instance.new("BindableEvent")
+	signal.Name = "PetKingdomsPanelSignal"
+	signal.Parent = playerGui
+	return signal
+end
+local panelSignal = getPanelSignal()
+local function announcePanelOpened()
+	panelSignal:Fire(script.Name)
+end
+
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
 
 local COLORS = {
@@ -858,6 +871,7 @@ local function bindViewportCamera()
 end
 
 local function openCollection()
+	announcePanelOpened()
 	shade.Visible = true
 	panel.Visible = true
 	resize()
@@ -872,6 +886,10 @@ local function closeCollection()
 	panel.Visible = false
 	shade.Visible = false
 end
+
+panelSignal.Event:Connect(function(origin)
+	if origin ~= script.Name then closeCollection() end
+end)
 
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
