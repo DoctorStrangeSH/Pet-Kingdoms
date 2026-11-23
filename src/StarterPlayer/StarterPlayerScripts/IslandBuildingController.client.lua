@@ -281,12 +281,12 @@ local function makeCatalogButton(name: string, label: string): TextButton
 	return button
 end
 
-local mainHouseButton = makeCatalogButton("MainHouse", "🏡  ГЛАВНЫЙ ДОМ")
-local petHouseButton = makeCatalogButton("PetHouse", "🐾  ДОМИК ПИТОМЦЕВ\n5 🌲  •  2 🪨")
-local stonePathButton = makeCatalogButton("StonePath", "🪨  КАМЕННАЯ ДОРОЖКА\n1 🌲  •  1 🪨")
-local gardenLanternButton = makeCatalogButton("GardenLantern", "🏮  САДОВЫЙ ФОНАРЬ\n2 🌲  •  1 🪨")
-local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА\n1 🌲")
-local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР\n1 🌲")
+local mainHouseButton = makeCatalogButton("MainHouse", InterfaceTheme.Icons.Build .. "  ГЛАВНЫЙ ДОМ")
+local petHouseButton = makeCatalogButton("PetHouse", InterfaceTheme.Icons.Pet .. "  ДОМИК ПИТОМЦЕВ\n5 ♣  •  2 ◆")
+local stonePathButton = makeCatalogButton("StonePath", InterfaceTheme.Icons.Stone .. "  КАМЕННАЯ ДОРОЖКА\n1 ♣  •  1 ◆")
+local gardenLanternButton = makeCatalogButton("GardenLantern", InterfaceTheme.Icons.Lantern .. "  САДОВЫЙ ФОНАРЬ\n2 ♣  •  1 ◆")
+local flowerBedButton = makeCatalogButton("FlowerBed", InterfaceTheme.Icons.Flower .. "  КЛУМБА\n1 ♣")
+local woodenFenceButton = makeCatalogButton("WoodenFence", InterfaceTheme.Icons.Fence .. "  ЗАБОР\n1 ♣")
 local setStatus: (string, boolean?) -> ()
 local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
 local clearPendingBuildingOperation: () -> ()
@@ -1355,7 +1355,7 @@ local overviewStage = make("TextLabel", {
 	Position = UDim2.fromOffset(0, 48),
 	Size = UDim2.new(1, 0, 0, 34),
 	Font = Enum.Font.GothamBold,
-	Text = "🏡  Тихий остров",
+	Text = InterfaceTheme.Icons.Build .. "  Тихий остров",
 	TextColor3 = COLORS.text,
 	TextSize = 20,
 	TextXAlignment = Enum.TextXAlignment.Left,
@@ -1479,7 +1479,7 @@ dismissKingdomOverview = closeKingdomOverview
 local function refreshKingdomOverview()
 	local island = findOwnIsland()
 	if island == nil then
-		overviewStage.Text = "🏡  Остров загружается"
+		overviewStage.Text = InterfaceTheme.Icons.Build .. "  Остров загружается"
 		overviewStats.Text = "Данные королевства пока недоступны"
 		progressFill.Size = UDim2.fromScale(0, 1)
 		progressCaption.Text = "Подожди завершения загрузки острова"
@@ -1503,7 +1503,7 @@ local function refreshKingdomOverview()
 		then "постройки"
 		else "построек"
 
-	overviewStage.Text = "🏡  " .. stageName
+	overviewStage.Text = InterfaceTheme.Icons.Build .. "  " .. stageName
 	overviewStats.Text = string.format("%d очков развития  •  %d %s", points, totalBuildingCount, buildingWord)
 
 	if type(nextPoints) == "number" and nextPoints > 0 then
