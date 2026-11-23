@@ -1611,3 +1611,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Pet names and metadata now use `TextTruncate.AtEnd` with wrapping disabled, preventing long species names/status strings from spilling into adjacent UI.
 - In normal-height compact/portrait detail view, Favorite and Lock controls increased from 30×28 to 36×34 px with separated positions.
 - Next: inspect long localized names and metadata, tap the Favorite/Lock controls, and verify selected-card state at 320×640, 360×640, and 390×844 in Studio/device emulation.
+
+## Stage 1 — Pet card selection and delete-confirmation clarity (2026-11-23)
+
+- Strengthened card state hierarchy: selected card receives a gold 2.5 px outline; equipped but unselected cards receive a thinner mint outline; ordinary cards keep a neutral outline. This makes selection distinguishable from team membership.
+- Delete confirmation now names the target pet (`Зайчик` localized; other species IDs use their current species name) rather than showing only a generic irreversible-action warning.
+- Compact delete-confirmation buttons increased to 50 px before the existing viewport UIScale; regular layout uses 38 px. The panel still scales to fit short screens.
+- Rarity badges were not added because the current client `PetRecord` and server `cloneForClient` contract do not expose rarity. Do not infer rarity from species IDs; add it only with an authoritative server data field and validation.
+- Next: verify selected/equipped outlines, long-name confirmation text, cancel/backdrop/Escape, and destructive action hit targets in Studio.
