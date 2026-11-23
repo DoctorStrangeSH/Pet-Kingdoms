@@ -375,8 +375,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, fill)
 	end
 	if renderedCount == 0 then
-		local emptyText = if #quests == 0 then "Пока нет заданий.\\nНовые приключения появятся здесь."
-			else "Не удалось отобразить задания.\\nПопробуй обновить список."
+		local emptyText = if #quests == 0 then "Пока нет заданий.\nНовые приключения появятся здесь."
+			else "Не удалось отобразить задания.\nПопробуй обновить список."
 		local emptyState = make("TextLabel", {
 			Name = "EmptyQuestState",
 			Size = UDim2.new(1, -12, 0, 104),
