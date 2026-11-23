@@ -315,7 +315,7 @@ local equipButton = make("TextButton", {
 	TextColor3 = Color3.fromRGB(30, 43, 43),
 	AutoButtonColor = true,
 }, detail) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 13) }, equipButton)
+InterfaceComponents.StyleActionButton(equipButton, "primary")
 
 local mainButton = make("TextButton", {
 	Name = "SetMainPet",
