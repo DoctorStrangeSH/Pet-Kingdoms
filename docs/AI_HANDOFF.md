@@ -1481,3 +1481,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed `InterfaceComponents.SetButtonFeedback`: unsupported states are now rejected before incrementing `PKFeedbackToken`. Previously an invalid state call could invalidate the pending restore timer and leave the button stuck in feedback styling.
 - Added `src/StarterPlayer/StarterPlayerScripts/Tests/InterfaceComponentsTests.client.lua`, gated by `RunPetKingdomsStudioTests`, to verify supported feedback, unsupported-state no-op behavior, restoration of original text/colors, and timer cleanup.
 - Next: run this smoke test in a dedicated Studio test place, then complete the Stage 1 cross-screen visual/touch regression at desktop and 320/360/390 px widths. No inventory UI or item model exists in the current repository yet; do not claim inventory work is implemented or begin an unapproved inventory feature before MVP scope is confirmed.
+
+## Stage 1 — Pet Collection request timeout handling (2026-11-23)
+
+- Added a shared local `invokeCollection` wrapper around `RequestRunner.Invoke` with a 12-second bound for all collection mutations: equip/main-pet selection, care/play interaction, favorite/lock settings, and delete.
+- Preserved server-authoritative `expectedRevision` values on each mutation. On timeout the UI reports that it is reconciling state, then refreshes the collection instead of leaving `busy` stuck behind an indefinitely yielding `InvokeServer` call.
+- The wrapper is declared after the shared `RequestRunner` require and returns transport status separately from the server's `(success, result)` values.
+- Next: inspect CI and verify delayed/failed RemoteFunction behavior in Studio. A timeout does not cancel server work; retries remain guarded by collection revision checks.
