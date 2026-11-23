@@ -323,7 +323,7 @@ ModalManager.Register(script.Name, function(_reason: string)
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not opened then return end
+	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not opened or not ModalManager.IsActive(script.Name) then return end
 	setOpen(false)
 end)
 
