@@ -71,14 +71,8 @@ local function shouldKeepPendingRequest(response: any): boolean
 		or response.code == "SESSION_NOT_WRITABLE"
 end
 
-local COLORS = {
-	panel = Color3.fromRGB(35, 31, 59),
-	panelLight = Color3.fromRGB(54, 47, 86),
-	gold = Color3.fromRGB(255, 211, 117),
-	text = Color3.fromRGB(255, 250, 239),
-	valid = Color3.fromRGB(91, 220, 143),
-	invalid = Color3.fromRGB(245, 104, 105),
-}
+local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, properties: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
