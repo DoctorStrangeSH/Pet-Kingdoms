@@ -355,9 +355,10 @@ local function resizeBuildingPanel()
 	local actionAvailable = math.max(196, viewport.X - outerMargin * 2 - actionGap)
 	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
 	local demolishWidth = math.min(180, actionAvailable - moveWidth)
-	moveButton.Position = UDim2.fromOffset(outerMargin, compact and 80 or 24)
+	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
+	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
-	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, compact and 80 or 24)
+	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
 	demolishButton.TextSize = if compact then 11 else 13
 end
@@ -500,6 +501,7 @@ setPendingBuildingOperation = function(key: string, requestId: string, payload: 
 	}
 	recoveryDescription.Text = description .. " — результат пока неизвестен."
 	recoveryPanel.Visible = true
+	resizeBuildingPanel()
 end
 
 clearPendingBuildingOperation = function()
@@ -509,6 +511,7 @@ clearPendingBuildingOperation = function()
 	pendingBuildingOperation = nil
 	pendingBuildingOperationKey = nil
 	recoveryPanel.Visible = false
+	resizeBuildingPanel()
 end
 
 recoveryButton.Activated:Connect(function()
