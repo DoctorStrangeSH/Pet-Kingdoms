@@ -28,6 +28,7 @@ local collection: Collection? = nil
 local selectedPetId: string? = nil
 local busy = false
 local cardButtons: { [string]: TextButton } = {}
+local searchRenderVersion = 0
 local activeFilter = "all"
 local sortMode = "newest"
 local pendingDeletePetId: string? = nil
@@ -544,8 +545,9 @@ local function updateDetail()
 	renderPreview(selected.speciesId)
 end
 
-local function renderList()
+local function renderList(preserveScroll: boolean?)
 	if collection == nil then return end
+	local savedCanvasPosition = if preserveScroll then list.CanvasPosition else Vector2.zero
 	for _, child in ipairs(list:GetChildren()) do
 		if child:IsA("GuiObject") and not child:IsA("UIListLayout") then
 			child:Destroy()
@@ -623,9 +625,16 @@ local function renderList()
 			}, button)
 			cardButtons[record.petId] = button
 		button.Activated:Connect(function()
+			local previousPetId = selectedPetId
 			selectedPetId = record.petId
+			-- Selection only changes two card highlights; do not destroy and
+			-- recreate every card in a potentially large collection.
+			local previousButton = if previousPetId then cardButtons[previousPetId] else nil
+			if previousButton then
+				previousButton.BackgroundColor3 = COLORS.card
+			end
+			button.BackgroundColor3 = COLORS.cardSelected
 			if compactCollection then mobileDetailVisible = true end
-			renderList()
 			updateDetail()
 			resize()
 		end)
@@ -649,7 +658,17 @@ local function renderList()
 		}, list) :: TextLabel
 		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then InterfaceTheme.Icons.Pet else InterfaceTheme.Icons.Search)
 	end
-	list.CanvasPosition = Vector2.zero
+	if preserveScroll then
+		-- AutomaticCanvasSize updates after children are parented. Restore the
+		-- old offset on the next task turn and clamp it if records were removed.
+		task.defer(function()
+			if list.Parent == nil then return end
+			local maxY = math.max(0, list.AbsoluteCanvasSize.Y - list.AbsoluteWindowSize.Y)
+			list.CanvasPosition = Vector2.new(0, math.clamp(savedCanvasPosition.Y, 0, maxY))
+		end)
+	else
+		list.CanvasPosition = Vector2.zero
+	end
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
 	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
 	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
@@ -709,7 +728,7 @@ local function setMainPet()
 		return
 	end
 	collection = result :: Collection
-	renderList()
+	renderList(true)
 	updateDetail()
 	showStatus("Главный питомец изменён!")
 end
@@ -747,7 +766,7 @@ local function toggleEquip()
 		return
 	end
 	collection = result :: Collection
-	renderList()
+	renderList(true)
 	updateDetail()
 	showStatus("Команда сохранена!")
 end
@@ -788,7 +807,7 @@ local function interactWithSelected(interactionType: string)
 		return
 	end
 	collection = result :: Collection
-	renderList()
+	renderList(true)
 	updateDetail()
 	showStatus(if interactionType == "pet" then "Питомцу приятно! +10 дружбы" else "Вы отлично провели время! +10 дружбы")
 end
@@ -816,7 +835,7 @@ local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 		return
 	end
 	collection = result :: Collection
-	renderList()
+	renderList(true)
 	updateDetail()
 	showStatus("Настройки питомца сохранены.")
 end
@@ -1250,7 +1269,15 @@ equipButton.Activated:Connect(toggleEquip)
 mainButton.Activated:Connect(setMainPet)
 petButton.Activated:Connect(function() interactWithSelected("pet") end)
 playButton.Activated:Connect(function() interactWithSelected("play") end)
-search:GetPropertyChangedSignal("Text"):Connect(renderList)
+search:GetPropertyChangedSignal("Text"):Connect(function()
+	searchRenderVersion += 1
+	local version = searchRenderVersion
+	-- Coalesce fast typing into one list update after the user pauses briefly.
+	task.delay(0.12, function()
+		if version ~= searchRenderVersion or not screen.Parent then return end
+		renderList()
+	end)
+end)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
