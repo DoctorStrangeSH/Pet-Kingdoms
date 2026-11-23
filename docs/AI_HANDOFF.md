@@ -1488,3 +1488,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Preserved server-authoritative `expectedRevision` values on each mutation. On timeout the UI reports that it is reconciling state, then refreshes the collection instead of leaving `busy` stuck behind an indefinitely yielding `InvokeServer` call.
 - The wrapper is declared after the shared `RequestRunner` require and returns transport status separately from the server's `(success, result)` values.
 - Next: inspect CI and verify delayed/failed RemoteFunction behavior in Studio. A timeout does not cancel server work; retries remain guarded by collection revision checks.
+
+## Stage 1 — Island loading screen responsive layout (2026-11-23)
+
+- Added `resizeLoadingCard()` to `IslandLoading.client.lua`. On very short viewports (<210 px tall), the loading panel shrinks to 148 px and repositions/scales its title, subtitle, status, and progress track; short screens below 280 px use a 176 px card. Taller screens retain the original 224 px layout.
+- The panel size constraints now follow the active layout, and viewport listeners are rebound when `Workspace.CurrentCamera` changes.
+- Next: verify 320×180 and 360×180 landscape plus portrait/tablet/desktop, including Loading, Ready, and Failed states. No Studio runtime check has yet been performed.
