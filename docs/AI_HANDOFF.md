@@ -1157,3 +1157,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `openKingdomOverview()` now closes construction before announcing its own overview, while a pending request is deferred; handling other panels through `PetKingdomsPanelSignal` uses the same pending-safe path. After success, the normal construction stop logic runs. After failed or thrown remote response, a deferred stop runs so a hidden build operation cannot continue owning input.
 - The request snapshots catalog ID, cell coordinates, rotation and moving instance ID and blocks other edits and repeat confirms while waiting (prior commit).
 - Studio tests pending: slow build + open journal/collection, slow build + open overview, server rejection while another panel is open, repeated rapid confirm, slow move, and close/reopen after a response. No GitHub Actions or Roblox runtime success is claimed.
+
+
+## Demolition request serialization (2026-11-23)
+
+- `IslandBuildingController.client.lua` now tracks a separate `demolitionRequestInFlight` state. A second confirmation or an island click cannot select a different building while the delete RemoteFunction is awaiting a response. Start-build and move-building buttons are also guarded during demolition.
+- Before yielding, the controller captures the target `BuildingInstanceId` and marks Delete and Move inactive. On return (success, server error, or transport failure) it releases the guard, restores buttons, and clears the confirmation arm. Success deselects the removed building. The existing idempotency request ID is retained for transport failures and retryable server replies so retries will use the same transaction key for that target.
+- Added localized explanations for missing/protected buildings, busy/in-progress server operations, save timeouts and rate limits. The server-owned deletion authorization, protected main house, resource rewards and persistence format were not changed.
+- Roblox Studio test gate remains open: double-tap Delete, tap another object while Delete is pending, tap Move/Build while pending, retry a transient server fault, remove an already-removed object, switch to another panel mid-delete, and verify that another user cannot delete a building on someone else's island. No runtime test has been claimed.
