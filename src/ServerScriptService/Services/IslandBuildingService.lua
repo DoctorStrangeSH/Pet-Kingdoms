@@ -58,6 +58,7 @@ end
 
 local function makeFingerprint(request: any): (string, string)
 	local action = if request.action == "demolish" then "demolish"
+		elseif request.action == "upgrade" then "upgrade"
 		elseif request.movingInstanceId ~= nil then "move" else "place"
 	local values = {
 		action,
