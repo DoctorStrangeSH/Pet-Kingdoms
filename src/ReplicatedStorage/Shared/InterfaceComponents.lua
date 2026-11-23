@@ -107,6 +107,41 @@ function Components.StyleCard(card: GuiObject, variant: string?)
 	stroke.Transparency = transparency
 end
 
+function Components.StyleEmptyState(label: TextLabel, icon: string?)
+	local colors = Theme.Colors
+	label.BackgroundColor3 = colors.panelSoft
+	label.BackgroundTransparency = 0.12
+	label.BorderSizePixel = 0
+	label.Font = Theme.Typography.Body
+	label.TextColor3 = colors.muted
+	label.TextSize = Theme.Typography.Sizes.Body
+	label.TextWrapped = true
+	label.TextScaled = false
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.TextYAlignment = Enum.TextYAlignment.Center
+	label.RichText = false
+	if icon and icon ~= "" and not label:GetAttribute("PKEmptyIconApplied") then
+		label.Text = icon .. "\\n" .. label.Text
+		label:SetAttribute("PKEmptyIconApplied", true)
+	end
+
+	local corner = label:FindFirstChildOfClass("UICorner")
+	if corner == nil then
+		corner = Instance.new("UICorner")
+		corner.Parent = label
+	end
+	corner.CornerRadius = Theme.Radii.Medium
+
+	local stroke = label:FindFirstChildOfClass("UIStroke")
+	if stroke == nil then
+		stroke = Instance.new("UIStroke")
+		stroke.Parent = label
+	end
+	stroke.Color = colors.panelLight
+	stroke.Thickness = 1
+	stroke.Transparency = 0.72
+end
+
 function Components.StyleFloatingButton(button: TextButton, variant: string?)
 	local colors = Theme.Colors
 	local accent = colors.gold
