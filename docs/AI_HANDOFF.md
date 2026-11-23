@@ -1641,3 +1641,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Delete's Cancel button also enters a disabled `ПОДОЖДИ...` state during the destructive request; its existing Escape/backdrop guards remain in place.
 - Added InterfaceComponents Studio smoke coverage for loading text, disabled interaction, repeated loading calls, restoration of original label/interaction, and idempotent reset.
 - Next: run updated InterfaceComponents smoke tests and delayed/failing Equip, Interact, Protect, and Delete scenarios in Roblox Studio.
+
+## Stage 1 — Pet Collection transitions and animation lifecycle (2026-11-23)
+
+- Collection opening now fades in the shade and eases the panel from a slightly lower position with a subtle scale-in.
+- Collection closing now animates shade, panel position, and panel scale; the panel remains visible until the close transition completes.
+- Active shade, panel-position, and panel-scale tweens are stored and cancelled before a new transition. The delayed hide remains guarded by `collectionModalRevision`, so rapid reopen cannot be hidden by an earlier close callback.
+- Compact mobile selection animates the detail pane in from a small horizontal offset. The detail tween is cancelled on Back and on modal open/close. Its callback is forward-declared because card activation handlers are defined earlier in the module.
+- Next: verify rapid open/close/reopen, Escape/backdrop close, modal handoff, and mobile list/detail navigation in Studio under touch and low frame rates.
