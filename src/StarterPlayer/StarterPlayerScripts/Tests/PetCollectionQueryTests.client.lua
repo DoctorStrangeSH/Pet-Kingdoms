@@ -104,6 +104,54 @@ end
 expect("fixture hides selected pet from Team filter", not selectedIsEquipped)
 expect("selection remains stable when selected pet is hidden by Team", PetCollectionQuery.ResolveSelection(owned, selectedId) == selectedRecord)
 
+local changedFavoriteOwned = {}
+for _, record in ipairs(owned) do
+	local copy = table.clone(record)
+	if copy.petId == selectedId then copy.isFavorite = true end
+	table.insert(changedFavoriteOwned, copy)
+end
+local selectedFavoriteResults = PetCollectionQuery.Build(changedFavoriteOwned, equipped, "", "favorites", "newest", normalizedNames)
+local selectedAppearsAsFavorite = false
+for _, record in ipairs(selectedFavoriteResults) do
+	if record.petId == selectedId then selectedAppearsAsFavorite = true break end
+end
+expect("favorite update inserts selected pet into active Favorites filter", selectedAppearsAsFavorite)
+expect("favorite update keeps selected identity", PetCollectionQuery.ResolveSelection(changedFavoriteOwned, selectedId) == changedFavoriteOwned[123])
+
+local removedFavoriteOwned = {}
+for _, record in ipairs(changedFavoriteOwned) do
+	local copy = table.clone(record)
+	if copy.petId == selectedId then copy.isFavorite = false end
+	table.insert(removedFavoriteOwned, copy)
+end
+local removedFavoriteResults = PetCollectionQuery.Build(removedFavoriteOwned, equipped, "", "favorites", "newest", normalizedNames)
+local selectedRemainsFavorite = false
+for _, record in ipairs(removedFavoriteResults) do
+	if record.petId == selectedId then selectedRemainsFavorite = true break end
+end
+expect("removing favorite removes selected pet from active Favorites filter", not selectedRemainsFavorite)
+local _, afterFavoriteRemovalId = PetCollectionQuery.ResolveSelection(removedFavoriteOwned, selectedId)
+expect("removing favorite does not clear selected pet identity", afterFavoriteRemovalId == selectedId)
+
+local equippedAfterToggle = table.clone(equipped)
+table.insert(equippedAfterToggle, selectedId)
+local selectedTeamResults = PetCollectionQuery.Build(owned, equippedAfterToggle, "", "team", "newest", normalizedNames)
+local selectedAppearsOnTeam = false
+for _, record in ipairs(selectedTeamResults) do
+	if record.petId == selectedId then selectedAppearsOnTeam = true break end
+end
+expect("equip update inserts selected pet into active Team filter", selectedAppearsOnTeam)
+
+table.remove(equippedAfterToggle, table.find(equippedAfterToggle, selectedId))
+local removedTeamResults = PetCollectionQuery.Build(owned, equippedAfterToggle, "", "team", "newest", normalizedNames)
+local selectedRemainsOnTeam = false
+for _, record in ipairs(removedTeamResults) do
+	if record.petId == selectedId then selectedRemainsOnTeam = true break end
+end
+expect("unequip update removes selected pet from active Team filter", not selectedRemainsOnTeam)
+local _, afterUnequipId = PetCollectionQuery.ResolveSelection(owned, selectedId)
+expect("unequip update does not clear selected pet identity", afterUnequipId == selectedId)
+
 local fallbackRecord, fallbackId = PetCollectionQuery.ResolveSelection(owned, "pet-no-longer-owned")
 expect("selection falls back only when the pet is no longer owned", fallbackId == owned[1].petId and fallbackRecord == owned[1])
 
