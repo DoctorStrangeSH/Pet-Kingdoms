@@ -29,6 +29,21 @@ local function getSearchName(
 	return normalized
 end
 
+function PetCollectionQuery.ResolveSelection(
+	owned: { PetRecord },
+	selectedPetId: string?
+): (PetRecord?, string?)
+	if selectedPetId ~= nil then
+		for _, record in ipairs(owned) do
+			if record.petId == selectedPetId then
+				return record, selectedPetId
+			end
+		end
+	end
+	local fallback = owned[1]
+	return fallback, if fallback then fallback.petId else nil
+end
+
 function PetCollectionQuery.Build(
 	owned: { PetRecord },
 	equipped: { string },
