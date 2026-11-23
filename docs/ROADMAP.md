@@ -883,3 +883,10 @@ Source-level narrow-card layout and hit-area improvements are in place; device i
 - [ ] Verify selected/equipped visual states, long pet names in the confirmation, cancel/backdrop/Escape behavior, and delete action hit areas in Roblox Studio.
 
 Rarity is intentionally not fabricated: the current client collection record does not expose a rarity field. Add rarity visuals only after a server-authoritative rarity value and its data contract are established.
+
+### Stage 1 — Delete confirmation request lifecycle (2026-11-23)
+
+- [x] Capture the target pet ID before starting the destructive request, so the request identity cannot be affected by later UI state changes.
+- [x] Disable both confirmation actions and their automatic hover/click feedback while deletion is in progress; restore them after the request resolves.
+- [x] Ignore Escape, backdrop, and Cancel dismissal while the delete request is active, preventing the dialog from implying cancellation after the server request has already started.
+- [ ] Verify delayed Delete responses, timeout recovery, close/reopen behavior, and retry flow in Roblox Studio.
