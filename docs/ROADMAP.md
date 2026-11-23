@@ -632,3 +632,7 @@ This is a source-level responsive pass only. Roblox Studio touch/visual verifica
 - [ ] Verify 320/360/390/560/700/780 px widths in Roblox Studio; check all resource values, icon readability, Build launcher hitbox, and no collision with pet/expansion launchers or gather notifications.
 
 Source-level layout pass only; runtime visual/touch verification remains pending.
+
+- [x] On very short landscape screens, collapse the four resource chips into one compact row and hide only their redundant text labels (balances and resource icons remain visible).
+- [x] Separate Build, Pet Collection, and Island Expansion launchers vertically with 40–44 px targets; move gather feedback below the left-side quest launcher and hide the optional kingdom-bond caption while the short-screen controls occupy that space.
+- [ ] Verify the 320×180 and 360×180 layouts in Roblox Studio, including toast visibility, all launcher hit targets, and resource amount legibility.
