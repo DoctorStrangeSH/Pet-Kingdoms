@@ -578,3 +578,14 @@ Source commits: `0bbf4f0`, `1606f79`, `9d3a189`, `c553373`, `cc7dd65`, `c5fa285`
 - [ ] Finish spacing/overflow audit and run desktop + 320/360/390 px mobile regression in Roblox Studio before Stage 1 sign-off.
 
 Source commits: `639d343`, `a9fcfe5`, `3d6cd07`, `742be87`, `a32852e`, `035659b`, `a43e98f`, `996901c`. Cleanup CI passed through commit `a32852e`; latest build `45152892961` was pending. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Resource HUD shared theme migration (2026-11-23)
+
+- [x] Replace Resource HUD's duplicate base palette with `InterfaceTheme.Colors`.
+- [x] Use shared typography tokens for resource amounts, labels, gather feedback, kingdom-bond label, and responsive sizes.
+- [x] Use shared radius tokens and shared Build icon token.
+- [x] Preserve per-resource semantic accent tints and existing responsive grid layout.
+- [ ] Finish cross-screen overflow/spacing audit and complete Roblox Studio desktop/mobile regression before Stage 1 sign-off.
+
+Source commit: `bce0786`. CI `45153168859` was running at documentation time. Studio/device validation remains outstanding.
