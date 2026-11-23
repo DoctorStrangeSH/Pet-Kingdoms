@@ -90,9 +90,17 @@ local function createEdgeMeadow(world: Model, top: CFrame, sizeX: number, sizeZ:
 		Color3.fromRGB(195, 177, 255),
 		Color3.fromRGB(238, 245, 225),
 	}
+	-- Server-wide art density can be configured in Studio via Workspace attribute.
+	-- 0 = essential world only, 1/default = lightweight, 2 = full prototype meadow.
+	local rawDetailLevel = Workspace:GetAttribute("IslandDecorationLevel")
+	local detailLevel = if type(rawDetailLevel) == "number" then math.clamp(math.floor(rawDetailLevel), 0, 2) else 1
+	if detailLevel == 0 then return end
 	for index, patch in ipairs(patches) do
 		local center = top * CFrame.new(patch[1] * sizeX, 0, patch[2] * sizeZ)
-		for leafIndex, offset in ipairs({ Vector3.new(-0.24, 0, 0), Vector3.new(0.22, 0, 0.13) }) do
+		local bushes = if detailLevel == 2
+			then { Vector3.new(-0.24, 0, 0), Vector3.new(0.22, 0, 0.13) }
+			else { Vector3.new(0, 0, 0) }
+		for leafIndex, offset in ipairs(bushes) do
 			local bush = makePart(decor, "Bush_" .. index .. "_" .. leafIndex,
 				Vector3.new(cellSize * 0.38, cellSize * 0.29, cellSize * 0.36),
 				center * CFrame.new(offset * cellSize + Vector3.new(0, cellSize * 0.145, 0)),
@@ -103,7 +111,10 @@ local function createEdgeMeadow(world: Model, top: CFrame, sizeX: number, sizeZ:
 			bush.CanQuery = false
 			bush.CastShadow = false
 		end
-		for blossomIndex, offset in ipairs({ Vector3.new(-0.26, 0, -0.05), Vector3.new(0.22, 0, 0.14) }) do
+		local blossoms = if detailLevel == 2
+			then { Vector3.new(-0.26, 0, -0.05), Vector3.new(0.22, 0, 0.14) }
+			else { Vector3.new(0.12, 0, -0.10) }
+		for blossomIndex, offset in ipairs(blossoms) do
 			local flower = makePart(decor, "Blossom_" .. index .. "_" .. blossomIndex,
 				Vector3.new(cellSize * 0.13, cellSize * 0.13, cellSize * 0.13),
 				center * CFrame.new(offset * cellSize + Vector3.new(0, cellSize * 0.30, 0)),
