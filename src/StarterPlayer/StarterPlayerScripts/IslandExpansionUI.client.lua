@@ -392,19 +392,16 @@ local function resize()
 		currentCard.Size = UDim2.fromOffset(cardWidth, 44)
 		nextCard.Position = UDim2.fromOffset(12 + cardWidth + cardGap, 53)
 		nextCard.Size = UDim2.fromOffset(cardWidth, 44)
-		for _, card in ipairs({ currentCard, nextCard }) do
-			local cardTitle = card:FindFirstChildWhichIsA("TextLabel")
-			if cardTitle then
-				cardTitle.Position = UDim2.fromOffset(8, 4)
-				cardTitle.Size = UDim2.new(1, -16, 0, 13)
-				cardTitle.TextSize = 8
-			end
-			local value = card:FindFirstChildWhichIsA("TextLabel", true)
-			if value and value ~= cardTitle then
-				value.Position = UDim2.fromOffset(8, 19)
-				value.Size = UDim2.new(1, -16, 0, 18)
-				value.TextSize = 11
-			end
+		for _, entry in ipairs({
+			{ title = currentTitle, value = currentValue },
+			{ title = nextTitle, value = nextValue },
+		}) do
+			entry.title.Position = UDim2.fromOffset(8, 4)
+			entry.title.Size = UDim2.new(1, -16, 0, 13)
+			entry.title.TextSize = 8
+			entry.value.Position = UDim2.fromOffset(8, 19)
+			entry.value.Size = UDim2.new(1, -16, 0, 18)
+			entry.value.TextSize = 11
 		end
 
 		status.Position = UDim2.fromOffset(12, 102)
@@ -438,19 +435,16 @@ local function resize()
 		currentCard.Size = UDim2.new(1, -44, 0, 82)
 		nextCard.Position = UDim2.new(0, 22, 0, 202)
 		nextCard.Size = UDim2.new(1, -44, 0, 82)
-		for _, card in ipairs({ currentCard, nextCard }) do
-			local cardTitle = card:FindFirstChildWhichIsA("TextLabel")
-			if cardTitle then
-				cardTitle.Position = UDim2.new(0, 15, 0, 12)
-				cardTitle.Size = UDim2.new(1, -30, 0, 22)
-				cardTitle.TextSize = 12
-			end
-			local value = card:FindFirstChildWhichIsA("TextLabel", true)
-			if value and value ~= cardTitle then
-				value.Position = UDim2.new(0, 15, 0, 36)
-				value.Size = UDim2.new(1, -30, 0, 28)
-				value.TextSize = if compact then 16 else 20
-			end
+		for _, entry in ipairs({
+			{ title = currentTitle, value = currentValue },
+			{ title = nextTitle, value = nextValue },
+		}) do
+			entry.title.Position = UDim2.new(0, 15, 0, 12)
+			entry.title.Size = UDim2.new(1, -30, 0, 22)
+			entry.title.TextSize = 12
+			entry.value.Position = UDim2.new(0, 15, 0, 36)
+			entry.value.Size = UDim2.new(1, -30, 0, 28)
+			entry.value.TextSize = if compact then 16 else 20
 		end
 		status.Position = UDim2.new(0, 24, 0, 296)
 		status.Size = UDim2.new(1, -48, 0, 38)
