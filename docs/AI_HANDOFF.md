@@ -1573,3 +1573,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added deterministic tests for preserved in-range position, shorter filtered results, empty results, and negative saved positions.
 - Selection remains keyed by `petId`; filtering/sorting does not rewrite `selectedPetId`, so the detail panel continues to refer to the same owned pet even if it is not in the current filtered subset.
 - Next: verify in Studio with large inventories while switching filters/sort from the middle and bottom of the list.
+
+## Stage 1 — Pet Collection query pipeline and regression coverage (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/PetCollectionQuery.lua` as a pure filtering/sorting module. `PetCollectionUI.renderList()` delegates to this module instead of maintaining an inline query implementation.
+- The module builds the equipped-ID lookup once, uses cached normalized species display names, applies literal case-insensitive substring search, supports All/Team/Favorites filters, and applies favorite priority plus deterministic sort tie-breakers.
+- Added `PetCollectionQueryTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It exercises a synthetic 500-record inventory, team/favorite correctness, localized Bunny search, no-match and empty cases, newest ordering, bond-level/XP priority, and normalized-name caching.
+- The same production query module is used by tests, avoiding a test-only reimplementation of filtering/sorting.
+- Next: execute the test in Studio, profile query latency on desktop/mobile, and manually verify selection/detail continuity when the selected record is filtered out or its flags change.
