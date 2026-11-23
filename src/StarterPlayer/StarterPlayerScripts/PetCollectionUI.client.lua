@@ -40,6 +40,7 @@ type Collection = { revision: number, owned: { PetRecord }, equipped: { string }
 local collection: Collection? = nil
 local selectedPetId: string? = nil
 local busy = false
+local collectionRefreshing = false
 local cardButtons: { [string]: TextButton } = {}
 local filteredRecords: { PetRecord } = {}
 local renderedWindowStart = 0
@@ -722,9 +723,15 @@ end)
 
 
 local function refreshCollection()
+	-- Collection reads are single-flight. Multiple opens/refreshes must not race
+	-- and let an older snapshot overwrite a newer server response.
+	if collectionRefreshing then return false end
+	collectionRefreshing = true
 	local requestResult = RequestRunner.Invoke(function()
 		return table.pack(remote:InvokeServer("Get"))
 	end, 12)
+	collectionRefreshing = false
+
 	local response = if requestResult.ok then requestResult.value else nil
 	local success = if type(response) == "table" then response[1] else false
 	local result = if type(response) == "table" then response[2] else nil
@@ -748,7 +755,7 @@ local function refreshCollection()
 end
 
 local function setMainPet()
-	if busy or collection == nil or selectedPetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	local currentIndex = table.find(collection.equipped, selectedPetId)
 	if currentIndex == nil then
 		showStatus("Сначала добавь питомца в команду.", true)
@@ -778,7 +785,7 @@ local function setMainPet()
 end
 
 local function toggleEquip()
-	if busy or collection == nil or selectedPetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
 	equipButton.Active = false
 	equipButton.Text = "СОХРАНЯЕМ..."
@@ -815,7 +822,7 @@ end
 
 
 local function interactWithSelected(interactionType: string)
-	if busy or collection == nil or selectedPetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
 	petButton.Active = false
 	playButton.Active = false
@@ -853,7 +860,7 @@ local function interactWithSelected(interactionType: string)
 end
 
 local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
-	if busy or collection == nil or selectedPetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	busy = true
 	favoriteButton.Active = false
 	lockButton.Active = false
@@ -879,7 +886,7 @@ local function updatePetFlags(isFavorite: boolean, isLocked: boolean)
 end
 
 local function requestDeleteSelected()
-	if busy or collection == nil or selectedPetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or selectedPetId == nil then return end
 	local selected: PetRecord? = nil
 	for _, record in ipairs(collection.owned) do
 		if record.petId == selectedPetId then selected = record break end
@@ -896,7 +903,7 @@ local function requestDeleteSelected()
 end
 
 local function confirmDeleteSelected()
-	if busy or collection == nil or pendingDeletePetId == nil then return end
+	if busy or collectionRefreshing or collection == nil or pendingDeletePetId == nil then return end
 	busy = true
 	confirmDeleteButton.Active = false
 	confirmDeleteButton.Text = "УДАЛЯЕМ..."
