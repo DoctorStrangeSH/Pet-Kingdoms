@@ -22,6 +22,24 @@ local Colors = {
 
 return table.freeze({
 	Colors = table.freeze(Colors),
+	Icons = table.freeze({
+		Close = "×",
+		Back = "←",
+		Refresh = "↻",
+		Pet = "🐾",
+		Quest = "📜",
+		Island = "🏝️",
+		Build = "🏡",
+		FavoriteOn = "★",
+		FavoriteOff = "☆",
+		Locked = "🔒",
+		Unlocked = "🔓",
+		Move = "↔",
+		Rotate = "↻",
+		Demolish = "⌫",
+		Confirm = "✓",
+		Search = "⌕",
+	}),
 	Typography = table.freeze({
 		Display = Enum.Font.GothamBold,
 		Body = Enum.Font.Gotham,
