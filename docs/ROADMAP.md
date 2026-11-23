@@ -623,3 +623,12 @@ Studio/device validation remains required; Stage 1 is still open.
 - [ ] Verify at 320×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio. Check catalogue scrolling, button hit targets, selection, rotation, placement, and recovery-panel interaction.
 
 This is a source-level responsive pass only. Roblox Studio touch/visual verification remains pending; Stage 1 is not complete.
+
+### Stage 1 — Resource HUD and Build launcher collision pass (2026-11-23)
+
+- [x] Reserve a dedicated top-right launcher lane below 780 px viewport width; the Build launcher becomes a compact 48×48 shared floating action instead of covering resource balances.
+- [x] Align the compact Resource HUD to the top-left and size it to the remaining width, keeping the two-column mobile resource cards readable.
+- [x] Keep the four-column resource bar centered on wider screens and retain the labelled Build action on desktop.
+- [ ] Verify 320/360/390/560/700/780 px widths in Roblox Studio; check all resource values, icon readability, Build launcher hitbox, and no collision with pet/expansion launchers or gather notifications.
+
+Source-level layout pass only; runtime visual/touch verification remains pending.
