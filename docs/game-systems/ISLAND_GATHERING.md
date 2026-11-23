@@ -1,47 +1,42 @@
 # Island Gathering — MVP Resource Nodes
 
-> Status: server-spawned personal-island wood/stone nodes and server-authoritative ProximityPrompt rewards are implemented. Live Studio playtest and UI feedback verification remain pending.
+> Status: four server-spawned personal-island resource nodes, server-authoritative ProximityPrompt rewards, a resource HUD/toast and world markers are implemented in source. Live Studio/device verification remains pending.
 
 ## Current MVP node set
 
-Each spawned personal island receives four resource nodes inside its own `ResourceNodes` folder:
-- 2 Wood nodes: each grants 3 Wood.
-- 2 Stone nodes: each grants 2 Stone.
-- Each node becomes unavailable after a successful gather and respawns after 60 seconds.
+Each personal island receives:
+- 2 Wood trees: each grants 3 Wood.
+- 2 Stone deposits: each grants 2 Stone.
+- A gathered node becomes unavailable for 60 seconds.
 
-These quantities and timer reuse the provisional baseline in the project specification. They are not final economy balance.
+The starter wallet begins with 2 Wood and 1 Stone. Values and cooldown are provisional economy settings.
 
-## Interaction
+## How the player gathers
 
-- Uses Roblox ProximityPrompt; keyboard E and gamepad ButtonX are configured.
-- Prompts are server-observed through ProximityPromptService.
-- The server validates resource ID, integer reward, player ownership, node ancestry, island ownership, character root, and interaction distance.
-- Reward values are node attributes assigned by server-owned island generation, never accepted from the client.
-- A node is marked busy before the grant call to prevent duplicate concurrent awards.
-- The node is hidden and its prompt disabled only after a successful wallet grant.
-- If the wallet grant fails, the node remains available.
-- The node returns after 60 seconds; cooldown is in-memory and resets if the server shuts down.
+- Find the small tree markers labelled `ДЕРЕВО +3` or stone markers labelled `КАМЕНЬ +2` around the perimeter of the personal island.
+- Walk close enough for the Roblox ProximityPrompt to appear.
+- Hold the prompt (keyboard `E`; gamepad `ButtonX`; Roblox displays the touch action on mobile).
+- The resource HUD updates from the server snapshot and briefly shows a gather toast.
+- A gathered node and its marker hide, then return after 60 seconds.
 
-## Wallet integration
+## Server authority
 
-Rewards call `IslandResourceService.grant`, which mutates the server-owned profile and marks it dirty. DataStore persistence remains handled by the existing autosave/session lifecycle.
+The server validates resource ID, integer reward, player ownership, node ancestry, island ownership, character root and interaction distance. Reward values are assigned by server-owned island generation, never accepted from the client. Duplicate triggers are blocked. If the wallet grant fails, the node remains available.
 
-## Explicit limitations
+## Current limitations
 
-- Nodes currently use temporary procedural blockout geometry, not approved production art.
-- There is no inventory HUD/toast or gathering animation yet.
-- No tools, stamina, skill checks, node tiers, or biome-specific drops.
+- Trees and stone deposits are procedural blockout geometry, not final production art.
+- No tools, stamina, skill checks, node tiers, gathering animation or biome-specific drops.
 - Respawn timers are server-memory timers and are not persisted across server shutdown.
-- No Studio/live DataStore playtest has been recorded yet.
+- Live two-player, DataStore, touch prompt and HUD startup verification remains pending.
 
 ## Studio verification checklist
 
-- [ ] Join with two players; verify each sees and can gather only their own island's nodes.
-- [ ] Gather one Wood node: Wood increases by exactly 3 and prompt disables.
-- [ ] Gather one Stone node: Stone increases by exactly 2 and prompt disables.
-- [ ] Attempt repeated/rapid triggers; only one reward is granted per node cooldown.
-- [ ] Attempt to trigger another player's node; no reward is granted.
-- [ ] Wait 60 seconds; node becomes visible and interactable again.
-- [ ] Leave/rejoin; balances persist after autosave.
-- [ ] Simulate non-writable session; reward is rejected and node remains available.
-- [ ] Test E and gamepad interaction; verify prompt readability on mobile touch devices.
+- [ ] Verify each player sees and gathers only their own nodes.
+- [ ] Gather one Wood node: Wood increases by exactly 3.
+- [ ] Gather one Stone node: Stone increases by exactly 2.
+- [ ] Confirm markers and prompts hide while depleted and return after 60 seconds.
+- [ ] Confirm rapid/repeated triggers award only once per cooldown.
+- [ ] Confirm balances persist after leave/rejoin.
+- [ ] Confirm initial HUD snapshot loads before the first gather.
+- [ ] Test keyboard, gamepad and mobile ProximityPrompt.
