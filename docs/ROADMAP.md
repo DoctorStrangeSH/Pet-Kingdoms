@@ -531,3 +531,15 @@ Source commits: `7d55e84`, `fd8ea0b`, `15ffb44`, `6227204`, `5927d19`, `87bab50`
 - [ ] Standardize per-panel status/empty/loading states and complete icon/typography audit.
 
 Source commit `ba8b302`; CI `45147513350` was running at documentation time. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Empty, loading and error states (2026-11-23)
+
+- [x] Add reusable shared styling for empty-state labels/cards.
+- [x] Distinguish empty pet collection, empty favorites/team filters, and no search matches with contextual Russian guidance.
+- [x] Add a dedicated empty Quest Journal state and handle payloads whose rows all fail validation.
+- [x] Remove duplicate global error toasts when the same recoverable error is already shown inside Island Expansion or Quest Journal.
+- [ ] Complete visual consistency for loading/success/error states in remaining panels and iconography.
+- [ ] Run Studio/device regression at desktop and 320/360/390 px mobile before Stage 1 sign-off.
+
+Source commits: `8d5a194`, `11c51cb`, `019647a`, `f7cf87a`, `122e4d1`, `5bd1493`, `040f1eb`, `fe0d5b2`, `1ab6c6c`, `99a40be`, `29b1ac2`. CI passed for all empty-state changes and Island Expansion notification cleanup; Quest Journal notification cleanup `45149320803` was pending. Studio/device validation remains outstanding.
