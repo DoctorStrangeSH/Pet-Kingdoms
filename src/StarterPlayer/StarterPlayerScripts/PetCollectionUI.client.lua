@@ -30,6 +30,7 @@ local busy = false
 local cardButtons: { [string]: TextButton } = {}
 local filteredRecords: { PetRecord } = {}
 local renderedWindowStart = 0
+local renderedWindowEnd = 0
 local searchRenderVersion = 0
 local activeFilter = "all"
 local sortMode = "newest"
@@ -557,6 +558,7 @@ local function clearRenderedCards()
 	end
 	table.clear(cardButtons)
 	renderedWindowStart = 0
+	renderedWindowEnd = 0
 end
 
 local function renderVisibleCards()
@@ -568,10 +570,11 @@ local function renderVisibleCards()
 	local visibleCount = math.ceil(viewportHeight / PET_CARD_STEP) + PET_LIST_OVERSCAN * 2
 	local lastIndex = math.min(total, firstIndex + visibleCount - 1)
 	if total == 0 then firstIndex = 0; lastIndex = 0 end
-	if firstIndex == renderedWindowStart then return end
+	if firstIndex == renderedWindowStart and lastIndex == renderedWindowEnd then return end
 
 	clearRenderedCards()
 	renderedWindowStart = firstIndex
+	renderedWindowEnd = lastIndex
 	for index = firstIndex, lastIndex do
 		local record = filteredRecords[index]
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
@@ -671,10 +674,10 @@ local function renderList(preserveScroll: boolean?)
 	end
 
 	if #filteredRecords == 0 then
-		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\\nИсследуй остров, чтобы найти первого друга!"
-			elseif activeFilter == "favorites" then "Нет избранных питомцев.\\nОтметь понравившегося питомца звёздочкой."
-			elseif activeFilter == "team" then "Команда пока пуста.\\nВыбери питомца и добавь его в команду."
-			elseif filter ~= "" then "Ничего не найдено.\\nПопробуй изменить поисковый запрос."
+		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\nИсследуй остров, чтобы найти первого друга!"
+			elseif activeFilter == "favorites" then "Нет избранных питомцев.\nОтметь понравившегося питомца звёздочкой."
+			elseif activeFilter == "team" then "Команда пока пуста.\nВыбери питомца и добавь его в команду."
+			elseif filter ~= "" then "Ничего не найдено.\nПопробуй изменить поисковый запрос."
 			else "Здесь пока пусто."
 		local empty = make("TextLabel", {
 			Name = "EmptyFilterState",
