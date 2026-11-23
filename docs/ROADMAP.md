@@ -543,3 +543,15 @@ Source commit `ba8b302`; CI `45147513350` was running at documentation time. Stu
 - [ ] Run Studio/device regression at desktop and 320/360/390 px mobile before Stage 1 sign-off.
 
 Source commits: `8d5a194`, `11c51cb`, `019647a`, `f7cf87a`, `122e4d1`, `5bd1493`, `040f1eb`, `fe0d5b2`, `1ab6c6c`, `99a40be`, `29b1ac2`. CI passed for all empty-state changes and Island Expansion notification cleanup; Quest Journal notification cleanup `45149320803` was pending. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Loading and action result feedback (2026-11-23)
+
+- [x] Add a shared, race-safe transient button feedback helper for success/error/warning states.
+- [x] Show inline success/retry feedback on Quest Journal tracking.
+- [x] Show success/error/informational feedback on Island Expansion refresh without misleading retry copy.
+- [x] Preserve original button state after feedback and protect against stale delayed resets.
+- [x] Keep building confirm/demolish on existing loading + idempotent recovery flow rather than flashing feedback on controls that are torn down after completion.
+- [ ] Audit remaining actions for meaningful inline result feedback, then complete iconography/typography and desktop/mobile Studio regression.
+
+Source commits: `3f7b6a7`, `84450d3`, `9856117`, `e70029a`. CI passed for helper, Quest Journal, and initial Expansion integration; latest label adjustment run `45150128088` was pending. Studio/device validation remains outstanding.
