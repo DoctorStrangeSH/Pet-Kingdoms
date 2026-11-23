@@ -15,6 +15,7 @@ local NotificationManager = {}
 local MAX_VISIBLE = 4
 local activeCount = 0
 local sequence = 0
+local viewportConnection: RBXScriptConnection? = nil
 
 local existing = playerGui:FindFirstChild("PetKingdomsNotifications")
 if existing then existing:Destroy() end
@@ -52,6 +53,49 @@ local variants = {
 	reward = { background = colors.panelSoft, accent = colors.gold, icon = "★" },
 }
 
+local function resize()
+	local camera = workspace.CurrentCamera
+	if camera == nil then return end
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
+	holder.Size = UDim2.new(1, 0, 0, 250)
+	for _, child in ipairs(holder:GetChildren()) do
+		if child:IsA("Frame") then
+			local constraint = child:FindFirstChildOfClass("UISizeConstraint")
+			local icon = child:FindFirstChild("Icon")
+			local label = child:FindFirstChild("Message")
+			if constraint then
+				constraint.MinSize = Vector2.new(math.min(180, math.max(150, viewport.X - 28)), 54)
+				constraint.MaxSize = Vector2.new(math.max(150, math.min(440, viewport.X - 24)), 58)
+			end
+			child.Size = UDim2.new(0.94, 0, 0, 58)
+			if icon and icon:IsA("TextLabel") then
+				icon.Size = UDim2.fromOffset(compact and 28 or 30, 58)
+				icon.TextSize = compact and 18 or 20
+			end
+			if label and label:IsA("TextLabel") then
+				label.Position = UDim2.fromOffset(compact and 42 or 48, 4)
+				label.Size = UDim2.new(1, compact and -50 or -60, 1, -8)
+				label.TextSize = compact and 12 or Theme.Typography.Sizes.Body
+			end
+		end
+	end
+end
+
+local function bindCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
+	end
+	local camera = workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+	end
+	resize()
+end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
+bindCamera()
+
 function NotificationManager.Notify(message: string, variant: string?, duration: number?)
 	if type(message) ~= "string" or message == "" then return end
 	if activeCount >= MAX_VISIBLE then
@@ -73,7 +117,7 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	toast.Parent = holder
 
 	local constraint = Instance.new("UISizeConstraint")
-	constraint.MinSize = Vector2.new(220, 54)
+	constraint.MinSize = Vector2.new(180, 54)
 	constraint.MaxSize = Vector2.new(440, 54)
 	constraint.Parent = toast
 
@@ -106,6 +150,7 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	label.Font = Theme.Typography.Body
 	label.Text = message
 	label.TextSize = Theme.Typography.Sizes.Body
+	label.TextTruncate = Enum.TextTruncate.None
 	label.TextColor3 = colors.cream
 	label.TextWrapped = true
 	label.TextXAlignment = Enum.TextXAlignment.Left
