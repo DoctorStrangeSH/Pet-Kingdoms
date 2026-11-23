@@ -872,6 +872,9 @@ end
 
 local function openCollection()
 	announcePanelOpened()
+	-- Never resurrect a stale destructive-confirmation dialog on reopen.
+	confirmPanel.Visible = false
+	if not busy then pendingDeletePetId = nil end
 	shade.Visible = true
 	panel.Visible = true
 	resize()
@@ -883,6 +886,9 @@ local function openCollection()
 end
 
 local function closeCollection()
+	-- Closing the collection also dismisses its nested delete-confirmation layer.
+	confirmPanel.Visible = false
+	if not busy then pendingDeletePetId = nil end
 	panel.Visible = false
 	shade.Visible = false
 end
