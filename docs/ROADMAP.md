@@ -679,3 +679,13 @@ Source commits: `6dafbf3`, `5bfb83d`, `5af9026`, `3ac8ff6`, `ff679e8`, `8b12c58`
 - [ ] Keep Stage 1 open until all screenshots' regressions are verified on 320/360/390 px portrait, landscape and desktop.
 
 Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`.
+
+### Stage 1 — Reliable backdrop dismissal on mouse and touch (2026-11-23)
+
+- [x] Add explicit pointer hit-testing to Quest Journal, Island Expansion and Pet Collection while each is the active modal. Mouse/touch outside the visible panel closes it, independently of the backdrop button's Activated event.
+- [x] For Pet Collection, an outside tap dismisses its nested deletion confirmation first without issuing the destructive action. A later outside tap can close the collection itself.
+- [x] Preserve existing close-button, Escape and modal-switch behavior. Building placement still uses world taps for selecting cells, rather than treating an outside tap as a dismissal.
+- [x] CI passed for the previous floating-launcher visibility fixes through commit `7c9ce96` (run `45240532154`).
+- [ ] Confirm CI for the new backdrop-detection changes (`5bb6df5`, `00be4a4`, `652290e`).
+- [ ] Verify outside-tap, touch-confirmation, panel-interior interaction, and close control on 320/360/390 px and desktop in Roblox Studio.
+- [ ] Do not mark Stage 1 done without in-game visual and input checks.
