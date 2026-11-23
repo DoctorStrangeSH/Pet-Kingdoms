@@ -358,9 +358,11 @@ local function resize()
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500
-	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
-	-- Keep the expansion launcher below the pet launcher on compact screens.
-	openButton.Position = UDim2.new(1, compact and -12 or -22, compact and 0.72 or 0.70, 0)
+	local veryShort = viewport.Y < 360
+	local launcherSize = if veryShort then 44 elseif compact then 52 else 62
+	openButton.Size = UDim2.fromOffset(launcherSize, launcherSize)
+	-- Keep the three right-side launchers separated on short landscape screens.
+	openButton.Position = UDim2.new(1, compact and -12 or -22, if veryShort then 0.82 elseif compact then 0.72 else 0.70, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
 	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(210, viewport.X - 20)), 280)
 	panelConstraint.MaxSize = Vector2.new(math.min(440, math.max(210, viewport.X - 12)), 390)
