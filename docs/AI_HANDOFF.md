@@ -1070,3 +1070,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Rotation with the on-screen button or R key and switching catalog cards now re-evaluate the exact locked grid coordinates directly. They no longer raycast through the current pointer position over UI, preventing the selected destination from drifting or being cleared by a UI interaction.
 - Kept server-authoritative placement and idempotent request IDs unchanged. A locked footprint that becomes invalid displays red and cannot be confirmed; the player can select a new world cell.
 - Roblox Studio runtime test still needed: lock a cell, move cursor over panel, rotate via button and R, swap 1x1/3x3 catalog entries, confirm valid and invalid placements, and check touch input and camera changes in mobile emulator.
+
+
+## Client 3D construction silhouettes (2026-11-23)
+
+- Added per-catalog local 3D preview silhouettes in `IslandBuildingController.client.lua`: house, pet house, stone path, garden lantern, flower bed and wooden fence. The simple transparent silhouettes are based on the existing server fallback blockouts; they are **not** approved production art or imported third-party asset models.
+- The preview remains client-only; pieces are anchored, noncolliding, non-queryable and shadow-free. Both footprint indicator and silhouette follow the same selected grid cell and rotation; invalid positions retain the red footprint and fade the silhouette.
+- Switching catalog items rebuilds the silhouette, while cancelling/stopping placement destroys all local preview pieces. Server-side placement, charge and persistence remain unchanged.
+- Pending Studio validation: check Model:PivotTo preview alignment for all six catalog entries, 0/90/180/270 rotation, occupied and out-of-bounds positions, cancel cleanup, and touch selection. Replace blockout meshes with vetted Creator Store or original assets when sourced and reviewed.
