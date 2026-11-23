@@ -1558,3 +1558,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Full `renderList()` still clears cards when the underlying filtered/sorted dataset is rebuilt, so stale records cannot survive a data refresh or filter change.
 - Extended `PetCollectionVirtualizationTests.client.lua` with an adjacent-window overlap assertion, validating the overlap the renderer now reuses.
 - Next: profile actual GUI instance churn and scroll behavior in Studio with 100/250/500 live records, including rapid filter/search changes and selection.
+
+## Stage 1 — Pet Collection search/filter/sort hot-path optimization (2026-11-23)
+
+- Added a normalized species display-name cache keyed by `speciesId`; the search loop and name sort reuse the cached lowercase string (including the localized Bunny display name).
+- Build `equippedSet` once per `renderList()` and use dictionary membership for the team filter instead of calling `table.find(collection.equipped, petId)` for every owned record.
+- Sorting now has deterministic tie-breakers: favorite priority, selected sort key, acquisition time, then `petId`. This avoids unstable order when two records share the same sort values.
+- Next: profile 100/250/500 live records in Studio, measure search/filter/sort responsiveness, and confirm stable selection and correct membership.
