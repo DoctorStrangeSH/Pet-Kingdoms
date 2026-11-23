@@ -991,7 +991,6 @@ resize = function()
 			search.TextSize = 12
 			filterBar.Position = UDim2.fromOffset(12, 66)
 			filterBar.Size = UDim2.fromOffset(contentWidth, 28)
-			list.Position = UDim2.fromOffset(98, 0)
 			list.Position = UDim2.fromOffset(12, 98)
 			list.Size = UDim2.new(1, -24, 1, -110)
 			list.ScrollBarThickness = 3
