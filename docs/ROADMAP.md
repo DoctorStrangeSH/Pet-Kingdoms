@@ -897,3 +897,11 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Disable the main-pet action and its automatic button feedback while the server request is pending.
 - [x] Restore the original button label, active state, and automatic feedback after the request resolves, before either success rendering or failure refresh.
 - [ ] In Studio, delay/fail the Equip request and verify the main-pet button never remains disabled or stuck on the loading glyph.
+
+### Stage 1 — Shared action-button loading lifecycle (2026-11-23)
+
+- [x] Route Pet Collection mutation buttons through `InterfaceComponents.SetButtonLoading` instead of maintaining separate manual Active/Text/AutoButtonColor snapshots.
+- [x] Standardize progress feedback for Equip, Set Main Pet, Pet/Play interactions, Favorite/Lock updates, and Delete confirmation.
+- [x] Preserve each button's original label and interaction state; repeated loading/reset calls are idempotent.
+- [x] Extend InterfaceComponents Studio smoke tests for progress text, interaction lock, duplicate loading calls, and exact state restoration.
+- [ ] Run the updated InterfaceComponents tests and delayed/failing mutation scenarios in Roblox Studio.
