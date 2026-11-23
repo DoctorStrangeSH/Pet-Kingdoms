@@ -15,16 +15,8 @@ end
 
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GetIslandExpansionPreview") :: RemoteFunction
 
-local COLORS = {
-	panel = Color3.fromRGB(31, 35, 48),
-	panelSoft = Color3.fromRGB(43, 48, 64),
-	card = Color3.fromRGB(53, 59, 78),
-	cream = Color3.fromRGB(255, 245, 222),
-	muted = Color3.fromRGB(177, 185, 205),
-	gold = Color3.fromRGB(255, 205, 112),
-	mint = Color3.fromRGB(135, 225, 183),
-	rose = Color3.fromRGB(244, 151, 169),
-}
+local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
