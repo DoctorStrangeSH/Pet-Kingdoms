@@ -45,5 +45,19 @@ expect("valid feedback restores original text", button.Text == "ORIGINAL")
 expect("valid feedback restores original colors", button.BackgroundColor3 == originalBackground and button.TextColor3 == originalTextColor)
 expect("feedback timer clears active state", button:GetAttribute("PKFeedbackActive") == false)
 
+-- Loading state must preserve the button's original interaction and visual state.
+button.Active = true
+button.AutoButtonColor = true
+button.Text = "СОХРАНИТЬ"
+InterfaceComponents.SetButtonLoading(button, true, "СОХРАНЯЕМ...")
+expect("loading shows progress text", button.Text == "СОХРАНЯЕМ...")
+expect("loading disables interaction", button.Active == false and button.AutoButtonColor == false)
+InterfaceComponents.SetButtonLoading(button, true, "ДРУГОЙ ТЕКСТ")
+expect("repeated loading call does not replace initial state", button.Text == "СОХРАНЯЕМ...")
+InterfaceComponents.SetButtonLoading(button, false)
+expect("loading restores original text and interaction", button.Text == "СОХРАНИТЬ" and button.Active == true and button.AutoButtonColor == true)
+InterfaceComponents.SetButtonLoading(button, false)
+expect("repeated loading reset is harmless", button.Text == "СОХРАНИТЬ" and button.Active == true)
+
 testGui:Destroy()
 print("[PetKingdoms Test] InterfaceComponents smoke tests completed.")
