@@ -17,6 +17,7 @@ local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GetIsland
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
+local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -254,6 +255,7 @@ local function renderPreview(data: any)
 		status.Text = if code == "SESSION_NOT_READY" then "Остров ещё загружается. Попробуй немного позже."
 			elseif code == "RATE_LIMITED" then "Слишком частые запросы. Подожди секунду."
 			else "Не удалось получить данные: " .. code
+		NotificationManager.Notify(status.Text, "error")
 		return
 	end
 
@@ -285,6 +287,7 @@ local function refresh()
 	else
 		status.TextColor3 = COLORS.rose
 		status.Text = "Связь с сервером не удалась. Попробуй ещё раз."
+		NotificationManager.Notify("Не удалось обновить данные острова", "error")
 	end
 	loading = false
 	refreshButton.Text = "ОБНОВИТЬ ДАННЫЕ"
