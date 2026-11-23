@@ -9,7 +9,6 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local Theme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
-local Components = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local colors = Theme.Colors
 
 local NotificationManager = {}
