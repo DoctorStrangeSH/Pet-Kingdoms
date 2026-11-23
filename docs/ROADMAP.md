@@ -790,3 +790,10 @@ Source-level stale-session protection added; delayed-response runtime verificati
 - [ ] In Studio, delay the initial resource `Get`, trigger a resource update before it returns, and confirm the HUD retains the pushed balance without a stale rollback.
 
 Source-level event-vs-startup ordering guard added; runtime timing verification remains pending.
+
+### Stage 1 — Notification burst regression coverage (2026-11-23)
+
+- [x] Extend the opt-in NotificationManager Studio smoke test with a 25-toast burst, checking the visible queue cap, retention of the newest toast, and cleanup after evicted-toast timers complete.
+- [ ] Run the notification smoke test in Roblox Studio on desktop, narrow portrait, and short landscape viewports; verify no clipping, stale slot counts, or stuck toasts.
+
+Regression source added; Studio execution remains pending.
