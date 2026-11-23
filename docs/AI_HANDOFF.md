@@ -1633,3 +1633,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `setMainPet()` now changes the button label to a compact loading indicator, disables interaction and automatic button feedback while the Equip request is pending, and snapshots the prior label.
 - On either success or failure, the button's Active/AutoButtonColor state and prior label are restored before rendering the new state or starting a refresh. This closes a gap where the button was disabled but did not visibly communicate progress.
 - Next: delay and fail the Equip request in Studio; verify the main-pet action returns to a usable state and that refresh failure cannot leave stale loading UI.
+
+## Stage 1 — Shared action-button loading lifecycle (2026-11-23)
+
+- Pet Collection mutation actions now use `InterfaceComponents.SetButtonLoading` for Equip, Set Main Pet, Pet/Play, Favorite/Lock, and Delete confirmation rather than hand-maintained Active/Text/AutoButtonColor changes.
+- The shared helper snapshots the original text, Active, and AutoButtonColor values once; duplicate loading calls do not overwrite the snapshot, and reset restores the original state.
+- Delete's Cancel button also enters a disabled `ПОДОЖДИ...` state during the destructive request; its existing Escape/backdrop guards remain in place.
+- Added InterfaceComponents Studio smoke coverage for loading text, disabled interaction, repeated loading calls, restoration of original label/interaction, and idempotent reset.
+- Next: run updated InterfaceComponents smoke tests and delayed/failing Equip, Interact, Protect, and Delete scenarios in Roblox Studio.
