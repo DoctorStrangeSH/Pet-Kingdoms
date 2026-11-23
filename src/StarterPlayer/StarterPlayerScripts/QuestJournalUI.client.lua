@@ -311,9 +311,9 @@ local function render(quests: any, serverTrackedQuestId: string?)
 						end
 					end
 				end
+				InterfaceComponents.SetButtonFeedback(trackButton, "success", "СЛЕЖУ", 1.2)
 			else
-				trackButton.Text = "ОШИБКА — ПОВТОРИ"
-				trackButton.BackgroundColor3 = COLORS.rose
+				InterfaceComponents.SetButtonFeedback(trackButton, "error", "ПОВТОРИТЬ", 2.2)
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
