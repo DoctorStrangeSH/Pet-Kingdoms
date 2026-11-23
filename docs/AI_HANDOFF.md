@@ -1475,3 +1475,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Replaced local font declarations and common text sizes with `InterfaceTheme.Typography` tokens for resource amounts, resource labels, gather toast, kingdom-bond status, and responsive resizing. Replaced local corner radii with `InterfaceTheme.Radii` and the kingdom-bond house glyph with `InterfaceTheme.Icons.Build`.
 - Static audit confirms no remaining local duplicate base palette, no direct Gotham font declarations, and all color references resolve to defined shared theme tokens. Responsive 2×2 mobile / 4-column desktop layout and resource-specific accent colors remain unchanged.
 - CI run `45153168859` for this HUD migration was in progress at documentation time. No Roblox Studio visual/device test has been performed. Next: run the final screen overflow/spacing audit and prepare a focused Studio checklist; Stage 1 remains open pending user-side runtime verification.
+
+## Stage 1 — Shared button feedback safety (2026-11-23)
+
+- Fixed `InterfaceComponents.SetButtonFeedback`: unsupported states are now rejected before incrementing `PKFeedbackToken`. Previously an invalid state call could invalidate the pending restore timer and leave the button stuck in feedback styling.
+- Added `src/StarterPlayer/StarterPlayerScripts/Tests/InterfaceComponentsTests.client.lua`, gated by `RunPetKingdomsStudioTests`, to verify supported feedback, unsupported-state no-op behavior, restoration of original text/colors, and timer cleanup.
+- Next: run this smoke test in a dedicated Studio test place, then complete the Stage 1 cross-screen visual/touch regression at desktop and 320/360/390 px widths. No inventory UI or item model exists in the current repository yet; do not claim inventory work is implemented or begin an unapproved inventory feature before MVP scope is confirmed.
