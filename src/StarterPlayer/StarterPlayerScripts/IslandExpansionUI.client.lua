@@ -187,6 +187,7 @@ InterfaceComponents.StyleActionButton(refreshButton, "secondary")
 
 local opened = false
 local loading = false
+local requestGeneration = 0
 local lastPreview: any = nil
 local previewFolder: Folder? = nil
 
@@ -286,14 +287,18 @@ local function renderPreview(data: any)
 end
 
 local function refresh()
-	if loading then return end
+	if loading or not opened then return end
 	loading = true
+	requestGeneration += 1
+	local generation = requestGeneration
 	InterfaceComponents.SetButtonLoading(refreshButton, true, "ЗАГРУЗКА...")
 	status.TextColor3 = COLORS.muted
 	status.Text = "Получаем актуальные данные с сервера..."
 	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer()
 	end, 12)
+	-- Ignore responses from a previous open/close cycle.
+	if generation ~= requestGeneration or not opened then return end
 	if requestResult.ok then
 		renderPreview(requestResult.value)
 	else
@@ -318,7 +323,12 @@ end
 local function setOpen(value: boolean)
 	if value then announcePanelOpened() end
 	opened = value
-	if not value then ModalManager.Close(script.Name) end
+	if not value then
+		requestGeneration += 1
+		loading = false
+		InterfaceComponents.SetButtonLoading(refreshButton, false)
+		ModalManager.Close(script.Name)
+	end end
 	panel.Visible = value
 	shade.Visible = value
 	if value then
