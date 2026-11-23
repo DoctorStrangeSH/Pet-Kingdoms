@@ -428,14 +428,32 @@ local function makePreviewVisual(catalogId: string, unit: number): Model
 		part.Parent = model
 	end
 	if catalogId == "stone_path" then
-		piece("StoneSlab", Vector3.new(width * 0.92, unit * 0.1, depth * 0.92), CFrame.new(0, unit * 0.05, 0), Color3.fromRGB(157, 157, 150), Enum.Material.Slate)
+		local stones = {
+			{ -0.25, -0.24, 0.39, 0.34, 0.10, 156 },
+			{ 0.23, -0.20, 0.40, 0.31, -0.08, 180 },
+			{ -0.22, 0.23, 0.36, 0.34, -0.06, 170 },
+			{ 0.23, 0.22, 0.41, 0.37, 0.07, 150 },
+		}
+		for index, stone in ipairs(stones) do
+			local tint = stone[6]
+			piece("PavingStone_" .. index,
+				Vector3.new(width * stone[3], unit * 0.085, depth * stone[4]),
+				CFrame.new(width * stone[1], unit * 0.045, depth * stone[2]) * CFrame.Angles(0, stone[5], 0),
+				Color3.fromRGB(tint, tint - 3, tint - 9), Enum.Material.Slate)
+		end
 	elseif catalogId == "wooden_fence" then
 		for index, x in ipairs({-width * 0.4, width * 0.4}) do
-			piece("Post_" .. index, Vector3.new(width * 0.12, unit * 0.62, depth * 0.12), CFrame.new(x, unit * 0.31, 0), Color3.fromRGB(128, 88, 55), Enum.Material.Wood)
+			piece("Post_" .. index, Vector3.new(width * 0.12, unit * 0.70, depth * 0.12),
+				CFrame.new(x, unit * 0.35, 0), Color3.fromRGB(128, 88, 55), Enum.Material.Wood)
+			piece("PostCap_" .. index, Vector3.new(width * 0.17, unit * 0.075, depth * 0.17),
+				CFrame.new(x, unit * 0.73, 0), Color3.fromRGB(192, 147, 91), Enum.Material.WoodPlanks)
 		end
-		for _, height in ipairs({0.24, 0.52}) do
-			piece("Rail", Vector3.new(width * 0.86, unit * 0.12, depth * 0.1), CFrame.new(0, unit * height, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
+		for index, height in ipairs({0.25, 0.53}) do
+			piece("Rail_" .. index, Vector3.new(width * 0.86, unit * 0.095, depth * 0.10),
+				CFrame.new(0, unit * height, 0), Color3.fromRGB(157, 112, 69), Enum.Material.Wood)
 		end
+		piece("CenterMedallion", Vector3.new(width * 0.16, unit * 0.16, depth * 0.13),
+			CFrame.new(0, unit * 0.53, -depth * 0.035), Color3.fromRGB(221, 174, 102), Enum.Material.Wood)
 	elseif catalogId == "flower_bed" then
 		piece("Planter", Vector3.new(width * 0.88, unit * 0.12, depth * 0.88), CFrame.new(0, unit * 0.06, 0), Color3.fromRGB(132, 91, 61), Enum.Material.WoodPlanks)
 		piece("Soil", Vector3.new(width * 0.72, unit * 0.08, depth * 0.72), CFrame.new(0, unit * 0.15, 0), Color3.fromRGB(76, 58, 43), Enum.Material.Ground)
