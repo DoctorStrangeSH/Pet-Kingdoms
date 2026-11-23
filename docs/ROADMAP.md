@@ -700,3 +700,14 @@ Source-level consistency fix added; runtime Studio checks remain pending.
 - [ ] Profile and verify interaction smoothness with 100, 250, and 500 owned pets in Roblox Studio on desktop and mobile emulation; confirm no selection, filtering, or scroll regressions.
 
 This pass reduces unnecessary GUI instance churn but does not yet implement virtualized/infinite scrolling; all filtered records still have card instances. Performance profiling in Studio remains pending.
+
+### Stage 1 — Pet Collection virtualized scrolling (2026-11-23)
+
+- [x] Replace full-list GUI creation with a virtualized scrolling window; only visible pet cards plus two rows of overscan above/below are instantiated.
+- [x] Use fixed card geometry and an explicit canvas height so large collections retain correct scroll range without creating hundreds of GUI instances.
+- [x] Rebuild the small visible card window only when the scroll window changes; selection still updates the two visible highlights directly.
+- [x] Recalculate the visible window when the list viewport size changes, including orientation/viewport transitions.
+- [x] Keep filtering, sorting, empty states, selection, server-confirmed mutations, and scroll preservation integrated with the virtual list.
+- [ ] Profile with 100, 250, and 500 owned pets in Roblox Studio; confirm the visible GUI count stays near viewport capacity, no blank gaps appear while fast-scrolling, and selected cards remain correct when they scroll out/in.
+
+The list now virtualizes rendered cards; the full owned-pet dataset is still filtered/sorted in memory, as expected for this collection size. Runtime profiling remains pending.
