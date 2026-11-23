@@ -158,7 +158,10 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(220, 210), MaxSize = Vector2.new(540, 245) }, panel)
+local panelSizeConstraint = make("UISizeConstraint", {
+	MinSize = Vector2.new(180, 144),
+	MaxSize = Vector2.new(540, 245),
+}, panel) :: UISizeConstraint
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -333,9 +336,17 @@ local function resizeBuildingPanel()
 	if activeCamera == nil then return end
 	local viewport = activeCamera.ViewportSize
 	local compact = viewport.X < 520
-	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
-	panel.Size = UDim2.fromOffset(panelWidth, 228)
-	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
+	local panelWidth = math.max(math.min(220, viewport.X - 16), math.min(viewport.X - 16, compact and 380 or 480))
+	-- On short landscape screens, reclaim vertical space without scaling down
+	-- the whole panel: keep the title/status, a horizontally scrollable item
+	-- strip, and all three placement actions visible.
+	local panelHeight = math.clamp(viewport.Y - (compact and 16 or 32), 144, 228)
+	local short = panelHeight < 210
+	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
+	panel.Position = UDim2.new(0.5, 0, 1, compact and -8 or -22)
+	panelSizeConstraint.MinSize = Vector2.new(math.min(180, panelWidth), math.min(144, panelHeight))
+	panelSizeConstraint.MaxSize = Vector2.new(panelWidth, panelHeight)
+
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
 	local gap = 8
 	local available = contentWidth - 2 * gap
@@ -343,11 +354,12 @@ local function resizeBuildingPanel()
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth
-	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
+	local actionHeight = if short then 36 else 44
+	rotateButton.Size = UDim2.fromOffset(rotateWidth, actionHeight)
 	rotateButton.Text = if narrow then InterfaceTheme.Icons.Rotate else InterfaceTheme.Icons.Rotate .. "  ПОВОРОТ"
-	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
-	confirmButton.TextSize = if narrow then 12 else 14
-	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
+	confirmButton.Size = UDim2.fromOffset(confirmWidth, actionHeight)
+	confirmButton.TextSize = if narrow or short then 12 else 14
+	cancelButton.Size = UDim2.fromOffset(cancelWidth, actionHeight)
 	cancelButton.Text = if narrow then "✕" else "ОТМЕНА"
 	-- Selection actions share a row and remain within the mobile viewport.
 	local outerMargin = compact and 10 or 22
@@ -361,6 +373,36 @@ local function resizeBuildingPanel()
 	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
 	demolishButton.TextSize = if compact then 11 else 13
+
+	if short then
+		status.Position = UDim2.fromOffset(0, 26)
+		status.Size = UDim2.new(1, 0, 0, 24)
+		status.TextSize = 10
+		status.TextWrapped = false
+		status.TextTruncate = Enum.TextTruncate.AtEnd
+		catalogRow.Position = UDim2.fromOffset(0, 54)
+		catalogRow.Size = UDim2.new(1, 0, 0, 42)
+		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+			button.Size = UDim2.fromOffset(104, 36)
+			button.TextSize = 10
+		end
+		buttons.Position = UDim2.fromOffset(0, 102)
+		buttons.Size = UDim2.new(1, 0, 0, 40)
+	else
+		status.Position = UDim2.fromOffset(0, 30)
+		status.Size = UDim2.new(1, 0, 0, 30)
+		status.TextSize = compact and 11 or 12
+		status.TextWrapped = true
+		status.TextTruncate = Enum.TextTruncate.None
+		catalogRow.Position = UDim2.fromOffset(0, 62)
+		catalogRow.Size = UDim2.new(1, 0, 0, 84)
+		for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
+			button.Size = UDim2.fromOffset(130, 70)
+			button.TextSize = compact and 11 or 13
+		end
+		buttons.Position = UDim2.fromOffset(0, 157)
+		buttons.Size = UDim2.new(1, 0, 0, 48)
+	end
 end
 
 local function bindBuildingCamera()
