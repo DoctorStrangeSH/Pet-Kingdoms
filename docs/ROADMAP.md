@@ -841,3 +841,11 @@ Source-level continuity fix and pure helper tests added; live UI validation rema
 - [ ] Verify selected pet detail remains stable while search/filter changes and while favorite/equipped flags update the current filtered set.
 
 Source-level query extraction and deterministic regression coverage added; Studio execution/profiling remains pending.
+
+### Stage 1 — Pet Collection selection continuity and empty-state correction (2026-11-23)
+
+- [x] Fix the no-results message to read the current `search.Text` after search/filter logic moved into `PetCollectionQuery` (removes a stale reference to the deleted local `filter`).
+- [x] Resolve selected pet against the authoritative owned collection, not the filtered view, so Team/Favorites/search can hide the selected card without silently changing the detail selection.
+- [x] Fall back to the first owned pet only if the previously selected pet is no longer owned; clear selection for an empty collection.
+- [x] Add query-module regression coverage for retained selection, removed-pet fallback, and empty collection.
+- [ ] Run search/filter/selection regressions in Roblox Studio, including favorite removal while Favorites is active and unequipping while Team is active.
