@@ -600,3 +600,18 @@ Source commit: `bce0786`. CI `45153168859` was running at documentation time. St
 - [ ] Continue the cross-screen overflow/spacing audit. Stage 1 remains open until Studio/device regression is completed.
 
 Source commit: c332695. Roblox Studio/device verification has not been performed.
+
+### Stage 1 — Pet Collection, Quest Journal and Expansion responsive audit (2026-11-23)
+
+- [x] Reflow the Pet Collection detail pane into a vertical compact layout on phones; suppress secondary pet-interaction controls that previously collided with bond/equip controls.
+- [x] Add a shorter-screen layout for compact/landscape viewports and reduce action labels to fit narrow touch buttons.
+- [x] Keep pet detail selection synchronized with search and active filters; show a dedicated no-match state instead of stale details for a filtered-out pet.
+- [x] Prevent Quest Journal title/subtitle from running underneath refresh/close controls; use compact labels on narrow screens.
+- [x] Prevent Island Expansion title from colliding with its close control; use a compact title on narrow screens.
+- [ ] Run CI/static validation for all latest UI commits.
+- [ ] Verify Pet Collection search/filter/sort/equip/favorite/lock/delete and modal interactions at 320/360/390 px portrait and short landscape.
+- [ ] Verify Quest Journal tracking, scrolling, tracker HUD and header controls at narrow widths.
+- [ ] Verify Expansion preview, modal transitions, and floating launchers on phone/tablet/desktop.
+- [ ] Complete Roblox Studio/device visual regression; Stage 1 remains open until runtime verification is done.
+
+Source commits: e94ec80, bb89e36, e91d298, ddc4ab5, 94f5570. Studio/device verification remains outstanding.
