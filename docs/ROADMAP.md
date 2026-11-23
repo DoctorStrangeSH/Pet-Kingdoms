@@ -457,3 +457,15 @@ Implementation status above is source/CI status only; no Roblox Studio runtime t
 - [ ] Continue responsive audit of Quest Journal, Island Expansion, Resource HUD, and floating controls.
 
 Source implementation complete; Roblox Studio/device validation remains pending. CI: first mobile-flow build passed (`45139318637`); follow-up build for confirmation sizing `45139348449` was in progress when recorded.
+
+
+### Stage 1 — Quest Journal mobile UX (2026-11-23)
+
+- [x] Add a real refresh button to match the existing timeout/error recovery instructions.
+- [x] Give compact quest cards a vertical layout with wrapped descriptions and separated progress/tracking controls.
+- [x] Bound quest tracking requests with the shared 12-second RequestRunner.
+- [x] Prevent tracked quest names from overflowing the HUD and rebind responsive sizing when CurrentCamera changes.
+- [ ] Test portrait widths 320/360/390 px, short landscape, long text, tracking timeout/retry, refresh/loading states, HUD clipping, and orientation changes in Roblox Studio.
+- [ ] Continue responsive audit of Island Expansion, Resource HUD, and floating controls.
+
+Source implementation complete; Studio/device validation pending. CI `45139613564` passed; follow-up spacing CI `45139635202` was in progress at the time of this entry.
