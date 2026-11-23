@@ -1251,3 +1251,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Quest Journal and Island Expansion backdrop taps call their existing `setOpen(false)` path, preserving quest and world-preview cleanup.
 - The Building kingdom overview already uses an activated full-screen backdrop button; construction's main panel uses its own close/cancel button and is intentionally not backdrop-dismissed during an active placement transaction.
 - Studio verification pending: tap panel content and confirm no accidental close; tap backdrop; test delete confirmation backdrop twice; tap close buttons; open another modal during close animation; verify no stuck dim layer or input capture. No runtime verification claimed.
+
+
+## Stage 1 — Interface & usability: collection modal transition consistency (2026-11-23)
+
+- Pet Collection now fades its backdrop in/out consistently with Quest Journal and Island Expansion. The panel still animates into place; closing hides the child panel immediately and fades the backdrop before releasing it.
+- Added a modal revision token so a delayed close callback cannot hide the backdrop after a fast reopen. Repeated close calls are idempotent, and reopening invalidates an earlier pending hide.
+- Delete-confirmation cleanup and in-flight deletion safety are preserved. This is a focused modal-lifecycle polish, not a unified modal manager; the four scripts still use the shared BindableEvent convention and need full Studio transition/overlap verification.
+- Test pending: spam open/close/backdrop/Escape, switch to Journal/Expansion during both open and close animation, start a delete request then close, reopen before fade completes, and confirm no stale dim layer or input capture. No Studio verification claimed.
