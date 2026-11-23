@@ -52,7 +52,14 @@ expect("only focused modal reports active", ModalManager.IsActive("ModalManagerT
 ModalManager.Close("ModalManagerTestFirst")
 expect("closing focused modal clears focus", ModalManager.GetActive() == nil)
 
+-- Unregistering a visible controller must run its close handler before
+-- removing the registration, otherwise its GUI shade can remain on screen.
+firstOpen = true
+ModalManager.Open("ModalManagerTestFirst")
 ModalManager.Unregister("ModalManagerTestFirst")
+expect("unregister closes visible modal", not firstOpen)
+expect("unregister clears modal focus", ModalManager.GetActive() == nil)
+
 ModalManager.Unregister("ModalManagerTestSecond")
 expect("unregistered modal cannot retain focus", ModalManager.GetActive() == nil)
 
