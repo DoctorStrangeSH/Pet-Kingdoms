@@ -849,3 +849,10 @@ Source-level query extraction and deterministic regression coverage added; Studi
 - [x] Fall back to the first owned pet only if the previously selected pet is no longer owned; clear selection for an empty collection.
 - [x] Add query-module regression coverage for retained selection, removed-pet fallback, and empty collection.
 - [ ] Run search/filter/selection regressions in Roblox Studio, including favorite removal while Favorites is active and unequipping while Team is active.
+
+### Stage 1 — Pet Collection live filter updates and refresh reconciliation (2026-11-23)
+
+- [x] Reconcile the selected pet against the authoritative collection after a server refresh; preserve its ID when still owned and choose a fallback only when it has disappeared.
+- [x] Avoid repainting the hidden collection panel when a refresh completes after the user closes it; keep the refreshed data ready for the next open.
+- [x] Add query regressions for selected pet entering/leaving Favorites after protection changes and entering/leaving Team after equip/unequip, while preserving selected identity.
+- [ ] In Studio, verify actual server responses for favorite toggle under Favorites, unequip under Team, refresh while search is active, close/reopen during a delayed Get, and delete selected pet.
