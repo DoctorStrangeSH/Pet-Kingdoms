@@ -690,3 +690,13 @@ Source-level layout fix added. Roblox Studio visual and interaction checks remai
 - [ ] Verify empty collection, no-result search, empty filters, and resize transitions in Roblox Studio; confirm no stale pet action is clickable.
 
 Source-level consistency fix added; runtime Studio checks remain pending.
+
+### Stage 1 — Pet Collection list performance and scroll stability (2026-11-23)
+
+- [x] Selecting a pet updates only the previous/current card highlight instead of destroying and rebuilding every visible card.
+- [x] Debounce search rendering by 120 ms so rapid typing produces one list rebuild after the user pauses.
+- [x] Preserve the current scroll offset after server-confirmed collection mutations (equip, main-pet selection, care/play, favorite/lock settings); clamp the offset if the result set becomes shorter.
+- [x] Keep intentional scroll reset for new search queries, filter changes, and sort changes.
+- [ ] Profile and verify interaction smoothness with 100, 250, and 500 owned pets in Roblox Studio on desktop and mobile emulation; confirm no selection, filtering, or scroll regressions.
+
+This pass reduces unnecessary GUI instance churn but does not yet implement virtualized/infinite scrolling; all filtered records still have card instances. Performance profiling in Studio remains pending.
