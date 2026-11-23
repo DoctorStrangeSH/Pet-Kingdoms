@@ -299,7 +299,7 @@ local petButton = make("TextButton", {
 	Position = UDim2.new(0, 0, 0, 0),
 	Size = UDim2.new(0.5, -5, 1, 0),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "♡ ПОГЛАДИТЬ",
+	Text = InterfaceTheme.Icons.Affection .. " ПОГЛАДИТЬ",
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -311,7 +311,7 @@ local playButton = make("TextButton", {
 	Position = UDim2.new(0.5, 5, 0, 0),
 	Size = UDim2.new(0.5, -5, 1, 0),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "✦ ПОИГРАТЬ",
+	Text = InterfaceTheme.Icons.Play .. " ПОИГРАТЬ",
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -624,7 +624,7 @@ local function renderList()
 			Font = Enum.Font.Gotham,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then "🐾" else "⌕")
+		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then InterfaceTheme.Icons.Pet else InterfaceTheme.Icons.Search)
 	end
 	list.CanvasPosition = Vector2.zero
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
