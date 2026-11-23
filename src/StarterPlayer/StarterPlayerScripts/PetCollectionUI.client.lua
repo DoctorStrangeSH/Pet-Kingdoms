@@ -17,6 +17,7 @@ end
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollectionRequest") :: RemoteFunction
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
+local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local COLORS = InterfaceTheme.Colors
 
 type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
@@ -109,14 +110,14 @@ local subtitle = make("TextLabel", {
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
 	Position = UDim2.new(1, -16, 0, 14),
-	Size = UDim2.fromOffset(38, 38),
+	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
 	Text = "×",
-	TextSize = 27,
+	TextSize = 24,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 12) }, closeButton)
+InterfaceComponents.StyleCloseButton(closeButton)
 
 local search = make("TextBox", {
 	Position = UDim2.new(0, 24, 0, 88),
