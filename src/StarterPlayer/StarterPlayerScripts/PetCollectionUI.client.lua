@@ -721,7 +721,7 @@ local function renderList(preserveScroll: boolean?)
 		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\nИсследуй остров, чтобы найти первого друга!"
 			elseif activeFilter == "favorites" then "Нет избранных питомцев.\nОтметь понравившегося питомца звёздочкой."
 			elseif activeFilter == "team" then "Команда пока пуста.\nВыбери питомца и добавь его в команду."
-			elseif filter ~= "" then "Ничего не найдено.\nПопробуй изменить поисковый запрос."
+			elseif search.Text ~= "" then "Ничего не найдено.\nПопробуй изменить поисковый запрос."
 			else "Здесь пока пусто."
 		local empty = make("TextLabel", {
 			Name = "EmptyFilterState",
