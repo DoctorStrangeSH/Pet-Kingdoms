@@ -106,7 +106,7 @@ for _, resource in ipairs(RESOURCES) do
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Font = Enum.Font.GothamMedium
 	label.Text = resource.label
-	label.TextSize = 7
+	label.TextSize = 9
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextColor3 = COLORS.muted
 	label.Parent = chip
@@ -253,7 +253,7 @@ local function resize()
 			if label and label:IsA("TextLabel") then
 				label.Position = UDim2.new(0, tiny and 28 or 33, 0.58, 0)
 				label.Size = UDim2.new(1, tiny and -30 or -35, 0, 12)
-				label.TextSize = tiny and 6 or 7
+				label.TextSize = tiny and 8 or 9
 			end
 		end
 	end
