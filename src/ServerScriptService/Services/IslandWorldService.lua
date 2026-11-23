@@ -556,6 +556,7 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 		clone:SetAttribute("GridX", record.x)
 		clone:SetAttribute("GridZ", record.z)
 		clone:SetAttribute("GridRotation", record.rotation)
+		clone:SetAttribute("UpgradeLevel", if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1)
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
@@ -824,6 +825,7 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 	clone:SetAttribute("GridX", record.x)
 	clone:SetAttribute("GridZ", record.z)
 	clone:SetAttribute("GridRotation", record.rotation)
+	clone:SetAttribute("UpgradeLevel", if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1)
 	local ok, err = pcall(function()
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
