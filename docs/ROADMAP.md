@@ -832,3 +832,12 @@ Source-level hot-path optimization added; actual device timing remains a Studio 
 - [ ] In Studio, switch filters/sort while scrolled through 100/250/500 records and confirm the selected pet/detail remains stable and the list does not jump unexpectedly.
 
 Source-level continuity fix and pure helper tests added; live UI validation remains pending.
+
+### Stage 1 — Pet Collection query pipeline and regression coverage (2026-11-23)
+
+- [x] Extract production search/filter/sort into `Shared/PetCollectionQuery.lua`; `PetCollectionUI` now uses the same pure pipeline that Studio tests exercise.
+- [x] Cover a 500-record fixture: all/team/favorites filters, exact equipped membership, localized case-insensitive Bunny search, no-match search, favorite priority, bond-level/XP sorting, newest ordering, empty input, and normalized-name caching.
+- [ ] Run `PetCollectionQueryTests.client.lua` in Roblox Studio and verify actual typing/filter/sort latency on desktop and mobile.
+- [ ] Verify selected pet detail remains stable while search/filter changes and while favorite/equipped flags update the current filtered set.
+
+Source-level query extraction and deterministic regression coverage added; Studio execution/profiling remains pending.
