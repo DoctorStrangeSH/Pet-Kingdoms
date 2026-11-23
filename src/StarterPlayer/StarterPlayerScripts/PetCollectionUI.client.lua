@@ -1239,11 +1239,13 @@ end
 local collectionModalRevision = 0
 local shadeTween: Tween? = nil
 local panelTween: Tween? = nil
+local panelScaleTween: Tween? = nil
 local detailTransitionTween: Tween? = nil
 
 local function cancelModalTweens()
 	if shadeTween then shadeTween:Cancel(); shadeTween = nil end
 	if panelTween then panelTween:Cancel(); panelTween = nil end
+	if panelScaleTween then panelScaleTween:Cancel(); panelScaleTween = nil end
 end
 
 animateMobileDetailIn = function()
@@ -1280,12 +1282,12 @@ local function openCollection()
 	panelTween = TweenService:Create(panel, TweenInfo.new(0.20, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 		Position = UDim2.fromScale(0.5, 0.5),
 	})
-	local scaleTween = TweenService:Create(panelScale, TweenInfo.new(0.20, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+	panelScaleTween = TweenService:Create(panelScale, TweenInfo.new(0.20, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		Scale = 1,
 	})
 	shadeTween:Play()
 	panelTween:Play()
-	scaleTween:Play()
+	panelScaleTween:Play()
 	refreshCollection()
 end
 
@@ -1305,12 +1307,12 @@ local function closeCollection()
 	panelTween = TweenService:Create(panel, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 		Position = UDim2.fromScale(0.5, 0.54),
 	})
-	local scaleTween = TweenService:Create(panelScale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+	panelScaleTween = TweenService:Create(panelScale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 		Scale = 0.96,
 	})
 	shadeTween:Play()
 	panelTween:Play()
-	scaleTween:Play()
+	panelScaleTween:Play()
 	task.delay(0.17, function()
 		-- A quick reopen invalidates this delayed hide, preventing a stuck/hidden modal.
 		if collectionModalRevision == closingRevision then
