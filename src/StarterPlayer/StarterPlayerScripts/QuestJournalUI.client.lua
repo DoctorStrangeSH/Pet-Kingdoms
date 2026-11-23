@@ -110,6 +110,19 @@ local subtitle = make("TextLabel", {
 }, panel) :: TextLabel
 InterfaceComponents.StyleText(subtitle, "Caption")
 
+local refreshButton = make("TextButton", {
+	Name = "RefreshQuests",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -62, 0, 14),
+	Size = UDim2.fromOffset(40, 40),
+	BackgroundColor3 = COLORS.panelSoft,
+	Text = "↻",
+	TextSize = 22,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.cream,
+}, panel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, refreshButton)
+
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
 	Position = UDim2.new(1, -16, 0, 14),
@@ -182,6 +195,7 @@ local trackerName = make("TextLabel", {
 	Font = Enum.Font.GothamBold,
 	Text = "",
 	TextSize = 12,
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, tracker) :: TextLabel
@@ -252,16 +266,18 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
-			Size = UDim2.new(1, -6, 0, 124),
+			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 148 else 124),
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
 		InterfaceComponents.StyleCard(card, "surface")
+		local compactCard = (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) or false
+		local cardHeight = if compactCard then 148 else 124
 		local trackButton = make("TextButton", {
 			Name = "TrackQuest",
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -10, 0, 9),
-			Size = UDim2.fromOffset(102, 27),
+			AnchorPoint = if compactCard then Vector2.new(0, 0) else Vector2.new(1, 0),
+			Position = if compactCard then UDim2.new(0, 15, 0, 84) else UDim2.new(1, -10, 0, 9),
+			Size = UDim2.fromOffset(if compactCard then 112 else 102, if compactCard then 32 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
 			Text = if trackedQuestId == quest.id then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ",
 			TextSize = 8,
@@ -273,11 +289,12 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		trackButton.Activated:Connect(function()
 			if quest.completed == true then return end
 			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
-			local ok, result = pcall(function()
+			local trackingResult = RequestRunner.Invoke(function()
 				return trackingRequest:InvokeServer(quest.id)
-			end)
+			end, 12)
+			local result = if trackingResult.ok then trackingResult.value else nil
 			InterfaceComponents.SetButtonLoading(trackButton, false)
-			if ok and type(result) == "table" and result.ok == true then
+			if trackingResult.ok and type(result) == "table" and result.ok == true then
 				trackedQuestId = quest.id
 				updateTracker(lastQuests)
 				for _, sibling in ipairs(list:GetChildren()) do
@@ -300,8 +317,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 15, 0, 11),
-			Size = UDim2.new(1, -126, 0, 23),
+			Position = UDim2.new(0, 15, 0, 9),
+			Size = UDim2.new(1, if compactCard then -30 else -126, 0, 23),
 			Font = Enum.Font.GothamBold,
 			Text = (if done then "✓  " else "✦  ") .. quest.name,
 			TextSize = 14,
@@ -310,18 +327,21 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 16, 0, 37),
-			Size = UDim2.new(1, -32, 0, 21),
+			Position = UDim2.new(0, 16, 0, 35),
+			Size = UDim2.new(1, -32, 0, if compactCard then 38 else 21),
 			Font = Enum.Font.Gotham,
 			Text = quest.description,
-			TextSize = 11,
+			TextSize = if compactCard then 12 else 11,
+			TextWrapped = compactCard,
+			TextTruncate = if compactCard then Enum.TextTruncate.None else Enum.TextTruncate.AtEnd,
+			TextYAlignment = Enum.TextYAlignment.Top,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = COLORS.muted,
 		}, card)
 		local count = math.clamp(quest.count, 0, quest.target)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 16, 0, 65),
+			Position = UDim2.new(0, 16, 0, if compactCard then 77 else 65),
 			Size = UDim2.new(0.5, 0, 0, 18),
 			Font = Enum.Font.GothamBold,
 			Text = if done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
@@ -331,7 +351,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -76, 0, 64),
+			Position = UDim2.new(1, -76, 0, if compactCard then 76 else 64),
 			Size = UDim2.fromOffset(60, 19),
 			Font = Enum.Font.GothamBold,
 			Text = string.format("%d / %d", count, quest.target),
@@ -340,7 +360,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextColor3 = COLORS.cream,
 		}, card)
 		local track = make("Frame", {
-			Position = UDim2.new(0, 16, 1, -15),
+			Position = UDim2.new(0, 16, 1, -11),
 			Size = UDim2.new(1, -32, 0, 6),
 			BackgroundColor3 = COLORS.track,
 		}, card) :: Frame
@@ -456,6 +476,10 @@ end)
 
 openButton.Activated:Connect(function() setOpen(not opened) end)
 closeButton.Activated:Connect(function() setOpen(false) end)
+refreshButton.Activated:Connect(function()
+	if loading then return end
+	refresh()
+end)
 resourceUpdate.OnClientEvent:Connect(function(_snapshot, _resourceId, _amount, code)
 	if code == "GATHERED" then queueRefresh() end
 end)
@@ -465,19 +489,32 @@ local function resize()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 520
+	local short = viewport.Y < 500
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
-	-- Keep the full modal, including its close button, inside short landscape viewports.
+	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), 280)
+	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), 440)
 	local baseHeight = if compact then 390 else 410
-	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.72, 1)
-	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, -12)
-	tracker.Size = UDim2.fromOffset(compact and 220 or 260, 78)
+	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.68, 1)
+	refreshButton.Position = UDim2.new(1, compact and -62 or -62, 0, 14)
+	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, short and -8 or -12)
+	tracker.Size = UDim2.fromOffset(math.max(200, math.min(compact and 220 or 260, viewport.X - 20)), 78)
 end
-if workspace.CurrentCamera then
-	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+
+local viewportConnection: RBXScriptConnection? = nil
+local function bindViewportCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
+	end
+	local camera = workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+	end
+	resize()
 end
-workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(resize)
-resize()
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
+bindViewportCamera()
 
 print("[PetKingdoms] Quest journal UI loaded.")
