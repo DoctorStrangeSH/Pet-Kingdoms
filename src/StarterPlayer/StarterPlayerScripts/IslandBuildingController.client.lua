@@ -47,6 +47,7 @@ local currentPreview: BasePart? = nil
 local previewVisual: Model? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
+local selectedBuildingDestroyConnection: RBXScriptConnection? = nil
 local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
@@ -341,14 +342,25 @@ end
 
 local function selectBuilding(model: Model?)
 	if demolitionRequestInFlight then return end
+	if selectedBuildingDestroyConnection then
+		selectedBuildingDestroyConnection:Disconnect()
+		selectedBuildingDestroyConnection = nil
+	end
 	selectedBuildingModel = model
 	demolitionArmed = false
 	moveButton.Visible = model ~= nil
+	moveButton.Active = model ~= nil
 	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
 	demolishButton.Visible = model ~= nil and catalogId ~= "main_house"
+	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	if model then
 		setStatus("Выбрана постройка: " .. model.Name)
+		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
+			if selectedBuildingModel == model and not demolitionRequestInFlight then
+				selectBuilding(nil)
+			end
+		end)
 	end
 end
 
