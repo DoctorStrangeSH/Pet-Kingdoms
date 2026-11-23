@@ -1542,3 +1542,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Extended `NotificationManagerTests.client.lua` with a 25-toast burst. The test verifies the stack stays within the four-toast desktop cap, the newest notification survives eviction, and old timers from evicted notifications do not leave stale active toasts after expiry.
 - The test checks the newest toast by its displayed message, not an assumed sequence number, so it is resilient to notifications emitted by other startup systems.
 - Next: execute on desktop, narrow portrait, and short landscape in Studio; check visual clipping and responsive max-visible behavior.
+
+## Stage 1 — Pet Collection virtualization budget tests (2026-11-23)
+
+- Extracted the fixed-height list calculations into `ReplicatedStorage/Shared/VirtualList.lua`: `GetWindow` returns a bounded visible range plus overscan; `GetContentHeight` calculates the scroll canvas height.
+- `PetCollectionUI` now uses this helper for both visible-card selection and canvas sizing, so the production code and tests exercise the same calculation.
+- Added `PetCollectionVirtualizationTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It tests 100/250/500 item lists at top/middle/bottom positions, render-budget bounds, bottom reachability, empty lists, and negative canvas positions.
+- The render budget is viewport-derived (`ceil(viewportHeight / cardStep) + 2 * overscan`); this verifies the algorithm does not scale instantiated card count with total inventory size.
+- Next: run the test in Studio and profile actual instance counts and scrolling with live collections of 100, 250, and 500 pets. The pure helper test is not a substitute for GUI profiling.
