@@ -1508,3 +1508,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `ModalManager.Unregister` now always invokes the registered cleanup callback, not only when `activeWindow == name`. This intentionally repairs stale GUI visibility if focus bookkeeping was lost during an interrupted transition.
 - Extended `ModalManagerTests.client.lua` to cover re-registering an active controller and unregistering an inactive-but-stale visible controller.
 - Next: run modal smoke tests in Studio and manually verify no orphaned shades or input blockers after switching, Escape, CloseAll, and controller teardown.
+
+## Stage 1 — Quest Journal duplicate-action protection (2026-11-23)
+
+- Added a global `trackingInFlight` single-flight guard. Since the server stores one tracked quest per player, all quest-card tracking buttons now reject additional actions while any tracking request or quest refresh is active.
+- Tracking buttons show their loading state during the request and restore it after the bounded 12-second RequestRunner call.
+- Automatic fallback selection (when the server has no valid tracked quest) now uses RequestRunner rather than an unbounded `pcall`/`InvokeServer` task.
+- A timeout triggers a fresh authoritative quest-progress read; the UI does not assume the late server operation failed.
+- Next: validate rapid multi-card taps, delayed responses, and timeout reconciliation in Roblox Studio.
