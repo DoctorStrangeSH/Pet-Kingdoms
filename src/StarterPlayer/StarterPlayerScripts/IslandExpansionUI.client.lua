@@ -3,6 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
@@ -324,6 +325,11 @@ end
 
 panelSignal.Event:Connect(function(origin)
 	if origin ~= script.Name and opened then setOpen(false) end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or input.KeyCode ~= Enum.KeyCode.Escape or not opened then return end
+	setOpen(false)
 end)
 
 openButton.Activated:Connect(function() setOpen(not opened) end)
