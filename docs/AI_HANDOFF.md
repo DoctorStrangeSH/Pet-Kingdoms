@@ -1368,3 +1368,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Fixed a mobile overlap between the pending-operation recovery panel and the Move/Demolish action row. On compact viewports the action row moves down while recovery is visible and returns to its normal position after the pending operation resolves.
 - Static source checks passed for both responsive paths. Rojo CI for the overview change passed (`45139077658`). CI for the latest overlap fix is queued (`45139112446`) at time of this note. No Roblox Studio/device runtime testing has been performed.
 - Next mobile audit targets: inspect Pet Collection's two-column layout at 320–375 px, test Quest Journal/Island Expansion in short landscape, and review Resource HUD plus all floating action buttons for safe-area/notch collisions. Then run Studio touch tests and update the Stage 1 checklist.
+
+
+## Stage 1 — Interface & usability: Pet Collection single-column mobile flow (2026-11-23)
+
+- Reworked the Pet Collection layout for viewports narrower than 650 px. Search, filters, and pet list now occupy the full panel width; selecting a pet switches to a dedicated detail screen instead of squeezing the list and details into two narrow columns. Added an explicit “К СПИСКУ ПИТОМЦЕВ” back action. Desktop/tablet wide layout remains two-column.
+- Mobile detail uses the existing full-height detail card and its responsive viewport preview; the delete-confirmation dialog now scales to the available screen width and its two action buttons receive a larger 40 px height on compact layouts.
+- `resize` is forward-declared so pet-card callbacks can safely call it in Luau lexical scope. The viewport handler continues to rebind when CurrentCamera changes.
+- Static source checks passed for compact list/detail visibility, back navigation, resize forward declaration, and bounded confirmation width. CI run `45139318637` for the first mobile-flow commit passed; follow-up build for confirmation scaling (`45139348449`) was still running at documentation time. No Roblox Studio/device runtime testing has been performed.
+- Next: test 320/360/390 px portrait and short landscape, selection/back while list is scrolled, opening delete confirmation on a phone, no-pets/empty-filter states, and orientation changes while the collection is open. Continue the mobile audit with Quest Journal, Island Expansion, and Resource HUD.
