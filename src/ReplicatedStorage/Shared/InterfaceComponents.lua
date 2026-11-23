@@ -55,6 +55,59 @@ function Components.SetButtonLoading(button: TextButton, isLoading: boolean, loa
 	end
 end
 
+function Components.SetButtonFeedback(button: TextButton, state: string, message: string?, duration: number?)
+	local colors = Theme.Colors
+	local token = (button:GetAttribute("PKFeedbackToken") or 0) + 1
+	button:SetAttribute("PKFeedbackToken", token)
+
+	if button:GetAttribute("PKFeedbackActive") ~= true then
+		button:SetAttribute("PKFeedbackOriginalText", button.Text)
+		button:SetAttribute("PKFeedbackOriginalBackground", button.BackgroundColor3)
+		button:SetAttribute("PKFeedbackOriginalTextColor", button.TextColor3)
+		button:SetAttribute("PKFeedbackOriginalActive", button.Active)
+		button:SetAttribute("PKFeedbackOriginalAuto", button.AutoButtonColor)
+	end
+
+	local background = colors.panelSoft
+	local foreground = colors.cream
+	if state == "success" then
+		background, foreground = colors.mint, colors.panel
+	elseif state == "error" then
+		background, foreground = colors.danger, colors.cream
+	elseif state == "warning" then
+		background, foreground = colors.gold, colors.panel
+	else
+		return
+	end
+
+	button:SetAttribute("PKFeedbackActive", true)
+	button.BackgroundColor3 = background
+	button.TextColor3 = foreground
+	button.Text = message or (if state == "success" then "ГОТОВО" elseif state == "warning" then "ПРОВЕРЬ" else "ПОВТОРИТЬ")
+	button.Active = true
+	button.AutoButtonColor = true
+
+	task.delay(math.max(0.5, duration or 1.8), function()
+		if not button.Parent or button:GetAttribute("PKFeedbackToken") ~= token then return end
+		local originalText = button:GetAttribute("PKFeedbackOriginalText")
+		local originalBackground = button:GetAttribute("PKFeedbackOriginalBackground")
+		local originalTextColor = button:GetAttribute("PKFeedbackOriginalTextColor")
+		local originalActive = button:GetAttribute("PKFeedbackOriginalActive")
+		local originalAuto = button:GetAttribute("PKFeedbackOriginalAuto")
+		if type(originalText) == "string" then button.Text = originalText end
+		if typeof(originalBackground) == "Color3" then button.BackgroundColor3 = originalBackground end
+		if typeof(originalTextColor) == "Color3" then button.TextColor3 = originalTextColor end
+		button.Active = if type(originalActive) == "boolean" then originalActive else true
+		button.AutoButtonColor = if type(originalAuto) == "boolean" then originalAuto else true
+		button:SetAttribute("PKFeedbackActive", false)
+		button:SetAttribute("PKFeedbackOriginalText", nil)
+		button:SetAttribute("PKFeedbackOriginalBackground", nil)
+		button:SetAttribute("PKFeedbackOriginalTextColor", nil)
+		button:SetAttribute("PKFeedbackOriginalActive", nil)
+		button:SetAttribute("PKFeedbackOriginalAuto", nil)
+	end)
+end
+
 function Components.StyleText(label: TextLabel, role: string?)
 	local typography = Theme.Typography
 	local sizes = typography.Sizes
