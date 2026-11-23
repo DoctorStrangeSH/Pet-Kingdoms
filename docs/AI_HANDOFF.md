@@ -1523,3 +1523,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Collection reads are not started while `busy` is true (a mutation is active). A successful mutation already returns the authoritative updated collection; failed/timed-out mutations release `busy` before requesting a fresh snapshot.
 - All six mutation entry points (main pet, equip, pet/play interaction, favorite/lock, delete confirmation) now reject actions while a collection refresh is active, so they cannot act on a snapshot currently being replaced.
 - Next: verify rapid open/refresh and refresh-vs-mutation timing in Roblox Studio with delayed server responses.
+
+## Stage 1 — Modal-session stale response protection (2026-11-23)
+
+- `IslandExpansionUI` now tracks `requestGeneration`. Each refresh captures a generation; closing increments it, releases the loading state, and makes any prior response a no-op. Reopening can immediately start a new request.
+- `QuestJournalUI` now applies the same generation/session rule. Closing invalidates the in-flight progress read and clears its loading lock; reopening starts a new read. A late result from the previous open session cannot render into the new session.
+- Important: RequestRunner timeouts do not cancel the underlying RemoteFunction. The generation check protects client UI state only; server read completion may still happen later.
+- Next: use delayed RemoteFunction responses in Studio, close/reopen both modals, and verify only the latest session updates UI.
