@@ -45,4 +45,14 @@ expect("new notifications can fill the stack after expiry", countToasts() == 4)
 task.wait(2)
 expect("second notification batch cleans up", countToasts() == 0)
 
+-- A burst larger than the queue cap must evict old cards without allowing
+-- expired timers from evicted cards to decrement slots owned by newer cards.
+for index = 1, 25 do
+	NotificationManager.Notify("Пакетное уведомление " .. tostring(index), if index % 2 == 0 then "warning" else "info", 1.5)
+end
+expect("rapid notification burst stays within desktop cap", countToasts() <= 4)
+expect("rapid notification burst retains newest items", holder:FindFirstChild("Toast_25") ~= nil)
+task.wait(2)
+expect("evicted notification timers do not leak active toasts", countToasts() == 0)
+
 print("[PetKingdoms Test] NotificationManager smoke tests completed.")
