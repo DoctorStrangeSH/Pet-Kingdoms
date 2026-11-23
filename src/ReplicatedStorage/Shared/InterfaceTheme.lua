@@ -26,6 +26,14 @@ return table.freeze({
 		Display = Enum.Font.GothamBold,
 		Body = Enum.Font.Gotham,
 		Emphasis = Enum.Font.GothamSemibold,
+		Sizes = table.freeze({
+			Display = 22,
+			Heading = 18,
+			Body = 14,
+			Caption = 12,
+			Micro = 10,
+			Numeric = 20,
+		}),
 	}),
 	Motion = table.freeze({
 		Fast = 0.12,
