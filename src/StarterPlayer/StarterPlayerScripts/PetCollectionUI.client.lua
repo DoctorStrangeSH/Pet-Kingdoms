@@ -860,7 +860,8 @@ resize = function()
 	openButton.Size = UDim2.fromOffset(launcherCompact and 52 or 62, launcherCompact and 52 or 62)
 	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
 	if compactCollection then
-		panel.Size = UDim2.new(0.94, 0, 0.84, 0)
+		local shortCompact = viewport.Y < 520
+		panel.Size = UDim2.new(0.94, 0, shortCompact and 0.92 or 0.84, 0)
 		panelScale.Scale = 1
 		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
 		search.Position = UDim2.fromOffset(24, 88)
@@ -880,18 +881,18 @@ resize = function()
 		-- The two-column desktop detail layout is too tall for a phone.
 		-- Reflow it into a compact vertical card and remove secondary actions
 		-- that would otherwise collide with the bond/equip controls.
-		preview.Size = UDim2.new(1, -20, 0.38, -10)
-		petName.Position = UDim2.new(0, 16, 0.42, 0)
+		preview.Size = UDim2.new(1, -20, if shortCompact then 0.28 else 0.38, -10)
+		petName.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, 0)
 		petName.Size = UDim2.new(1, -112, 0, 27)
 		petName.TextSize = 18
-		petRarity.Position = UDim2.new(0, 16, 0.42, 28)
+		petRarity.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 26 else 28)
 		petRarity.TextSize = 9
-		petDescription.Position = UDim2.new(0, 16, 0.42, 50)
-		petDescription.Size = UDim2.new(1, -32, 0, 36)
+		petDescription.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 46 else 50)
+		petDescription.Size = UDim2.new(1, -32, 0, if shortCompact then 30 else 36)
 		petDescription.TextSize = 11
-		favoriteButton.Position = UDim2.new(1, -88, 0.42, 0)
-		lockButton.Position = UDim2.new(1, -48, 0.42, 0)
-		bondLabel.Position = UDim2.new(0, 16, 0.42, 88)
+		favoriteButton.Position = UDim2.new(1, -88, if shortCompact then 0.32 else 0.42, 0)
+		lockButton.Position = UDim2.new(1, -48, if shortCompact then 0.32 else 0.42, 0)
+		bondLabel.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 78 else 88)
 		bondLabel.TextSize = 10
 		teamLabel.Visible = false
 		interactionRow.Visible = false
