@@ -1516,3 +1516,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Automatic fallback selection (when the server has no valid tracked quest) now uses RequestRunner rather than an unbounded `pcall`/`InvokeServer` task.
 - A timeout triggers a fresh authoritative quest-progress read; the UI does not assume the late server operation failed.
 - Next: validate rapid multi-card taps, delayed responses, and timeout reconciliation in Roblox Studio.
+
+## Stage 1 — Pet Collection refresh/mutation serialization (2026-11-23)
+
+- Added `collectionRefreshing` single-flight state to `refreshCollection()`. Repeated opens/refreshes while a Get request is in progress are coalesced by returning without launching another RemoteFunction.
+- Collection reads are not started while `busy` is true (a mutation is active). A successful mutation already returns the authoritative updated collection; failed/timed-out mutations release `busy` before requesting a fresh snapshot.
+- All six mutation entry points (main pet, equip, pet/play interaction, favorite/lock, delete confirmation) now reject actions while a collection refresh is active, so they cannot act on a snapshot currently being replaced.
+- Next: verify rapid open/refresh and refresh-vs-mutation timing in Roblox Studio with delayed server responses.
