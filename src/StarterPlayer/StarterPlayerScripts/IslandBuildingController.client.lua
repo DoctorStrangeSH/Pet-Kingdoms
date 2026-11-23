@@ -52,6 +52,7 @@ local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
 local buildRequestInFlight = false
+local demolitionRequestInFlight = false
 local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
@@ -303,6 +304,7 @@ local function findBuildingModel(target: Instance?): Model?
 end
 
 local function selectBuilding(model: Model?)
+	if demolitionRequestInFlight then return end
 	selectedBuildingModel = model
 	demolitionArmed = false
 	moveButton.Visible = model ~= nil
@@ -315,6 +317,7 @@ local function selectBuilding(model: Model?)
 end
 
 demolishButton.Activated:Connect(function()
+	if demolitionRequestInFlight or buildRequestInFlight or placing then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		selectBuilding(nil)
@@ -327,12 +330,16 @@ demolishButton.Activated:Connect(function()
 		return
 	end
 	local instanceId = model:GetAttribute("BuildingInstanceId")
-	if type(instanceId) ~= "string" then
+	if type(instanceId) ~= "string" or instanceId == "" then
 		setStatus("Не удалось определить постройку", false)
 		return
 	end
+	-- Capture the exact target before InvokeServer yields.
+	demolitionRequestInFlight = true
 	demolishButton.Active = false
+	moveButton.Active = false
 	demolishButton.Text = "..."
+	setStatus("Удаляем постройку…")
 	local operationKey = "demolish:" .. instanceId
 	local requestId = getPendingRequestId(operationKey)
 	local ok, response = pcall(function()
@@ -342,12 +349,14 @@ demolishButton.Activated:Connect(function()
 			instanceId = instanceId,
 		})
 	end)
+	demolitionRequestInFlight = false
 	demolishButton.Active = true
+	moveButton.Active = true
 	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
-		setStatus("Не удалось связаться с сервером", false)
+		setStatus("Нет ответа сервера. Выбери ту же постройку и повтори попытку", false)
 		return
 	end
 	if type(response) == "table" and response.ok == true then
@@ -355,10 +364,18 @@ demolishButton.Activated:Connect(function()
 		setStatus("Постройка демонтирована", true)
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
-		setStatus("Нельзя демонтировать: " .. code, false)
+		local messages = {
+			BUILDING_NOT_FOUND = "Постройка уже отсутствует",
+			MAIN_HOUSE_PROTECTED = "Главный дом демонтировать нельзя",
+			BUILDING_OPERATION_BUSY = "Сервер занят. Повтори попытку",
+			BUILDING_OPERATION_IN_PROGRESS = "Операция ещё выполняется. Повтори попытку",
+			SESSION_NOT_WRITABLE = "Сохранение временно недоступно",
+			PERSIST_TIMEOUT = "Сохранение задерживается. Повтори попытку",
+			RATE_LIMITED = "Слишком много запросов. Попробуй позже",
+		}
+		setStatus(messages[code] or ("Нельзя демонтировать: " .. code), false)
 	end
 end)
-
 
 setStatus = function(message: string, good: boolean?)
 	status.Text = message
@@ -718,7 +735,7 @@ woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
 local function beginMoveSelected()
-	if buildRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -790,7 +807,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
-	if buildRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight then return end
 	announcePanelOpened()
 	movingInstanceId = nil
 	setSelectedBuilding(selectedCatalogId)
@@ -898,7 +915,7 @@ confirmButton.Activated:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or buildRequestInFlight then return end
+	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
 	if not placing and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 		local mousePosition = if input.UserInputType == Enum.UserInputType.Touch then Vector2.new(input.Position.X, input.Position.Y) else UserInputService:GetMouseLocation()
 		local ray = camera:ScreenPointToRay(mousePosition.X, mousePosition.Y)
