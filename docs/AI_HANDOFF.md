@@ -1165,3 +1165,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Before yielding, the controller captures the target `BuildingInstanceId` and marks Delete and Move inactive. On return (success, server error, or transport failure) it releases the guard, restores buttons, and clears the confirmation arm. Success deselects the removed building. The existing idempotency request ID is retained for transport failures and retryable server replies so retries will use the same transaction key for that target.
 - Added localized explanations for missing/protected buildings, busy/in-progress server operations, save timeouts and rate limits. The server-owned deletion authorization, protected main house, resource rewards and persistence format were not changed.
 - Roblox Studio test gate remains open: double-tap Delete, tap another object while Delete is pending, tap Move/Build while pending, retry a transient server fault, remove an already-removed object, switch to another panel mid-delete, and verify that another user cannot delete a building on someone else's island. No runtime test has been claimed.
+
+
+## Mobile construction width fitting (2026-11-23)
+
+- Updated `IslandBuildingController.client.lua` so the three construction action buttons size against the panel's actual padded content width (`panelWidth - 28`) and include their two 8px layout gaps. On narrow screens Rotate and Cancel become icon-only, with Confirm taking all remaining width.
+- Lowered the panel minimum width from 260 to 220 px and use viewport-based panel width, avoiding the prior fixed 260px minimum on very narrow phones. The selection Move and Demolish actions now size and position as a pair against viewport width instead of fixed X offsets that could clip the latter button.
+- This is responsive source code, not an emulator or Roblox Studio test. Verify at 320x568, 360x640, 375x667, 390x844 and landscape viewports; check safe areas, click hitboxes, text fit, player controls, move/demolish confirm, and panel changes while a server request is pending. Very small viewports below 236 px still need separate design review.
