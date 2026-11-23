@@ -1030,3 +1030,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionService.acknowledgeExperienceReward`, a server-only DataStore-backed operation. It validates the current collection snapshot, updates through UpdateAsync retry, syncs the resulting revision, and is idempotent.
 - Added Studio data tests for unacknowledged receipts surviving beyond seven days, acknowledgement persistence, duplicate acknowledgement, expiry only after acknowledgement, and invalid acknowledgement timestamps.
 - Important: this is the pet-side safety primitive only. The island XP outbox and caller integration are NOT DONE, so no live quest reward claims are enabled.
+
+
+## Single-active-panel client UX (2026-11-23)
+
+- Added a shared local `PetKingdomsPanelSignal` BindableEvent through PlayerGui to the building, pet collection, quest journal, and island expansion client scripts.
+- Opening one of these full-screen panels notifies peers; the others close via their existing close functions instead of leaving overlapping modal stacks. Building cancels active placement and clears its local preview when another panel opens.
+- No server authority, economy, building transactions, or profile schema changed.
+- Verification pending: open the four panels in different sequences on PC and mobile, ensure only one modal stays active, building's hologram is removed on menu switch, and returning to building starts a fresh placement without losing any saved layout. Check that collection's delete-confirmation overlay does not persist after reopening.
