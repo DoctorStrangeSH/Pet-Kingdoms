@@ -18,6 +18,7 @@ local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PetCollec
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
+local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
 local COLORS = InterfaceTheme.Colors
 
 type PetRecord = { petId: string, speciesId: string, acquiredAt: number, bondXp: number?, bondLevel: number?, isLocked: boolean?, isFavorite: boolean? }
@@ -611,10 +612,20 @@ local function renderList()
 end
 
 local function refreshCollection()
-	local ok, success, result = pcall(function()
+	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer("Get")
-	end)
-	if not ok or success ~= true or type(result) ~= "table" then
+	end, 12)
+	local success, result = if requestResult.ok then requestResult.value else false, nil
+	if requestResult.ok and type(requestResult.value) == "table" then
+		success, result = requestResult.value[1], requestResult.value[2]
+	end
+	if not requestResult.ok then
+		showStatus(if requestResult.errorCode == "TIMEOUT"
+			then "Сервер отвечает слишком долго. Попробуй обновить коллекцию ещё раз."
+			else "Не удалось загрузить коллекцию. Попробуй ещё раз.", true)
+		return false
+	end
+	if success ~= true or type(result) ~= "table" then
 		showStatus("Не удалось загрузить коллекцию. Попробуй ещё раз.", true)
 		return false
 	end
