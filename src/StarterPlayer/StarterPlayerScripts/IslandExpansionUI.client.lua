@@ -208,7 +208,11 @@ local function showWorldPreview(data: any)
 	if not world or not world:IsA("Model") or world:GetAttribute("OwnerUserId") ~= player.UserId then return end
 	local grass = world:FindFirstChild("Island_GrassTop")
 	if not grass or not grass:IsA("BasePart") then return end
-	if type(data.nextWidth) ~= "number" or type(data.nextDepth) ~= "number" then return end
+	if type(data.nextWidth) ~= "number" or type(data.nextDepth) ~= "number"
+		or type(data.currentWidth) ~= "number" or type(data.currentDepth) ~= "number"
+		or data.currentWidth <= 0 or data.currentDepth <= 0
+		or data.nextWidth <= data.currentWidth or data.nextDepth <= data.currentDepth
+	then return end
 
 	local currentWidth = grass.Size.X
 	local currentDepth = grass.Size.Z
@@ -263,6 +267,13 @@ local function renderPreview(data: any)
 		return
 	end
 
+	if type(data.currentLevel) ~= "number" or type(data.currentWidth) ~= "number"
+		or type(data.currentDepth) ~= "number" or type(data.maxLevel) ~= "number"
+	then
+		status.Text = "Сервер вернул неполные данные острова. Попробуй обновить."
+		status.TextColor3 = COLORS.rose
+		return
+	end
 	lastPreview = data
 	currentValue.Text = string.format("Уровень %d  •  %d × %d", data.currentLevel, data.currentWidth, data.currentDepth)
 	showWorldPreview(data)
