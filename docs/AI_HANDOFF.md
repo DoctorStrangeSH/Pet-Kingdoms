@@ -1268,3 +1268,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Construction keeps an in-flight server transaction intact when another modal opens; it hides the construction UI and closes after the response as before. Normal placement cancellation and kingdom overview dismissal now release modal focus so stale active-window state does not persist.
 - The manager closes all other registered handlers, not only the remembered active one, so it can recover if a UI's visible state drifts from manager state. Handler errors are isolated with `pcall` and warnings.
 - This is a code integration, not a completed UI sign-off. Studio checks pending: all 12 ordered transitions among four windows, repeated open/close, close via backdrop/Escape/X, opening while a placement request is pending, overview-to-build transition, and verifying no stale shade or input lock. Also verify no script still depends on `PetKingdomsPanelSignal` and inspect startup ordering. No runtime test claimed.
+
+
+## Stage 1 — Interface & usability: shared visual theme foundation (2026-11-23)
+
+- Added `ReplicatedStorage/Shared/InterfaceTheme.lua` with frozen semantic color tokens, typography roles, motion durations and corner-radius tokens.
+- Migrated Pet Collection, Quest Journal, Island Expansion and Island Building/Kingdom Overview to the same shared color palette. Existing intent-based names (`text`, `valid`, `invalid`, `panelLight`, `track`, etc.) are retained as semantic aliases, reducing per-screen color drift.
+- The building UI's formerly separate purple panel palette now uses the same dark slate/cream/gold/mint family as the other main windows. This is a foundational consistency pass, not a final visual redesign: typography and motion tokens are defined but not yet consumed consistently, and layouts/icons/buttons still need review.
+- Static source audit confirms all four scripts' referenced `COLORS.*` keys exist in the shared palette. No Roblox Studio runtime test, visual approval or mobile sign-off is claimed.
+- Next Stage 1 task: migrate common typography/motion/radius usage and review shared button/close-button patterns, then inspect screenshots at desktop and mobile sizes before declaring the design system complete.
