@@ -863,6 +863,7 @@ resize = function()
 	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
+		local veryShort = viewport.Y < 400
 		panel.Size = UDim2.new(0.94, 0, shortCompact and 0.92 or 0.84, 0)
 		panelScale.Scale = 1
 		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
@@ -883,19 +884,21 @@ resize = function()
 		-- The two-column desktop detail layout is too tall for a phone.
 		-- Reflow it into a compact vertical card and remove secondary actions
 		-- that would otherwise collide with the bond/equip controls.
-		preview.Size = UDim2.new(1, -20, if shortCompact then 0.28 else 0.38, -10)
-		petName.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, 0)
+		preview.Size = UDim2.new(1, -20, if veryShort then 0.18 elseif shortCompact then 0.28 else 0.38, -10)
+		petName.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
 		petName.Size = UDim2.new(1, -112, 0, 27)
 		petName.TextSize = 18
-		petRarity.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 26 else 28)
+		petRarity.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 25 elseif shortCompact then 26 else 28)
 		petRarity.TextSize = 9
-		petDescription.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 46 else 50)
-		petDescription.Size = UDim2.new(1, -32, 0, if shortCompact then 24 else 36)
+		petDescription.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 45 elseif shortCompact then 46 else 50)
+		petDescription.Size = UDim2.new(1, -32, 0, if veryShort then 20 elseif shortCompact then 24 else 36)
 		petDescription.TextSize = 11
-		favoriteButton.Position = UDim2.new(1, -88, if shortCompact then 0.32 else 0.42, 0)
-		lockButton.Position = UDim2.new(1, -48, if shortCompact then 0.32 else 0.42, 0)
-		bondLabel.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 70 else 88)
+		petDescription.Visible = not veryShort
+		favoriteButton.Position = UDim2.new(1, -88, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
+		lockButton.Position = UDim2.new(1, -48, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
+		bondLabel.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 68 elseif shortCompact then 70 else 88)
 		bondLabel.TextSize = 10
+		bondLabel.Visible = not veryShort
 		if shortCompact then
 			equipButton.Position = UDim2.new(0, 14, 1, -48)
 			equipButton.Size = UDim2.new(0.50, -18, 0, 40)
@@ -944,6 +947,8 @@ resize = function()
 		petDescription.Position = UDim2.new(0, 16, 0.55, 57)
 		petDescription.Size = UDim2.new(1, -32, 0, 44)
 		petDescription.TextSize = 12
+		petDescription.Visible = true
+		bondLabel.Visible = true
 		favoriteButton.Position = UDim2.new(1, -88, 0.55, 0)
 		lockButton.Position = UDim2.new(1, -48, 0.55, 0)
 		bondLabel.Position = UDim2.new(0, 16, 0.55, 103)
