@@ -167,6 +167,7 @@ local refreshQueued = false
 local lastQuests: { any } = {}
 local trackedQuestId: string? = nil
 local hasLoadedSnapshot = false
+local hasActiveTrackedQuest = false
 
 local tracker = make("Frame", {
 	Name = "TrackedQuestHUD",
@@ -232,9 +233,11 @@ local function updateTracker(quests: { any })
 		if quest.id == trackedQuestId then selected = quest break end
 	end
 	if selected == nil or selected.completed == true then
+		hasActiveTrackedQuest = false
 		tracker.Visible = false
 		return
 	end
+	hasActiveTrackedQuest = true
 	trackerName.Text = selected.name
 	trackerProgress.Text = string.format("%d/%d", selected.count, selected.target)
 	trackerFill.Size = UDim2.new(math.clamp(selected.count / math.max(selected.target, 1), 0, 1), 0, 1, 0)
@@ -246,7 +249,7 @@ end
 ModalManager.ActiveChanged:Connect(function(activeName)
 	if activeName ~= nil then
 		tracker.Visible = false
-	elseif trackedQuestId ~= nil then
+	elseif hasActiveTrackedQuest then
 		tracker.Visible = true
 	end
 end)
