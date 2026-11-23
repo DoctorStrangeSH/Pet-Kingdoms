@@ -655,5 +655,6 @@ The expansion window remains a read-only preview: purchase/expansion execution i
 - [x] Add a Studio smoke regression asserting active unregister closes the window and clears modal focus.
 - [x] Preserve existing exclusive-window switching, `CloseAll` stale-visibility repair, and nested pet delete-confirmation behavior.
 - [ ] Run the Studio modal smoke test and manually verify switching among Pet Collection, Quest Journal, and Island Expansion; check Escape, outside click, close buttons, and modal-to-modal transitions.
+- [x] GitHub Actions #457 passed after the unregister lifecycle fix and regression-test addition; pinned Rojo verification, place build, and Studio-ready artifact upload completed.
 
 Source-level fix and regression coverage added. Studio interaction checks remain pending.
