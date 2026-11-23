@@ -664,6 +664,7 @@ local function renderVisibleCards()
 				if compactCollection then mobileDetailVisible = true end
 				updateDetail()
 				resize()
+				animateMobileDetailIn()
 			end)
 			cardButtons[petId] = button
 		end
@@ -1235,9 +1236,32 @@ local function bindViewportCamera()
 end
 
 local collectionModalRevision = 0
+local shadeTween: Tween? = nil
+local panelTween: Tween? = nil
+local detailTransitionTween: Tween? = nil
+
+local function cancelModalTweens()
+	if shadeTween then shadeTween:Cancel(); shadeTween = nil end
+	if panelTween then panelTween:Cancel(); panelTween = nil end
+end
+
+local function animateMobileDetailIn()
+	if not compactCollection or not mobileDetailVisible or not detail.Visible then return end
+	if detailTransitionTween then detailTransitionTween:Cancel() end
+	local targetPosition = detail.Position
+	detail.Position = targetPosition + UDim2.fromOffset(16, 0)
+	detailTransitionTween = TweenService:Create(
+		detail,
+		TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Position = targetPosition }
+	)
+	detailTransitionTween:Play()
+end
 
 local function openCollection()
 	collectionModalRevision += 1
+	cancelModalTweens()
+	if detailTransitionTween then detailTransitionTween:Cancel(); detailTransitionTween = nil end
 	announcePanelOpened()
 	-- Never resurrect a stale destructive-confirmation dialog on reopen.
 	confirmPanel.Visible = false
@@ -1246,12 +1270,21 @@ local function openCollection()
 	shade.Visible = true
 	shade.BackgroundTransparency = 1
 	panel.Visible = true
+	panelScale.Scale = 0.96
 	resize()
 	panel.Position = UDim2.fromScale(0.5, 0.54)
-	TweenService:Create(shade, TweenInfo.new(0.16), { BackgroundTransparency = 0.42 }):Play()
-	TweenService:Create(panel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+	shadeTween = TweenService:Create(shade, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		BackgroundTransparency = 0.42,
+	})
+	panelTween = TweenService:Create(panel, TweenInfo.new(0.20, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 		Position = UDim2.fromScale(0.5, 0.5),
-	}):Play()
+	})
+	local scaleTween = TweenService:Create(panelScale, TweenInfo.new(0.20, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Scale = 1,
+	})
+	shadeTween:Play()
+	panelTween:Play()
+	scaleTween:Play()
 	refreshCollection()
 end
 
@@ -1259,16 +1292,30 @@ local function closeCollection()
 	if not shade.Visible then return end
 	collectionModalRevision += 1
 	local closingRevision = collectionModalRevision
+	cancelModalTweens()
+	if detailTransitionTween then detailTransitionTween:Cancel(); detailTransitionTween = nil end
 	-- Closing the collection also dismisses its nested delete-confirmation layer.
 	confirmPanel.Visible = false
 	if not busy then pendingDeletePetId = nil end
-	panel.Visible = false
 	ModalManager.Close(script.Name)
-	TweenService:Create(shade, TweenInfo.new(0.12), { BackgroundTransparency = 1 }):Play()
-	task.delay(0.13, function()
+	shadeTween = TweenService:Create(shade, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		BackgroundTransparency = 1,
+	})
+	panelTween = TweenService:Create(panel, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		Position = UDim2.fromScale(0.5, 0.54),
+	})
+	local scaleTween = TweenService:Create(panelScale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		Scale = 0.96,
+	})
+	shadeTween:Play()
+	panelTween:Play()
+	scaleTween:Play()
+	task.delay(0.17, function()
 		-- A quick reopen invalidates this delayed hide, preventing a stuck/hidden modal.
-		if collectionModalRevision == closingRevision and not panel.Visible then
+		if collectionModalRevision == closingRevision then
+			panel.Visible = false
 			shade.Visible = false
+			panelScale.Scale = 1
 		end
 	end)
 end
@@ -1357,6 +1404,7 @@ end)
 closeButton.Activated:Connect(closeCollection)
 mobileBackButton.Activated:Connect(function()
 	if not compactCollection then return end
+	if detailTransitionTween then detailTransitionTween:Cancel(); detailTransitionTween = nil end
 	mobileDetailVisible = false
 	confirmPanel.Visible = false
 	pendingDeletePetId = nil
