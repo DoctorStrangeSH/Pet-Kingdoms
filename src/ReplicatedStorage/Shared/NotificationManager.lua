@@ -100,7 +100,15 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	if type(message) ~= "string" or message == "" then return end
 	if activeCount >= MAX_VISIBLE then
 		local oldest = holder:FindFirstChildWhichIsA("Frame")
-		if oldest then oldest:Destroy(); activeCount = math.max(0, activeCount - 1) end
+		if oldest then
+			-- A toast may be evicted before its lifetime timer fires. Release its
+			-- slot exactly once so the old timer cannot decrement a newer toast.
+			if oldest:GetAttribute("PKToastCounted") == true then
+				oldest:SetAttribute("PKToastCounted", false)
+				activeCount = math.max(0, activeCount - 1)
+			end
+			oldest:Destroy()
+		end
 	end
 
 	sequence += 1
@@ -158,6 +166,13 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	label.Parent = toast
 
 	activeCount += 1
+	toast:SetAttribute("PKToastCounted", true)
+	local function releaseSlot()
+		if toast:GetAttribute("PKToastCounted") ~= true then return end
+		toast:SetAttribute("PKToastCounted", false)
+		activeCount = math.max(0, activeCount - 1)
+	end
+
 	toast.Position = UDim2.fromOffset(0, -8)
 	TweenService:Create(toast, TweenInfo.new(Theme.Motion.Standard, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		BackgroundTransparency = 0.04,
@@ -166,7 +181,10 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 	TweenService:Create(stroke, TweenInfo.new(Theme.Motion.Standard), { Transparency = 0.3 }):Play()
 
 	task.delay(math.clamp(duration or 3, 1.5, 8), function()
-		if toast.Parent == nil then return end
+		if toast.Parent == nil then
+			releaseSlot()
+			return
+		end
 		local fade = TweenService:Create(toast, TweenInfo.new(Theme.Motion.Fast), {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(0, -8),
@@ -175,7 +193,7 @@ function NotificationManager.Notify(message: string, variant: string?, duration:
 		fade:Play()
 		fade.Completed:Wait()
 		if toast.Parent then toast:Destroy() end
-		activeCount = math.max(0, activeCount - 1)
+		releaseSlot()
 	end)
 end
 
