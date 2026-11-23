@@ -113,7 +113,7 @@ local panel = make("Frame", {
 	BorderSizePixel = 0,
 	Visible = false,
 }, gui) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(260, 210), MaxSize = Vector2.new(540, 245) }, panel)
+make("UISizeConstraint", { MinSize = Vector2.new(220, 210), MaxSize = Vector2.new(540, 245) }, panel)
 make("UICorner", { CornerRadius = UDim.new(0, 18) }, panel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.35, Thickness = 1.5 }, panel)
 make("UIPadding", {
@@ -260,22 +260,40 @@ local demolishButton = make("TextButton", {
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 
--- Keep the placement canvas visible on phones and avoid clipped action buttons.
+-- Fit all construction actions inside the actual panel content width.
+-- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
 local function resizeBuildingPanel()
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera == nil then return end
 	local viewport = activeCamera.ViewportSize
 	local compact = viewport.X < 520
-	local narrow = viewport.X < 350
-	panel.Size = UDim2.fromOffset(math.max(260, math.min(viewport.X - 20, compact and 380 or 480)), 228)
+	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
+	panel.Size = UDim2.fromOffset(panelWidth, 228)
 	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
-	rotateButton.Size = UDim2.fromOffset(narrow and 66 or 94, 44)
+	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
+	local gap = 8
+	local available = contentWidth - 2 * gap
+	local narrow = panelWidth < 370
+	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
+	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
+	local confirmWidth = available - rotateWidth - cancelWidth
+	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
 	rotateButton.Text = if narrow then "↻" else "↻  ПОВОРОТ"
-	confirmButton.Size = UDim2.fromOffset(narrow and 94 or 118, 44)
-	cancelButton.Size = UDim2.fromOffset(narrow and 66 or 88, 44)
+	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
+	confirmButton.TextSize = if narrow then 12 else 14
+	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
 	cancelButton.Text = if narrow then "✕" else "ОТМЕНА"
-	moveButton.Position = UDim2.fromOffset(compact and 10 or 22, compact and 80 or 24)
-	demolishButton.Position = UDim2.fromOffset(compact and 146 or 160, compact and 80 or 24)
+	-- Selection actions share a row and remain within the mobile viewport.
+	local outerMargin = compact and 10 or 22
+	local actionGap = 8
+	local actionAvailable = math.max(196, viewport.X - outerMargin * 2 - actionGap)
+	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
+	local demolishWidth = math.min(180, actionAvailable - moveWidth)
+	moveButton.Position = UDim2.fromOffset(outerMargin, compact and 80 or 24)
+	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
+	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, compact and 80 or 24)
+	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
+	demolishButton.TextSize = if compact then 11 else 13
 end
 
 local function bindBuildingCamera()
