@@ -1590,3 +1590,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added Studio query tests for selected pet hidden by a filter, fallback when the selected pet is no longer owned, and empty collection selection clearing.
 - Search debounce already uses `searchRenderVersion`; every text change invalidates the previous delayed render, so only the latest scheduled search rebuild runs.
 - Next: Studio test favorite removal while Favorites is active, unequip while Team is active, rapid search typing, and server refresh while a search is active.
+
+## Stage 1 — Pet Collection live filter updates and refresh reconciliation (2026-11-23)
+
+- `refreshCollection()` now resolves `selectedPetId` against the newly received authoritative `owned` list using `PetCollectionQuery.ResolveSelection`; it keeps the same ID if still owned and falls back only when the server snapshot no longer contains it.
+- Refresh completion updates the backing collection even if the modal was closed during the request, but only rebuilds visible cards/details while the collection panel is open. This avoids repainting a hidden modal; the next open performs its own refresh.
+- Extended `PetCollectionQueryTests.client.lua` to simulate a selected pet becoming/removing from Favorites and entering/leaving Team. Tests assert the active filter changes membership while selection remains tied to the same pet ID.
+- The Studio tests cover the pure production query/selection logic. They do not simulate actual RemoteFunction latency or the Roblox modal lifecycle; those remain manual Studio checks.
+- Next: verify favorite toggle while Favorites is active, unequip while Team is active, refresh during search, close/reopen during a delayed Get, and deletion of the selected pet.
