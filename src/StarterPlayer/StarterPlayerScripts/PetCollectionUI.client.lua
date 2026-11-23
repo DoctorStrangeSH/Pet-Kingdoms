@@ -1065,15 +1065,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-shade.Activated:Connect(function()
-	if confirmPanel.Visible then
-		pendingDeletePetId = nil
-		confirmPanel.Visible = false
-	elseif panel.Visible then
-		closeCollection()
-	end
-end)
-
+-- Backdrop taps are handled by the explicit bounds test below.
+-- Do not additionally use shade.Activated: touches inside static panel
+-- content can activate an ancestor TextButton and close the entire panel.
 -- Explicit hit testing also covers touch devices where an outer shade
 -- does not receive Activated. Dismiss confirmation first, never delete.
 UserInputService.InputBegan:Connect(function(input)
