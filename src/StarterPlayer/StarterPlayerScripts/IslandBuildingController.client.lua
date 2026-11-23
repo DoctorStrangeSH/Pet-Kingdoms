@@ -73,6 +73,7 @@ end
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
+local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, properties: { [string]: any }, parent: Instance): Instance
@@ -398,6 +399,7 @@ demolishButton.Activated:Connect(function()
 	if type(response) == "table" and response.ok == true then
 		selectBuilding(nil)
 		setStatus("Постройка демонтирована", true)
+		NotificationManager.Notify("Постройка демонтирована", "success")
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
 		local messages = {
@@ -410,6 +412,7 @@ demolishButton.Activated:Connect(function()
 			RATE_LIMITED = "Слишком много запросов. Попробуй позже",
 		}
 		setStatus(messages[code] or ("Нельзя демонтировать: " .. code), false)
+		NotificationManager.Notify(messages[code] or "Не удалось демонтировать постройку", "error")
 	end
 end)
 
@@ -930,6 +933,7 @@ confirmButton.Activated:Connect(function()
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
 		setStatus("Не удалось связаться с сервером", false)
+		NotificationManager.Notify("Не удалось связаться с сервером", "error")
 		if shouldCloseAfterResponse then stopPlacing() end
 		return
 	end
@@ -944,6 +948,7 @@ confirmButton.Activated:Connect(function()
 			wooden_fence = "Секция забора установлена!",
 		}
 		setStatus(if wasMoving then "Объект перемещён!" else (successLabels[requestedCatalogId] or "Объект размещён!"), true)
+		NotificationManager.Notify(if wasMoving then "Объект перемещён!" else (successLabels[requestedCatalogId] or "Объект размещён!"), "success")
 		if wasMoving then selectBuilding(nil) end
 		stopPlacing()
 	else
@@ -957,6 +962,7 @@ confirmButton.Activated:Connect(function()
 			OUT_OF_BOUNDS = "Постройка выходит за границы острова",
 		}
 		setStatus(messages[code] or ("Сервер отклонил постройку: " .. code), false)
+		NotificationManager.Notify(messages[code] or "Сервер отклонил постройку", "error")
 		if shouldCloseAfterResponse then stopPlacing() end
 	end
 end)
