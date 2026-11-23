@@ -725,7 +725,7 @@ end)
 local function refreshCollection()
 	-- Collection reads are single-flight. Multiple opens/refreshes must not race
 	-- and let an older snapshot overwrite a newer server response.
-	if collectionRefreshing then return false end
+	if collectionRefreshing or busy then return false end
 	collectionRefreshing = true
 	local requestResult = RequestRunner.Invoke(function()
 		return table.pack(remote:InvokeServer("Get"))
