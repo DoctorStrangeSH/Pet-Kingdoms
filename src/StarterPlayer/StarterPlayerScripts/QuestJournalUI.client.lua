@@ -161,6 +161,7 @@ local status = make("TextLabel", {
 
 local opened = false
 local loading = false
+local requestGeneration = 0
 local trackingInFlight = false
 local refreshQueued = false
 local refresh: () -> ()
@@ -445,13 +446,18 @@ local function render(quests: any, serverTrackedQuestId: string?)
 end
 
 refresh = function()
-	if loading then return end
+	if loading or not opened then return end
 	loading = true
+	requestGeneration += 1
+	local generation = requestGeneration
 	status.Text = "Получаем прогресс с сервера..."
 	status.TextColor3 = COLORS.muted
 	local requestResult = RequestRunner.Invoke(function()
 		return request:InvokeServer()
 	end, 12)
+	-- A closed/reopened journal is a new UI session. Never let an older
+	-- response overwrite the snapshot belonging to the new session.
+	if generation ~= requestGeneration or not opened then return end
 	local result = requestResult.value
 	if requestResult.ok and type(result) == "table" and result.ok == true then
 		render(result.quests, result.trackedQuestId)
@@ -484,6 +490,8 @@ local function setOpen(value: boolean)
 		-- ModalManager.Open is called before the panel becomes visible.
 		tracker.Visible = false
 	else
+		requestGeneration += 1
+		loading = false
 		ModalManager.Close(script.Name)
 		-- ModalManager may be in the middle of switching to another window.
 		-- Defer HUD restoration until the new active modal has been registered.
