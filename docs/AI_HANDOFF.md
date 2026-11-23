@@ -1536,3 +1536,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `receivedLiveUpdate` to `IslandResourceHUD`. If `IslandResourceUpdate` arrives while the initial `IslandResourceRequest("Get")` is pending, the pushed snapshot wins; the delayed startup response is ignored.
 - Startup retries stop once a live update has been received, avoiding unnecessary reads after the HUD has authoritative pushed state.
 - Next: delay the initial Get in Studio, trigger a resource change before it returns, and verify no balance rollback occurs.
+
+## Stage 1 — Notification burst regression coverage (2026-11-23)
+
+- Extended `NotificationManagerTests.client.lua` with a 25-toast burst. The test verifies the stack stays within the four-toast desktop cap, the newest notification survives eviction, and old timers from evicted notifications do not leave stale active toasts after expiry.
+- The test checks the newest toast by its displayed message, not an assumed sequence number, so it is resilient to notifications emitted by other startup systems.
+- Next: execute on desktop, narrow portrait, and short landscape in Studio; check visual clipping and responsive max-visible behavior.
