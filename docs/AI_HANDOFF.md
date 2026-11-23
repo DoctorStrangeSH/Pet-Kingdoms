@@ -1204,3 +1204,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Opening kingdom overview now clears any selected-building Move/Demolish action buttons (except during an outstanding demolition request). This prevents selection actions from floating over overview UI.
 - Added a dedicated 40x40 `CloseConstruction` button at the upper-right of the build panel, wired to the existing safe `stopPlacing` cancellation path. The title reserves width for this button; in-flight build requests still cannot be cancelled mid-transaction.
 - Code changes are in main, but **Roblox Studio/gameplay verification is pending**. Verify Overview -> Build, Build -> Overview, Move -> Overview, close button on 320/360/390px screens, selection action overlap, slow server request while opening Overview, and keyboard/mobile interaction. Do not mark the UI release-ready before device testing.
+
+
+## Stale building selection cleanup (2026-11-23)
+
+- `IslandBuildingController.client.lua` now observes `Destroying` on the selected building Model. If a server refresh, external removal, or another authoritative world sync destroys that model, the controller disconnects the old observer, clears the selection and hides/disables Move/Demolish rather than retaining a stale reference.
+- Selecting another model or clearing selection disconnects the previous observer first. The handler checks object identity and does not interfere with an active demolition transaction.
+- This guards stale UI state; it does not alter server authorization or removal persistence. Roblox Studio test pending: select a building, remove it through server/world refresh, verify action buttons disappear; rapidly select A then B and destroy A; demolish B and ensure no stale observer clears the new selection; respawn/rebuild and select again.
