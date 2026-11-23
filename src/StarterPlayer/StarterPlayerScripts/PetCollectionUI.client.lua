@@ -495,17 +495,10 @@ end
 
 local function updateDetail()
 	if collection == nil then return end
-	local selected: PetRecord? = nil
-	for _, record in ipairs(collection.owned) do
-		if record.petId == selectedPetId then
-			selected = record
-			break
-		end
-	end
-	if selected == nil then
-		selectedPetId = collection.owned[1] and collection.owned[1].petId or nil
-		selected = collection.owned[1]
-	end
+	-- Resolve selection against the authoritative owned collection, not the
+	-- filtered list. A selected pet remains selected even when a filter hides it.
+	local selected: PetRecord?
+	selected, selectedPetId = PetCollectionQuery.ResolveSelection(collection.owned, selectedPetId)
 	if selected == nil then
 		petName.Text = "Пока пусто"
 		petRarity.Text = "КОЛЛЕКЦИЯ"
