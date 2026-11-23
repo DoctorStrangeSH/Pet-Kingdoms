@@ -754,3 +754,13 @@ Test source added; Studio execution remains pending.
 - [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `RunPetKingdomsStudioTests=true`; verify switching, CloseAll, unregister, re-register, Escape routing, and no orphaned shades/input blockers.
 
 Source and regression coverage updated; Studio execution remains pending.
+
+### Stage 1 — Quest Journal duplicate-action protection (2026-11-23)
+
+- [x] Add a single-flight guard for tracked-quest changes so rapid taps across multiple quest cards cannot race the single server-side tracked-quest setting.
+- [x] Show loading state on the selected action and reject new tracking actions while a quest refresh or tracking request is active.
+- [x] Route automatic fallback tracking through the shared 12-second RequestRunner instead of an unbounded `pcall` call.
+- [x] After a tracking timeout, refresh authoritative quest state rather than assuming the timed-out operation failed.
+- [ ] Verify in Studio with rapid taps on several quest cards and delayed SetTrackedQuest responses; confirm only one request runs at a time, buttons recover, and the server-selected quest matches the UI.
+
+Source-level guard and timeout reconciliation added; Studio runtime verification remains pending.
