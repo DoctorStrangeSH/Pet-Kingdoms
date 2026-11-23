@@ -50,6 +50,7 @@ local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
 local pendingBuildingOperationKey: string? = nil
+local pendingBuildingOperation: { key: string, requestId: string, payload: { [string]: any }, description: string }? = nil
 
 local function getPendingRequestId(operationKey: string): string
 	local requestId = pendingRequestIds[operationKey]
@@ -72,6 +73,60 @@ local function shouldKeepPendingRequest(response: any): boolean
 		or response.code == "SESSION_NOT_WRITABLE"
 end
 
+local function setPendingBuildingOperation(key: string, requestId: string, payload: { [string]: any }, description: string)
+	pendingBuildingOperationKey = key
+	pendingBuildingOperation = {
+		key = key,
+		requestId = requestId,
+		payload = table.clone(payload),
+		description = description,
+	}
+	recoveryDescription.Text = description .. " — результат пока неизвестен."
+	recoveryPanel.Visible = true
+end
+
+local function clearPendingBuildingOperation()
+	if pendingBuildingOperation then
+		clearPendingRequestId(pendingBuildingOperation.key)
+	end
+	pendingBuildingOperation = nil
+	pendingBuildingOperationKey = nil
+	recoveryPanel.Visible = false
+end
+
+recoveryButton.Activated:Connect(function()
+	local pending = pendingBuildingOperation
+	if pending == nil or recoveryButton.Active == false then return end
+	recoveryButton.Active = false
+	recoveryButton.Text = "ПРОВЕРЯЕМ..."
+	InterfaceComponents.SetButtonLoading(recoveryButton, true, "ПРОВЕРЯЕМ...")
+	local requestResult = RequestRunner.Invoke(function()
+		return remote:InvokeServer(pending.payload)
+	end, 12)
+	InterfaceComponents.SetButtonLoading(recoveryButton, false)
+	recoveryButton.Active = true
+	recoveryButton.Text = "ПРОВЕРИТЬ РЕЗУЛЬТАТ"
+	if not requestResult.ok then
+		recoveryDescription.Text = "Ответ не получен. Можно безопасно проверить ещё раз."
+		NotificationManager.Notify("Результат операции пока не подтверждён", "warning")
+		return
+	end
+	local response = requestResult.value
+	if type(response) == "table" and response.ok == true then
+		clearPendingBuildingOperation()
+		setStatus(pending.description .. " — выполнено", true)
+		NotificationManager.Notify(pending.description .. " выполнено", "success")
+	elseif shouldKeepPendingRequest(response) then
+		recoveryDescription.Text = "Сервер ещё обрабатывает операцию. Проверь немного позже."
+		NotificationManager.Notify("Операция ещё не завершена", "warning")
+	else
+		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
+		clearPendingBuildingOperation()
+		setStatus("Операция не выполнена: " .. code, false)
+		NotificationManager.Notify("Сервер подтвердил, что операция не выполнена", "error")
+	end
+end)
+
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
@@ -93,6 +148,59 @@ local gui = make("ScreenGui", {
 	IgnoreGuiInset = false,
 	DisplayOrder = 30,
 }, playerGui) :: ScreenGui
+
+local recoveryPanel = make("Frame", {
+	Name = "PendingOperationRecovery",
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 18),
+	Size = UDim2.new(1, -28, 0, 92),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 0.03,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 20,
+}, gui) :: Frame
+make("UISizeConstraint", { MinSize = Vector2.new(220, 92), MaxSize = Vector2.new(430, 92) }, recoveryPanel)
+make("UICorner", { CornerRadius = UDim.new(0, 14) }, recoveryPanel)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.2, Thickness = 1.5 }, recoveryPanel)
+local recoveryTitle = make("TextLabel", {
+	Name = "RecoveryTitle",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 8),
+	Size = UDim2.new(1, -24, 0, 24),
+	Font = Enum.Font.GothamBold,
+	Text = "ОПЕРАЦИЯ НЕ ПОДТВЕРЖДЕНА",
+	TextColor3 = COLORS.gold,
+	TextSize = 13,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 21,
+}, recoveryPanel) :: TextLabel
+local recoveryDescription = make("TextLabel", {
+	Name = "RecoveryDescription",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 32),
+	Size = UDim2.new(1, -24, 0, 18),
+	Font = Enum.Font.Gotham,
+	Text = "Проверь результат, не создавая повторную операцию.",
+	TextColor3 = COLORS.text,
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextTruncate = Enum.TextTruncate.AtEnd,
+	ZIndex = 21,
+}, recoveryPanel) :: TextLabel
+local recoveryButton = make("TextButton", {
+	Name = "RetryPendingOperation",
+	Position = UDim2.new(0, 10, 0, 56),
+	Size = UDim2.new(1, -20, 0, 28),
+	BackgroundColor3 = COLORS.gold,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "ПРОВЕРИТЬ РЕЗУЛЬТАТ",
+	TextColor3 = COLORS.panel,
+	TextSize = 11,
+	ZIndex = 21,
+}, recoveryPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 8) }, recoveryButton)
 
 local panel = make("Frame", {
 	Name = "Panel",
