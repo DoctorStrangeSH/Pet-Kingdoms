@@ -279,7 +279,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = if compactCard then UDim2.new(0, 15, 0, 104) else UDim2.new(1, -10, 0, 9),
 			Size = UDim2.fromOffset(if compactCard then 112 else 102, if compactCard then 32 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
-			Text = if trackedQuestId == quest.id then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ",
+			Text = if trackedQuestId == quest.id then "СЛЕЖУ" else "СЛЕДИТЬ",
 			TextSize = 8,
 			Font = Enum.Font.GothamBold,
 			TextColor3 = if trackedQuestId == quest.id then COLORS.panel else COLORS.cream,
@@ -303,7 +303,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 						local action = sibling:FindFirstChild("TrackQuest")
 						if action and action:IsA("TextButton") then
 							local active = sibling.Name == "Quest_" .. quest.id
-							action.Text = if active then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ"
+							action.Text = if active then "СЛЕЖУ" else "СЛЕДИТЬ"
 							action.BackgroundColor3 = if active then COLORS.mint else COLORS.card
 							action.TextColor3 = if active then COLORS.panel else COLORS.cream
 						end
