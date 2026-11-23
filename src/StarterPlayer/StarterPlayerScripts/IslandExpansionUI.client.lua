@@ -79,7 +79,8 @@ local panel = make("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	Visible = false,
 }, shade) :: Frame
-make("UISizeConstraint", { MinSize = Vector2.new(290, 370), MaxSize = Vector2.new(440, 390) }, panel)
+local panelConstraint = make("UISizeConstraint", { MinSize = Vector2.new(250, 320), MaxSize = Vector2.new(440, 390) }, panel) :: UISizeConstraint
+local panelScale = make("UIScale", { Scale = 1 }, panel) :: UIScale
 make("UICorner", { CornerRadius = UDim.new(0, 22) }, panel)
 make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, panel)
 
@@ -339,10 +340,13 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local compact = camera.ViewportSize.X < 520
+	local viewport = camera.ViewportSize
+	local compact = viewport.X < 520
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	openButton.Position = UDim2.new(1, compact and -12 or -22, 0.70, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
+	-- Scale the fixed-height information cards on short screens instead of clipping them.
+	panelScale.Scale = math.clamp((viewport.Y - 24) / 390, 0.72, 1)
 end
 if Workspace.CurrentCamera then
 	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
