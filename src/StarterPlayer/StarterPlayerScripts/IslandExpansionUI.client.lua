@@ -263,7 +263,6 @@ local function renderPreview(data: any)
 		status.Text = if code == "SESSION_NOT_READY" then "Остров ещё загружается. Попробуй немного позже."
 			elseif code == "RATE_LIMITED" then "Слишком частые запросы. Подожди секунду."
 			else "Не удалось получить данные: " .. code
-		NotificationManager.Notify(status.Text, "error")
 		return
 	end
 
