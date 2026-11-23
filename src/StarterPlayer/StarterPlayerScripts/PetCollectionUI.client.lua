@@ -1093,9 +1093,9 @@ resize = function()
 			petRarity.Size = UDim2.new(0.64, -16, 0, 16)
 			petRarity.TextSize = 9
 			favoriteButton.Position = UDim2.fromOffset(8, 68)
-			lockButton.Position = UDim2.fromOffset(42, 68)
-			favoriteButton.Size = UDim2.fromOffset(30, 28)
-			lockButton.Size = UDim2.fromOffset(30, 28)
+			lockButton.Position = UDim2.fromOffset(50, 68)
+			favoriteButton.Size = UDim2.fromOffset(36, 34)
+			lockButton.Size = UDim2.fromOffset(36, 34)
 
 			if viewport.Y >= 500 then
 				-- On normal-height phones keep useful pet information and care
