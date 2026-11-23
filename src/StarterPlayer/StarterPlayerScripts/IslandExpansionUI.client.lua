@@ -184,7 +184,7 @@ local refreshButton = make("TextButton", {
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 12) }, refreshButton)
+InterfaceComponents.StyleActionButton(refreshButton, "secondary")
 
 local opened = false
 local loading = false
