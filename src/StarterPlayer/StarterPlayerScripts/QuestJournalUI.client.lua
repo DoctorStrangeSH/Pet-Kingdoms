@@ -163,6 +163,7 @@ local opened = false
 local loading = false
 local trackingInFlight = false
 local refreshQueued = false
+local refresh: () -> ()
 local lastQuests: { any } = {}
 local trackedQuestId: string? = nil
 local hasLoadedSnapshot = false
@@ -319,9 +320,10 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			else
 				InterfaceComponents.SetButtonFeedback(trackButton, "error", "ПОВТОРИТЬ", 2.2)
 				NotificationManager.Notify(
-					if trackingResult.errorCode == "TIMEOUT" then "Сервер долго отвечает. Проверь журнал перед повтором." else "Не удалось изменить отслеживаемое задание.",
+					if trackingResult.errorCode == "TIMEOUT" then "Сервер долго отвечает. Проверяю актуальное задание." else "Не удалось изменить отслеживаемое задание.",
 					"warning"
 				)
+				if trackingResult.errorCode == "TIMEOUT" then task.defer(refresh) end
 			end
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
@@ -432,6 +434,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 				trackingInFlight = false
 				if not trackingResult.ok then
 					warn("[PetKingdomsUI] Could not restore tracked quest: " .. tostring(trackingResult.errorCode))
+					if trackingResult.errorCode == "TIMEOUT" and opened then task.defer(refresh) end
 				end
 			end)
 		end
@@ -441,7 +444,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	hasLoadedSnapshot = true
 end
 
-local function refresh()
+refresh = function()
 	if loading then return end
 	loading = true
 	status.Text = "Получаем прогресс с сервера..."
