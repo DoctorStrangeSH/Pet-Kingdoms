@@ -329,6 +329,8 @@ local demolishButton = make("TextButton", {
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 
+local buildLauncher: TextButton? = nil
+
 -- Fit all construction actions inside the actual panel content width.
 -- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
 local function resizeBuildingPanel()
@@ -373,6 +375,26 @@ local function resizeBuildingPanel()
 	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
 	demolishButton.TextSize = if compact then 11 else 13
+
+	if buildLauncher then
+		if viewport.X < 780 then
+			-- Reserve a dedicated top-right launcher lane on tablet/phone widths.
+			-- The resource HUD uses the remaining top-left area on these screens.
+			buildLauncher.AnchorPoint = Vector2.new(1, 0)
+			buildLauncher.Position = UDim2.new(1, -8, 0, 10)
+			buildLauncher.Size = UDim2.fromOffset(48, 48)
+			buildLauncher.Text = InterfaceTheme.Icons.Build
+			buildLauncher.TextSize = 22
+			InterfaceComponents.StyleFloatingButton(buildLauncher, "gold")
+		else
+			buildLauncher.AnchorPoint = Vector2.new(1, 0)
+			buildLauncher.Position = UDim2.new(1, -22, 0, 24)
+			buildLauncher.Size = UDim2.fromOffset(154, 48)
+			buildLauncher.Text = InterfaceTheme.Icons.Build .. "  СТРОИТЬ"
+			buildLauncher.TextSize = 15
+			InterfaceComponents.StyleActionButton(buildLauncher, "gold")
+		end
+	end
 
 	if short then
 		status.Position = UDim2.fromOffset(0, 30)
@@ -1288,7 +1310,9 @@ local function addBuildEntry()
 		TextColor3 = COLORS.gold,
 		TextSize = 15,
 	}, gui) :: TextButton
+	buildLauncher = open
 	InterfaceComponents.StyleActionButton(open, "gold")
+	resizeBuildingPanel()
 	open.Activated:Connect(beginPlacing)
 end
 
