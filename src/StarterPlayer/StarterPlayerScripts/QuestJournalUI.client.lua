@@ -20,6 +20,7 @@ local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEve
 
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
+local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
@@ -205,47 +206,8 @@ local trackerFill = make("Frame", {
 }, trackerTrack) :: Frame
 make("UICorner", { CornerRadius = UDim.new(1, 0) }, trackerFill)
 
-local completionToast = make("TextLabel", {
-	Name = "QuestCompletionToast",
-	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 132),
-	Size = UDim2.new(0.86, 0, 0, 48),
-	BackgroundColor3 = COLORS.panel,
-	BackgroundTransparency = 1,
-	TextTransparency = 1,
-	Text = "",
-	TextColor3 = COLORS.mint,
-	TextSize = 14,
-	TextWrapped = true,
-	Font = Enum.Font.GothamBold,
-	Visible = false,
-}, screen) :: TextLabel
-make("UICorner", { CornerRadius = UDim.new(0, 14) }, completionToast)
-make("UIStroke", { Color = COLORS.mint, Transparency = 1, Thickness = 1.3 }, completionToast)
-local toastStroke = completionToast:FindFirstChildOfClass("UIStroke") :: UIStroke
-local toastSequence = 0
-
 local function showCompletionToast(name: string)
-	toastSequence += 1
-	local sequence = toastSequence
-	completionToast.Text = "✓  Задание выполнено: " .. name
-	completionToast.Visible = true
-	TweenService:Create(completionToast, TweenInfo.new(0.18), {
-		BackgroundTransparency = 0.05,
-		TextTransparency = 0,
-	}):Play()
-	TweenService:Create(toastStroke, TweenInfo.new(0.18), { Transparency = 0.25 }):Play()
-	task.delay(2.8, function()
-		if sequence ~= toastSequence then return end
-		local fade = TweenService:Create(completionToast, TweenInfo.new(0.22), {
-			BackgroundTransparency = 1,
-			TextTransparency = 1,
-		})
-		TweenService:Create(toastStroke, TweenInfo.new(0.22), { Transparency = 1 }):Play()
-		fade:Play()
-		fade.Completed:Wait()
-		if sequence == toastSequence then completionToast.Visible = false end
-	end)
+	NotificationManager.Notify("Задание выполнено: " .. name, "success", 3.2)
 end
 
 local function updateTracker(quests: { any })
