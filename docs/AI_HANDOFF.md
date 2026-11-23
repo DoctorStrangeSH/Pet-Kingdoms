@@ -1405,3 +1405,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Rebound the ViewportSize listener safely when `Workspace.CurrentCamera` changes, disconnecting the previous camera connection instead of accumulating listeners.
 - Replaced the initial wallet snapshot's unbounded direct InvokeServer/pcall with the shared 12-second RequestRunner, retaining bounded retry/backoff behavior. Live server push updates remain authoritative.
 - Static checks passed for grid layout, compact/tiny sizing, truncation, viewport rebinding, and bounded initial fetch. CI run `45140354173` was running when this note was added. No Roblox Studio/device tests have been performed. Next verify 320/360/390 px portrait, desktop 1280+, toast while collecting, long balances, bond label, respawn/camera replacement, and server push ordering.
+
+
+## Stage 1 — Interface & usability: floating launcher collision audit (2026-11-23)
+
+- Audited the persistent launchers across Pet Collection, Island Expansion, Quest Journal, and Building. Found a real compact/touch collision: Pet Collection had a legacy touch-only override placing its launcher at Y=0.72, directly on top of Island Expansion's Y=0.70 launcher.
+- Removed the one-off touch override and moved launcher placement into Pet Collection's shared responsive `resize()` path. On compact screens the pet launcher is now 52×52 at the right edge, Y=0.46; on wider screens it remains 62×62 at Y=0.55. Island Expansion is 52×52 at Y=0.72 on compact screens (62×62 at Y=0.70 otherwise). This creates a deliberate vertical gap on phones while retaining desktop positions.
+- Quest Journal remains on the opposite (left) edge with a 50 px compact target; Build remains top-right with a 154×48 target. All these ScreenGuis retain the default safe inset behavior (`IgnoreGuiInset=false` or default false), so top controls respect Roblox's GUI inset.
+- Static checks passed for responsive launcher positions/sizes and existing camera viewport rebinding. Pet launcher CI `45142089887` passed; expansion launcher CI `45142096293` passed. No Studio/device touch test has been performed. Remaining: test simultaneous visibility, 320/360/390 px portrait, short landscape, top safe inset/notches, and interaction with build selection/recovery controls and tracked quest HUD.
