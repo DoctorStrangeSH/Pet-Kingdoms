@@ -51,7 +51,15 @@ for index = 1, 25 do
 	NotificationManager.Notify("Пакетное уведомление " .. tostring(index), if index % 2 == 0 then "warning" else "info", 1.5)
 end
 expect("rapid notification burst stays within desktop cap", countToasts() <= 4)
-expect("rapid notification burst retains newest items", holder:FindFirstChild("Toast_25") ~= nil)
+local newestToastRetained = false
+for _, child in ipairs(holder:GetChildren()) do
+	local message = child:FindFirstChild("Message")
+	if message and message:IsA("TextLabel") and message.Text == "Пакетное уведомление 25" then
+		newestToastRetained = true
+		break
+	end
+end
+expect("rapid notification burst retains newest items", newestToastRetained)
 task.wait(2)
 expect("evicted notification timers do not leak active toasts", countToasts() == 0)
 
