@@ -872,15 +872,20 @@ local function bindViewportCamera()
 	end
 end
 
+local collectionModalRevision = 0
+
 local function openCollection()
+	collectionModalRevision += 1
 	announcePanelOpened()
 	-- Never resurrect a stale destructive-confirmation dialog on reopen.
 	confirmPanel.Visible = false
 	if not busy then pendingDeletePetId = nil end
 	shade.Visible = true
+	shade.BackgroundTransparency = 1
 	panel.Visible = true
 	resize()
 	panel.Position = UDim2.fromScale(0.5, 0.54)
+	TweenService:Create(shade, TweenInfo.new(0.16), { BackgroundTransparency = 0.42 }):Play()
 	TweenService:Create(panel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		Position = UDim2.fromScale(0.5, 0.5),
 	}):Play()
@@ -888,11 +893,20 @@ local function openCollection()
 end
 
 local function closeCollection()
+	if not shade.Visible then return end
+	collectionModalRevision += 1
+	local closingRevision = collectionModalRevision
 	-- Closing the collection also dismisses its nested delete-confirmation layer.
 	confirmPanel.Visible = false
 	if not busy then pendingDeletePetId = nil end
 	panel.Visible = false
-	shade.Visible = false
+	TweenService:Create(shade, TweenInfo.new(0.12), { BackgroundTransparency = 1 }):Play()
+	task.delay(0.13, function()
+		-- A quick reopen invalidates this delayed hide, preventing a stuck/hidden modal.
+		if collectionModalRevision == closingRevision and not panel.Visible then
+			shade.Visible = false
+		end
+	end)
 end
 
 panelSignal.Event:Connect(function(origin)
