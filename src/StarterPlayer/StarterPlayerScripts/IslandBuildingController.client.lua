@@ -328,11 +328,14 @@ make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, dem
 
 -- Fit all construction actions inside the actual panel content width.
 -- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
+local compactBuildingUI = false
+
 local function resizeBuildingPanel()
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera == nil then return end
 	local viewport = activeCamera.ViewportSize
 	local compact = viewport.X < 520
+	compactBuildingUI = compact
 	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
 	panel.Size = UDim2.fromOffset(panelWidth, 228)
 	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
@@ -358,15 +361,23 @@ local function resizeBuildingPanel()
 	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
 	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
+	moveButton.Text = if compact then InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ" else InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ"
 	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
+	demolishButton.Text = if compact then InterfaceTheme.Icons.Demolish .. "  УДАЛИТЬ" else InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
 	demolishButton.TextSize = if compact then 11 else 13
 end
 
+local buildingViewportConnection: RBXScriptConnection? = nil
+
 local function bindBuildingCamera()
+	if buildingViewportConnection then
+		buildingViewportConnection:Disconnect()
+		buildingViewportConnection = nil
+	end
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera then
-		activeCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
+		buildingViewportConnection = activeCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeBuildingPanel)
 	end
 	resizeBuildingPanel()
 end
@@ -401,7 +412,9 @@ local function selectBuilding(model: Model?)
 	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
 	demolishButton.Visible = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
-	demolishButton.Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = if compactBuildingUI
+		then InterfaceTheme.Icons.Demolish .. "  УДАЛИТЬ"
+		else InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
 	if model then
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
