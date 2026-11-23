@@ -503,10 +503,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	setOpen(false)
 end)
 
-shade.Activated:Connect(function()
-	if opened then setOpen(false) end
-end)
-
+-- Backdrop dismissal is handled exclusively by the panel-bound hit test.
+-- A full-screen TextButton can receive Activated from non-interactive
+-- children, accidentally closing the window when its content is tapped.
 -- Some device/input combinations do not dispatch TextButton.Activated on
 -- the full-screen shade. Check the actual panel bounds on pointer-down.
 UserInputService.InputBegan:Connect(function(input)
