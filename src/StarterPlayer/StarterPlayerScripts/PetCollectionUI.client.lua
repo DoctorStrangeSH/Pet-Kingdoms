@@ -613,12 +613,11 @@ end
 
 local function refreshCollection()
 	local requestResult = RequestRunner.Invoke(function()
-		return remote:InvokeServer("Get")
+		return table.pack(remote:InvokeServer("Get"))
 	end, 12)
-	local success, result = if requestResult.ok then requestResult.value else false, nil
-	if requestResult.ok and type(requestResult.value) == "table" then
-		success, result = requestResult.value[1], requestResult.value[2]
-	end
+	local response = if requestResult.ok then requestResult.value else nil
+	local success = if type(response) == "table" then response[1] else false
+	local result = if type(response) == "table" then response[2] else nil
 	if not requestResult.ok then
 		showStatus(if requestResult.errorCode == "TIMEOUT"
 			then "Сервер отвечает слишком долго. Попробуй обновить коллекцию ещё раз."
