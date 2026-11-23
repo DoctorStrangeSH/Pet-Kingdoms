@@ -933,8 +933,16 @@ confirmButton.Activated:Connect(function()
 end)
 
 local TAP_DRAG_THRESHOLD = 18
+local MAX_TAP_DURATION = 0.55
+local TOUCH_MOUSE_SUPPRESSION = 0.35
+local activeTouches: { [InputObject]: boolean } = {}
+local touchCount = 0
+local gestureBlocked = false
+local lastTouchTime = -math.huge
 local touchCandidate: InputObject? = nil
 local touchStartPosition: Vector2? = nil
+local touchStartTime = 0
+local touchStartedPlacing = false
 
 local function isOverInteractiveGui(screenPosition: Vector2): boolean
 	for _, object in ipairs(playerGui:GetGuiObjectsAtPosition(screenPosition.X, screenPosition.Y)) do
@@ -969,38 +977,61 @@ local function chooseWorldPoint(screenPosition: Vector2)
 end
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if buildRequestInFlight or demolitionRequestInFlight then return end
 	if input.UserInputType == Enum.UserInputType.Touch then
-		-- Touch controls and camera swipes must never pick construction cells.
-		-- Only an unprocessed, single-finger tap can select the world on release.
-		if processed or touchCandidate ~= nil then
+		lastTouchTime = os.clock()
+		if not activeTouches[input] then
+			activeTouches[input] = true
+			touchCount += 1
+		end
+		-- Once two fingers participate, neither is allowed to select the world.
+		if touchCount > 1 then
+			gestureBlocked = true
 			touchCandidate = nil
 			touchStartPosition = nil
 			return
 		end
+		if processed or buildRequestInFlight or demolitionRequestInFlight or gestureBlocked then return end
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if isOverInteractiveGui(position) then return end
 		touchCandidate = input
 		touchStartPosition = position
+		touchStartTime = os.clock()
+		touchStartedPlacing = placing
 		return
 	end
-	if processed then return end
+	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
 	if input.KeyCode == Enum.KeyCode.R and placing then
 		rotation = (rotation + 90) % 360
 		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
 	elseif input.KeyCode == Enum.KeyCode.Escape and placing then
 		stopPlacing()
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+		-- Some touch devices emit a synthetic mouse event for the same tap.
+		if UserInputService.TouchEnabled and os.clock() - lastTouchTime < TOUCH_MOUSE_SUPPRESSION then return end
 		chooseWorldPoint(UserInputService:GetMouseLocation())
 	end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-	if input ~= touchCandidate then return end
+	if input.UserInputType ~= Enum.UserInputType.Touch then return end
+	lastTouchTime = os.clock()
+	if activeTouches[input] then
+		activeTouches[input] = nil
+		touchCount = math.max(0, touchCount - 1)
+	end
+	local isCandidate = input == touchCandidate
 	local startPosition = touchStartPosition
-	touchCandidate = nil
-	touchStartPosition = nil
-	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil then return end
+	local elapsed = os.clock() - touchStartTime
+	local sameMode = touchStartedPlacing == placing
+	if isCandidate then
+		touchCandidate = nil
+		touchStartPosition = nil
+	end
+	local blocked = gestureBlocked
+	if touchCount == 0 then gestureBlocked = false end
+	if not isCandidate or blocked or touchCount ~= 0 then return end
+	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil or not sameMode then return end
+	if elapsed > MAX_TAP_DURATION then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
 	if (endPosition - startPosition).Magnitude > TAP_DRAG_THRESHOLD then return end
 	chooseWorldPoint(endPosition)
