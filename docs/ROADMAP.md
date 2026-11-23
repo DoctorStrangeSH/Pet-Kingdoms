@@ -928,3 +928,4 @@ Rarity is intentionally not fabricated: the current client collection record doe
 - [x] Add a compact icon-size pulse after Favorite/Lock settings are accepted by the server.
 - [x] Cancel a card's previous selection tween before applying a new state.
 - [ ] Verify rapid selection changes, Favorite/Lock feedback, mobile card taps, and 500-pet scrolling in Roblox Studio.
+- [x] Clear completed card surface, outline, and Favorite/Lock pulse tween references; cancel replaced outline tweens before starting a new one.
