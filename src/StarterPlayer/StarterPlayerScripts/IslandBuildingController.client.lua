@@ -466,9 +466,32 @@ local function makePreviewVisual(catalogId: string, unit: number): Model
 		piece("Cap", Vector3.new(width * 0.56, unit * 0.08, depth * 0.56), CFrame.new(0, unit * 0.96, 0), Color3.fromRGB(83, 63, 49), Enum.Material.Wood)
 	else
 		local petHouse = catalogId == "pet_house"
-		piece("Walls", Vector3.new(width * 0.82, unit * 0.55, depth * 0.72), CFrame.new(0, unit * 0.32, 0), if petHouse then Color3.fromRGB(238, 190, 132) else Color3.fromRGB(246, 218, 169), Enum.Material.Wood)
-		piece("Roof", Vector3.new(width, unit * 0.2, depth * 0.9), CFrame.new(0, unit * 0.75, 0), if petHouse then Color3.fromRGB(105, 164, 205) else Color3.fromRGB(126, 83, 139), Enum.Material.Slate)
-		piece("Door", Vector3.new(width * 0.22, unit * 0.32, 0.13), CFrame.new(0, unit * 0.2, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
+		if petHouse then
+			piece("Body", Vector3.new(width * 0.82, unit * 0.48, depth * 0.72), CFrame.new(0, unit * 0.24, 0), Color3.fromRGB(238, 190, 132), Enum.Material.Wood)
+			piece("Roof", Vector3.new(width, unit * 0.16, depth * 0.9), CFrame.new(0, unit * 0.58, 0), Color3.fromRGB(105, 164, 205), Enum.Material.Slate)
+			piece("Door", Vector3.new(width * 0.22, unit * 0.3, 0.12), CFrame.new(0, unit * 0.15, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
+			piece("Sign", Vector3.new(width * 0.38, unit * 0.13, 0.12), CFrame.new(0, unit * 0.82, -depth * 0.37), Color3.fromRGB(255, 218, 137), Enum.Material.SmoothPlastic)
+			for index, x in ipairs({ -width * 0.30, width * 0.30 }) do
+				piece("CornerBeam_" .. index, Vector3.new(width * 0.065, unit * 0.50, depth * 0.075), CFrame.new(x, unit * 0.25, -depth * 0.36), Color3.fromRGB(142, 97, 62), Enum.Material.Wood)
+				piece("PetWindow_" .. index, Vector3.new(width * 0.105, unit * 0.14, 0.10), CFrame.new(x * 0.66, unit * 0.31, -depth * 0.37), Color3.fromRGB(255, 218, 149), Enum.Material.Glass)
+			end
+			piece("RoofRidge", Vector3.new(width * 0.92, unit * 0.075, depth * 0.12), CFrame.new(0, unit * 0.69, 0), Color3.fromRGB(73, 119, 165), Enum.Material.Slate)
+			piece("PawBadge", Vector3.new(width * 0.13, unit * 0.09, 0.14), CFrame.new(0, unit * 0.825, -depth * 0.38), Color3.fromRGB(149, 91, 167), Enum.Material.SmoothPlastic)
+		else
+			piece("Foundation", Vector3.new(width, unit * 0.16, depth), CFrame.new(0, unit * 0.08, 0), Color3.fromRGB(119, 91, 72), Enum.Material.WoodPlanks)
+			piece("Walls", Vector3.new(width * 0.9, unit * 0.68, depth * 0.84), CFrame.new(0, unit * 0.5, 0), Color3.fromRGB(246, 218, 169), Enum.Material.SmoothPlastic)
+			piece("Roof", Vector3.new(width * 1.08, unit * 0.2, depth * 1.02), CFrame.new(0, unit * 0.94, 0), Color3.fromRGB(126, 83, 139), Enum.Material.Slate)
+			piece("RoofRidge", Vector3.new(width * 0.97, unit * 0.09, depth * 0.14), CFrame.new(0, unit * 1.08, 0), Color3.fromRGB(93, 60, 114), Enum.Material.Slate)
+			piece("Door", Vector3.new(width * 0.2, unit * 0.42, 0.14), CFrame.new(0, unit * 0.3, -depth * 0.425), Color3.fromRGB(126, 83, 57), Enum.Material.Wood)
+			piece("DoorKnob", Vector3.new(unit * 0.055, unit * 0.055, unit * 0.055), CFrame.new(width * 0.055, unit * 0.28, -depth * 0.433 - 0.08), Color3.fromRGB(246, 202, 115), Enum.Material.Metal)
+			for index, x in ipairs({ -width * 0.28, width * 0.28 }) do
+				piece("Window_" .. index, Vector3.new(width * 0.16, unit * 0.17, 0.12), CFrame.new(x, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
+				piece("WindowSill_" .. index, Vector3.new(width * 0.2, unit * 0.045, 0.2), CFrame.new(x, unit * 0.47, -depth * 0.45), Color3.fromRGB(155, 104, 76), Enum.Material.Wood)
+			end
+			for index, x in ipairs({ -width * 0.40, width * 0.40 }) do
+				piece("TimberTrim_" .. index, Vector3.new(width * 0.055, unit * 0.73, depth * 0.07), CFrame.new(x, unit * 0.48, -depth * 0.42), Color3.fromRGB(139, 91, 68), Enum.Material.Wood)
+			end
+		end
 	end
 	return model
 end
