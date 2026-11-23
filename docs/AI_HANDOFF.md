@@ -1598,3 +1598,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Extended `PetCollectionQueryTests.client.lua` to simulate a selected pet becoming/removing from Favorites and entering/leaving Team. Tests assert the active filter changes membership while selection remains tied to the same pet ID.
 - The Studio tests cover the pure production query/selection logic. They do not simulate actual RemoteFunction latency or the Roblox modal lifecycle; those remain manual Studio checks.
 - Next: verify favorite toggle while Favorites is active, unequip while Team is active, refresh during search, close/reopen during a delayed Get, and deletion of the selected pet.
+
+## Stage 1 — Compact touch-target sizing (2026-11-23)
+
+- In the `veryShort` compact layout, increased search height to 30 px and filter bar height to 28 px; moved the list start to y=98 and recalculated its height so controls do not overlap.
+- Increased short-landscape detail action buttons (Equip/Main/Delete) from 26 to 30 px. Rebalanced widths from 50/18/32 to 50/22/28 percent so the compact Main and Delete hit areas are less cramped.
+- This is a constrained 180–359 px viewport compromise; controls are still smaller than ideal 44 px touch guidance. Verify in Roblox Studio at 320×180, 360×180, and 320×240 before considering mobile usability complete.
