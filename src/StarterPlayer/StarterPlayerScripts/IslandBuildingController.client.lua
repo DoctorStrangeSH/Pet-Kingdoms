@@ -74,6 +74,7 @@ end
 local InterfaceTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceTheme"))
 local InterfaceComponents = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("InterfaceComponents"))
 local NotificationManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NotificationManager"))
+local RequestRunner = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RequestRunner"))
 local COLORS = InterfaceTheme.Colors
 
 local function make(className: string, properties: { [string]: any }, parent: Instance): Instance
@@ -378,13 +379,14 @@ demolishButton.Activated:Connect(function()
 	setStatus("Удаляем постройку…")
 	local operationKey = "demolish:" .. instanceId
 	local requestId = getPendingRequestId(operationKey)
-	local ok, response = pcall(function()
+	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer({
 			requestId = requestId,
 			action = "demolish",
 			instanceId = instanceId,
 		})
-	end)
+	end, 12)
+	local ok, response = requestResult.ok, requestResult.value
 	demolitionRequestInFlight = false
 	InterfaceComponents.SetButtonLoading(demolishButton, false)
 	moveButton.Active = true
@@ -392,7 +394,13 @@ demolishButton.Activated:Connect(function()
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
-		setStatus("Нет ответа сервера. Выбери ту же постройку и повтори попытку", false)
+		if requestResult.errorCode == "TIMEOUT" then
+			setStatus("Ответ задерживается. Результат демонтажа пока неизвестен — повтори попытку для проверки", false)
+			NotificationManager.Notify("Нет ответа вовремя. Повтори ту же операцию — повторного демонтажа не будет", "warning")
+		else
+			setStatus("Не удалось связаться с сервером. Повтори попытку", false)
+			NotificationManager.Notify("Не удалось связаться с сервером", "error")
+		end
 		return
 	end
 	if type(response) == "table" and response.ok == true then
@@ -911,7 +919,7 @@ confirmButton.Activated:Connect(function()
 		tostring(requestedMoveId or ""),
 	}, ":")
 	local requestId = getPendingRequestId(operationKey)
-	local ok, response = pcall(function()
+	local requestResult = RequestRunner.Invoke(function()
 		return remote:InvokeServer({
 			requestId = requestId,
 			catalogId = requestedCatalogId,
@@ -920,7 +928,8 @@ confirmButton.Activated:Connect(function()
 			rotation = requestedRotation,
 			movingInstanceId = requestedMoveId,
 		})
-	end)
+	end, 12)
+	local ok, response = requestResult.ok, requestResult.value
 	buildRequestInFlight = false
 	local shouldCloseAfterResponse = closeAfterBuildResponse
 	closeAfterBuildResponse = false
@@ -930,8 +939,13 @@ confirmButton.Activated:Connect(function()
 	confirmButton.Text = if requestedMoveId ~= nil then "СОХРАНИТЬ" else "ПОСТРОИТЬ"
 	if ok and not shouldKeepPendingRequest(response) then clearPendingRequestId(operationKey) end
 	if not ok then
-		setStatus("Не удалось связаться с сервером", false)
-		NotificationManager.Notify("Не удалось связаться с сервером", "error")
+		if requestResult.errorCode == "TIMEOUT" then
+			setStatus("Ответ задерживается. Результат операции пока неизвестен — нажми повторить", false)
+			NotificationManager.Notify("Нет ответа вовремя. Повтор той же операции защищён от дублирования", "warning")
+		else
+			setStatus("Не удалось связаться с сервером. Повтори попытку", false)
+			NotificationManager.Notify("Не удалось связаться с сервером", "error")
+		end
 		if shouldCloseAfterResponse then stopPlacing() end
 		return
 	end
