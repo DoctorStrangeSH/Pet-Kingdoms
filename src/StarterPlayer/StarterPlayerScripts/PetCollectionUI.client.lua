@@ -31,6 +31,8 @@ local cardButtons: { [string]: TextButton } = {}
 local activeFilter = "all"
 local sortMode = "newest"
 local pendingDeletePetId: string? = nil
+local mobileDetailVisible = false
+local compactCollection = false
 
 local function make(className: string, props: { [string]: any }, parent: Instance): Instance
 	local object = Instance.new(className)
@@ -105,6 +107,19 @@ local subtitle = make("TextLabel", {
 	TextColor3 = COLORS.muted,
 }, panel) :: TextLabel
 InterfaceComponents.StyleText(subtitle, "Caption")
+
+local mobileBackButton = make("TextButton", {
+	Name = "BackToPetList",
+	Position = UDim2.new(0, 24, 0, 88),
+	Size = UDim2.new(1, -48, 0, 34),
+	BackgroundColor3 = COLORS.panelSoft,
+	Text = "←  К СПИСКУ ПИТОМЦЕВ",
+	TextSize = 12,
+	Font = Enum.Font.GothamBold,
+	TextColor3 = COLORS.cream,
+	Visible = false,
+}, panel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, mobileBackButton)
 
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
@@ -585,8 +600,10 @@ local function renderList()
 			cardButtons[record.petId] = button
 		button.Activated:Connect(function()
 			selectedPetId = record.petId
+			if compactCollection then mobileDetailVisible = true end
 			renderList()
 			updateDetail()
+			resize()
 		end)
 	end
 	if #visibleRecords == 0 then
@@ -833,18 +850,43 @@ local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
-	if viewport.X < 650 then
-		panel.Size = UDim2.new(0.94, 0, 0.82, 0)
-		panelScale.Scale = 0.94
-	elseif viewport.X < 900 then
-		panel.Size = UDim2.new(0.9, 0, 0.8, 0)
-		panelScale.Scale = 0.96
-	else
-		panel.Size = UDim2.fromScale(0.78, 0.78)
+	compactCollection = viewport.X < 650
+	if compactCollection then
+		panel.Size = UDim2.new(0.94, 0, 0.84, 0)
 		panelScale.Scale = 1
-	end
-	if viewport.Y < 540 then
-		panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0.92, 0)
+		local contentWidth = math.max(220, viewport.X - 48)
+		search.Position = UDim2.fromOffset(24, 88)
+		search.Size = UDim2.fromOffset(contentWidth, 38)
+		filterBar.Position = UDim2.fromOffset(24, 132)
+		filterBar.Size = UDim2.fromOffset(contentWidth, 32)
+		list.Position = UDim2.fromOffset(24, 172)
+		list.Size = UDim2.new(1, -48, 1, -196)
+		mobileBackButton.Visible = mobileDetailVisible
+		list.Visible = not mobileDetailVisible
+		search.Visible = not mobileDetailVisible
+		filterBar.Visible = not mobileDetailVisible
+		detail.Position = UDim2.fromOffset(24, if mobileDetailVisible then 130 else 172)
+		detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -154 else -196)
+		detail.Visible = mobileDetailVisible
+	else
+		panel.Size = if viewport.X < 900 then UDim2.new(0.9, 0, 0.8, 0) else UDim2.fromScale(0.78, 0.78)
+		panelScale.Scale = if viewport.X < 900 then 0.96 else 1
+		if viewport.Y < 540 then
+			panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0.92, 0)
+		end
+		search.Position = UDim2.new(0, 24, 0, 88)
+		search.Size = UDim2.new(0.48, -28, 0, 38)
+		filterBar.Position = UDim2.new(0, 24, 0, 132)
+		filterBar.Size = UDim2.new(0.48, -28, 0, 32)
+		list.Position = UDim2.new(0, 24, 0, 172)
+		list.Size = UDim2.new(0.48, -28, 1, -196)
+		list.Visible = true
+		search.Visible = true
+		filterBar.Visible = true
+		detail.Position = UDim2.new(0.52, 0, 0, 88)
+		detail.Size = UDim2.new(0.48, -24, 1, -112)
+		detail.Visible = true
+		mobileBackButton.Visible = false
 	end
 end
 
@@ -870,6 +912,7 @@ local function openCollection()
 	announcePanelOpened()
 	-- Never resurrect a stale destructive-confirmation dialog on reopen.
 	confirmPanel.Visible = false
+	mobileDetailVisible = false
 	if not busy then pendingDeletePetId = nil end
 	shade.Visible = true
 	shade.BackgroundTransparency = 1
@@ -980,6 +1023,13 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 	end
 end)
 closeButton.Activated:Connect(closeCollection)
+mobileBackButton.Activated:Connect(function()
+	if not compactCollection then return end
+	mobileDetailVisible = false
+	confirmPanel.Visible = false
+	pendingDeletePetId = nil
+	resize()
+end)
 equipButton.Activated:Connect(toggleEquip)
 mainButton.Activated:Connect(setMainPet)
 petButton.Activated:Connect(function() interactWithSelected("pet") end)
