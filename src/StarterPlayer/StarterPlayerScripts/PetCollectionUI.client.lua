@@ -49,6 +49,16 @@ local renderedWindowEnd = 0
 local searchRenderVersion = 0
 local activeFilter = "all"
 local sortMode = "newest"
+local normalizedSpeciesNames: { [string]: string } = {}
+
+local function getSearchName(speciesId: string): string
+	local cached = normalizedSpeciesNames[speciesId]
+	if cached then return cached end
+	local displayName = if speciesId == "bunny" then "Зайчик" else speciesId
+	local normalized = string.lower(displayName)
+	normalizedSpeciesNames[speciesId] = normalized
+	return normalized
+end
 local pendingDeletePetId: string? = nil
 local mobileDetailVisible = false
 local compactCollection = false
@@ -694,26 +704,41 @@ local function renderList(preserveScroll: boolean?)
 	clearRenderedCards()
 
 	local filter = string.lower(search.Text)
+	local equippedSet: { [string]: boolean } = {}
+	for _, petId in ipairs(collection.equipped) do
+		equippedSet[petId] = true
+	end
+
+	-- Normalize each species label once and reuse it for search and sorting.
+	-- Build an equipped lookup once so the team filter is O(n), not repeated
+	-- linear table.find calls for every owned pet.
+	local searchNames: { [string]: string } = {}
 	filteredRecords = {}
 	for _, record in ipairs(collection.owned) do
-		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
-		local matchesSearch = filter == "" or string.find(string.lower(name), filter, 1, true) ~= nil
+		local searchName = getSearchName(record.speciesId)
+		searchNames[record.petId] = searchName
+		local matchesSearch = filter == "" or string.find(searchName, filter, 1, true) ~= nil
 		local matchesFilter = activeFilter == "all"
-			or (activeFilter == "team" and isEquipped(record.petId))
+			or (activeFilter == "team" and equippedSet[record.petId] == true)
 			or (activeFilter == "favorites" and record.isFavorite == true)
 		if matchesSearch and matchesFilter then table.insert(filteredRecords, record) end
 	end
 	table.sort(filteredRecords, function(a, b)
 		if (a.isFavorite == true) ~= (b.isFavorite == true) then return a.isFavorite == true end
 		if sortMode == "name" then
-			return string.lower(a.speciesId) < string.lower(b.speciesId)
+			local aName = searchNames[a.petId] or getSearchName(a.speciesId)
+			local bName = searchNames[b.petId] or getSearchName(b.speciesId)
+			if aName ~= bName then return aName < bName end
 		elseif sortMode == "bond" then
 			local aBond = a.bondLevel or 1
 			local bBond = b.bondLevel or 1
 			if aBond ~= bBond then return aBond > bBond end
-			return (a.bondXp or 0) > (b.bondXp or 0)
+			local aXp = a.bondXp or 0
+			local bXp = b.bondXp or 0
+			if aXp ~= bXp then return aXp > bXp end
 		end
-		return a.acquiredAt > b.acquiredAt
+		if a.acquiredAt ~= b.acquiredAt then return a.acquiredAt > b.acquiredAt end
+		return a.petId < b.petId
 	end)
 
 	local contentHeight = VirtualList.GetContentHeight(#filteredRecords, PET_CARD_STEP, PET_CARD_GAP)
