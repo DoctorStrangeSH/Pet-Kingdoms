@@ -613,3 +613,13 @@ Source branch: `chore/ui-icon-token-audit`. Studio/device validation is still re
 Studio/device validation remains required; Stage 1 is still open.
 
 - [x] Preserve the pet description, friendship level, team status, and care/play actions on normal-height mobile screens; keep the reduced summary only on very short screens.
+
+### Stage 1 — Construction panel short-screen layout (2026-11-23)
+
+- [x] Make the construction panel width and size constraint follow the actual viewport instead of enforcing a fixed 220 px minimum on every device.
+- [x] Add a short-height layout for landscape/compact screens: title, single-line status, horizontally scrollable catalogue, and all placement actions remain visible without scaling the entire panel.
+- [x] Reduce catalogue card and action-button heights only in the short-height layout; restore the normal catalogue card sizes and wrapped status text on taller screens.
+- [x] Keep rotate/confirm/cancel controls inside the measured panel content width.
+- [ ] Verify at 320×180, 320×240, 360×640, 390×844, tablet landscape, and desktop in Roblox Studio. Check catalogue scrolling, button hit targets, selection, rotation, placement, and recovery-panel interaction.
+
+This is a source-level responsive pass only. Roblox Studio touch/visual verification remains pending; Stage 1 is not complete.
