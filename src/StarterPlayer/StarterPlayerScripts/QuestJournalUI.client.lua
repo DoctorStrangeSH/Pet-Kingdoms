@@ -295,7 +295,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
-		make("UICorner", { CornerRadius = UDim.new(0, 15) }, card)
+		InterfaceComponents.StyleCard(card, "surface")
 		local trackButton = make("TextButton", {
 			Name = "TrackQuest",
 			AnchorPoint = Vector2.new(1, 0),
