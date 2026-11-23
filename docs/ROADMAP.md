@@ -874,3 +874,12 @@ Compact layout touch targets improved at the source level; Studio/device validat
 - [ ] Verify long localized/species names, metadata, favorite/lock taps, and selected-card state in Studio at 320×640, 360×640, and 390×844.
 
 Source-level narrow-card layout and hit-area improvements are in place; device interaction checks remain pending.
+
+### Stage 1 — Pet card selection and delete-confirmation clarity (2026-11-23)
+
+- [x] Give the selected card a clear gold outline (2.5 px, low transparency); equipped but unselected cards use a thinner mint outline, and ordinary cards retain the neutral outline.
+- [x] Include the selected pet's display name in the destructive confirmation message so the player can verify which pet is about to be removed.
+- [x] Increase compact delete-confirmation actions to 50 px before viewport scaling (38 px in regular layout); the dialog's existing UIScale keeps it within short viewports.
+- [ ] Verify selected/equipped visual states, long pet names in the confirmation, cancel/backdrop/Escape behavior, and delete action hit areas in Roblox Studio.
+
+Rarity is intentionally not fabricated: the current client collection record does not expose a rarity field. Add rarity visuals only after a server-authoritative rarity value and its data contract are established.
