@@ -35,10 +35,14 @@ function ModalManager.Register(name: string, closeHandler: CloseHandler)
 end
 
 function ModalManager.Unregister(name: string)
-	handlers[name] = nil
 	if activeWindow == name then
+		-- A controller can be removed while its window is visible (for example,
+		-- during a respawn/rebind). Clear focus and invoke its cleanup before
+		-- dropping the handler so its panel and input-blocking shade cannot linger.
 		activeWindow = nil
+		invokeClose(name, "unregister")
 	end
+	handlers[name] = nil
 end
 
 function ModalManager.Open(name: string)
