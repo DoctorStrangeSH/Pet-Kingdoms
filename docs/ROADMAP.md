@@ -437,3 +437,12 @@ See `docs/game-systems/ECONOMY_BASELINE_AUDIT.md` for source-backed current valu
 - [ ] Finish the remaining Stage 1 items (visual consistency, icon coverage, mobile layout audit, and full usability regression) before starting Stage 2.
 
 Implementation status above is source/CI status only; no Roblox Studio runtime test is claimed as passed.
+
+
+### Stage 1 — Responsive UI follow-up (2026-11-23)
+
+- [x] Make Kingdom Overview fit narrow phone widths and short landscape viewports; remove the 300 px minimum-width overflow risk.
+- [x] Move construction selection actions below the pending-operation recovery panel when both are visible on compact screens.
+- [ ] Audit Pet Collection at 320–375 px and short landscape; verify no clipped controls or unusable two-column regions.
+- [ ] Audit Quest Journal, Island Expansion, Resource HUD, and floating buttons for short screens and safe-area collisions.
+- [ ] Run touch/device tests in Roblox Studio. Latest source CI: overview change passed (`45139077658`); overlap fix CI pending (`45139112446`).
