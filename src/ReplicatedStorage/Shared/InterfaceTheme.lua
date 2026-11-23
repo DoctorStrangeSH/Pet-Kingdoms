@@ -27,6 +27,7 @@ return table.freeze({
 		Back = "←",
 		Refresh = "↻",
 		Pet = "🐾",
+		Bunny = "🐰",
 		Quest = "📜",
 		Island = "🏝️",
 		Build = "🏡",
