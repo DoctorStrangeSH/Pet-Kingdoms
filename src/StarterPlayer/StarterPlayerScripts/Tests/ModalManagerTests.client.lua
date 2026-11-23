@@ -60,6 +60,26 @@ ModalManager.Unregister("ModalManagerTestFirst")
 expect("unregister closes visible modal", not firstOpen)
 expect("unregister clears modal focus", ModalManager.GetActive() == nil)
 
+-- Re-registering a live controller must run the old cleanup callback before
+-- replacing it, otherwise its old ScreenGui can outlive the new controller.
+firstOpen = true
+ModalManager.Register("ModalManagerTestFirst", function(_reason: string)
+	firstOpen = false
+	table.insert(closeOrder, "first:reregistered")
+end)
+expect("re-register closes previous controller", not firstOpen)
+expect("re-register clears previous focus", ModalManager.GetActive() == nil)
+expect("new registration can receive focus", true)
+ModalManager.Open("ModalManagerTestFirst")
+expect("replacement registration can open", ModalManager.IsActive("ModalManagerTestFirst"))
+
+-- Unregister must also clean a stale visible panel when focus bookkeeping was lost.
+ModalManager.Close("ModalManagerTestFirst")
+firstOpen = true
+ModalManager.Unregister("ModalManagerTestFirst")
+expect("inactive unregister still runs cleanup", not firstOpen)
+expect("inactive unregister leaves no focus", ModalManager.GetActive() == nil)
+
 ModalManager.Unregister("ModalManagerTestSecond")
 expect("unregistered modal cannot retain focus", ModalManager.GetActive() == nil)
 
