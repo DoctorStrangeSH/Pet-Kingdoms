@@ -1038,3 +1038,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Opening one of these full-screen panels notifies peers; the others close via their existing close functions instead of leaving overlapping modal stacks. Building cancels active placement and clears its local preview when another panel opens.
 - No server authority, economy, building transactions, or profile schema changed.
 - Verification pending: open the four panels in different sequences on PC and mobile, ensure only one modal stays active, building's hologram is removed on menu switch, and returning to building starts a fresh placement without losing any saved layout. Check that collection's delete-confirmation overlay does not persist after reopening.
+
+
+## Construction placement confirmation lock (2026-11-23)
+
+- Updated `IslandBuildingController.client.lua` so a world tap/click validates and locks the currently selected grid cell. Moving the pointer to the confirm button or touching another UI control no longer drags the placement preview away from its intended target.
+- A second unprocessed world tap/click selects a different cell. Rotation revalidates the locked location; changing the catalog selection revalidates its new footprint. Confirm requires both a locked cell and current valid collision/bounds results.
+- On touch devices the preview no longer raycasts every rendered frame based on stale/recycled touch movement; taps are the explicit position selector. Existing server-authoritative placement requests and idempotency logic are preserved.
+- This code is committed but Roblox Studio runtime/mobile verification is pending. Test: touch a valid patch, tap Confirm, select a new cell, rotate a 3x3 item, switch catalog footprint, click UI outside world, and check overlap/out-of-bounds rejection. Also check PC mouse placement and moving an existing building.
