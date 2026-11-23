@@ -647,3 +647,13 @@ Source-level layout pass only; runtime visual/touch verification remains pending
 
 The expansion window remains a read-only preview: purchase/expansion execution is not implemented by this UI pass. Runtime visual/touch verification remains pending.
 - [x] CI validation for the Island Expansion landscape pass: GitHub Actions #453 completed successfully; Rojo verification, Roblox place build, and Studio-ready artifact upload passed.
+
+### Stage 1 — Modal lifecycle cleanup (2026-11-23)
+
+- [x] Ensure unregistering an active modal invokes its close handler before removing the registration, preventing orphaned visible panels/shades when a controller is removed.
+- [x] Clear active focus before running the unregister close callback so Escape routing cannot target a controller during teardown.
+- [x] Add a Studio smoke regression asserting active unregister closes the window and clears modal focus.
+- [x] Preserve existing exclusive-window switching, `CloseAll` stale-visibility repair, and nested pet delete-confirmation behavior.
+- [ ] Run the Studio modal smoke test and manually verify switching among Pet Collection, Quest Journal, and Island Expansion; check Escape, outside click, close buttons, and modal-to-modal transitions.
+
+Source-level fix and regression coverage added. Studio interaction checks remain pending.
