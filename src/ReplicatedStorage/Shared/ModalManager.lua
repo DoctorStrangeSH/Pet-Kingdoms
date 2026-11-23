@@ -32,7 +32,9 @@ function ModalManager.Open(name: string)
 	opening = true
 	-- Close all other top-level windows before assigning focus to the new one.
 	for otherName, closeHandler in pairs(handlers) do
-		if otherName ~= name and otherName == activeWindow then
+		if otherName ~= name then
+			-- Close every other registered window, not only the remembered active one.
+			-- This also repairs any visibility/focus drift caused by an interrupted UI transition.
 			local ok, err = pcall(closeHandler, "switch")
 			if not ok then warn("[PetKingdomsUI] Failed to close " .. otherName .. ": " .. tostring(err)) end
 		end
