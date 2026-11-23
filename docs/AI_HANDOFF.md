@@ -1211,3 +1211,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `IslandBuildingController.client.lua` now observes `Destroying` on the selected building Model. If a server refresh, external removal, or another authoritative world sync destroys that model, the controller disconnects the old observer, clears the selection and hides/disables Move/Demolish rather than retaining a stale reference.
 - Selecting another model or clearing selection disconnects the previous observer first. The handler checks object identity and does not interfere with an active demolition transaction.
 - This guards stale UI state; it does not alter server authorization or removal persistence. Roblox Studio test pending: select a building, remove it through server/world refresh, verify action buttons disappear; rapidly select A then B and destroy A; demolish B and ensure no stale observer clears the new selection; respawn/rebuild and select again.
+
+
+## Building upgrade system — server foundation (2026-11-23)
+
+- Added server-owned upgrade definitions to `BuildingCatalog`: main house and pet house support levels 1–3; path, lantern, flower bed and fence support levels 1–2. Resource costs are defined per target level in the catalog, never accepted from the client.
+- Added `action = "upgrade"` to `IslandBuildingService`. Server validates the owned instance ID, catalog eligibility, current level, max level and resource balances; charges resources, increments `upgradeLevel`, synchronizes the world model, and records a durable idempotent operation using `IslandSessionService.commitBuildingOperation`. On sync/commit failure, record and resources are restored and world sync is attempted.
+- Upgrade requests now fingerprint as their own journal action (not `place`), preventing idempotency collisions with other operation types.
+- `IslandWorldService` stamps `UpgradeLevel` on models both during initial island spawn and later sync. Legacy records without a level display as level 1 without requiring destructive migration.
+- IMPORTANT: this is only the server/data foundation. No upgrade button, cost preview, confirmation UI, upgrade effects or final art changes have been added yet. The configured costs are initial balancing placeholders and must be playtested. No Roblox Studio test or CI success is claimed. Next step: client selection panel with level, server-sourced available action and resource cost; then verify success, insufficient resources, max level, repeated requests, save/rejoin, rollback and other-player isolation.
