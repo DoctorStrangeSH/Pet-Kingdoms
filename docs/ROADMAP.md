@@ -805,3 +805,13 @@ Regression source added; Studio execution remains pending.
 - [ ] Run `PetCollectionVirtualizationTests.client.lua` in Studio and profile actual GUI instance counts/scroll smoothness with 100, 250, and 500 live pet records.
 
 The deterministic helper tests are added; actual GUI profiling remains a Studio task.
+
+### Stage 1 — Pet Collection incremental card reconciliation (2026-11-23)
+
+- [x] Reconcile the virtualized visible window by pet ID instead of destroying/recreating every visible card whenever the scroll window moves.
+- [x] Preserve cards in the overlap between adjacent windows; create only newly entering cards and destroy only cards leaving the window.
+- [x] Refresh card labels, selection background, and equipped stroke from the current record while reusing an existing card.
+- [x] Extend virtualization tests to assert adjacent windows have an overlap that can be reused.
+- [ ] In Studio, profile scrolling through 100/250/500 real pet records and confirm GUI instance churn is limited to cards entering/leaving the viewport, with no stale labels or click targets.
+
+Source-level incremental reconciliation and overlap regression coverage added; live GUI profiling remains pending.
