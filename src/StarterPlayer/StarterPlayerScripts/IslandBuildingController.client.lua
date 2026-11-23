@@ -1670,5 +1670,13 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 end)
 
 addBuildEntry()
+ModalManager.ActiveChanged:Connect(function(activeName: string?)
+	if buildEntryButton then
+		buildEntryButton.Visible = activeName == nil and not placing and not overview.Visible
+	end
+end)
+if buildEntryButton then
+	buildEntryButton.Visible = ModalManager.GetActive() == nil and not placing and not overview.Visible
+end
 resizeBuildingPanel()
 print("[PetKingdoms] Building controller loaded.")
