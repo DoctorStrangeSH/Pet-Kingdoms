@@ -28,6 +28,8 @@ local collection: Collection? = nil
 local selectedPetId: string? = nil
 local busy = false
 local cardButtons: { [string]: TextButton } = {}
+local filteredRecords: { PetRecord } = {}
+local renderedWindowStart = 0
 local searchRenderVersion = 0
 local activeFilter = "all"
 local sortMode = "newest"
@@ -186,9 +188,8 @@ local list = make("ScrollingFrame", {
 	ScrollBarThickness = 5,
 	ScrollBarImageColor3 = COLORS.gold,
 	CanvasSize = UDim2.new(),
-	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	AutomaticCanvasSize = Enum.AutomaticSize.None,
 }, panel) :: ScrollingFrame
-make("UIListLayout", { Padding = UDim.new(0, 9), SortOrder = Enum.SortOrder.LayoutOrder }, list)
 
 local detail = make("Frame", {
 	Position = UDim2.new(0.52, 0, 0, 88),
@@ -545,27 +546,109 @@ local function updateDetail()
 	renderPreview(selected.speciesId)
 end
 
+local PET_CARD_HEIGHT = 68
+local PET_CARD_GAP = 9
+local PET_CARD_STEP = PET_CARD_HEIGHT + PET_CARD_GAP
+local PET_LIST_OVERSCAN = 2
+
+local function clearRenderedCards()
+	for _, child in ipairs(list:GetChildren()) do
+		if child:IsA("GuiObject") then child:Destroy() end
+	end
+	table.clear(cardButtons)
+	renderedWindowStart = 0
+end
+
+local function renderVisibleCards()
+	if collection == nil then return end
+	local total = #filteredRecords
+	local viewportHeight = math.max(1, list.AbsoluteWindowSize.Y)
+	local firstVisible = math.floor(list.CanvasPosition.Y / PET_CARD_STEP) + 1
+	local firstIndex = math.max(1, firstVisible - PET_LIST_OVERSCAN)
+	local visibleCount = math.ceil(viewportHeight / PET_CARD_STEP) + PET_LIST_OVERSCAN * 2
+	local lastIndex = math.min(total, firstIndex + visibleCount - 1)
+	if total == 0 then firstIndex = 0; lastIndex = 0 end
+	if firstIndex == renderedWindowStart then return end
+
+	clearRenderedCards()
+	renderedWindowStart = firstIndex
+	for index = firstIndex, lastIndex do
+		local record = filteredRecords[index]
+		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
+		local equipped = isEquipped(record.petId)
+		local button = make("TextButton", {
+			Name = "Pet_" .. record.petId,
+			Position = UDim2.fromOffset(0, (index - 1) * PET_CARD_STEP),
+			Size = UDim2.new(1, -8, 0, PET_CARD_HEIGHT),
+			BackgroundColor3 = if selectedPetId == record.petId then COLORS.cardSelected else COLORS.card,
+			Text = "",
+			AutoButtonColor = true,
+		}, list) :: TextButton
+		make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
+		make("UIStroke", { Color = if equipped then COLORS.mint else COLORS.cardSelected, Thickness = 1, Transparency = 0.25 }, button)
+		make("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 12, 0, 5),
+			Size = UDim2.fromOffset(46, 54),
+			Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet,
+			TextSize = 29,
+			Font = Enum.Font.Gotham,
+			TextColor3 = COLORS.cream,
+		}, button)
+		make("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 66, 0, 12),
+			Size = UDim2.new(1, -112, 0, 22),
+			Text = name,
+			TextSize = 14,
+			Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = COLORS.cream,
+		}, button)
+		make("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 66, 0, 34),
+			Size = UDim2.new(1, -112, 0, 18),
+			Text = table.concat({
+				if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
+				if record.isLocked then InterfaceTheme.Icons.Locked else "",
+				if record.isFavorite then InterfaceTheme.Icons.FavoriteOn else "",
+			}, "  "),
+			TextSize = 10,
+			Font = Enum.Font.GothamMedium,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = if equipped then COLORS.mint else COLORS.muted,
+		}, button)
+		cardButtons[record.petId] = button
+		button.Activated:Connect(function()
+			local previousPetId = selectedPetId
+			selectedPetId = record.petId
+			local previousButton = if previousPetId then cardButtons[previousPetId] else nil
+			if previousButton then previousButton.BackgroundColor3 = COLORS.card end
+			button.BackgroundColor3 = COLORS.cardSelected
+			if compactCollection then mobileDetailVisible = true end
+			updateDetail()
+			resize()
+		end)
+	end
+end
+
 local function renderList(preserveScroll: boolean?)
 	if collection == nil then return end
 	local savedCanvasPosition = if preserveScroll then list.CanvasPosition else Vector2.zero
-	for _, child in ipairs(list:GetChildren()) do
-		if child:IsA("GuiObject") and not child:IsA("UIListLayout") then
-			child:Destroy()
-		end
-	end
-	table.clear(cardButtons)
+	clearRenderedCards()
 
 	local filter = string.lower(search.Text)
-	local visibleRecords = {}
+	filteredRecords = {}
 	for _, record in ipairs(collection.owned) do
 		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
 		local matchesSearch = filter == "" or string.find(string.lower(name), filter, 1, true) ~= nil
 		local matchesFilter = activeFilter == "all"
 			or (activeFilter == "team" and isEquipped(record.petId))
 			or (activeFilter == "favorites" and record.isFavorite == true)
-		if matchesSearch and matchesFilter then table.insert(visibleRecords, record) end
+		if matchesSearch and matchesFilter then table.insert(filteredRecords, record) end
 	end
-	table.sort(visibleRecords, function(a, b)
+	table.sort(filteredRecords, function(a, b)
 		if (a.isFavorite == true) ~= (b.isFavorite == true) then return a.isFavorite == true end
 		if sortMode == "name" then
 			return string.lower(a.speciesId) < string.lower(b.speciesId)
@@ -577,73 +660,21 @@ local function renderList(preserveScroll: boolean?)
 		end
 		return a.acquiredAt > b.acquiredAt
 	end)
-	for index, record in ipairs(visibleRecords) do
-		local name = if record.speciesId == "bunny" then "Зайчик" else record.speciesId
-		local equipped = isEquipped(record.petId)
-			local button = make("TextButton", {
-				Name = "Pet_" .. record.petId,
-				Size = UDim2.new(1, -8, 0, 68),
-				BackgroundColor3 = if selectedPetId == record.petId then COLORS.cardSelected else COLORS.card,
-				Text = "",
-				LayoutOrder = index,
-				AutoButtonColor = true,
-			}, list) :: TextButton
-			make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
-			make("UIStroke", { Color = if equipped then COLORS.mint else COLORS.cardSelected, Thickness = 1, Transparency = 0.25 }, button)
-			make("TextLabel", {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 12, 0, 5),
-				Size = UDim2.fromOffset(46, 54),
-				Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet,
-				TextSize = 29,
-				Font = Enum.Font.Gotham,
-				TextColor3 = COLORS.cream,
-			}, button)
-			make("TextLabel", {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 66, 0, 12),
-				Size = UDim2.new(1, -112, 0, 22),
-				Text = name,
-				TextSize = 14,
-				Font = Enum.Font.GothamBold,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextColor3 = COLORS.cream,
-			}, button)
-			make("TextLabel", {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 66, 0, 34),
-				Size = UDim2.new(1, -112, 0, 18),
-				Text = table.concat({
-					if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
-					if record.isLocked then InterfaceTheme.Icons.Locked else "",
-					if record.isFavorite then InterfaceTheme.Icons.FavoriteOn else "",
-				}, "  "),
-				TextSize = 10,
-				Font = Enum.Font.GothamMedium,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextColor3 = if equipped then COLORS.mint else COLORS.muted,
-			}, button)
-			cardButtons[record.petId] = button
-		button.Activated:Connect(function()
-			local previousPetId = selectedPetId
-			selectedPetId = record.petId
-			-- Selection only changes two card highlights; do not destroy and
-			-- recreate every card in a potentially large collection.
-			local previousButton = if previousPetId then cardButtons[previousPetId] else nil
-			if previousButton then
-				previousButton.BackgroundColor3 = COLORS.card
-			end
-			button.BackgroundColor3 = COLORS.cardSelected
-			if compactCollection then mobileDetailVisible = true end
-			updateDetail()
-			resize()
-		end)
+
+	local contentHeight = if #filteredRecords > 0 then #filteredRecords * PET_CARD_STEP - PET_CARD_GAP else 0
+	list.CanvasSize = UDim2.fromOffset(0, contentHeight)
+	if preserveScroll then
+		local maxY = math.max(0, contentHeight - list.AbsoluteWindowSize.Y)
+		list.CanvasPosition = Vector2.new(0, math.clamp(savedCanvasPosition.Y, 0, maxY))
+	else
+		list.CanvasPosition = Vector2.zero
 	end
-	if #visibleRecords == 0 then
-		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\nИсследуй остров, чтобы найти первого друга!"
-			elseif activeFilter == "favorites" then "Нет избранных питомцев.\nОтметь понравившегося питомца звёздочкой."
-			elseif activeFilter == "team" then "Команда пока пуста.\nВыбери питомца и добавь его в команду."
-			elseif filter ~= "" then "Ничего не найдено.\nПопробуй изменить поисковый запрос."
+
+	if #filteredRecords == 0 then
+		local emptyText = if #collection.owned == 0 then "Пока нет питомцев.\\nИсследуй остров, чтобы найти первого друга!"
+			elseif activeFilter == "favorites" then "Нет избранных питомцев.\\nОтметь понравившегося питомца звёздочкой."
+			elseif activeFilter == "team" then "Команда пока пуста.\\nВыбери питомца и добавь его в команду."
+			elseif filter ~= "" then "Ничего не найдено.\\nПопробуй изменить поисковый запрос."
 			else "Здесь пока пусто."
 		local empty = make("TextLabel", {
 			Name = "EmptyFilterState",
@@ -654,26 +685,21 @@ local function renderList(preserveScroll: boolean?)
 			TextColor3 = COLORS.muted,
 			TextSize = 12,
 			Font = Enum.Font.Gotham,
-			LayoutOrder = 1,
 		}, list) :: TextLabel
 		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then InterfaceTheme.Icons.Pet else InterfaceTheme.Icons.Search)
-	end
-	if preserveScroll then
-		-- AutomaticCanvasSize updates after children are parented. Restore the
-		-- old offset on the next task turn and clamp it if records were removed.
-		task.defer(function()
-			if list.Parent == nil then return end
-			local maxY = math.max(0, list.AbsoluteCanvasSize.Y - list.AbsoluteWindowSize.Y)
-			list.CanvasPosition = Vector2.new(0, math.clamp(savedCanvasPosition.Y, 0, maxY))
-		end)
 	else
-		list.CanvasPosition = Vector2.zero
+		renderVisibleCards()
 	end
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
 	teamFilterButton.BackgroundColor3 = if activeFilter == "team" then COLORS.cardSelected else COLORS.panelSoft
 	favoriteFilterButton.BackgroundColor3 = if activeFilter == "favorites" then COLORS.cardSelected else COLORS.panelSoft
 	sortButton.Text = if sortMode == "newest" then "НОВЫЕ" elseif sortMode == "name" then "ИМЯ" else "ДРУЖБА"
 end
+
+list:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+	if #filteredRecords > 0 then renderVisibleCards() end
+end)
+
 
 local function refreshCollection()
 	local requestResult = RequestRunner.Invoke(function()
