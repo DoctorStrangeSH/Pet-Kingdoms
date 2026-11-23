@@ -853,6 +853,9 @@ resize = function()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	compactCollection = viewport.X < 650
+	local launcherCompact = viewport.X < 560
+	openButton.Size = UDim2.fromOffset(launcherCompact and 52 or 62, launcherCompact and 52 or 62)
+	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
 	if compactCollection then
 		panel.Size = UDim2.new(0.94, 0, 0.84, 0)
 		panelScale.Scale = 1
@@ -1045,8 +1048,6 @@ search:GetPropertyChangedSignal("Text"):Connect(renderList)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
-if UserInputService.TouchEnabled then
-	openButton.Position = UDim2.new(1, -14, 0.72, 0)
-end
+-- Launcher placement is handled by resize() so touch devices and narrow desktop windows share one collision-free layout.
 
 print("[PetKingdoms] Pet collection UI loaded.")
