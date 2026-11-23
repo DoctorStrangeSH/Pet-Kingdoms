@@ -303,16 +303,22 @@ end
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
+-- A live push may arrive while the initial Get is still in flight. Its
+-- snapshot is newer than the startup read, so never let that older read win.
+local receivedLiveUpdate = false
 update.OnClientEvent:Connect(function(snapshot, resourceId, amount, code)
+	receivedLiveUpdate = true
 	applySnapshot(snapshot)
 	showToast(resourceId, amount, code)
 end)
 
 task.spawn(function()
 	for attempt = 1, 6 do
+		if receivedLiveUpdate then return end
 		local result = RequestRunner.Invoke(function()
 			return request:InvokeServer("Get")
 		end, 12)
+		if receivedLiveUpdate then return end
 		if result.ok then
 			local success, snapshot = result.value
 			if success == true then
@@ -322,5 +328,7 @@ task.spawn(function()
 		end
 		task.wait(math.min(1.5, 0.25 * attempt))
 	end
-	warn("[PetKingdoms] Resource HUD could not load initial wallet snapshot.")
+	if not receivedLiveUpdate then
+		warn("[PetKingdoms] Resource HUD could not load initial wallet snapshot.")
+	end
 end)
