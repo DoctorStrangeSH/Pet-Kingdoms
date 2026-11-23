@@ -663,3 +663,19 @@ Source commits: `6dafbf3`, `5bfb83d`, `5af9026`, `3ac8ff6`, `ff679e8`, `8b12c58`
 - [x] Keep the silhouette visible at stronger opacity when a cell is selected; hide the outline when the pointer is not over the player's island.
 - [ ] CI for preview outline commit `a05df7a` is queued.
 - [ ] Verify in Roblox Studio that the selected house/prop silhouette is visibly rendered and follows mouse/touch before pressing confirm.
+
+### Stage 1 — Live-play follow-up: placement visibility and modal launchers (2026-11-23)
+
+- [x] Show an initial visual-only building preview in the nearest unoccupied grid cell when placement/move begins; still require a deliberate world tap/click to lock the position before confirming.
+- [x] Re-seed the preview when a catalogue selection changes and the position has not been locked.
+- [x] Keep the last preview visible when hovering the construction controls instead of raycasting through the panel.
+- [x] Reduce construction tray height from 228 to 198 UI pixels on narrow screens, including 54 px catalogue cards and responsive action placement.
+- [x] Prevent a completed quest tracker from reappearing after any other modal closes.
+- [x] Hide all four floating launch buttons (build, pets, quest journal, expansion) whenever the shared ModalManager reports an open window; restore them when all windows are closed.
+- [x] Rojo CI build passed for the initial placement preview and compact construction tray commit `df5d5e5` (run `45240345153`).
+- [ ] Complete Rojo CI on the later quest tracker and global-launcher visibility changes.
+- [ ] Run owner-visible Roblox Studio tests of initial preview, taps and clicks, mobile tray, backdrop dismissal, Escape and modal transitions. **Code/build checks do not substitute for visual acceptance.**
+- [ ] Replace temporary text glyphs with verified image-backed icons in the final asset pass.
+- [ ] Keep Stage 1 open until all screenshots' regressions are verified on 320/360/390 px portrait, landscape and desktop.
+
+Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`.
