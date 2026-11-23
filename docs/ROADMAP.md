@@ -656,3 +656,10 @@ Source commit: `0404d0d`; preceding successful build commit: `94f5570`.
 - [ ] Stage 1 remains open until the owner confirms the Studio/device checks; CI build success alone is not visual/runtime acceptance.
 
 Source commits: `6dafbf3`, `5bfb83d`, `5af9026`, `3ac8ff6`, `ff679e8`, `8b12c58`, `7f09c81`, `42fae44`, `8193c20`, `acdaa62`, `86f1c15`, `e282612`, `f9f394e`, `7f09c81`, `6471a44`. Runtime verification in Roblox Studio remains outstanding.
+
+### Stage 1 — Construction preview visibility (2026-11-23)
+
+- [x] Add an always-on-top green/red Highlight outline to the client-only building silhouette so valid and invalid placement targets are readable against grass.
+- [x] Keep the silhouette visible at stronger opacity when a cell is selected; hide the outline when the pointer is not over the player's island.
+- [ ] CI for preview outline commit `a05df7a` is queued.
+- [ ] Verify in Roblox Studio that the selected house/prop silhouette is visibly rendered and follows mouse/touch before pressing confirm.
