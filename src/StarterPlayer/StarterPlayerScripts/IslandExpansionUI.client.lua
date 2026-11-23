@@ -302,7 +302,6 @@ local function refresh()
 		status.TextColor3 = COLORS.rose
 		if requestResult.errorCode == "TIMEOUT" then
 			status.Text = "Сервер отвечает слишком долго. Попробуй обновить ещё раз."
-			NotificationManager.Notify("Превышено время ожидания ответа сервера", "warning")
 		else
 			status.Text = "Связь с сервером не удалась. Попробуй ещё раз."
 			NotificationManager.Notify("Не удалось обновить данные острова", "error")
