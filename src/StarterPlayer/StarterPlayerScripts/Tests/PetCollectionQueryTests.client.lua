@@ -90,6 +90,20 @@ expect("empty collection produces empty results", #empty == 0)
 local selectedRecord, selectedId = PetCollectionQuery.ResolveSelection(owned, "pet-123")
 expect("selection keeps the requested pet even when query filters would hide it", selectedId == "pet-123" and selectedRecord ~= nil and selectedRecord.petId == "pet-123")
 
+local selectedIsFavorite = false
+for _, record in ipairs(favorites) do
+	if record.petId == "pet-123" then selectedIsFavorite = true break end
+end
+expect("fixture hides selected pet from Favorites filter", not selectedIsFavorite)
+expect("selection remains stable when selected pet is hidden by Favorites", PetCollectionQuery.ResolveSelection(owned, selectedId) == selectedRecord)
+
+local selectedIsEquipped = false
+for _, record in ipairs(team) do
+	if record.petId == "pet-123" then selectedIsEquipped = true break end
+end
+expect("fixture hides selected pet from Team filter", not selectedIsEquipped)
+expect("selection remains stable when selected pet is hidden by Team", PetCollectionQuery.ResolveSelection(owned, selectedId) == selectedRecord)
+
 local fallbackRecord, fallbackId = PetCollectionQuery.ResolveSelection(owned, "pet-no-longer-owned")
 expect("selection falls back only when the pet is no longer owned", fallbackId == owned[1].petId and fallbackRecord == owned[1])
 
