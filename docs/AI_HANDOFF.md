@@ -1102,3 +1102,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Mirrored both shapes in `IslandBuildingController.makePreviewVisual` so the local construction silhouette and fallback server-generated result use matching footprints and major geometry.
 - These are still project-owned procedural placeholder models, not reviewed third-party Creator Store assets or finished production art. `ServerStorage/BuildingModels/<catalogId>` custom models take precedence when supplied in Studio.
 - Studio runtime visual testing remains pending: create several adjacent path/fence segments, rotate all four directions, verify accurate previews, inspect mobile rendering, saved rejoin, interaction raycast and physics behavior. No construction cost, persistence schema, or server placement validation changed.
+
+
+## Detailed procedural cottage and pet house (2026-11-23)
+
+- Enhanced existing fallback main house with a roof ridge, window sills, front timber trim and a door knob. Enhanced pet house with a ridge, front corner beams, small windows and a decorative paw-colored badge; models remain fallback prototype art, not approved final assets.
+- Updated the in-game construction preview to use corresponding geometry and proportions for both house types; placement costs and saved footprint dimensions remain unchanged. Custom ServerStorage/BuildingModels templates still take precedence.
+- Fixed a preview-only defect: the invisible PrimaryPart pivot is excluded from transparency reveal so it stays hidden.
+- Studio tests still pending: inspect homes from all angles, confirm front-facing details and preview/final alignment at 0/90/180/270 rotations, verify MainHousePrompt/PetHousePrompt remain usable, and test mobile framerate. Rojo CI build success does not establish runtime correctness.
