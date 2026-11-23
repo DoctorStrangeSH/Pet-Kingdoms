@@ -1196,3 +1196,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Repaired the failed-`createPreview` move rollback to re-enable `flowerBedButton` and `woodenFenceButton` alongside the other catalog buttons; previously those two remained disabled.
 - On panel switches originating from other controllers, the selected-building action buttons are dismissed by clearing selection except while a demolition transaction is in flight. No server-side record schema, costs, idempotency or island geometry changed.
 - Studio validation remains outstanding: move each of six catalog objects, cancel and resume, rotate while moving, force a preview creation failure, try tapping another catalog button mid-move, open quest/collection while selection actions are visible, and verify the original model remains until server confirms movement. CI build is not a Roblox gameplay test.
+
+
+## Construction / kingdom overview exclusive navigation (2026-11-23)
+
+- Fixed a panel-transition bug in `IslandBuildingController.client.lua`: entering normal construction or Move now explicitly dismisses the kingdom overview before showing the construction panel; the shared panel signal alone did not close panels owned by the same controller.
+- Opening kingdom overview now clears any selected-building Move/Demolish action buttons (except during an outstanding demolition request). This prevents selection actions from floating over overview UI.
+- Added a dedicated 40x40 `CloseConstruction` button at the upper-right of the build panel, wired to the existing safe `stopPlacing` cancellation path. The title reserves width for this button; in-flight build requests still cannot be cancelled mid-transaction.
+- Code changes are in main, but **Roblox Studio/gameplay verification is pending**. Verify Overview -> Build, Build -> Overview, Move -> Overview, close button on 320/360/390px screens, selection action overlap, slow server request while opening Overview, and keyboard/mobile interaction. Do not mark the UI release-ready before device testing.
