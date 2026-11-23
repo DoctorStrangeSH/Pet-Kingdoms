@@ -65,6 +65,18 @@ local function resize()
 	maxVisibleCount = if viewport.Y < 220 then 1 elseif viewport.Y < 360 then 2 else MAX_VISIBLE
 	holder.Position = UDim2.new(0.5, 0, 0, topOffset)
 	holder.Size = UDim2.new(1, 0, 0, math.max(58, math.min(250, viewport.Y - topOffset - 8)))
+	while activeCount > maxVisibleCount do
+		local oldest = holder:FindFirstChildWhichIsA("Frame")
+		if oldest == nil then
+			activeCount = 0
+			break
+		end
+		if oldest:GetAttribute("PKToastCounted") == true then
+			oldest:SetAttribute("PKToastCounted", false)
+			activeCount = math.max(0, activeCount - 1)
+		end
+		oldest:Destroy()
+	end
 	for _, child in ipairs(holder:GetChildren()) do
 		if child:IsA("Frame") then
 			local constraint = child:FindFirstChildOfClass("UISizeConstraint")
