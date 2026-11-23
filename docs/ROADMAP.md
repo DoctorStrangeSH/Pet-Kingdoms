@@ -773,3 +773,12 @@ Source-level guard and timeout reconciliation added; Studio runtime verification
 - [ ] Verify in Studio by reopening the collection rapidly, tapping refresh repeatedly, and triggering a mutation near a refresh; confirm only one request is active and the final UI matches the server snapshot.
 
 Source-level serialization added; live RemoteFunction timing verification remains pending.
+
+### Stage 1 — Modal-session stale response protection (2026-11-23)
+
+- [x] Add request-generation guards to Island Expansion preview reads; closing the modal invalidates its in-flight response.
+- [x] Add request-generation guards to Quest Journal progress reads; close/reopen starts a fresh UI session and ignores the prior session's late response.
+- [x] Release the visible loading state on close so reopening does not remain blocked by a request that belongs to the previous session.
+- [ ] In Studio, delay both read RemoteFunctions, close and reopen each modal before the first response returns, and verify only the newest session updates labels/previews and loading state.
+
+Source-level stale-session protection added; delayed-response runtime verification remains pending.
