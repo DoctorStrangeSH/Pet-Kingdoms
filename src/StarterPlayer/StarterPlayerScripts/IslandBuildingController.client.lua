@@ -380,11 +380,13 @@ local function resizeBuildingPanel()
 		if viewport.X < 780 then
 			-- Reserve a dedicated top-right launcher lane on tablet/phone widths.
 			-- The resource HUD uses the remaining top-left area on these screens.
+			local launcherSize = if viewport.Y < 360 then 40 else 48
 			buildLauncher.AnchorPoint = Vector2.new(1, 0)
 			buildLauncher.Position = UDim2.new(1, -8, 0, 10)
-			buildLauncher.Size = UDim2.fromOffset(48, 48)
+			buildLauncher.Size = UDim2.fromOffset(launcherSize, launcherSize)
 			buildLauncher.Text = InterfaceTheme.Icons.Build
-			buildLauncher.TextSize = 22
+			buildLauncher.TextSize = if viewport.Y < 360 then 18 else 22
+			buildLauncher.ToolTip = "Строительство"
 			InterfaceComponents.StyleFloatingButton(buildLauncher, "gold")
 		else
 			buildLauncher.AnchorPoint = Vector2.new(1, 0)
