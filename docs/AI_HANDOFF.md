@@ -1550,3 +1550,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added `PetCollectionVirtualizationTests.client.lua`, gated by `RunPetKingdomsStudioTests=true`. It tests 100/250/500 item lists at top/middle/bottom positions, render-budget bounds, bottom reachability, empty lists, and negative canvas positions.
 - The render budget is viewport-derived (`ceil(viewportHeight / cardStep) + 2 * overscan`); this verifies the algorithm does not scale instantiated card count with total inventory size.
 - Next: run the test in Studio and profile actual instance counts and scrolling with live collections of 100, 250, and 500 pets. The pure helper test is not a substitute for GUI profiling.
+
+## Stage 1 — Pet Collection incremental card reconciliation (2026-11-23)
+
+- `renderVisibleCards()` no longer calls `clearRenderedCards()` for every scroll-window change. It computes the desired pet IDs, destroys only cards outside the new window, preserves overlapping cards, and creates only cards entering the viewport/overscan.
+- Reused cards have their position, selected background, species icon/name, equipped/favorite/locked metadata, and equipped outline refreshed from the latest record.
+- Full `renderList()` still clears cards when the underlying filtered/sorted dataset is rebuilt, so stale records cannot survive a data refresh or filter change.
+- Extended `PetCollectionVirtualizationTests.client.lua` with an adjacent-window overlap assertion, validating the overlap the renderer now reuses.
+- Next: profile actual GUI instance churn and scroll behavior in Studio with 100/250/500 live records, including rapid filter/search changes and selection.
