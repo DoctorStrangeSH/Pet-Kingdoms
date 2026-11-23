@@ -126,13 +126,28 @@ make("UIPadding", {
 make("TextLabel", {
 	Name = "Title",
 	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 0, 28),
+	Size = UDim2.new(1, -44, 0, 28),
 	Font = Enum.Font.GothamBold,
 	Text = "СТРОИТЕЛЬСТВО",
 	TextColor3 = COLORS.gold,
 	TextSize = 18,
 	TextXAlignment = Enum.TextXAlignment.Left,
 }, panel)
+
+local panelCloseButton = make("TextButton", {
+	Name = "CloseConstruction",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, 0, 0, 0),
+	Size = UDim2.fromOffset(40, 40),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "✕",
+	TextColor3 = COLORS.text,
+	TextSize = 19,
+	ZIndex = 4,
+}, panel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 12) }, panelCloseButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -227,6 +242,9 @@ local flowerBedButton = makeCatalogButton("FlowerBed", "🌷  КЛУМБА\n1 �
 local woodenFenceButton = makeCatalogButton("WoodenFence", "🪵  ЗАБОР\n1 🌲")
 local setStatus: (string, boolean?) -> ()
 local findOwnIsland: () -> Model?
+
+-- Filled after the overview UI is created farther down in this controller.
+local dismissKingdomOverview: () -> () = function() end
 
 local moveButton = make("TextButton", {
 	Name = "MoveSelected",
@@ -769,6 +787,7 @@ local function beginMoveSelected()
 		return
 	end
 	-- Switching into Move is still a panel transition: close other open screens.
+	dismissKingdomOverview()
 	announcePanelOpened()
 	-- Select the actual catalog type before the move lock becomes active.
 	setSelectedBuilding(catalogId)
@@ -833,6 +852,7 @@ end
 
 local function beginPlacing()
 	if buildRequestInFlight or demolitionRequestInFlight then return end
+	dismissKingdomOverview()
 	announcePanelOpened()
 	movingInstanceId = nil
 	setSelectedBuilding(selectedCatalogId)
@@ -862,6 +882,7 @@ rotateButton.Activated:Connect(function()
 end)
 
 cancelButton.Activated:Connect(stopPlacing)
+panelCloseButton.Activated:Connect(stopPlacing)
 
 confirmButton.Activated:Connect(function()
 	if buildRequestInFlight or not placing or not placementLocked or not currentValid or currentCellX == nil or currentCellZ == nil then
@@ -1226,6 +1247,7 @@ local function closeKingdomOverview()
 	overview.Visible = false
 	overviewShade.Visible = false
 end
+dismissKingdomOverview = closeKingdomOverview
 
 local function refreshKingdomOverview()
 	local island = findOwnIsland()
@@ -1282,6 +1304,8 @@ local function openKingdomOverview()
 	else
 		stopPlacing()
 	end
+	-- Move/Demolish action buttons must not float over the overview.
+	if not demolitionRequestInFlight then selectBuilding(nil) end
 	announcePanelOpened()
 	refreshKingdomOverview()
 	overviewShade.Visible = true
