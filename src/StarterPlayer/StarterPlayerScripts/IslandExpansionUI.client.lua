@@ -344,10 +344,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	setOpen(false)
 end)
 
-shade.Activated:Connect(function()
-	if opened then setOpen(false) end
-end)
-
+-- Backdrop dismissal is handled exclusively by the panel-bound hit test.
+-- This avoids close actions bubbling from non-interactive panel content.
 -- Handle background taps independently of the shade's Activated event.
 UserInputService.InputBegan:Connect(function(input)
 	if not opened or not ModalManager.IsActive(script.Name) then return end
