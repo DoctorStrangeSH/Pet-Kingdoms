@@ -150,7 +150,68 @@ local function handleRequest(player: Player, request: any): any
 	end
 
 	if type(request.action) == "string" then
-		if request.action ~= "demolish" then
+		if request.action == "upgrade" then
+			if type(request.instanceId) ~= "string" or request.instanceId == "" then
+				return fail("INVALID_BUILDING_ID")
+			end
+			local profileForUpgrade = IslandSessionService.getProfile(userId)
+			if profileForUpgrade == nil then return fail("SESSION_NOT_READY") end
+			local upgradeIndex, upgradeRecord = nil, nil
+			for index, existing in ipairs(profileForUpgrade.buildings) do
+				if existing.instanceId == request.instanceId then
+					upgradeIndex, upgradeRecord = index, existing
+					break
+				end
+			end
+			if upgradeIndex == nil or upgradeRecord == nil then return fail("BUILDING_NOT_FOUND") end
+			local definition = BuildingCatalog[upgradeRecord.catalogId]
+			if definition == nil or definition.maxUpgradeLevel == nil then return fail("UPGRADE_NOT_AVAILABLE") end
+			local currentLevel = if type(upgradeRecord.upgradeLevel) == "number" then math.max(1, math.floor(upgradeRecord.upgradeLevel)) else 1
+			local targetLevel = currentLevel + 1
+			if targetLevel > definition.maxUpgradeLevel then return fail("MAX_UPGRADE_LEVEL") end
+			local cost = definition.upgradeCosts and definition.upgradeCosts[targetLevel]
+			if cost == nil then return fail("UPGRADE_NOT_AVAILABLE") end
+			local resources = profileForUpgrade.resources
+			if type(resources) ~= "table" then return fail("RESOURCES_NOT_READY") end
+			for resource, amount in pairs(cost) do
+				if type(resources[resource]) ~= "number" or resources[resource] < amount then
+					return fail("NOT_ENOUGH_" .. string.upper(resource))
+				end
+			end
+			local previousRecord = table.clone(upgradeRecord)
+			local previousResources = table.clone(resources)
+			local previousLedger = table.clone(profileForUpgrade.buildingOperations or {})
+			local previousRevision = profileForUpgrade.revision
+			for resource, amount in pairs(cost) do resources[resource] -= amount end
+			upgradeRecord.upgradeLevel = targetLevel
+			local synced = IslandWorldService.syncBuilding(userId, profileForUpgrade, upgradeRecord)
+			if not synced then
+				for key in pairs(upgradeRecord) do upgradeRecord[key] = nil end
+				for key, value in pairs(previousRecord) do upgradeRecord[key] = value end
+				profileForUpgrade.resources = previousResources
+				return fail("BUILDING_WORLD_NOT_FOUND")
+			end
+			local upgradeResult = {
+				ok = true, code = "BUILDING_UPGRADED",
+				instanceId = upgradeRecord.instanceId, upgradeLevel = targetLevel,
+			}
+			local committed, commitCode = IslandSessionService.commitBuildingOperation(
+				userId, player, request.requestId, fingerprint, operationAction, upgradeResult
+			)
+			if not committed then
+				for key in pairs(upgradeRecord) do upgradeRecord[key] = nil end
+				for key, value in pairs(previousRecord) do upgradeRecord[key] = value end
+				profileForUpgrade.resources = previousResources
+				IslandWorldService.syncBuilding(userId, profileForUpgrade, upgradeRecord)
+				if profileForUpgrade.revision > previousRevision then
+					profileForUpgrade.buildingOperations = previousLedger
+					if IslandSessionService.canWrite(userId, player) then IslandSessionService.markDirty(userId) end
+				end
+				return fail(commitCode)
+			end
+			remember(userId, request.requestId, fingerprint, upgradeResult)
+			return upgradeResult
+		elseif request.action ~= "demolish" then
 			return fail("UNKNOWN_BUILDING_ACTION")
 		end
 		if type(request.instanceId) ~= "string" or request.instanceId == "" then
