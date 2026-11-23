@@ -101,6 +101,7 @@ local subtitle = make("TextLabel", {
 	Size = UDim2.new(1, -48, 0, 34),
 	Text = "Увеличивай королевство и открывай место для новых построек.",
 	TextWrapped = true,
+	TextYAlignment = Enum.TextYAlignment.Top,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.muted,
 }, panel) :: TextLabel
@@ -130,6 +131,7 @@ local currentValue = make("TextLabel", {
 	Font = Enum.Font.GothamBold,
 	Text = "Загрузка...",
 	TextSize = 20,
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, currentCard) :: TextLabel
@@ -158,6 +160,7 @@ local nextValue = make("TextLabel", {
 	Font = Enum.Font.GothamBold,
 	Text = "Проверяем...",
 	TextSize = 20,
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, nextCard) :: TextLabel
@@ -175,7 +178,7 @@ local status = make("TextLabel", {
 
 local refreshButton = make("TextButton", {
 	Position = UDim2.new(0, 22, 1, -52),
-	Size = UDim2.new(1, -44, 0, 38),
+	Size = UDim2.new(1, -44, 0, 44),
 	BackgroundColor3 = COLORS.card,
 	Text = "ОБНОВИТЬ ДАННЫЕ",
 	TextSize = 12,
@@ -265,7 +268,7 @@ local function renderPreview(data: any)
 	showWorldPreview(data)
 	if data.canExpand and type(data.nextLevel) == "number" then
 		nextValue.Text = string.format("Уровень %d  •  %d × %d", data.nextLevel, data.nextWidth, data.nextDepth)
-		status.Text = "Новые земли доступны по геометрии, но покупка пока отключена."
+		status.Text = "Предпросмотр новых земель. Покупка расширения пока не реализована."
 		status.TextColor3 = COLORS.gold
 	else
 		nextValue.Text = "Максимальный размер"
@@ -340,16 +343,36 @@ local function resize()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 520
+	local narrow = viewport.X < 360
+	local short = viewport.Y < 500
 	openButton.Size = UDim2.fromOffset(compact and 52 or 62, compact and 52 or 62)
 	openButton.Position = UDim2.new(1, compact and -12 or -22, 0.70, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
-	-- Scale the fixed-height information cards on short screens instead of clipping them.
-	panelScale.Scale = math.clamp((viewport.Y - 24) / 390, 0.72, 1)
+	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(210, viewport.X - 20)), 280)
+	panelConstraint.MaxSize = Vector2.new(math.min(440, math.max(210, viewport.X - 12)), 390)
+	panelScale.Scale = math.clamp((viewport.Y - 24) / 390, short and 0.62 or 0.72, 1)
+	title.TextSize = if compact then 15 else 18
+	subtitle.TextSize = if narrow then 10 else 11
+	subtitle.Size = UDim2.new(1, -48, 0, if narrow then 42 else 34)
+	currentValue.TextSize = if compact then 16 else 20
+	nextValue.TextSize = if compact then 16 else 20
+	status.TextSize = if compact then 11 else 12
+	refreshButton.TextSize = if compact then 11 else 12
 end
-if Workspace.CurrentCamera then
-	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+
+local viewportConnection: RBXScriptConnection? = nil
+local function bindViewportCamera()
+	if viewportConnection then
+		viewportConnection:Disconnect()
+		viewportConnection = nil
+	end
+	local camera = Workspace.CurrentCamera
+	if camera then
+		viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+	end
+	resize()
 end
-Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(resize)
-resize()
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
+bindViewportCamera()
 
 print("[PetKingdoms] Island expansion preview UI loaded.")
