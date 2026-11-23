@@ -266,17 +266,16 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
-			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 148 else 124),
+			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 164 else 124),
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
 		InterfaceComponents.StyleCard(card, "surface")
 		local compactCard = (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) or false
-		local cardHeight = if compactCard then 148 else 124
 		local trackButton = make("TextButton", {
 			Name = "TrackQuest",
 			AnchorPoint = if compactCard then Vector2.new(0, 0) else Vector2.new(1, 0),
-			Position = if compactCard then UDim2.new(0, 15, 0, 84) else UDim2.new(1, -10, 0, 9),
+			Position = if compactCard then UDim2.new(0, 15, 0, 104) else UDim2.new(1, -10, 0, 9),
 			Size = UDim2.fromOffset(if compactCard then 112 else 102, if compactCard then 32 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
 			Text = if trackedQuestId == quest.id then "ОТСЛЕЖИВАЕТСЯ" else "СЛЕДИТЬ",
