@@ -8,17 +8,9 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local function getPanelSignal(): BindableEvent
-	local existing = playerGui:FindFirstChild("PetKingdomsPanelSignal")
-	if existing and existing:IsA("BindableEvent") then return existing end
-	local signal = Instance.new("BindableEvent")
-	signal.Name = "PetKingdomsPanelSignal"
-	signal.Parent = playerGui
-	return signal
-end
-local panelSignal = getPanelSignal()
+local ModalManager = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ModalManager"))
 local function announcePanelOpened()
-	panelSignal:Fire(script.Name)
+	ModalManager.Open(script.Name)
 end
 
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GetIslandExpansionPreview") :: RemoteFunction
@@ -311,6 +303,7 @@ end
 local function setOpen(value: boolean)
 	if value then announcePanelOpened() end
 	opened = value
+	if not value then ModalManager.Close(script.Name) end
 	panel.Visible = value
 	shade.Visible = value
 	if value then
@@ -326,8 +319,8 @@ local function setOpen(value: boolean)
 	end
 end
 
-panelSignal.Event:Connect(function(origin)
-	if origin ~= script.Name and opened then setOpen(false) end
+ModalManager.Register(script.Name, function(_reason: string)
+	if opened then setOpen(false) end
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
