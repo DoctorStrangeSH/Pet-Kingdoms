@@ -1431,3 +1431,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added viewport resize handling that disconnects and rebinds when `Workspace.CurrentCamera` changes, and reapplies constraints to already-visible notifications. Existing semantic variants (success/info/warning/error/reward), stacking, animation, and safe GUI inset are preserved.
 - CI run `45147513350` was in progress when this note was written. No Studio/device visual test has been performed. Next verify long Russian messages, 320/360 px portrait, 4-toast overflow replacement, notifications during modal open, and camera replacement.
 - Stage 1 remains open: standardize per-panel status/empty/loading presentation, finish icon coverage, and perform desktop/mobile Studio regression before moving to Stage 2.
+
+
+## Stage 1 — Interface & usability: reusable empty states and non-duplicated errors (2026-11-23)
+
+- Added `InterfaceComponents.StyleEmptyState(TextLabel, icon?)` to provide shared panel-soft background, rounded corners, subtle outline, centered wrapped text, and optional icon on its own line.
+- Pet Collection now distinguishes a genuinely empty owned collection from empty favorites/team filters and an unmatched search. Each state has actionable Russian copy rather than the old generic `Ничего не найдено` message. Empty state uses the shared style.
+- Quest Journal now shows a dedicated styled empty state when the server returns zero quests. It also detects a non-empty payload where every row fails validation and reports a recoverable data error instead of presenting a misleading blank list.
+- Removed duplicate global toasts for Island Expansion request errors and Quest Journal timeout: the owning panel already displays the same failure and its recovery instruction. Global notifications remain for cross-screen events such as quest completion.
+- CI: empty-state component and pet/quest empty states passed (`45149053072`, `45149098073`, `45149128790`, `45149161972`, `45149198176`, `45149213651`). Island Expansion duplicate-notification cleanup passed (`45149312696`). Quest Journal duplicate-timeout cleanup run `45149320803` was still running at the time of this entry. No Studio/device runtime verification has been performed.
+- Next Stage 1 work: standardize loading/error/success state visuals in remaining panels, audit icon consistency and typography, then complete desktop and 320/360/390 px mobile regression in Roblox Studio. Stage 2 remains blocked until Stage 1 is signed off.
