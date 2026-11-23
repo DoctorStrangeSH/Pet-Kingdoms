@@ -658,3 +658,15 @@ The expansion window remains a read-only preview: purchase/expansion execution i
 - [x] GitHub Actions #457 passed after the unregister lifecycle fix and regression-test addition; pinned Rojo verification, place build, and Studio-ready artifact upload completed.
 
 Source-level fix and regression coverage added. Studio interaction checks remain pending.
+
+### Stage 1 — Global notification layout and lifecycle (2026-11-23)
+
+- [x] Move global toast notifications below the Resource HUD instead of covering the top resource bar.
+- [x] Adapt the toast stack to short viewports: one visible toast below 220 px height, two below 360 px, and up to four on taller screens.
+- [x] Reflow the stack holder to the remaining viewport height and trim excess active toasts when the viewport becomes shorter.
+- [x] Make toast slot release idempotent so eviction and delayed expiry cannot both release the same visible slot.
+- [x] Add a Studio smoke test for the four-toast cap, eviction, expiry, and subsequent reuse of the stack.
+- [ ] Verify toast placement at 320×180, 320×240, 360×640, 390×844, tablet landscape, and desktop; confirm notifications do not cover Resource HUD, launchers, or gather feedback.
+- [ ] Run NotificationManager smoke tests in Roblox Studio and verify success/info/warning/error/reward variants.
+
+Source-level layout and lifecycle changes added; Studio visual/runtime checks remain pending.
