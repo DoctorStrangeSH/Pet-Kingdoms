@@ -385,7 +385,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextWrapped = true,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(emptyState, "📜")
+		InterfaceComponents.StyleEmptyState(emptyState, InterfaceTheme.Icons.Quest)
 		if #quests > 0 then
 			status.Text = "Данные заданий повреждены. Нажми обновить."
 			status.TextColor3 = COLORS.rose
