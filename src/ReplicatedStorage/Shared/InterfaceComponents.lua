@@ -121,7 +121,7 @@ function Components.StyleEmptyState(label: TextLabel, icon: string?)
 	label.TextYAlignment = Enum.TextYAlignment.Center
 	label.RichText = false
 	if icon and icon ~= "" and not label:GetAttribute("PKEmptyIconApplied") then
-		label.Text = icon .. "\\n" .. label.Text
+		label.Text = icon .. "\n" .. label.Text
 		label:SetAttribute("PKEmptyIconApplied", true)
 	end
 
