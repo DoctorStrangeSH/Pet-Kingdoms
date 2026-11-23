@@ -173,7 +173,7 @@ end
 
 local allFilterButton = makeFilterButton("All", "ВСЕ", 0, 0.25)
 local teamFilterButton = makeFilterButton("Team", "КОМАНДА", 0.25, 0.25)
-local favoriteFilterButton = makeFilterButton("Favorites", "★", 0.5, 0.18)
+local favoriteFilterButton = makeFilterButton("Favorites", InterfaceTheme.Icons.FavoriteOn, 0.5, 0.18)
 local sortButton = makeFilterButton("Sort", "НОВЫЕ", 0.68, 0.32)
 
 local list = make("ScrollingFrame", {
@@ -247,7 +247,7 @@ local favoriteButton = make("TextButton", {
 	Position = UDim2.new(1, -88, 0.55, 0),
 	Size = UDim2.fromOffset(34, 30),
 	BackgroundColor3 = COLORS.card,
-	Text = "☆",
+	Text = InterfaceTheme.Icons.FavoriteOff,
 	TextSize = 19,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
@@ -259,7 +259,7 @@ local lockButton = make("TextButton", {
 	Position = UDim2.new(1, -48, 0.55, 0),
 	Size = UDim2.fromOffset(34, 30),
 	BackgroundColor3 = COLORS.card,
-	Text = "🔓",
+	Text = InterfaceTheme.Icons.Unlocked,
 	TextSize = 16,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -336,7 +336,7 @@ local mainButton = make("TextButton", {
 	Position = UDim2.new(0.50, 1, 1, -58),
 	Size = UDim2.new(0.18, -2, 0, 46),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "★",
+	Text = InterfaceTheme.Icons.FavoriteOn,
 	TextSize = 20,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
@@ -510,7 +510,7 @@ local function updateDetail()
 	deleteButton.Visible = not selected.isLocked
 	local equippedIndex = table.find(collection.equipped, selected.petId)
 	mainButton.Visible = equippedIndex ~= nil
-	mainButton.Text = if equippedIndex == 1 then "★" else "☆"
+	mainButton.Text = if equippedIndex == 1 then InterfaceTheme.Icons.FavoriteOn else InterfaceTheme.Icons.FavoriteOff
 	mainButton.BackgroundColor3 = if equippedIndex == 1 then COLORS.cardSelected else COLORS.card
 	mainButton.Active = equippedIndex ~= nil and equippedIndex ~= 1
 	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
@@ -569,7 +569,7 @@ local function renderList()
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0, 12, 0, 5),
 				Size = UDim2.fromOffset(46, 54),
-				Text = if record.speciesId == "bunny" then "🐰" else "🐾",
+				Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet,
 				TextSize = 29,
 				Font = Enum.Font.Gotham,
 				TextColor3 = COLORS.cream,
