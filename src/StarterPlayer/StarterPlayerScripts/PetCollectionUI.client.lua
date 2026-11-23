@@ -513,7 +513,9 @@ local function updateDetail()
 	mainButton.Text = if equippedIndex == 1 then InterfaceTheme.Icons.FavoriteOn else InterfaceTheme.Icons.FavoriteOff
 	mainButton.BackgroundColor3 = if equippedIndex == 1 then COLORS.cardSelected else COLORS.card
 	mainButton.Active = equippedIndex ~= nil and equippedIndex ~= 1
-	equipButton.Text = if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ"
+	equipButton.Text = if compactCollection
+		then (if equipped then "УБРАТЬ" else "В КОМАНДУ")
+		else (if equipped then "СНЯТЬ С КОМАНДЫ" else "ЭКИПИРОВАТЬ")
 	equipButton.BackgroundColor3 = if equipped then COLORS.rose else COLORS.mint
 	equipButton.TextColor3 = Color3.fromRGB(30, 43, 43)
 	equipButton.Visible = true
@@ -888,12 +890,29 @@ resize = function()
 		petRarity.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 26 else 28)
 		petRarity.TextSize = 9
 		petDescription.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 46 else 50)
-		petDescription.Size = UDim2.new(1, -32, 0, if shortCompact then 30 else 36)
+		petDescription.Size = UDim2.new(1, -32, 0, if shortCompact then 24 else 36)
 		petDescription.TextSize = 11
 		favoriteButton.Position = UDim2.new(1, -88, if shortCompact then 0.32 else 0.42, 0)
 		lockButton.Position = UDim2.new(1, -48, if shortCompact then 0.32 else 0.42, 0)
-		bondLabel.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 78 else 88)
+		bondLabel.Position = UDim2.new(0, 16, if shortCompact then 0.32 else 0.42, if shortCompact then 70 else 88)
 		bondLabel.TextSize = 10
+		if shortCompact then
+			equipButton.Position = UDim2.new(0, 14, 1, -48)
+			equipButton.Size = UDim2.new(0.50, -18, 0, 40)
+			mainButton.Position = UDim2.new(0.50, 1, 1, -48)
+			mainButton.Size = UDim2.new(0.18, -2, 0, 40)
+			deleteButton.Position = UDim2.new(0.68, 2, 1, -48)
+			deleteButton.Size = UDim2.new(0.32, -16, 0, 40)
+		else
+			equipButton.Position = UDim2.new(0, 14, 1, -58)
+			equipButton.Size = UDim2.new(0.50, -18, 0, 46)
+			mainButton.Position = UDim2.new(0.50, 1, 1, -58)
+			mainButton.Size = UDim2.new(0.18, -2, 0, 46)
+			deleteButton.Position = UDim2.new(0.68, 2, 1, -58)
+			deleteButton.Size = UDim2.new(0.32, -16, 0, 46)
+		end
+		equipButton.TextSize = 10
+		deleteButton.TextSize = 9
 		teamLabel.Visible = false
 		interactionRow.Visible = false
 	else
@@ -914,6 +933,8 @@ resize = function()
 		detail.Position = UDim2.new(0.52, 0, 0, 88)
 		detail.Size = UDim2.new(0.48, -24, 1, -112)
 		detail.Visible = true
+		equipButton.TextSize = 14
+		deleteButton.TextSize = 12
 		preview.Size = UDim2.new(1, -20, 0.53, -10)
 		petName.Position = UDim2.new(0, 16, 0.55, 0)
 		petName.Size = UDim2.new(1, -112, 0, 30)
