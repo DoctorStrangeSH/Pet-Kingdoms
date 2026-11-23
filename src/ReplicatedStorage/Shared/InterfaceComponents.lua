@@ -30,6 +30,34 @@ function Components.StyleCloseButton(button: TextButton)
 	end
 end
 
+function Components.StyleCard(card: GuiObject, variant: string?)
+	local colors = Theme.Colors
+	local strokeColor = colors.panelLight
+	local transparency = 0.72
+	local radius = Theme.Radii.Large
+	if variant == "highlight" then
+		strokeColor, transparency = colors.gold, 0.42
+	elseif variant == "compact" then
+		strokeColor, transparency, radius = colors.track, 0.58, Theme.Radii.Medium
+	end
+
+	local corner = card:FindFirstChildOfClass("UICorner")
+	if corner == nil then
+		corner = Instance.new("UICorner")
+		corner.Parent = card
+	end
+	corner.CornerRadius = radius
+
+	local stroke = card:FindFirstChildOfClass("UIStroke")
+	if stroke == nil then
+		stroke = Instance.new("UIStroke")
+		stroke.Parent = card
+	end
+	stroke.Color = strokeColor
+	stroke.Thickness = 1
+	stroke.Transparency = transparency
+end
+
 function Components.StyleActionButton(button: TextButton, variant: string?)
 	local colors = Theme.Colors
 	local background = colors.panelLight
