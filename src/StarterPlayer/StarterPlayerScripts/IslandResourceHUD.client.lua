@@ -224,20 +224,22 @@ local function resize()
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 560
 	local tiny = viewport.X < 360
+	local short = viewport.Y < 360
+	local shortTiny = short and viewport.X < 420
 	local reserveBuildLauncher = viewport.X < 780
 	if reserveBuildLauncher then
 		-- Keep the resource bar out of the dedicated top-right Build launcher lane.
 		root.AnchorPoint = Vector2.new(0, 0)
 		root.Position = UDim2.fromOffset(8, 10)
-		root.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), compact and 92 or 54)
+		root.Size = UDim2.fromOffset(math.max(180, viewport.X - 72), if short then 54 else (if compact then 92 else 54))
 	else
 		root.AnchorPoint = Vector2.new(0.5, 0)
 		root.Position = UDim2.new(0.5, 0, 0, 10)
 		root.Size = UDim2.fromOffset(420, 54)
 	end
-	layout.FillDirectionMaxCells = if compact then 2 else 4
-	layout.CellSize = if compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
-	layout.CellPadding = UDim2.fromOffset(compact and 4 or 6, compact and 4 or 0)
+	layout.FillDirectionMaxCells = if short then 4 else (if compact then 2 else 4)
+	layout.CellSize = if short then UDim2.new(0.25, -2, 0, 36) elseif compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
+	layout.CellPadding = UDim2.fromOffset(if short then 2 else (if compact then 4 else 6), if short then 0 else (if compact then 4 else 0))
 	padding.PaddingLeft = UDim.new(0, compact and 6 or 7)
 	padding.PaddingRight = UDim.new(0, compact and 6 or 7)
 	for _, child in ipairs(root:GetChildren()) do
@@ -246,15 +248,18 @@ local function resize()
 			local amount = child:FindFirstChild("Amount")
 			local label = child:FindFirstChild("ResourceName")
 			if icon and icon ~= amount and icon ~= label then
-				icon.Size = UDim2.fromOffset(tiny and 22 or 27, 36)
-				icon.TextSize = tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric
+				local iconWidth = if short then (tiny and 16 or 18) else (tiny and 22 or 27)
+				icon.Size = UDim2.fromOffset(iconWidth, 36)
+				icon.TextSize = if short then (tiny and 12 or 14) else (tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric)
 			end
 			if amount and amount:IsA("TextLabel") then
-				amount.Position = UDim2.new(0, tiny and 27 or 32, 0, 1)
-				amount.Size = UDim2.new(1, tiny and -30 or -36, 0.62, 0)
-				amount.TextSize = tiny and 12 or (compact and InterfaceTheme.Typography.Sizes.Body or InterfaceTheme.Typography.Sizes.Numeric)
+				local amountOffset = if short then (tiny and 22 or 24) else (tiny and 27 or 32)
+				amount.Position = UDim2.new(0, amountOffset, 0, 1)
+				amount.Size = UDim2.new(1, -amountOffset - 3, 0.62, 0)
+				amount.TextSize = if short then (tiny and 9 or 10) else (tiny and 12 or (compact and InterfaceTheme.Typography.Sizes.Body or InterfaceTheme.Typography.Sizes.Numeric))
 			end
 			if label and label:IsA("TextLabel") then
+				label.Visible = not shortTiny
 				label.Position = UDim2.new(0, tiny and 28 or 33, 0.58, 0)
 				label.Size = UDim2.new(1, tiny and -30 or -35, 0, 12)
 				label.TextSize = tiny and 8 or InterfaceTheme.Typography.Sizes.Micro
