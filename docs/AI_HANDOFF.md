@@ -1085,3 +1085,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - `Model:PivotTo` now positions and rotates each silhouette around the footprint origin rather than its bounding-box center, avoiding a discrepancy between preview and final construction.
 - New local preview parts start hidden until the first successful island-cell projection, avoiding a flash at the Workspace origin.
 - Source was committed to `main`, but Roblox Studio validation is pending. Test house/path/fence positioning after confirmation, 0/90/180/270 rotation, cancel cleanup, and mobile viewport. No third-party models were imported.
+
+
+## Scenery-proof construction pointer (2026-11-23)
+
+- Updated `IslandBuildingController.client.lua` to raycast using an Include filter containing only the current owner island's `Island_GrassTop`, rather than raycasting the complete world and rejecting the first non-ground hit.
+- A player can now target the island ground even when decorations, trees, previously built houses or fences visually overlap the screen-space pointer; existing grid footprint overlap/bounds checks remain responsible for invalidating occupied cells. No server-side construction authorization, payments or persistence changed.
+- When the pointer ray misses the island, both the footprint indicator and 3D local silhouette are hidden, preventing a stale preview from remaining visibly green at its last position.
+- Verify in Roblox Studio: target a free cell behind a tree; tap an occupied building (red overlap, not accepted); move the cursor/tap outside island (preview disappears); return to grass (preview restores); test mobile camera, moving existing buildings, and island-edge restrictions. The code change is committed, but Studio verification is pending.
