@@ -213,11 +213,23 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 		makePart(model, "Body", Vector3.new(width * 0.82, unit * 0.48, depth * 0.72),
 			CFrame.new(0, unit * 0.24, 0), Color3.fromRGB(238, 190, 132), Enum.Material.Wood)
 		makePart(model, "Roof", Vector3.new(width, unit * 0.16, depth * 0.9),
-			CFrame.new(0, unit * 0.58, 0), Color3.fromRGB(105, 164, 205), Enum.Material.SmoothPlastic)
+			CFrame.new(0, unit * 0.58, 0), Color3.fromRGB(105, 164, 205), Enum.Material.Slate)
 		makePart(model, "Door", Vector3.new(width * 0.22, unit * 0.3, 0.12),
 			CFrame.new(0, unit * 0.15, -depth * 0.365), Color3.fromRGB(91, 61, 47), Enum.Material.Wood)
 		makePart(model, "Sign", Vector3.new(width * 0.38, unit * 0.13, 0.12),
 			CFrame.new(0, unit * 0.82, -depth * 0.37), Color3.fromRGB(255, 218, 137), Enum.Material.SmoothPlastic)
+		for index, x in ipairs({ -width * 0.30, width * 0.30 }) do
+			makePart(model, "CornerBeam_" .. index, Vector3.new(width * 0.065, unit * 0.50, depth * 0.075),
+				CFrame.new(x, unit * 0.25, -depth * 0.36), Color3.fromRGB(142, 97, 62), Enum.Material.Wood)
+			local shutter = makePart(model, "PetWindow_" .. index, Vector3.new(width * 0.105, unit * 0.14, 0.10),
+				CFrame.new(x * 0.66, unit * 0.31, -depth * 0.37), Color3.fromRGB(255, 218, 149), Enum.Material.Glass)
+			shutter.CanCollide = false
+		end
+		makePart(model, "RoofRidge", Vector3.new(width * 0.92, unit * 0.075, depth * 0.12),
+			CFrame.new(0, unit * 0.69, 0), Color3.fromRGB(73, 119, 165), Enum.Material.Slate)
+		local badge = makePart(model, "PawBadge", Vector3.new(width * 0.13, unit * 0.09, 0.14),
+			CFrame.new(0, unit * 0.825, -depth * 0.38), Color3.fromRGB(149, 91, 167), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+		badge.CanCollide = false
 	elseif catalogId == "stone_path" then
 		-- A repeatable stepping-stone pattern with irregular spacing, not a giant tile.
 		local stones = {
@@ -292,12 +304,24 @@ local function createFallbackBuilding(catalogId: string, cellSize: number): Mode
 			CFrame.new(0, unit * 0.5, 0), Color3.fromRGB(246, 218, 169), Enum.Material.SmoothPlastic)
 		makePart(model, "Roof", Vector3.new(width * 1.08, unit * 0.2, depth * 1.02),
 			CFrame.new(0, unit * 0.94, 0), Color3.fromRGB(126, 83, 139), Enum.Material.Slate)
+		makePart(model, "RoofRidge", Vector3.new(width * 0.97, unit * 0.09, depth * 0.14),
+			CFrame.new(0, unit * 1.08, 0), Color3.fromRGB(93, 60, 114), Enum.Material.Slate)
 		makePart(model, "Door", Vector3.new(width * 0.2, unit * 0.42, 0.14),
 			CFrame.new(0, unit * 0.3, -depth * 0.425), Color3.fromRGB(126, 83, 57), Enum.Material.Wood)
-		makePart(model, "Window_Left", Vector3.new(width * 0.16, unit * 0.17, 0.12),
-			CFrame.new(-width * 0.28, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
-		makePart(model, "Window_Right", Vector3.new(width * 0.16, unit * 0.17, 0.12),
-			CFrame.new(width * 0.28, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
+		local knob = makePart(model, "DoorKnob", Vector3.new(unit * 0.055, unit * 0.055, unit * 0.055),
+			CFrame.new(width * 0.055, unit * 0.28, -depth * 0.433 - 0.08),
+			Color3.fromRGB(246, 202, 115), Enum.Material.Metal, Enum.PartType.Ball)
+		knob.CanCollide = false
+		for index, x in ipairs({ -width * 0.28, width * 0.28 }) do
+			makePart(model, "Window_" .. index, Vector3.new(width * 0.16, unit * 0.17, 0.12),
+				CFrame.new(x, unit * 0.58, -depth * 0.425), Color3.fromRGB(122, 214, 224), Enum.Material.Glass)
+			makePart(model, "WindowSill_" .. index, Vector3.new(width * 0.2, unit * 0.045, 0.2),
+				CFrame.new(x, unit * 0.47, -depth * 0.45), Color3.fromRGB(155, 104, 76), Enum.Material.Wood)
+		end
+		for index, x in ipairs({ -width * 0.40, width * 0.40 }) do
+			makePart(model, "TimberTrim_" .. index, Vector3.new(width * 0.055, unit * 0.73, depth * 0.07),
+				CFrame.new(x, unit * 0.48, -depth * 0.42), Color3.fromRGB(139, 91, 68), Enum.Material.Wood)
+		end
 	end
 	model:SetAttribute("IsFallbackBlockout", true)
 	return model
