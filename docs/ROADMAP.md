@@ -589,3 +589,14 @@ Source commits: `639d343`, `a9fcfe5`, `3d6cd07`, `742be87`, `a32852e`, `035659b`
 - [ ] Finish cross-screen overflow/spacing audit and complete Roblox Studio desktop/mobile regression before Stage 1 sign-off.
 
 Source commit: `bce0786`. CI `45153168859` was running at documentation time. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Compact Pet Collection detail layout (2026-11-23)
+
+- [x] Give the mobile collection panel more vertical space on compact viewports.
+- [x] Reflow the selected-pet detail into a compact preview/summary layout instead of stacking desktop-only description, team, and interaction rows.
+- [x] Keep equip, main-pet, delete, favorite, and lock actions reachable in the compact detail view.
+- [x] Restore desktop detail positions and sizes when the viewport grows again.
+- [ ] Verify at 320/360/390 px and desktop in Roblox Studio; confirm text truncation, touch targets, and no overlap.
+
+Source branch: `chore/ui-icon-token-audit`. Studio/device validation is still required; this is not a Stage 1 sign-off.
