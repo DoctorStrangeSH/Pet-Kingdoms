@@ -380,7 +380,7 @@ local cancelDeleteButton = make("TextButton", {
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 }, confirmPanel) :: TextButton
-make("UICorner", { CornerRadius = UDim.new(0, 10) }, cancelDeleteButton)
+InterfaceComponents.StyleActionButton(cancelDeleteButton, "secondary")
 local confirmDeleteButton = make("TextButton", {
 	Position = UDim2.new(0.5, 6, 1, -48),
 	Size = UDim2.new(0.5, -22, 0, 34),
