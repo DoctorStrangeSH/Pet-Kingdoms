@@ -590,8 +590,8 @@ local function renderList()
 				Size = UDim2.new(1, -112, 0, 18),
 				Text = table.concat({
 					if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
-					if record.isLocked then "🔒" else "",
-					if record.isFavorite then "★" else "",
+					if record.isLocked then InterfaceTheme.Icons.Locked else "",
+					if record.isFavorite then InterfaceTheme.Icons.FavoriteOn else "",
 				}, "  "),
 				TextSize = 10,
 				Font = Enum.Font.GothamMedium,
