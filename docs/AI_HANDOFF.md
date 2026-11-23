@@ -1134,3 +1134,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Added eight non-interactive, shadow-free slate strata below the walkable grass surface. They provide layering on the island sides without taking building cells, modifying `Island_GrassTop`, adding save fields, or affecting build costs.
 - The existing major cliff rocks retain their collision settings; the new strata have `CanCollide`, `CanTouch`, `CanQuery` disabled. This is still procedural prototype art, not final asset production.
 - Roblox Studio verification is pending: inspect cliffs from multiple camera angles, confirm strata remain below the top and do not obstruct characters or building placement, test differing island sizes/expansions and mobile part-count/performance. Eight extra decorative parts are created per island.
+
+
+## Optional island meadow density (2026-11-23)
+
+- `IslandWorldService.createEdgeMeadow` now reads the optional numeric `Workspace.IslandDecorationLevel` attribute when islands are generated. Default / 1 builds one bush plus one blossom per each of eight edge patches (16 cosmetic parts instead of 32). Level 0 disables the optional meadow; level 2 restores all 32 parts. Values are clamped to 0..2.
+- This is server-wide level configuration read when generating an island, **not** an automatic per-device graphics quality setting. Existing world structures, resource nodes, rewards, building cells and persistence are unchanged. Level 0 has no meadow parts; a folder still exists. Changing the attribute does not retroactively modify spawned islands.
+- Eight simultaneous islands use 128 meadow parts in default mode instead of 256; this is a geometric part-count reduction, not a measured FPS gain. Studio/mobile profiling and visual checks at each level are pending. Avoid claiming performance gains without tests.
