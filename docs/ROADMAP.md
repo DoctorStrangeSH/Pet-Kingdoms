@@ -615,3 +615,14 @@ Source commit: c332695. Roblox Studio/device verification has not been performed
 - [ ] Complete Roblox Studio/device visual regression; Stage 1 remains open until runtime verification is done.
 
 Source commits: e94ec80, bb89e36, e91d298, ddc4ab5, 94f5570. Studio/device verification remains outstanding.
+
+### Stage 1 — Resource HUD overflow and final mobile panel pass (2026-11-23)
+
+- [x] Ensure long Kingdom Bond stage/status text truncates within the responsive HUD pill instead of overflowing into adjacent UI.
+- [x] Keep the resource HUD responsive two-row layout and separate toast/bond positions on compact screens.
+- [x] CI passed for Pet Collection compact layout commits `348a47d`, `99410fd`, `e94ec80`, and `bb89e36`.
+- [ ] Complete CI for subsequent Pet Collection filter synchronization, Quest Journal/Expansion header changes, and Resource HUD truncation (runs queued/in progress at documentation time).
+- [ ] Complete Roblox Studio runtime verification at desktop, 320/360/390 px portrait, and short landscape; check modal stacking, safe areas, touch targets, scrolling, and camera replacement.
+- [ ] Close Stage 1 only after Studio/device regression and visual review.
+
+Source commits: `348a47d`, `99410fd`, `e94ec80`, `bb89e36`, `e91d298`, `ddc4ab5`, `94f5570`, `b9626d6`. Studio/device verification remains outstanding.
