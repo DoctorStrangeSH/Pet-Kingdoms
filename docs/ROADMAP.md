@@ -737,3 +737,11 @@ Source-level timeout handling added; delayed-server Studio verification remains 
 - [ ] Verify the loading panel at 320×180, 360×180, 320×240, 360×640, 390×844, tablet, and desktop; verify Loading/Ready/Failed states and no clipped text.
 
 Source-level responsive layout added; Studio visual checks remain pending.
+
+### Stage 1 — RequestRunner regression coverage (2026-11-23)
+
+- [x] Add an opt-in Roblox Studio smoke test for successful request values, callback errors, and the bounded timeout result.
+- [x] Verify the timeout result remains stable when the original yielding callback completes later; this documents that a client timeout does not cancel the underlying server invocation.
+- [ ] Run `RequestRunnerTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; confirm all assertions pass and no unexpected errors appear.
+
+Test source added; Studio execution remains pending.
