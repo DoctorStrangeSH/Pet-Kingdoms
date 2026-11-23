@@ -1074,6 +1074,26 @@ shade.Activated:Connect(function()
 	end
 end)
 
+-- Explicit hit testing also covers touch devices where an outer shade
+-- does not receive Activated. Dismiss confirmation first, never delete.
+UserInputService.InputBegan:Connect(function(input)
+	if not panel.Visible or not ModalManager.IsActive(script.Name) then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+		and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	local point = Vector2.new(input.Position.X, input.Position.Y)
+	local target = if confirmPanel.Visible then confirmPanel else panel
+	local origin = target.AbsolutePosition
+	local size = target.AbsoluteSize
+	if point.X >= origin.X and point.X <= origin.X + size.X
+		and point.Y >= origin.Y and point.Y <= origin.Y + size.Y then return end
+	if confirmPanel.Visible then
+		pendingDeletePetId = nil
+		confirmPanel.Visible = false
+	else
+		closeCollection()
+	end
+end)
+
 openButton.Activated:Connect(openCollection)
 allFilterButton.Activated:Connect(function() activeFilter = "all" renderList() end)
 teamFilterButton.Activated:Connect(function() activeFilter = "team" renderList() end)
