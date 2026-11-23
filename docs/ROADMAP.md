@@ -495,3 +495,15 @@ Source changes are in main; CI runs `45139857411` and `45139876120` were pending
 - [ ] Continue Stage 1 audit of floating controls, safe-area collisions, and full visual consistency.
 
 Source implementation committed as `da22105`; CI `45140354173` was in progress at the time of this entry. Roblox Studio/device validation remains outstanding.
+
+
+### Stage 1 — Floating controls and safe zones (2026-11-23)
+
+- [x] Audit persistent launcher placement across Pet Collection, Island Expansion, Quest Journal, and Build.
+- [x] Fix the compact/touch collision between Pet Collection and Island Expansion launchers by assigning separate vertical slots.
+- [x] Normalize compact launcher touch sizes: Pet Collection 52×52, Island Expansion 52×52, Quest Journal 50×50; keep Build launcher 154×48.
+- [x] Keep quest launcher on the opposite edge and preserve Roblox safe GUI inset for top controls.
+- [ ] Test simultaneous launcher visibility and touch hitboxes at 320/360/390 px portrait and short landscape, including safe-area/notch and construction/tracked-quest collisions.
+- [ ] Complete full Stage 1 visual consistency, icon coverage, and in-Studio mobile regression before moving to Stage 2.
+
+Source commits: `5fbb21e`, `8061fb1`. CI: `45142089887` and `45142096293` passed. Studio/device validation remains pending.
