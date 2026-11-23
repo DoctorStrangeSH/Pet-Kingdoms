@@ -764,3 +764,12 @@ Source and regression coverage updated; Studio execution remains pending.
 - [ ] Verify in Studio with rapid taps on several quest cards and delayed SetTrackedQuest responses; confirm only one request runs at a time, buttons recover, and the server-selected quest matches the UI.
 
 Source-level guard and timeout reconciliation added; Studio runtime verification remains pending.
+
+### Stage 1 — Pet Collection refresh/mutation serialization (2026-11-23)
+
+- [x] Make collection `Get` requests single-flight so repeated opens or refresh triggers cannot return overlapping snapshots that race to update the UI.
+- [x] Do not start a collection read while a mutation is active; successful mutations publish their returned authoritative snapshot, while failed/timed-out mutations start a refresh after releasing the mutation lock.
+- [x] Block mutation actions while a collection refresh is active, preventing a user action from being based on an in-flight/stale snapshot.
+- [ ] Verify in Studio by reopening the collection rapidly, tapping refresh repeatedly, and triggering a mutation near a refresh; confirm only one request is active and the final UI matches the server snapshot.
+
+Source-level serialization added; live RemoteFunction timing verification remains pending.
