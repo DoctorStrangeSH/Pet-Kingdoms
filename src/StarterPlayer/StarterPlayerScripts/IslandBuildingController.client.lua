@@ -605,7 +605,7 @@ local function updatePreviewAtCell(x: number, z: number)
 	if previewVisual then
 		previewVisual:PivotTo(top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0))
 		for _, descendant in ipairs(previewVisual:GetDescendants()) do
-			if descendant:IsA("BasePart") then
+			if descendant:IsA("BasePart") and descendant ~= previewVisual.PrimaryPart then
 				descendant.Transparency = if valid then 0.3 else 0.65
 			end
 		end
