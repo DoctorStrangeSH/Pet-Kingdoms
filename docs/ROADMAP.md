@@ -680,3 +680,13 @@ Source-level layout and lifecycle changes added; Studio visual/runtime checks re
 - [ ] Verify list scrolling, selection, search, filters, detail navigation, equip/main/delete controls, and delete confirmation in Roblox Studio at 320×180, 360×180, 360×640, 390×844, tablet, and desktop.
 
 Source-level layout fix added. Roblox Studio visual and interaction checks remain pending.
+
+### Stage 1 — Pet Collection empty-state consistency (2026-11-23)
+
+- [x] Ensure an empty owned-pet collection hides favorite, lock, delete, main-pet, equip, and care/play actions instead of leaving controls from a previously selected pet visible.
+- [x] Add a friendly empty preview message and reset team/bond details when no pet exists.
+- [x] Re-apply empty-state visibility after viewport changes so responsive layout code cannot resurrect inactive controls.
+- [x] Keep existing distinct list messages for a truly empty collection, no search results, empty team filter, and empty favorites filter.
+- [ ] Verify empty collection, no-result search, empty filters, and resize transitions in Roblox Studio; confirm no stale pet action is clickable.
+
+Source-level consistency fix added; runtime Studio checks remain pending.
