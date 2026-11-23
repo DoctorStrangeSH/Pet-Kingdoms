@@ -561,4 +561,9 @@ end
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera)
 bindViewportCamera()
 
+ModalManager.ActiveChanged:Connect(function(activeName: string?)
+	openButton.Visible = activeName == nil
+end)
+openButton.Visible = ModalManager.GetActive() == nil
+
 print("[PetKingdoms] Quest journal UI loaded.")
