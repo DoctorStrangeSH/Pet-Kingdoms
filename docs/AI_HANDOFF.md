@@ -1604,3 +1604,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - In the `veryShort` compact layout, increased search height to 30 px and filter bar height to 28 px; moved the list start to y=98 and recalculated its height so controls do not overlap.
 - Increased short-landscape detail action buttons (Equip/Main/Delete) from 26 to 30 px. Rebalanced widths from 50/18/32 to 50/22/28 percent so the compact Main and Delete hit areas are less cramped.
 - This is a constrained 180–359 px viewport compromise; controls are still smaller than ideal 44 px touch guidance. Verify in Roblox Studio at 320×180, 360×180, and 320×240 before considering mobile usability complete.
+
+## Stage 1 — Narrow Pet Collection cards and touch actions (2026-11-23)
+
+- In `renderVisibleCards()`, cards with `list.AbsoluteSize.X < 360` use a narrower icon column and shift name/meta labels left, reclaiming horizontal space for text.
+- Pet names and metadata now use `TextTruncate.AtEnd` with wrapping disabled, preventing long species names/status strings from spilling into adjacent UI.
+- In normal-height compact/portrait detail view, Favorite and Lock controls increased from 30×28 to 36×34 px with separated positions.
+- Next: inspect long localized names and metadata, tap the Favorite/Lock controls, and verify selected-card state at 320×640, 360×640, and 390×844 in Studio/device emulation.
