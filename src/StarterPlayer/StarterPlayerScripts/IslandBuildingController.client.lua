@@ -175,7 +175,8 @@ local function makeButton(name: string, label: string, width: number, color: Col
 		TextColor3 = COLORS.text,
 		TextSize = 14,
 	}, buttons) :: TextButton
-	make("UICorner", { CornerRadius = UDim.new(0, 12) }, button)
+	local variant = if name == "Confirm" then "primary" elseif name == "Cancel" then "danger" else "secondary"
+	InterfaceComponents.StyleActionButton(button, variant)
 	return button
 end
 
