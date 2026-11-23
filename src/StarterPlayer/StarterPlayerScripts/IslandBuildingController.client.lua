@@ -839,6 +839,7 @@ local function stopPlacing()
 	placing = false
 	movingInstanceId = nil
 	panel.Visible = false
+	if not overview.Visible then ModalManager.Close(script.Name) end
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
@@ -1250,6 +1251,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 local function closeKingdomOverview()
 	overview.Visible = false
 	overviewShade.Visible = false
+	if not placing then ModalManager.Close(script.Name) end
 end
 dismissKingdomOverview = closeKingdomOverview
 
