@@ -719,3 +719,12 @@ The list now virtualizes rendered cards; the full owned-pet dataset is still fil
 - [ ] Run `InterfaceComponentsTests.client.lua` in a dedicated Studio test place with `RunPetKingdomsStudioTests=true`; verify all assertions pass and the temporary ScreenGui is removed.
 
 Source-level guard and regression test added. Studio execution remains pending.
+
+### Stage 1 — Pet Collection request timeout handling (2026-11-23)
+
+- [x] Route equip/main-pet, care/play, favorite/lock, and delete requests through the shared 12-second `RequestRunner` timeout instead of unbounded client waits.
+- [x] Keep server-side `expectedRevision` checks on every mutation; after a timeout, show a reconciliation message and refresh authoritative collection state rather than assuming success or failure.
+- [x] Centralize request result unpacking so transport errors and server business-rule failures remain distinguishable.
+- [ ] Verify in Roblox Studio with delayed/failed RemoteFunction responses: controls recover after timeout, collection refreshes, and late server completion does not duplicate mutations or corrupt the selected pet.
+
+Source-level timeout handling added; delayed-server Studio verification remains pending.
