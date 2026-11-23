@@ -187,7 +187,7 @@ local panelCloseButton = make("TextButton", {
 	BackgroundColor3 = COLORS.panelLight,
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = "×",
+	Text = InterfaceTheme.Icons.Close,
 	TextColor3 = COLORS.text,
 	TextSize = 24,
 	ZIndex = 4,
@@ -302,7 +302,7 @@ local moveButton = make("TextButton", {
 	BackgroundColor3 = Color3.fromRGB(65, 112, 153),
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = "↔  ПЕРЕНЕСТИ",
+	Text = InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ",
 	TextColor3 = COLORS.text,
 	TextSize = 12,
 	Visible = false,
@@ -318,7 +318,7 @@ local demolishButton = make("TextButton", {
 	BackgroundColor3 = Color3.fromRGB(139, 67, 76),
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = "⌫  ДЕМОНТИРОВАТЬ",
+	Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ",
 	TextColor3 = COLORS.text,
 	TextSize = 13,
 	Visible = false,
@@ -401,7 +401,7 @@ local function selectBuilding(model: Model?)
 	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
 	demolishButton.Visible = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
-	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
 	if model then
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
@@ -449,7 +449,7 @@ demolishButton.Activated:Connect(function()
 	demolitionRequestInFlight = false
 	InterfaceComponents.SetButtonLoading(demolishButton, false)
 	moveButton.Active = true
-	demolishButton.Text = "⌫  ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then
 		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
@@ -1242,7 +1242,7 @@ local function addBuildEntry()
 		BackgroundColor3 = COLORS.panel,
 		BorderSizePixel = 0,
 		Font = Enum.Font.GothamBold,
-		Text = "🏡  СТРОИТЬ",
+		Text = InterfaceTheme.Icons.Build .. "  СТРОИТЬ",
 		TextColor3 = COLORS.gold,
 		TextSize = 15,
 	}, gui) :: TextButton
@@ -1309,7 +1309,7 @@ local overviewClose = make("TextButton", {
 	BackgroundColor3 = COLORS.panelLight,
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = "×",
+	Text = InterfaceTheme.Icons.Close,
 	TextColor3 = COLORS.text,
 	TextSize = 24,
 	ZIndex = 43,
