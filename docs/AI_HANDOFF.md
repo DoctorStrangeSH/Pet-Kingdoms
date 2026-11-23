@@ -1126,3 +1126,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The decorations are anchored and deliberately non-colliding, non-touching, non-queryable and shadow-free. They do not occupy building grid cells, change the economy, or require new saved profile fields. The same arrangement is rebuilt when island geometry refreshes.
 - These are lightweight procedural prototype decorations rather than approved production art or audited Creator Store assets. The existing arrival pad and central build area remain unchanged.
 - Studio verification is pending: inspect plot edges at 24x24, 32x32, and 40x40, check building on/near patch locations, camera view, mobile frame time and eight concurrent islands. At eight islands this addition has up to 256 decorative BaseParts; optimize or replace with vetted mesh clusters if profiling shows a problem.
+
+
+## Floating island cliff strata (2026-11-23)
+
+- Updated `IslandWorldService.createTerrain` to vary the existing eight perimeter cliff boulders by deterministic size and a controlled four-color stone palette, instead of repeating a single tinted shape.
+- Added eight non-interactive, shadow-free slate strata below the walkable grass surface. They provide layering on the island sides without taking building cells, modifying `Island_GrassTop`, adding save fields, or affecting build costs.
+- The existing major cliff rocks retain their collision settings; the new strata have `CanCollide`, `CanTouch`, `CanQuery` disabled. This is still procedural prototype art, not final asset production.
+- Roblox Studio verification is pending: inspect cliffs from multiple camera angles, confirm strata remain below the top and do not obstruct characters or building placement, test differing island sizes/expansions and mobile part-count/performance. Eight extra decorative parts are created per island.
