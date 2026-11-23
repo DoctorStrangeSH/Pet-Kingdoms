@@ -39,6 +39,11 @@ function VirtualList.GetWindow(
 	}
 end
 
+function VirtualList.ClampCanvasY(savedY: number, contentHeight: number, viewportHeight: number): number
+	local maxY = math.max(0, contentHeight - math.max(0, viewportHeight))
+	return math.clamp(savedY, 0, maxY)
+end
+
 function VirtualList.GetContentHeight(totalItems: number, itemStep: number, trailingGap: number): number
 	assert(totalItems >= 0, "totalItems must be non-negative")
 	assert(itemStep > 0, "itemStep must be positive")
