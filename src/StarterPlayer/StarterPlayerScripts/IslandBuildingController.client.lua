@@ -587,15 +587,21 @@ local function updatePreview(screenPosition: Vector2)
 	if activeCamera == nil then return end
 	local ray = activeCamera:ScreenPointToRay(screenPosition.X, screenPosition.Y)
 	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	local excluded: { Instance } = { currentPreview }
-	if player.Character then table.insert(excluded, player.Character) end
-	if movingInstanceId ~= nil and selectedBuildingModel ~= nil then table.insert(excluded, selectedBuildingModel) end
-	params.FilterDescendantsInstances = excluded
+	-- Only the player's island ground is selectable in building mode.
+	-- Trees, decorative meshes and existing buildings must not intercept the
+	-- pointer: the footprint validator decides whether the chosen cell is free.
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { top }
 	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
 	if result == nil or result.Instance ~= top then
 		currentValid = false
 		currentCellX, currentCellZ = nil, nil
+		if currentPreview then currentPreview.Transparency = 1 end
+		if previewVisual then
+			for _, descendant in ipairs(previewVisual:GetDescendants()) do
+				if descendant:IsA("BasePart") then descendant.Transparency = 1 end
+			end
+		end
 		setStatus("Нажми на траву своего острова", false)
 		return
 	end
