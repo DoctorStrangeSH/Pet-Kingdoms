@@ -92,8 +92,9 @@ make("UIStroke", { Color = COLORS.gold, Thickness = 1.4, Transparency = 0.35 }, 
 local title = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 22, 0, 17),
-	Size = UDim2.new(1, -78, 0, 31),
+	Size = UDim2.new(1, -132, 0, 31),
 	Text = "ЖУРНАЛ ПРИКЛЮЧЕНИЙ",
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextLabel
@@ -104,6 +105,7 @@ local subtitle = make("TextLabel", {
 	Position = UDim2.new(0, 24, 0, 51),
 	Size = UDim2.new(1, -48, 0, 25),
 	Text = "Небольшие дела — большие открытия",
+	TextTruncate = Enum.TextTruncate.AtEnd,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.muted,
 }, panel) :: TextLabel
@@ -507,7 +509,12 @@ local function resize()
 	if camera == nil then return end
 	local viewport = camera.ViewportSize
 	local compact = viewport.X < 520
+	local narrow = viewport.X < 360
 	local short = viewport.Y < 500
+	title.Text = if compact then "ЗАДАНИЯ" else "ЖУРНАЛ ПРИКЛЮЧЕНИЙ"
+	title.TextSize = if compact then 15 else 18
+	subtitle.Text = if narrow then "Твои текущие задания" else "Небольшие дела — большие открытия"
+	subtitle.TextSize = if compact then 10 else 12
 	openButton.Size = UDim2.fromOffset(compact and 50 or 58, compact and 50 or 58)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
