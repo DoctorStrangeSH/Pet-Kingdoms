@@ -1078,3 +1078,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - The preview remains client-only; pieces are anchored, noncolliding, non-queryable and shadow-free. Both footprint indicator and silhouette follow the same selected grid cell and rotation; invalid positions retain the red footprint and fade the silhouette.
 - Switching catalog items rebuilds the silhouette, while cancelling/stopping placement destroys all local preview pieces. Server-side placement, charge and persistence remain unchanged.
 - Pending Studio validation: check Model:PivotTo preview alignment for all six catalog entries, 0/90/180/270 rotation, occupied and out-of-bounds positions, cancel cleanup, and touch selection. Replace blockout meshes with vetted Creator Store or original assets when sourced and reviewed.
+
+## Construction preview pivot alignment (2026-11-23)
+
+- Corrected client-side 3D silhouette placement: `LocalBuildingSilhouette` now has an invisible noncolliding PrimaryPart named `Pivot` at ground level, matching the server's procedural fallback template pivot.
+- `Model:PivotTo` now positions and rotates each silhouette around the footprint origin rather than its bounding-box center, avoiding a discrepancy between preview and final construction.
+- New local preview parts start hidden until the first successful island-cell projection, avoiding a flash at the Workspace origin.
+- Source was committed to `main`, but Roblox Studio validation is pending. Test house/path/fence positioning after confirmation, 0/90/180/270 rotation, cancel cleanup, and mobile viewport. No third-party models were imported.
