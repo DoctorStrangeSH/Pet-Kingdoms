@@ -611,3 +611,5 @@ Source branch: `chore/ui-icon-token-audit`. Studio/device validation is still re
 - [ ] Verify at 320/360/390 px, short-height mobile, and desktop in Roblox Studio.
 
 Studio/device validation remains required; Stage 1 is still open.
+
+- [x] Preserve the pet description, friendship level, team status, and care/play actions on normal-height mobile screens; keep the reduced summary only on very short screens.
