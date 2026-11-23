@@ -180,7 +180,7 @@ local detail = make("Frame", {
 	Size = UDim2.new(0.48, -24, 1, -112),
 	BackgroundColor3 = COLORS.panelSoft,
 }, panel) :: Frame
-make("UICorner", { CornerRadius = UDim.new(0, 17) }, detail)
+InterfaceComponents.StyleCard(detail, "surface")
 
 local preview = make("ViewportFrame", {
 	Name = "PetPreview",
