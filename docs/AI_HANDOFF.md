@@ -1187,3 +1187,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Single-finger world selection is accepted only on release, with movement <=18 screen pixels and duration <=0.55 seconds, beginning outside interactive GUI and retaining the same building/selection mode until release. These limits prevent held touches, camera gestures, and panel transitions from changing a construction cell unintentionally.
 - A short 0.35s window after touch begin/end ignores synthetic `MouseButton1` events on touch-enabled clients, reducing duplicate selection from touch emulation; physical mouse still works normally outside that window.
 - Source change is pushed to main, but Roblox Studio and physical mobile runtime verification remains pending. Test tap vs long press, two-finger pinch/camera rotation, mobile joystick, touches on catalog/actions, touching while switching panels, touch followed by mouse, touch event ordering, and both mouse-only and hybrid laptops.
+
+
+## Construction full-flow audit: move mode and panel focus (2026-11-23)
+
+- Audited the live client code path for catalog selection, placement, move, demolition and exclusive panels.
+- Move now announces its own panel opening through the shared `PetKingdomsPanelSignal`, preventing open journal/collection screens from overlapping the construction canvas. The moved item's original catalog type is selected before its `movingInstanceId` lock is applied; subsequent attempts to switch to a different catalog ID are rejected until the move exits. The guard also ignores catalog changes during demolition requests.
+- Repaired the failed-`createPreview` move rollback to re-enable `flowerBedButton` and `woodenFenceButton` alongside the other catalog buttons; previously those two remained disabled.
+- On panel switches originating from other controllers, the selected-building action buttons are dismissed by clearing selection except while a demolition transaction is in flight. No server-side record schema, costs, idempotency or island geometry changed.
+- Studio validation remains outstanding: move each of six catalog objects, cancel and resume, rotate while moving, force a preview creation failure, try tapping another catalog button mid-move, open quest/collection while selection actions are visible, and verify the original model remains until server confirms movement. CI build is not a Roblox gameplay test.
