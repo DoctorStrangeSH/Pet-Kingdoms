@@ -728,3 +728,12 @@ Source-level guard and regression test added. Studio execution remains pending.
 - [ ] Verify in Roblox Studio with delayed/failed RemoteFunction responses: controls recover after timeout, collection refreshes, and late server completion does not duplicate mutations or corrupt the selected pet.
 
 Source-level timeout handling added; delayed-server Studio verification remains pending.
+
+### Stage 1 — Island loading screen responsive layout (2026-11-23)
+
+- [x] Add a compact loading-card layout for short landscape viewports; at 320×180 class resolutions the panel height is reduced to 148 px and all title/status/progress elements are repositioned inside it.
+- [x] Scale title, subtitle, status, progress track, and panel constraints with viewport height while preserving the existing full-size layout on taller screens.
+- [x] Rebind viewport-size tracking when `Workspace.CurrentCamera` changes.
+- [ ] Verify the loading panel at 320×180, 360×180, 320×240, 360×640, 390×844, tablet, and desktop; verify Loading/Ready/Failed states and no clipped text.
+
+Source-level responsive layout added; Studio visual checks remain pending.
