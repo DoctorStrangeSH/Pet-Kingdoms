@@ -443,7 +443,6 @@ local function refresh()
 	elseif requestResult.errorCode == "TIMEOUT" then
 		status.Text = "Сервер отвечает слишком долго. Нажми обновить ещё раз."
 		status.TextColor3 = COLORS.gold
-		NotificationManager.Notify("Превышено время ожидания загрузки заданий", "warning")
 	else
 		status.Text = "Не удалось загрузить задания. Нажми обновить."
 		status.TextColor3 = COLORS.rose
