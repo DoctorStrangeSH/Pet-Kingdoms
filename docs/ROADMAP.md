@@ -555,3 +555,15 @@ Source commits: `8d5a194`, `11c51cb`, `019647a`, `f7cf87a`, `122e4d1`, `5bd1493`
 - [ ] Audit remaining actions for meaningful inline result feedback, then complete iconography/typography and desktop/mobile Studio regression.
 
 Source commits: `3f7b6a7`, `84450d3`, `9856117`, `e70029a`. CI passed for helper, Quest Journal, and initial Expansion integration; latest label adjustment run `45150128088` was pending. Studio/device validation remains outstanding.
+
+
+### Stage 1 — Icon tokens and compact typography (2026-11-23)
+
+- [x] Centralize common interface symbols in frozen `InterfaceTheme.Icons` tokens.
+- [x] Apply shared icon tokens to pet collection, quest journal, island expansion, building controls, and shared close buttons.
+- [x] Improve readability of resource labels on regular/tiny screens (9/8 px), quest tracking actions (12 px minimum), quest metadata (10 px), and pet metadata (10 px).
+- [x] Use shared confirmation icon for completed quest rows.
+- [ ] Audit remaining ad-hoc symbols and state/loading icon consistency.
+- [ ] Complete desktop and 320/360/390 px mobile visual regression in Roblox Studio before Stage 1 sign-off.
+
+Source commits: `0bbf4f0`, `1606f79`, `9d3a189`, `c553373`, `cc7dd65`, `c5fa285`, `b8fc05a`, `2392b1c`, `34920b9`. Icon-token CI passed; typography CI runs `45151960757`, `45151969028`, `45151976802` were pending at documentation time. Studio/device validation remains outstanding.
