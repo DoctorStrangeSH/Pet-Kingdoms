@@ -516,6 +516,11 @@ local function setSelectedBuilding(catalogId: string)
 		wooden_fence = "Выбран деревянный забор",
 	}
 	setStatus(labels[catalogId] or "Выбран объект")
+	-- A different footprint may invalidate the previously locked cell.
+	if placing and placementLocked then
+		updatePreview(pointerPosition)
+		if not currentValid then placementLocked = false end
+	end
 end
 
 mainHouseButton.Activated:Connect(function()
