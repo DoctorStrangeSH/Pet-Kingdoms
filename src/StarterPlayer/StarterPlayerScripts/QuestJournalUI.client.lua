@@ -92,23 +92,21 @@ local title = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 22, 0, 17),
 	Size = UDim2.new(1, -78, 0, 31),
-	Font = Enum.Font.GothamBold,
 	Text = "ЖУРНАЛ ПРИКЛЮЧЕНИЙ",
-	TextSize = 19,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextLabel
+InterfaceComponents.StyleText(title, "Display")
 
 local subtitle = make("TextLabel", {
 	BackgroundTransparency = 1,
 	Position = UDim2.new(0, 24, 0, 51),
 	Size = UDim2.new(1, -48, 0, 25),
-	Font = Enum.Font.Gotham,
 	Text = "Небольшие дела — большие открытия",
-	TextSize = 12,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextColor3 = COLORS.muted,
 }, panel) :: TextLabel
+InterfaceComponents.StyleText(subtitle, "Caption")
 
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
