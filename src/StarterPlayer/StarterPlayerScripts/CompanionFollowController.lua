@@ -17,7 +17,8 @@ export type FollowOptions = {
 	slotIndex: number?,
 	followDistance: number?,
 	sideSpacing: number?,
-	smoothing: number?,	turnSmoothing: number?,
+	smoothing: number?,
+	turnSmoothing: number?,
 	walkSpeed: number?,
 	runSpeed: number?,
 }
@@ -532,8 +533,9 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	end
 
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
-	local nextPosition = currentPosition:Lerp(desired, alpha)
-	self.movementSpeed = (nextPosition - currentPosition).Magnitude / dt
+	local targetCFrame = CFrame.lookAt(desired, desired + self.lastFacing, self.groundNormal)
+	local nextCFrame = current:Lerp(targetCFrame, alpha)
+	self.movementSpeed = (nextCFrame.Position - currentPosition).Magnitude / dt
 
 	-- Locomotion is selected from the companion's actual displacement, not
 	-- the owner's velocity alone. This prevents idle leg cycles and sliding
@@ -555,8 +557,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		self.animation:setState(state)
 	end
 
-	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing, self.groundNormal)
-	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
+	self.model:PivotTo(nextCFrame)
 	if self.animation then
 		self.animation:update(dt)
 	end
