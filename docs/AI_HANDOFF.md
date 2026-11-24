@@ -1648,3 +1648,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Studio QA: fill the island until each catalog item's footprint has no free cell; verify the ghost disappears and Confirm stays disabled.
 - [ ] Switch from a valid catalog item to an item with no free cell, then back; verify no stale preview/coordinates and explicit tap/drag is still required.
 - Source-level change only; no Roblox Studio runtime verification has been performed.
+
+
+## Placement geometry regression coverage — 2026-11-24
+
+- [x] Commit `6addbbf`: extend `PlacementValidatorTests.server.lua` with 270-degree rectangular footprint dimensions, exact-boundary fit, out-of-bounds rejection, overlap rejection against an already-rotated rectangle, and edge-adjacent acceptance.
+- [ ] Run `PlacementValidatorTests.server.lua` in Roblox Studio and inspect client/server Output for every PASS.
+- [ ] Rojo CI build validation for test commit `6addbbf`.
+- These are committed test cases, not evidence that the validator has run in Studio.
