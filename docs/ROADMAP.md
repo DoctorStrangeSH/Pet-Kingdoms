@@ -831,3 +831,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Assert island refresh after expansion preserves that same upgrade level.
 - [ ] Run the Studio world lifecycle test to verify restored building upgrade state in the actual Roblox runtime.
 - [ ] CI validation for world regression test commit 9a29c5f.
+ 
+### Stage 1 — Quest state persistence round-trip (2026-11-24)
+
+- [x] Extend the legacy-profile fixture to omit introductory quest progress and tracked-quest selection; assert session claim migrates safe defaults.
+- [x] Persist non-default progress for both introductory quests and a non-default tracked objective in the DataStore round-trip fixture.
+- [x] Assert quest counters and tracked objective survive save/load and are present in the next claimed session.
+- [ ] CI validation for quest persistence test commit 2d772a5.
+- [ ] Execute the gated DataStore integration test in a dedicated Roblox test universe; Studio runtime verification remains required.
