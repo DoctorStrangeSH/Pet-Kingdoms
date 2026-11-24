@@ -528,6 +528,10 @@ local function spawnResourceNodes(world: Model, spawnCFrame: CFrame, profile: an
 				if descendant:IsA("BasePart") then
 					descendant.Transparency = 1
 					descendant.CanTouch = false
+				elseif descendant:IsA("BillboardGui") then
+					-- The gathering marker is part of the node's visible state too.
+					-- Hide it on initial island load just as the live respawn service does.
+					descendant.Enabled = false
 				end
 			end
 			if prompt then prompt.Enabled = false end
