@@ -860,3 +860,15 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run the pure collection contract tests in Studio.
 - [ ] Run the gated DataStore integration test in a dedicated non-production test universe.
 - [ ] Verify real pet spawn, collection UI, equip order and state after leaving/rejoining with a dedicated test account.
+ 
+### Stage 1 — Companion spawn and character lifecycle (2026-11-24)
+
+- [x] Extract server-owned equipped companion creation/cleanup into `PetCompanionSpawnService`; production still uses the approved `PetAssetLoader` only.
+- [x] Rebuild the owner's formation from the saved equipped order and assign stable pet/owner/slot attributes.
+- [x] Make formation rebuild idempotent: old models are removed before replacements are published.
+- [x] Fence model-factory yields with a current-character/session callback; cancelled attempts destroy only models created by that attempt.
+- [x] Clear the matching character's companions immediately on `CharacterRemoving`; ignore delayed removal events for an older character.
+- [x] Add Studio tests for two-pet spawn order, placement, duplicate prevention, invalid-profile rejection, stale-spawn cancellation, asset gate behavior and idempotent cleanup.
+- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, and `3388827`.
+- [ ] Run `PetCompanionSpawnServiceTests.server.lua` in Roblox Studio.
+- [ ] Import and publish the original Bunny mesh in the dedicated test universe, then verify actual model spawn/follow after join, death/respawn and rejoin. Do not enable an unapproved Creator Store replacement.
