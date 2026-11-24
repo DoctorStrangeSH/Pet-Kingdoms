@@ -880,7 +880,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Detect a blocked direct follow segment with a client raycast and select a short-lived lateral waypoint around the obstacle; re-check the direct route after reaching the waypoint.
 - [x] Size the lateral clearance from the obstacle's oriented bounds and the pet's footprint; if both sides are blocked, do not repeatedly steer into the obstruction.
 - [x] Add Studio regression coverage for wall detection, lateral clearance, ground alignment, and scale-aware ground metadata.
-- [ ] Rojo build validation for commits `cfc95c6`, `5cf865d`, `8d26140`, `5cd34b4`, `01768ec`, `a0ddbd2`, `a815332`, `801a993`, and `f21a69e`.
+- [ ] Rojo build validation for commits `cfc95c6`, `5cf865d`, `8d26140`, `5cd34b4`, `01768ec`, `a0ddbd2`, `a815332`, `801a993`, `f21a69e`, `b2a3d0e`, and `5e341c8`.
 - [ ] Run `CompanionFollowControllerTests.client.lua` with `Workspace.RunPetKingdomsStudioTests = true` in Roblox Studio; inspect the client Output for every PASS.
 - [ ] Verify following around actual island buildings, fences, paths, ramps, and bridges with the published Bunny mesh. A single wall fixture does not prove full navigation around complex geometry.
 - [ ] Verify walk/run/idle transitions, slopes, jumps, streaming gaps, death/respawn and mobile frame pacing in Studio on desktop and a physical mobile device.
