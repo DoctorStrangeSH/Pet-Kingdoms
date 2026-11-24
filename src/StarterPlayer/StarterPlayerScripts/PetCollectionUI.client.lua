@@ -1112,8 +1112,20 @@ resize = function()
 		interactionRow.Visible = true
 		mobileBackButton.Visible = false
 	end
+	-- Keep the panel centered in the usable rectangle in both compact and desktop layouts.
+	-- The open animation must start from this computed position, not reset it to viewport-relative scale coordinates.
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
 	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
 	confirmPanel.Size = UDim2.fromOffset(confirmWidth, 178)
+	confirmPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	confirmPanel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
 	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
 	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
@@ -1147,10 +1159,16 @@ local function openCollection()
 	shade.BackgroundTransparency = 1
 	panel.Visible = true
 	resize()
-	panel.Position = UDim2.fromScale(0.5, 0.54)
+	local restingPosition = panel.Position
+	panel.Position = UDim2.new(
+		restingPosition.X.Scale,
+		restingPosition.X.Offset,
+		restingPosition.Y.Scale,
+		restingPosition.Y.Offset + 12
+	)
 	TweenService:Create(shade, TweenInfo.new(0.16), { BackgroundTransparency = 0.42 }):Play()
 	TweenService:Create(panel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Position = UDim2.fromScale(0.5, 0.5),
+		Position = restingPosition,
 	}):Play()
 	refreshCollection()
 end
