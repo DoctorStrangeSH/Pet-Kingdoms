@@ -1044,7 +1044,7 @@ local function beginMoveSelected()
 		placing = false
 		movingInstanceId = nil
 		panel.Visible = false
-		if buildEntryButton then buildEntryButton.Visible = true end
+		if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
 		confirmButton.Text = "ПОСТРОИТЬ"
 		mainHouseButton.Active = true
 		petHouseButton.Active = true
@@ -1072,7 +1072,7 @@ local function stopPlacing()
 	placing = false
 	movingInstanceId = nil
 	panel.Visible = false
-	if buildEntryButton then buildEntryButton.Visible = true end
+	if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
 	if not overview.Visible then ModalManager.Close(script.Name) end
 	clearPreview()
 	mainHouseButton.Active = true
@@ -1105,7 +1105,7 @@ local function beginPlacing()
 	if currentPreview == nil then
 		placing = false
 		panel.Visible = false
-		if buildEntryButton then buildEntryButton.Visible = true end
+		if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
 		if selectedBuildingModel and selectedBuildingModel.Parent then
 			moveButton.Visible = true
 			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
@@ -1719,11 +1719,11 @@ end)
 addBuildEntry()
 ModalManager.ActiveChanged:Connect(function(activeName: string?)
 	if buildEntryButton then
-		buildEntryButton.Visible = activeName == nil and not placing and not overview.Visible
+		buildEntryButton.Visible = activeName == nil and not placing and not overview.Visible and not recoveryPanel.Visible
 	end
 end)
 if buildEntryButton then
-	buildEntryButton.Visible = ModalManager.GetActive() == nil and not placing and not overview.Visible
+	buildEntryButton.Visible = ModalManager.GetActive() == nil and not placing and not overview.Visible and not recoveryPanel.Visible
 end
 resizeBuildingPanel()
 print("[PetKingdoms] Building controller loaded.")
