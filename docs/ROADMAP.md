@@ -742,3 +742,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for immediate rotation feedback commit 07791bf.
 - [ ] Verify touch rotate updates the silhouette before confirmation; verify invalid rotated footprints become red and cannot be submitted.
 - [ ] Verify the full six-entry place/move/cancel/save flow in Roblox Studio; Stage 1 remains open.
+
+### Stage 1 — Touch-drag building placement (2026-11-24)
+
+- [x] Add a drag gesture for touch placement: after the finger moves beyond the tap threshold, the local building ghost follows the finger across the player's island.
+- [x] On release, validate and lock the final cell only when the footprint is valid; invalid/out-of-island targets remain unconfirmable.
+- [x] Preserve tap-to-place for short stationary touches and keep two-finger gestures blocked from selecting world cells.
+- [x] Preserve the existing guard that ignores touches beginning on interactive UI controls.
+- [x] Confirm CI passed for immediate placement-rotation feedback (07791bf, run 45350635172).
+- [ ] CI validation for touch-drag placement commit 4d3cd46 (run 45351087149).
+- [ ] Verify on a real touch device: tap selection, drag preview, release-to-lock, rotate after drag, invalid footprint rejection, two-finger camera gestures and UI-originated gestures.
+- [ ] Verify server confirmation, resource deduction and persistence after a successful drag placement; Stage 1 remains open.
