@@ -1129,3 +1129,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Selecting another building or empty ground removes the previous highlight; selecting nil also resets the status text.
 - [x] Destroying the selected model disconnects selection state and removes its highlight through the existing Destroying handler.
 - [ ] Verify highlight visibility/occlusion, touch selection, deselection, and selection while opening/closing construction UI in Studio. Runtime validation pending.
+
+
+### Stage 1 — Resource HUD compact card overflow (2026-11-24)
+
+- [x] Remove the compact HUD's forced minimum width so the resource bar cannot extend into the construction-launcher lane on narrow screens.
+- [x] Set compact resource cards to a fixed 34 px grid-cell height and cap the compact root at 84 px, keeping the four resources in a bounded 2×2 layout.
+- [ ] Verify in Studio at phone/tablet sizes that card rows no longer stretch vertically and the build launcher remains independently tappable. Screenshot-driven source fix; runtime visual validation pending.
