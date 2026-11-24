@@ -1761,3 +1761,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `0f9b4e2`: Pet Collection compact panel now uses the safe available width/height, clamps its dimensions, and centers within the usable ScreenGui region. Its ScreenGui uses `IgnoreGuiInset=false`.
 - [ ] Confirm actual Roblox Studio safe-area coordinates; do not assume all screens share the same inset behavior. Other windows remain to be migrated individually after checking their ScreenGui settings.
 - [ ] Runtime and visual validation pending; no device acceptance claimed.
+
+
+## Safe viewport migration — Quest Journal and Island Expansion — 2026-11-24
+
+- [x] Commit `0149a16`: Quest Journal consumes `GetSafeViewport` and `ClampPanelSize`, then sizes/centers the panel within the usable ScreenGui region.
+- [x] Commit `52ad37e`: Island Expansion consumes the same helpers and clamps/centers its panel within the usable region.
+- [x] Existing compact and ultra-short content reflow rules are retained; this change targets outer panel bounds, not a full redesign of inner controls.
+- [ ] Validate in Roblox Studio: actual safe inset values, title/close/refresh controls, journal tracker, expansion cards, orientation changes and mobile tap targets. Source-level CI is not runtime acceptance.
