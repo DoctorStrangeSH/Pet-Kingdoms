@@ -55,6 +55,11 @@ export type FollowController = {
 	pathDetourUntil: number,
 	nextObstacleScan: number,
 	lastPathTarget: Vector3?,
+	jumpElapsed: number,
+	jumpDuration: number,
+	jumpHeight: number,
+	wasOwnerAirborne: boolean,
+	nextJumpAt: number,
 	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
@@ -239,6 +244,11 @@ function CompanionFollowController.new(
 		pathDetourUntil = 0,
 		nextObstacleScan = 0,
 		lastPathTarget = nil,
+		jumpElapsed = -1,
+		jumpDuration = 0.68,
+		jumpHeight = 2.2,
+		wasOwnerAirborne = false,
+		nextJumpAt = 0,
 	}, CompanionFollowController)
 
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
@@ -280,6 +290,37 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	local current = self.model:GetPivot()
 	local currentPosition = current.Position
 	local lagDistance = horizontal(desired - currentPosition).Magnitude
+
+	-- Mirror the owner's take-off with one short, cosmetic companion hop.
+	-- Freefall while descending does not trigger a new jump; the airborne
+	-- edge and cooldown prevent repeated hops during one player jump.
+	local ownerHumanoid = self.targetRoot.Parent:FindFirstChildOfClass("Humanoid")
+	local ownerState = if ownerHumanoid and ownerHumanoid:IsA("Humanoid")
+		then ownerHumanoid:GetState()
+		else nil
+	local ownerAirborne = ownerState == Enum.HumanoidStateType.Jumping
+		or ownerState == Enum.HumanoidStateType.Freefall
+	local ownerJumpStarted = ownerState == Enum.HumanoidStateType.Jumping
+		or (ownerState == Enum.HumanoidStateType.Freefall and self.targetRoot.AssemblyLinearVelocity.Y >= 7)
+	if ownerJumpStarted and not self.wasOwnerAirborne and os.clock() >= self.nextJumpAt
+		and lagDistance <= 18
+	then
+		self.jumpElapsed = 0
+		self.nextJumpAt = os.clock() + 1.1
+	end
+	self.wasOwnerAirborne = ownerAirborne
+
+	local jumpOffset = 0
+	local jumpActive = false
+	if self.jumpElapsed >= 0 then
+		self.jumpElapsed += math.min(dt, 0.1)
+		local jumpProgress = math.clamp(self.jumpElapsed / self.jumpDuration, 0, 1)
+		jumpOffset = math.sin(math.pi * jumpProgress) * self.jumpHeight
+		jumpActive = jumpProgress < 1
+		if not jumpActive then
+			self.jumpElapsed = -1
+		end
+	end
 
 	-- If the player outruns a companion for a while, it should visibly hurry
 	-- instead of sliding with an idle animation. Very large gaps can happen
@@ -436,6 +477,11 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		elseif lagDistance > 1.1 then
 			state = "walk"
 		end
+	end
+
+	if jumpActive then
+		desired += Vector3.new(0, jumpOffset, 0)
+		state = "jump"
 	end
 
 	if self.animation then
