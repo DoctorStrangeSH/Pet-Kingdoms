@@ -339,16 +339,20 @@ local function resizeBuildingPanel()
 	local compact = viewport.X < 520
 	compactBuildingUI = compact
 	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
-	local panelHeight = if compact then 198 else 228
-	panelScale.Scale = math.clamp((viewport.Y - 72) / panelHeight, 0.72, 1)
-	panelConstraint.MinSize = Vector2.new(220, if compact then 190 else 210)
+	local panelHeight = if compact then 190 else 228
+	-- Keep touch targets usable. Only apply a small scale reduction on very
+	-- short viewports; ordinary phones use the full compact layout.
+	panelScale.Scale = if compact then math.clamp((viewport.Y - 100) / panelHeight, 0.82, 1)
+		else math.clamp((viewport.Y - 72) / panelHeight, 0.82, 1)
+	panelConstraint.MinSize = Vector2.new(220, if compact then 184 else 210)
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
-	status.Position = UDim2.fromOffset(0, compact and 28 or 30)
-	status.Size = UDim2.new(1, 0, 0, compact and 23 or 30)
-	catalogRow.Position = UDim2.fromOffset(0, compact and 54 or 62)
-	catalogRow.Size = UDim2.new(1, 0, 0, compact and 66 or 84)
-	buttons.Position = UDim2.fromOffset(0, compact and 128 or 157)
-	panel.Position = UDim2.new(0.5, 0, 1, compact and -10 or -22)
+	status.Position = UDim2.fromOffset(0, compact and 27 or 30)
+	status.Size = UDim2.new(1, 0, 0, compact and 24 or 30)
+	catalogRow.Position = UDim2.fromOffset(0, compact and 52 or 62)
+	catalogRow.Size = UDim2.new(1, 0, 0, compact and 62 or 84)
+	buttons.Position = UDim2.fromOffset(0, compact and 120 or 157)
+	buttons.Size = UDim2.new(1, 0, 0, 48)
+	panel.Position = UDim2.new(0.5, 0, 1, compact and -8 or -22)
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
 	local gap = 8
 	local available = contentWidth - 2 * gap
@@ -358,9 +362,10 @@ local function resizeBuildingPanel()
 	if title and title:IsA("TextLabel") then title.TextSize = if compact then 15 else 18 end
 	status.TextSize = if tiny then 10 else (if compact then 11 else 12)
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
-		button.TextSize = if tiny then 10 else (if compact then 11 else 13)
-		button.Size = UDim2.fromOffset(compact and 118 or 130, compact and 54 or 70)
+		button.TextSize = if tiny then 9 else (if compact then 10 else 13)
+		button.Size = UDim2.fromOffset(compact and (if tiny then 106 else 112) or 130, compact and 52 or 70)
 	end
+	catalogRow.ScrollBarThickness = if compact then 3 else 4
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth
