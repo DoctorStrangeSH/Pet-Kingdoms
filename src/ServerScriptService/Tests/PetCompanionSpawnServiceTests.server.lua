@@ -113,7 +113,7 @@ local invalidCount, invalidStatus = PetCompanionSpawnService.spawn(
 	isCurrent
 )
 expect("foreign collection cannot spawn companions",
-	invalidCount == 0 and string.sub(invalidStatus, 1, 16) == "INVALID_PROFILE")
+	invalidCount == 0 and string.sub(invalidStatus, 1, 15) == "INVALID_PROFILE")
 expect("invalid profile does not destroy the current valid formation", #playerFolder:GetChildren() == 2)
 
 local factoryCalls = 0
