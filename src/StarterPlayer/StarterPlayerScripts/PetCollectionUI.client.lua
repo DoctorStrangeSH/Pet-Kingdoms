@@ -889,7 +889,8 @@ resize = function()
 	title.TextSize = if compactCollection then 16 else 22
 	subtitle.TextSize = if compactCollection then 11 else 12
 	search.TextSize = if compactCollection then 12 else 14
-	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.46 or 0.55, 0)
+	-- Reserve a full 48 px touch target plus a gap above the expansion launcher on short landscape screens.
+	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.34 or 0.55, 0)
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
 		local veryShort = viewport.Y < 400
