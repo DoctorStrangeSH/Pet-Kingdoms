@@ -1097,3 +1097,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Clamp selection action row width against the safe viewport rather than the raw viewport, and position the build launcher within safe-area bounds.
 - [x] Keep catalogue collapse/reopen state and placement mode independent; resize does not cancel or recreate the active preview.
 - [ ] Verify construction UI and selection actions on 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop; test collapsed/reopened panel, rotate, confirm, cancel, move, demolish, and camera/orientation changes in Studio. Stage 1 remains open.
+
+
+### Stage 1 — Resource HUD safe-area alignment (2026-11-24)
+
+- [x] Resource HUD now uses the shared safe viewport helper instead of raw viewport coordinates.
+- [x] Compact HUD reserves the construction launcher lane using safe width and anchors inside the safe top-left area.
+- [x] Desktop HUD centers within the safe area and clamps its width to available space.
+- [ ] Verify resource HUD/launcher separation and text fit at 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop in Roblox Studio. Stage 1 remains open.
