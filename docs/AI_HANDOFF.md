@@ -1475,3 +1475,18 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Replaced local font declarations and common text sizes with `InterfaceTheme.Typography` tokens for resource amounts, resource labels, gather toast, kingdom-bond status, and responsive resizing. Replaced local corner radii with `InterfaceTheme.Radii` and the kingdom-bond house glyph with `InterfaceTheme.Icons.Build`.
 - Static audit confirms no remaining local duplicate base palette, no direct Gotham font declarations, and all color references resolve to defined shared theme tokens. Responsive 2×2 mobile / 4-column desktop layout and resource-specific accent colors remain unchanged.
 - CI run `45153168859` for this HUD migration was in progress at documentation time. No Roblox Studio visual/device test has been performed. Next: run the final screen overflow/spacing audit and prepare a focused Studio checklist; Stage 1 remains open pending user-side runtime verification.
+
+## Island persistence follow-up — 2026-11-24
+
+- [x] Extended the gated DataStore round-trip fixture to cover all six current building catalogue entries, shifted grid coordinates after level-1 expansion, all four wallet balances, one resource cooldown, a durable building-operation receipt, and a level-2 Pet House upgrade.
+- [x] Added validation for optional persisted building `upgradeLevel`: integer, at least 1, no higher than the catalogue maximum, and only allowed for upgradeable catalogue entries. Legacy records with no field remain valid and render as level 1.
+- [x] Added data-contract tests for valid level 2, over-maximum level 4, and fractional level 1.5.
+- [x] Fixed restored resource cooldown visuals so the gathering BillboardGui is disabled together with the model parts and ProximityPrompt.
+- [x] Extended the island-world lifecycle test to assert cooldown marker visibility and to assert the level-2 Pet House upgrade attribute survives initial spawn and island refresh after expansion.
+- [x] Added `docs/testing/ISLAND_PERSISTENCE_TESTING.md` and updated it with all six building types, upgrade persistence, cooldown marker visibility, and isolated DataStore test setup.
+- [ ] CI remains queued for commits `b314415`, `cb6a737`, `729e3ad`, `cff57f7`, `2e2ceb2`, `306227e`, `500565e`, `b0f2635`, and `9a29c5f` at the latest inspection. Do not mark those checks green until GitHub reports completed/success.
+- [x] The earlier persistence contract commit `4f3cf84` has a successful Rojo build (run `45352472617`).
+- [ ] Execute Studio-only `IslandDataTests.server.lua` and `IslandWorldServiceTests.server.lua`; a successful Rojo build does not execute these scripts.
+- [ ] Run `IslandStoreTests.server.lua` only in a dedicated non-production test universe with `Workspace.RunIslandStoreIntegrationTests = true` and Studio API access enabled. Never point synthetic records at production DataStores.
+- [ ] Perform the full player journey: gather, build all six types, upgrade Pet House, expand, leave/rejoin twice, and verify balances, positions, upgrade level, cooldown timestamps, and markers.
+- [ ] Keep island persistence Stage 1 open until the Studio and manual checks above are recorded. No new expansion purchase economy should be invented before the economy balance sheet is approved.
