@@ -868,13 +868,33 @@ local function updatePreviewAtCell(x: number, z: number)
 	setStatus(message, valid)
 end
 
+-- Hide every placement indicator and invalidate its coordinates when
+-- there is no selectable ground/cell. Never leave a stale ghost on screen.
+local function hideUnavailablePreview()
+	currentValid = false
+	currentCellX, currentCellZ = nil, nil
+	placementLocked = false
+	if currentPreview then currentPreview.Transparency = 1 end
+	if previewVisual then
+		for _, descendant in ipairs(previewVisual:GetDescendants()) do
+			if descendant:IsA("BasePart") then descendant.Transparency = 1 end
+		end
+		local highlight = previewVisual:FindFirstChild("PlacementHighlight")
+		if highlight and highlight:IsA("Highlight") then highlight.Enabled = false end
+	end
+end
+
 -- Show a tangible preview as soon as construction starts, even when the
 -- cursor remains over the catalogue or the player is using touch.
 -- This is a visual starting point only: the player still taps/clicks to lock it.
 local function seedPreview()
 	if not placing or currentPreview == nil then return end
 	local _, width, depth = getIslandGrid()
-	if width == nil or depth == nil then return end
+	if width == nil or depth == nil then
+		hideUnavailablePreview()
+		setStatus("Не удалось найти сетку острова", false)
+		return
+	end
 	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
 	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
 	local centerX = math.floor((width - footprintWidth) / 2)
@@ -896,6 +916,7 @@ local function seedPreview()
 		updatePreviewAtCell(bestX, bestZ)
 		placementLocked = false
 	else
+		hideUnavailablePreview()
 		setStatus("На острове нет свободного места для этой постройки", false)
 	end
 end
