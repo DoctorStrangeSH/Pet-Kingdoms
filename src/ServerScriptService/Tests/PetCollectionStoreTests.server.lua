@@ -58,7 +58,9 @@ local function runIntegrationScenario()
 		claimStatus = status
 		return claimed
 	end)
-	assert(claimOk and type(profile) == "table" and claimStatus == "CLAIMED",
+	assert(claimOk and type(profile) == "table"
+		and (claimStatus == "CLAIMED" or claimStatus == "ALREADY_CLAIMED")
+		and PetCollectionSessionData.owns(profile, 1, firstToken),
 		"first collection session claim failed: " .. claimStatus)
 	local valid, reason = PetCollectionData.validate(profile, syntheticUserId)
 	assert(valid, "new collection profile is invalid: " .. reason)
@@ -203,7 +205,13 @@ local function runIntegrationScenario()
 		secondClaimStatus = status
 		return claimed
 	end)
-	assert(secondClaimOk and type(secondSession) == "table" and secondClaimStatus == "CLAIMED",
+	assert(secondClaimOk and type(secondSession) == "table"
+		and (secondClaimStatus == "CLAIMED" or secondClaimStatus == "ALREADY_CLAIMED")
+		and PetCollectionSessionData.owns(
+			secondSession,
+			loaded.collectionSessionGeneration + 1,
+			secondToken
+		),
 		"second collection session claim failed: " .. secondClaimStatus)
 	assert(secondSession.collectionSessionGeneration == loaded.collectionSessionGeneration + 1,
 		"new collection session did not advance the writer generation")
