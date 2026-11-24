@@ -1251,4 +1251,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Rotate individual cell tiles with the footprint so asymmetric objects show the correct occupied area at every supported rotation.
 - [x] Use valid/invalid tint and restrained transparency to distinguish free placement from overlap/out-of-bounds without obscuring the island.
 - [x] Rebuild cell tiles only when the rotated footprint dimensions change; reuse them while the preview moves to reduce per-frame instance churn.
+- [x] GitHub Actions run #761: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify all catalog footprints, rotation transitions, mobile performance, and visual clarity in Roblox Studio. Runtime validation pending.
