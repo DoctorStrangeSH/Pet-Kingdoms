@@ -142,8 +142,8 @@ expect("extremely distant companion recovers near its owner",
 		- Vector3.new(catchUpTarget.X, 0, catchUpTarget.Z)).Magnitude < 5)
 
 -- Turning should blend toward a new travel direction instead of snapping.
-target.CFrame = CFrame.new(0, 5, 0)
-target.AssemblyLinearVelocity = Vector3.new(10, 0, 0)
+target.AssemblyLinearVelocity = Vector3.zero
+target.CFrame = CFrame.lookAt(Vector3.new(0, 5, 0), Vector3.new(1, 5, 0))
 pets[1]:PivotTo(CFrame.new(-2.4, 0.28, 4.5))
 controllers[1].lastFacing = Vector3.new(0, 0, -1)
 controllers[1].nextObstacleScan = os.clock() + 10
