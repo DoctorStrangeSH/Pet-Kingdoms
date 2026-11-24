@@ -1712,3 +1712,16 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `2618e98`: integrate preparation into `IslandWorldService.getBuildingTemplate`; clone records `PhysicsPartCount`, `PhysicsAnchoredCount`, and `PhysicsTouchDisabledCount` for diagnostics.
 - [x] Commit `3b1b147`: add Studio smoke coverage for anchored parts, touch-disabled parts, and collision/query preservation.
 - [ ] Run tests against real ServerStorage templates in Studio; verify ProximityPrompt and player collision behavior in the live experience. Runtime validation pending.
+
+
+## Screenshot-driven interface correction — 2026-11-24
+
+- [x] Commit `6882535`: fixed Resource HUD bootstrap by packing the three-value RemoteFunction response before passing through RequestRunner. Previous code destructured `result.value` as though it were a tuple, but RequestRunner retained only the first callback return; the snapshot was therefore nil and counters stayed on the loading placeholder.
+- [x] Commit `10fe8fe`: replaced Unicode resource symbols with native Roblox UI-shape pictograms for wood, stone, gold, and gems.
+- [x] Commit `4951a82`: compact Quest Journal cards reduced to 110 px, with a native wood/stone icon, one-line description, progress and tracking action.
+- [x] Commit `80eabae`: Quest Journal launcher and refresh controls no longer depend on unsupported font glyphs; launcher uses a drawn book and refresh uses a drawn ring with readable `ОБН` fallback.
+- [x] Commit `f9819d4`: Pet Collection launcher and pet rows use native paw pictograms instead of the ambiguous clover/pet glyphs.
+- [x] Commits `345b53f` and `258e92d`: removed missing-glyph symbols from construction catalogue, costs, rotation and selection actions; material costs are explicit Russian words.
+- [x] Commits `a9f3f40` and `784ad64`: added construction panel collapse/reopen while placement remains active; collapse does not cancel the preview or release the modal.
+- [ ] Validate the latest source with pinned Rojo CI, then run Studio visual/device tests at the documented viewport sizes. No Studio execution or visual approval is claimed yet.
+- [ ] Resource wallet currently exposes `wood`, `stone`, `gold`, and `gems`. User wording mentioned iron; clarify only if they intend a new resource, and do not substitute it for stone without approval.
