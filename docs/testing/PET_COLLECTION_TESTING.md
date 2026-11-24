@@ -87,7 +87,7 @@ The client follow regression creates a temporary 18-degree ramp and verifies tha
 
 1. Use the dedicated Studio test place with Workspace boolean attribute `RunPetKingdomsStudioTests = true`.
 2. Start **Test → Start** with a client and keep the selected client's Output visible.
-3. Confirm PASS lines for ramp surface alignment and supported slope limit, followed by the normal companion follow test completion message.
+3. Confirm PASS lines for ramp surface alignment and the near-vertical upright fallback, followed by the normal companion follow test completion message.
 4. Confirm the temporary ramp is removed when the test completes.
 
 This verifies one deterministic ramp fixture. Manually test the real island's bridges, ramps, uneven terrain and flat-to-slope transitions with the published Bunny mesh.
