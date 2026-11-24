@@ -17,10 +17,10 @@ local update = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local COLORS = InterfaceTheme.Colors
 
 local RESOURCES = {
-	{ id = "wood", icon = InterfaceTheme.Icons.Wood, label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
-	{ id = "stone", icon = InterfaceTheme.Icons.Stone, label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
-	{ id = "gold", icon = InterfaceTheme.Icons.Gold, label = "ЗОЛОТО", color = COLORS.gold },
-	{ id = "gems", icon = InterfaceTheme.Icons.Gems, label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
+	{ id = "wood", label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
+	{ id = "stone", label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
+	{ id = "gold", label = "ЗОЛОТО", color = COLORS.gold },
+	{ id = "gems", label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
 }
 
 local screen = Instance.new("ScreenGui")
@@ -60,6 +60,64 @@ layout.CellPadding = UDim2.fromOffset(6, 4)
 layout.Parent = root
 
 local amountLabels: { [string]: TextLabel } = {}
+
+-- Draw resource pictograms from native UI shapes instead of font glyphs.
+-- This avoids missing-glyph squares on devices with different font fallback.
+local function createResourceIcon(parent: Instance, resourceId: string, tint: Color3)
+	local icon = Instance.new("Frame")
+	icon.Name = "ResourceIcon"
+	icon.BackgroundTransparency = 1
+	icon.Position = UDim2.new(0, 5, 0, 0)
+	icon.Size = UDim2.fromOffset(27, 36)
+	icon.Parent = parent
+
+	local function shape(name: string, size: UDim2, position: UDim2, color: Color3, radius: number, rotation: number?)
+		local item = Instance.new("Frame")
+		item.Name = name
+		item.AnchorPoint = Vector2.new(0.5, 0.5)
+		item.Position = position
+		item.Size = size
+		item.BackgroundColor3 = color
+		item.BorderSizePixel = 0
+		item.Rotation = rotation or 0
+		item.Parent = icon
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, radius)
+		corner.Parent = item
+		return item
+	end
+
+	if resourceId == "wood" then
+		local log = shape("Log", UDim2.fromOffset(19, 9), UDim2.fromScale(0.5, 0.5), Color3.fromRGB(132, 91, 56), 4, -28)
+		local outline = Instance.new("UIStroke")
+		outline.Color = tint
+		outline.Thickness = 1.3
+		outline.Parent = log
+		for index, x in ipairs({ 0.19, 0.81 }) do
+			local ring = shape("CutRing" .. index, UDim2.fromOffset(5, 5), UDim2.new(x, 0, 0.5, 0), Color3.fromRGB(226, 190, 137), 3, -28)
+			ring.BackgroundTransparency = 0.05
+		end
+	elseif resourceId == "stone" then
+		shape("BackRock", UDim2.fromOffset(12, 12), UDim2.new(0.37, 0, 0.54, 0), Color3.fromRGB(106, 119, 139), 3, 18)
+		shape("FrontRock", UDim2.fromOffset(12, 14), UDim2.new(0.63, 0, 0.48, 0), tint, 3, -12)
+	elseif resourceId == "gold" then
+		local coin = shape("Coin", UDim2.fromOffset(17, 17), UDim2.fromScale(0.5, 0.5), tint, 9)
+		local outline = Instance.new("UIStroke")
+		outline.Color = Color3.fromRGB(255, 238, 176)
+		outline.Thickness = 1.5
+		outline.Parent = coin
+		shape("CoinCenter", UDim2.fromOffset(5, 5), UDim2.fromScale(0.5, 0.5), Color3.fromRGB(255, 238, 176), 3)
+	else
+		local gem = shape("Gem", UDim2.fromOffset(13, 17), UDim2.fromScale(0.5, 0.5), tint, 2, 45)
+		local outline = Instance.new("UIStroke")
+		outline.Color = Color3.fromRGB(218, 250, 255)
+		outline.Thickness = 1.2
+		outline.Parent = gem
+		shape("GemFacet", UDim2.fromOffset(3, 12), UDim2.fromScale(0.5, 0.5), Color3.fromRGB(218, 250, 255), 1, 45)
+	end
+	return icon
+end
+
 for _, resource in ipairs(RESOURCES) do
 	local chip = Instance.new("Frame")
 	chip.Name = resource.id .. "Chip"
@@ -69,14 +127,7 @@ for _, resource in ipairs(RESOURCES) do
 	chip.Parent = root
 	Instance.new("UICorner", chip).CornerRadius = InterfaceTheme.Radii.Medium
 
-	local icon = Instance.new("TextLabel")
-	icon.BackgroundTransparency = 1
-	icon.Position = UDim2.new(0, 5, 0, 0)
-	icon.Size = UDim2.new(0, 27, 1, 0)
-	icon.Font = InterfaceTheme.Typography.Body
-	icon.Text = resource.icon
-	icon.TextSize = InterfaceTheme.Typography.Sizes.Numeric
-	icon.Parent = chip
+	createResourceIcon(chip, resource.id, resource.color)
 
 	local amount = Instance.new("TextLabel")
 	amount.Name = "Amount"
@@ -233,12 +284,11 @@ local function resize()
 	padding.PaddingRight = UDim.new(0, compact and 6 or 7)
 	for _, child in ipairs(root:GetChildren()) do
 		if child:IsA("Frame") then
-			local icon = child:FindFirstChildWhichIsA("TextLabel")
+			local icon = child:FindFirstChild("ResourceIcon")
 			local amount = child:FindFirstChild("Amount")
 			local label = child:FindFirstChild("ResourceName")
-			if icon and icon ~= amount and icon ~= label then
+			if icon and icon:IsA("Frame") then
 				icon.Size = UDim2.fromOffset(tiny and 22 or 27, 36)
-				icon.TextSize = tiny and 16 or InterfaceTheme.Typography.Sizes.Numeric
 			end
 			if amount and amount:IsA("TextLabel") then
 				amount.Position = UDim2.new(0, tiny and 27 or 32, 0, 1)
