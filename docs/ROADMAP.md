@@ -1244,3 +1244,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Hide the guide whenever the pointer is not over a valid island cell and destroy it with the preview on cancel/close.
 - [ ] Verify guide alignment for every footprint/rotation, overlap/out-of-bounds colors, touch movement, and no residual outline after cancel in Roblox Studio. Runtime validation pending.
 - [x] GitHub Actions run #759: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
+
+### Stage 1 — Per-cell placement footprint preview (2026-11-24)
+
+- [x] Render a subtle local tile for every cell occupied by the selected building footprint, in addition to the four-sided outer guide.
+- [x] Rotate individual cell tiles with the footprint so asymmetric objects show the correct occupied area at every supported rotation.
+- [x] Use valid/invalid tint and restrained transparency to distinguish free placement from overlap/out-of-bounds without obscuring the island.
+- [x] Rebuild cell tiles only when the rotated footprint dimensions change; reuse them while the preview moves to reduce per-frame instance churn.
+- [ ] Verify all catalog footprints, rotation transitions, mobile performance, and visual clarity in Roblox Studio. Runtime validation pending.
