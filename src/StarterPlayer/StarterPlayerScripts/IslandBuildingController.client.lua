@@ -1352,7 +1352,10 @@ local function updatePreviewAtCell(x: number, z: number)
 	end
 	currentPreview.Transparency = 0.65
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
-	local message = if not inside then "Объект выходит за границы острова" elseif overlaps then "Это место уже занято другим объектом" else "Место подходит — можно разместить"
+	local reason = if not inside then "Выход за границы острова"
+		elseif overlaps then "Клетки заняты другой постройкой"
+		else "Место свободно"
+	local message = string.format("Размер: %d × %d клетки • %s", footprintWidth, footprintDepth, reason)
 	setStatus(message, valid)
 end
 
@@ -1775,12 +1778,24 @@ confirmButton.Activated:Connect(function()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
 		local messages = {
-			INSUFFICIENT_RESOURCES = "Не хватает ресурсов: деревья дают +3 дерева, жилы — +2 камня",
+			INSUFFICIENT_RESOURCES = "Не хватает ресурсов для этой постройки",
+			NOT_ENOUGH_WOOD = "Не хватает дерева",
+			NOT_ENOUGH_STONE = "Не хватает камня",
+			NOT_ENOUGH_GOLD = "Не хватает золота",
+			NOT_ENOUGH_GEMS = "Не хватает самоцветов",
 			SESSION_NOT_READY = "Остров ещё загружается",
-			SESSION_NOT_WRITABLE = "Сейчас нельзя сохранить изменения. Попробуй позже",
-			BUILDING_LIMIT_REACHED = "На острове больше нельзя размещать постройки",
-			FOOTPRINT_OVERLAP = "Это место уже занято",
-			OUT_OF_BOUNDS = "Постройка выходит за границы острова",
+			SESSION_NOT_WRITABLE = "Сохранение временно недоступно. Попробуй позже",
+			BUILDING_LIMIT_REACHED = "Достигнут лимит построек на острове",
+			BUILDING_LOCKED = "Эта постройка пока заблокирована",
+			UNKNOWN_BUILDING = "Не удалось найти выбранную постройку",
+			FOOTPRINT_OVERLAP = "Клетки заняты другой постройкой",
+			OUT_OF_BOUNDS = "Часть постройки выходит за границы острова",
+			ROTATION_NOT_ALLOWED = "Эту постройку нельзя повернуть так",
+			MOVE_TARGET_NOT_FOUND = "Постройка для перемещения больше не найдена",
+			INVALID_MOVE_TARGET = "Не удалось определить перемещаемую постройку",
+			INVALID_REQUEST = "Не удалось проверить параметры размещения",
+			INVALID_OR_UNOWNED_ISLAND = "Можно строить только на своём острове",
+			ISLAND_STATE_INVALID = "Данные острова требуют обновления. Перезайди на остров",
 		}
 		setStatus(messages[code] or ("Сервер отклонил постройку: " .. code), false)
 		NotificationManager.Notify(messages[code] or "Сервер отклонил постройку", "error")
