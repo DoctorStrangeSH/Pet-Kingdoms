@@ -1490,3 +1490,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run `IslandStoreTests.server.lua` only in a dedicated non-production test universe with `Workspace.RunIslandStoreIntegrationTests = true` and Studio API access enabled. Never point synthetic records at production DataStores.
 - [ ] Perform the full player journey: gather, build all six types, upgrade Pet House, expand, leave/rejoin twice, and verify balances, positions, upgrade level, cooldown timestamps, and markers.
 - [ ] Keep island persistence Stage 1 open until the Studio and manual checks above are recorded. No new expansion purchase economy should be invented before the economy balance sheet is approved.
+
+## Quest persistence follow-up — 2026-11-24
+
+- [x] Extended the isolated `IslandStoreTests.server.lua` fixture to model legacy schema-v1 profiles without `questProgress` or `trackedQuestId`; session claim must migrate both to safe defaults.
+- [x] Added a non-default save/load case for both introductory quest counters (`gather_wood = 2`, `gather_stone = 1`) and selected tracked objective (`gather_stone`).
+- [x] Assert the quest state survives DataStore reload and remains present in the next claimed session generation.
+- [ ] CI validation for commit `2d772a5`; run remains pending until GitHub Actions reports a completed result.
+- [ ] Execute the gated integration test only in a dedicated test universe, then verify the tracked quest and counters in a real leave/rejoin Studio journey.
