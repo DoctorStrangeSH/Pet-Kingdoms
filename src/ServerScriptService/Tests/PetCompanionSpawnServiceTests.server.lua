@@ -134,6 +134,38 @@ expect("stale spawn is cancelled between pet creations",
 expect("cancelled spawn removes only models created by its own attempt",
 	#playerFolder:GetChildren() == 0)
 
+-- Simulate a newer character spawn starting while an older model factory yields.
+-- The old attempt must not erase the newer formation when it resumes.
+local generation = 1
+local oldGeneration = generation
+local nestedStarted = false
+local nestedCount = 0
+local nestedStatus = "NOT_STARTED"
+local staleCount, staleStatus = PetCompanionSpawnService.spawn(
+	ownerUserId,
+	character,
+	equippedProfile,
+	function(speciesId: string, scale: number?)
+		if not nestedStarted then
+			nestedStarted = true
+			generation = 2
+			nestedCount, nestedStatus = PetCompanionSpawnService.spawn(
+				ownerUserId,
+				character,
+				equippedProfile,
+				createPrototype,
+				function(): boolean return generation == 2 end
+			)
+		end
+		return PetModelFactory.create(speciesId, scale)
+	end,
+	function(): boolean return generation == oldGeneration end
+)
+expect("newer spawn succeeds while previous factory is yielding",
+	nestedCount == 2 and nestedStatus == "SPAWNED")
+expect("stale spawn cannot erase the newer formation",
+	staleCount == 0 and staleStatus == "SPAWN_CANCELLED" and #playerFolder:GetChildren() == 2)
+
 active = true
 local gatedCount, gatedStatus = PetCompanionSpawnService.spawn(
 	ownerUserId,
