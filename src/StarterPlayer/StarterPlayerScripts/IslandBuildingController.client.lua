@@ -397,6 +397,21 @@ local selectionDetails = make("TextLabel", {
 	TextWrapped = true,
 	ZIndex = 16,
 }, selectionPanel) :: TextLabel
+local selectionCostRow = make("Frame", {
+	Name = "UpgradeCostRow",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 58),
+	Size = UDim2.new(1, -24, 0, 22),
+	Visible = false,
+	ZIndex = 16,
+}, selectionPanel) :: Frame
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	HorizontalAlignment = Enum.HorizontalAlignment.Left,
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+	Padding = UDim.new(0, 5),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, selectionCostRow)
 local selectionCloseButton = make("TextButton", {
 	Name = "CloseBuildingContext",
 	AnchorPoint = Vector2.new(1, 0),
@@ -504,7 +519,7 @@ local function resizeBuildingPanel()
 	-- Selected-building controls live inside one safe-area card, below the
 	-- build launcher. Its width follows the viewport instead of overflowing it.
 	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
-	local cardHeight = 124
+	local cardHeight = 136
 	-- Keep the card below the resource/bond HUD stack on normal screens,
 	-- but clamp it upward on short landscape viewports.
 	local cardTop = safeOrigin.Y + math.clamp(180, 8, math.max(8, safeSize.Y - cardHeight))
@@ -516,8 +531,9 @@ local function resizeBuildingPanel()
 	local showDemolish = demolishButton.Visible
 	local actionCount = 1 + (if showUpgrade then 1 else 0) + (if showDemolish then 1 else 0)
 	local actionWidth = math.max(0, (cardContentWidth - cardGap * (actionCount - 1)) / actionCount)
-	local actionY = 70
-	local actionHeight = 42
+	selectionCostRow.Size = UDim2.new(1, -24, 0, 22)
+	local actionY = 88
+	local actionHeight = 40
 	local nextActionX = 12
 	moveButton.Position = UDim2.fromOffset(nextActionX, actionY)
 	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
@@ -589,9 +605,16 @@ local BUILDING_DISPLAY = {
 	wooden_fence = "Деревянный забор",
 }
 
+local function clearUpgradeCostChips()
+	for _, child in ipairs(selectionCostRow:GetChildren()) do
+		if child:IsA("Frame") then child:Destroy() end
+	end
+end
+
 local function updateBuildingContext(model: Model?)
 	if model == nil or model.Parent == nil then
 		selectionPanel.Visible = false
+		selectionCostRow.Visible = false
 		upgradeButton.Visible = false
 		return
 	end
@@ -602,25 +625,61 @@ local function updateBuildingContext(model: Model?)
 	local level = if type(levelAttribute) == "number" then math.max(1, math.floor(levelAttribute)) else 1
 	local maxLevel = if type(maxLevelAttribute) == "number" then math.max(1, math.floor(maxLevelAttribute)) else level
 	selectionTitle.Text = if info then info else "Постройка"
+	selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel)
+	clearUpgradeCostChips()
 	if level >= maxLevel then
-		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel) .. " • Максимум"
+		selectionDetails.Text ..= " • Максимум"
+		selectionCostRow.Visible = false
 		upgradeButton.Visible = false
 	else
-		local costParts = {}
 		local costAttributes = {
-			{ name = "NextUpgradeWoodCost", suffix = " дерева" },
-			{ name = "NextUpgradeStoneCost", suffix = " камня" },
-			{ name = "NextUpgradeGoldCost", suffix = " золота" },
-			{ name = "NextUpgradeGemsCost", suffix = " самоцветов" },
+			{ name = "NextUpgradeWoodCost", icon = InterfaceTheme.Icons.Wood, color = Color3.fromRGB(111, 174, 112) },
+			{ name = "NextUpgradeStoneCost", icon = InterfaceTheme.Icons.Stone, color = Color3.fromRGB(153, 169, 190) },
+			{ name = "NextUpgradeGoldCost", icon = InterfaceTheme.Icons.Gold, color = Color3.fromRGB(244, 195, 91) },
+			{ name = "NextUpgradeGemsCost", icon = InterfaceTheme.Icons.Gems, color = Color3.fromRGB(189, 139, 231) },
 		}
+		local costCount = 0
 		for _, costAttribute in ipairs(costAttributes) do
 			local amount = model:GetAttribute(costAttribute.name)
 			if type(amount) == "number" and amount > 0 then
-				table.insert(costParts, tostring(amount) .. costAttribute.suffix)
+				costCount += 1
+				local chip = make("Frame", {
+					Name = "Cost_" .. costAttribute.name,
+					Size = UDim2.fromOffset(64, 22),
+					BackgroundColor3 = COLORS.panelLight,
+					BackgroundTransparency = 0.08,
+					BorderSizePixel = 0,
+					LayoutOrder = costCount,
+					ZIndex = 16,
+				}, selectionCostRow) :: Frame
+				make("UICorner", { CornerRadius = UDim.new(0, 7) }, chip)
+				make("TextLabel", {
+					Name = "ResourceIcon",
+					BackgroundTransparency = 1,
+					Position = UDim2.fromOffset(4, 0),
+					Size = UDim2.fromOffset(18, 22),
+					Font = Enum.Font.GothamBold,
+					Text = costAttribute.icon,
+					TextColor3 = costAttribute.color,
+					TextSize = 15,
+					ZIndex = 17,
+				}, chip)
+				make("TextLabel", {
+					Name = "ResourceAmount",
+					BackgroundTransparency = 1,
+					Position = UDim2.fromOffset(23, 0),
+					Size = UDim2.new(1, -25, 1, 0),
+					Font = Enum.Font.GothamBold,
+					Text = tostring(math.floor(amount)),
+					TextColor3 = COLORS.text,
+					TextSize = 11,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					ZIndex = 17,
+				}, chip)
 			end
 		end
-		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel)
-			.. (if #costParts > 0 then " • Улучшение: " .. table.concat(costParts, " • ") else " • Улучшение доступно")
+		selectionCostRow.Visible = costCount > 0
+		if costCount == 0 then selectionDetails.Text ..= " • Улучшение доступно" end
 		upgradeButton.Visible = true
 	end
 	upgradeButton.Active = upgradeButton.Visible and not upgradeRequestInFlight
