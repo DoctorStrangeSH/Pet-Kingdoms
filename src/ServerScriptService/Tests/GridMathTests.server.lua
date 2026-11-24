@@ -54,4 +54,36 @@ local crossingRotated = { x = 4, z = 2, width = 2, depth = 3 }
 expect("rotated footprint edge adjacency does not overlap", not GridMath.footprintsOverlap(rotatedExisting, touchingRotated))
 expect("rotated footprint intersection overlaps", GridMath.footprintsOverlap(rotatedExisting, crossingRotated))
 
+local centeredX, centeredZ = GridMath.getFootprintCenterOffset(
+	{ x = 0, z = 0, width = 3, depth = 1 },
+	10,
+	8,
+	4
+)
+expect("asymmetric footprint center uses shared grid origin", centeredX == -14 and centeredZ == -14)
+
+local evenX, evenZ = GridMath.getFootprintCenterOffset(
+	{ x = 2, z = 2, width = 2, depth = 2 },
+	10,
+	10,
+	4
+)
+expect("even footprint center remains on half-cell center", evenX == -8 and evenZ == -8)
+
+local invalidX = GridMath.getFootprintCenterOffset(
+	{ x = 9, z = 0, width = 2, depth = 1 },
+	10,
+	10,
+	4
+)
+expect("out-of-bounds footprint has no world center", invalidX == nil)
+
+local invalidCellX = GridMath.getFootprintCenterOffset(
+	{ x = 0, z = 0, width = 1, depth = 1 },
+	10,
+	10,
+	0
+)
+expect("invalid cell size has no world center", invalidCellX == nil)
+
 print("[PetKingdoms Test] GridMath smoke tests completed.")
