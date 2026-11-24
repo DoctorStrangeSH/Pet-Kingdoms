@@ -1080,3 +1080,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Integrate the shared safe-area metrics and panel clamp into Pet Collection's compact layout; center it within the usable ScreenGui area and clamp both width and height on short landscape devices.
 - [ ] Verify safe-area behavior with Roblox top bar/device insets and ScreenGui `IgnoreGuiInset=false` in Studio; inspect 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop.
 - [ ] Integrate the shared helper into Quest Journal, Expansion, Building, and other top-level windows after confirming each ScreenGui inset mode. Stage 1 remains open.
+
+
+### Stage 1 — Safe viewport migration: Quest Journal and Island Expansion (2026-11-24)
+
+- [x] Quest Journal now reads the shared safe viewport and clamps its panel width/height before centering inside the usable ScreenGui area.
+- [x] Island Expansion now reads the shared safe viewport and clamps its panel width/height before centering inside the usable ScreenGui area.
+- [x] Preserve each window's existing compact/ultra-short content reflow and responsive typography while applying the shared bounds.
+- [ ] Verify actual Roblox GUI insets, panel child layout, open/close buttons, tracker placement, refresh controls, and orientation changes in Studio across phone/tablet/desktop. Stage 1 remains open.
