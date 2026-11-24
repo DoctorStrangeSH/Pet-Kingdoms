@@ -1189,3 +1189,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Hide the redundant title in this constrained mode while preserving accessible close and collapse controls.
 - [x] Reduce the panel's target height to 126 px and clamp it to the safe viewport; keep catalogue item tap targets at 40 px and action targets at 44 px.
 - [ ] Verify at 320×180 and 360×180 in Roblox Studio, including all six catalogue entries via horizontal scroll, rotate, confirm, cancel, collapse/reopen, and touch targets. Runtime visual validation pending.
+
+### Stage 1 — Selected-building actions respect the safe viewport (2026-11-24)
+
+- [x] Position Move/Demolish actions relative to the safe-area origin rather than the raw ScreenGui origin.
+- [x] Clamp the action row vertically when the pending-operation recovery banner is visible, so its 46 px touch targets remain inside the usable screen height.
+- [x] Remove the forced 160 px minimum action-row width; calculate button widths from the actual safe viewport so narrow layouts cannot push Demolish beyond the right edge.
+- [x] Keep compact labels and legible text sizing for the mobile action row.
+- [ ] Verify selecting buildings near all four island edges, action visibility with/without recovery banner, phone portrait/landscape, and touch targets in Roblox Studio. Runtime visual validation pending.
