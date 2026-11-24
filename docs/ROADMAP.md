@@ -1105,3 +1105,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Compact HUD reserves the construction launcher lane using safe width and anchors inside the safe top-left area.
 - [x] Desktop HUD centers within the safe area and clamps its width to available space.
 - [ ] Verify resource HUD/launcher separation and text fit at 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop in Roblox Studio. Stage 1 remains open.
+
+
+### Stage 1 — Modal cleanup on character removal/respawn (2026-11-24)
+
+- [x] ModalManager now closes all registered top-level windows when the local character is removed.
+- [x] ModalManager repeats cleanup after the replacement character is added; callbacks are deferred to avoid running UI teardown inside the character lifecycle event.
+- [x] Existing per-window cleanup callbacks remain authoritative: nested pet-delete confirmation closes with its parent, expansion preview clears through its close handler, and construction respects in-flight server transactions.
+- [ ] Verify death/reset/manual respawn in Studio while each window is open, while pet confirmation is open, and during active building/remote requests. Confirm no stale shade, preview, or input blocker remains. Stage 1 remains open.
