@@ -22,7 +22,7 @@ Only run it in a separate Roblox test universe/place that contains no production
 4. Start a Studio server test and inspect Server Output for the `IslandStore contract tests completed` message.
 5. When finished, remove the attribute or set it to false.
 
-Do not enable this flag in the production universe or in a local copy connected to production DataStores. The integration test intentionally uses a synthetic user key and must never target a real player's profile.
+Do not enable this flag in the production universe or in a local copy connected to production DataStores. The integration test intentionally uses a randomly generated synthetic user key and removes that key after the scenario, including when an assertion fails. It must never target a real player's profile.
 
 ## 3. Manual player journey
 
