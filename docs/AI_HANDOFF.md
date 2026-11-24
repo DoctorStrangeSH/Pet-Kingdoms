@@ -1753,3 +1753,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `154957b`: replace ambiguous font glyphs in Pet Collection back, favorites filter, favorite/lock actions, petting/play labels, and row status with readable Russian text.
 - [x] Commit `e2f9957`: widen favorite/lock controls for text labels, reduce text sizes, and shorten main-pet action labels to fit the existing action row.
 - [ ] Verify in Roblox Studio at 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop; confirm no clipping/overlap and all actions remain tappable. Source-level changes are not runtime acceptance.
+
+
+## Shared safe viewport layout — 2026-11-24
+
+- [x] Commit `cefee0c`: add shared `InterfaceComponents.GetSafeViewport(camera)` and `ClampPanelSize(desired, safeSize, margin)` helpers using `GuiService:GetGuiInset()`.
+- [x] Commit `0f9b4e2`: Pet Collection compact panel now uses the safe available width/height, clamps its dimensions, and centers within the usable ScreenGui region. Its ScreenGui uses `IgnoreGuiInset=false`.
+- [ ] Confirm actual Roblox Studio safe-area coordinates; do not assume all screens share the same inset behavior. Other windows remain to be migrated individually after checking their ScreenGui settings.
+- [ ] Runtime and visual validation pending; no device acceptance claimed.
