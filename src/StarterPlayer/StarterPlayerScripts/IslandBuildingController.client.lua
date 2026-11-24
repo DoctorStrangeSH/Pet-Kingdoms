@@ -1212,7 +1212,7 @@ confirmButton.Activated:Connect(function()
 	else
 		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
 		local messages = {
-			INSUFFICIENT_RESOURCES = "Не хватает ресурсов для этой постройки",
+			INSUFFICIENT_RESOURCES = "Не хватает ресурсов: деревья дают +3 дерева, жилы — +2 камня",
 			SESSION_NOT_READY = "Остров ещё загружается",
 			SESSION_NOT_WRITABLE = "Сейчас нельзя сохранить изменения. Попробуй позже",
 			BUILDING_LIMIT_REACHED = "На острове больше нельзя размещать постройки",
