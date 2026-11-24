@@ -17,10 +17,10 @@ local update = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local COLORS = InterfaceTheme.Colors
 
 local RESOURCES = {
-	{ id = "wood", icon = "♣", label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
-	{ id = "stone", icon = "◆", label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
-	{ id = "gold", icon = "●", label = "ЗОЛОТО", color = COLORS.gold },
-	{ id = "gems", icon = "♦", label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
+	{ id = "wood", icon = InterfaceTheme.Icons.Wood, label = "ДЕРЕВО", color = Color3.fromRGB(169, 207, 151) },
+	{ id = "stone", icon = InterfaceTheme.Icons.Stone, label = "КАМЕНЬ", color = Color3.fromRGB(190, 202, 218) },
+	{ id = "gold", icon = InterfaceTheme.Icons.Gold, label = "ЗОЛОТО", color = COLORS.gold },
+	{ id = "gems", icon = InterfaceTheme.Icons.Gems, label = "КРИСТАЛЛЫ", color = Color3.fromRGB(139, 218, 235) },
 }
 
 local screen = Instance.new("ScreenGui")
