@@ -1007,3 +1007,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add Studio smoke coverage for asymmetric 3×1 footprints, even-sized footprints, out-of-bounds rectangles, and invalid cell sizes.
 - [x] Route pointer-off-island and missing-surface preview failures through the common invalidation path so stale ghosts/locked cells are cleared.
 - [ ] Verify actual model pivot alignment in Studio on rotated spawn points and after island expansion; source-level checks are not runtime acceptance.
+
+
+### Stage 1 — Imported building model pivot normalization (2026-11-24)
+
+- [x] Add a server-side `BuildingModelPivot` helper that moves an imported Model pivot to the visual bounding box's ground-level center while preserving its authored orientation.
+- [x] Normalize cloned ServerStorage templates before applying the grid placement transform; keep procedural fallback models on their existing explicit ground-center PrimaryPart pivot.
+- [x] Record imported visual bounds on spawned templates for later footprint-fit diagnostics.
+- [x] Add Studio-only tests for an offset, rotated, unparented cloned-model fixture, reported bounds, orientation preservation, and idempotence.
+- [ ] Run the pivot tests in Roblox Studio and inspect every production template for overhang/footprint fit. Stage 1 remains open pending runtime verification.
