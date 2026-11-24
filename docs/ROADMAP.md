@@ -721,3 +721,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for Pet Collection safe-area commit ca8872b (run 45350278164).
 - [ ] Verify list/detail navigation, preview visibility, favorite/lock/equip/delete actions and scroll behavior on 320×568, 360×640, 390×844 and short landscape.
 - [ ] Continue with construction panel mobile reflow and final image-backed icon replacement; Stage 1 remains open pending Roblox Studio/device verification.
+
+### Stage 1 — Construction tray mobile refinement (2026-11-24)
+
+- [x] Reduce the compact construction tray height to 190 px and anchor it closer to the bottom safe area.
+- [x] Preserve usable touch controls by limiting compact UIScale reduction to very short viewports; ordinary phone screens use full-size controls.
+- [x] Reduce catalogue card width to 106/112 px on compact screens so more entries are visible while retaining horizontal scrolling to all six entries.
+- [x] Reduce compact catalogue scrollbar thickness and adjust card typography for very narrow screens.
+- [ ] CI validation for construction tray refinement commit 7b08295 (run 45350460447).
+- [ ] Verify all six cards can be tapped and horizontally scrolled on 320/360/390 px screens; confirm rotate/place/cancel remain reachable and do not overlap.
+- [ ] Verify building preview tracks touch and mouse, invalid cells are rejected, and successful placement persists in Studio.
+- [ ] Stage 1 remains open pending device/runtime checks and final icon asset replacement.
