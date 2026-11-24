@@ -1235,3 +1235,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep all chips and actions inside the responsive context card safe-area bounds.
 - [x] GitHub Actions run #757: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify glyph rendering, cost chip spacing, maximum-level state, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Placement footprint guide (2026-11-24)
+
+- [x] Add a four-sided local-only footprint outline around the exact rotated building footprint while placing or moving a building.
+- [x] Color the outline green for a valid cell and red for out-of-bounds/occupied cells, matching the ghost preview state.
+- [x] Keep the guide aligned to the island surface and rotated footprint dimensions; disable query/collision/touch so it cannot interfere with placement input or gameplay.
+- [x] Hide the guide whenever the pointer is not over a valid island cell and destroy it with the preview on cancel/close.
+- [ ] Verify guide alignment for every footprint/rotation, overlap/out-of-bounds colors, touch movement, and no residual outline after cancel in Roblox Studio. Runtime validation pending.
