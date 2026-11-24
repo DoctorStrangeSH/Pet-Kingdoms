@@ -1049,7 +1049,7 @@ local function beginMoveSelected()
 	end
 	placementLocked = false
 	seedPreview()
-	setStatus("Коснись земли, чтобы выбрать новое место")
+	setStatus(if touchPlacement then "Перетащи постройку или коснись свободной травы" else "Выбери новое место на свободной траве")
 end
 
 moveButton.Activated:Connect(beginMoveSelected)
@@ -1105,7 +1105,7 @@ local function beginPlacing()
 	end
 	placementLocked = false
 	seedPreview()
-	setStatus(if touchPlacement then "1. Выбери здание  2. Коснись свободной травы  3. Нажми «ПОСТРОИТЬ»" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
+	setStatus(if touchPlacement then "Перетащи модель или коснись травы • отпусти, чтобы выбрать место" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
 local function rotatePlacement()
