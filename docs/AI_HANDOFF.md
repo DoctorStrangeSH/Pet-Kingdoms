@@ -1676,3 +1676,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `f52bead`: server-owned `BuildingCatalog` now derives `footprintWidth`/`footprintDepth` from the same shared table; server remains authoritative for IDs, unlocks, rotations, costs and transactions.
 - [x] Commit `1fbfbb2`: GridMath Studio smoke test validates every shared footprint has positive integer dimensions.
 - [ ] Studio run: confirm client preview and server validation agree for all six items at 0/90/180/270 degrees, including move and expanded island boundaries. CI/Studio runtime validation pending.
+
+
+## Shared grid-to-world pivot conversion — 2026-11-24
+
+- [x] Commit `bdcbe3d` / `81ee83a`: added `GridMath.getFootprintCenterOffset`, validating bounds and cell size before converting the occupied footprint rectangle into island-local center coordinates.
+- [x] Commit `454e703`: server `IslandWorldService.gridToWorld` now uses the shared center conversion before applying the spawn CFrame and catalog rotation.
+- [x] Commit `e53ad91`: client placement preview uses the same helper for both footprint and visual pivot, eliminating the duplicate center formula.
+- [x] Commit `393ba60`: added Studio smoke tests for asymmetric 3×1 and even-sized footprints, out-of-bounds footprints, and invalid cell sizes.
+- [x] Commit `5bcf9fb`: pointer-off-island and missing-surface branches now use the same preview invalidation helper, clearing stale cell/lock/ghost state.
+- [ ] Studio: compare preview and spawned Model pivot positions/orientations on rotated spawn points, at all supported rotations, and after island expansion. Runtime acceptance pending.
