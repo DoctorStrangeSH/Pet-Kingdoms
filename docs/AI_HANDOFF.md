@@ -1725,3 +1725,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commits `a9f3f40` and `784ad64`: added construction panel collapse/reopen while placement remains active; collapse does not cancel the preview or release the modal.
 - [ ] Validate the latest source with pinned Rojo CI, then run Studio visual/device tests at the documented viewport sizes. No Studio execution or visual approval is claimed yet.
 - [ ] Resource wallet currently exposes `wood`, `stone`, `gold`, and `gems`. User wording mentioned iron; clarify only if they intend a new resource, and do not substitute it for stone without approval.
+
+
+### Quest Journal compact fit follow-up
+
+- [x] Commit `42a6106`: compact quest cards now use 84 px horizontal summaries. Two current introductory objectives fit in the normal compact viewport without a vertical swipe; scrolling remains available for future additional quests.
+- [x] Commit `83d9eeb`: panel height is clamped against the actual viewport for very short and short screens, instead of fixed heights that could exceed the viewport.
+- [ ] Verify 320×180, 320×240, 360×360, 443×426, and desktop in Studio; check status footer and refresh/close controls after each orientation change.
