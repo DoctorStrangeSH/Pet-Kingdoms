@@ -141,6 +141,49 @@ expect("extremely distant companion recovers near its owner",
 	(Vector3.new(recoveredPosition.X, 0, recoveredPosition.Z)
 		- Vector3.new(catchUpTarget.X, 0, catchUpTarget.Z)).Magnitude < 5)
 
+-- Turning should blend toward a new travel direction instead of snapping.
+target.CFrame = CFrame.new(0, 5, 0)
+target.AssemblyLinearVelocity = Vector3.new(10, 0, 0)
+pets[1]:PivotTo(CFrame.new(-2.4, 0.28, 4.5))
+controllers[1].lastFacing = Vector3.new(0, 0, -1)
+controllers[1].nextObstacleScan = os.clock() + 10
+controllers[1]:update(0.05)
+local firstTurn = Vector3.new(pets[1]:GetPivot().LookVector.X, 0, pets[1]:GetPivot().LookVector.Z).Unit
+expect("companion starts a smooth turn without snapping", firstTurn:Dot(Vector3.xAxis) > 0.02 and firstTurn:Dot(Vector3.xAxis) < 0.95)
+for _ = 1, 30 do
+	controllers[1]:update(0.05)
+end
+local completedTurn = Vector3.new(pets[1]:GetPivot().LookVector.X, 0, pets[1]:GetPivot().LookVector.Z).Unit
+expect("companion completes its turn toward the new direction", completedTurn:Dot(Vector3.xAxis) > 0.9)
+
+-- Locomotion follows the pet's real movement, then settles fully at its slot.
+target.AssemblyLinearVelocity = Vector3.zero
+target.CFrame = CFrame.new(0, 5, 0)
+pets[1]:PivotTo(CFrame.new(-1.6, 0.28, 4.5))
+controllers[1].lastFacing = Vector3.new(0, 0, -1)
+controllers[1].idleElapsed = 0
+controllers[1].idleActionRemaining = 0
+controllers[1].nextIdleActionAt = 1000
+controllers[1].interactionState = nil
+controllers[1].environmentState = nil
+controllers[1].investigatePosition = nil
+controllers[1].pathDetourPosition = nil
+controllers[1].nextObstacleScan = os.clock() + 10
+controllers[1]:update(0.05)
+expect("a moving companion uses its walk gait even while owner is stationary",
+	controllers[1].movementSpeed > 0.35 and controllers[1].animation.state == "walk")
+for _ = 1, 40 do
+	controllers[1]:update(0.05)
+end
+expect("companion stops its locomotion when it reaches formation",
+	controllers[1].movementSpeed < 0.35 and controllers[1].animation.state == "idle")
+local settledPosition = pets[1]:GetPivot().Position
+for _ = 1, 10 do
+	controllers[1]:update(0.05)
+end
+expect("companion remains settled instead of visibly sliding",
+	(pets[1]:GetPivot().Position - settledPosition).Magnitude < 0.05)
+
 -- A companion mirrors one owner take-off, then returns to normal follow.
 target.CFrame = CFrame.new(0, 5, 0)
 pets[1]:PivotTo(CFrame.new(-2.4, 0.28, 4.5))
@@ -203,7 +246,6 @@ ramp:Destroy()
 -- A broad wall blocks the straight line to the first formation slot. The
 -- controller should choose a grounded side waypoint instead of pushing through it.
 target.CFrame = CFrame.new(0, 5, 0)
-pets[1]:PivotTo(CFrame.new(0, 0.28, 0))
 pets[1]:PivotTo(CFrame.new(0, 0.28, 0))
 controllers[1].pathDetourPosition = nil
 controllers[1].pathDetourUntil = 0
