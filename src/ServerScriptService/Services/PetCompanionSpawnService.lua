@@ -106,7 +106,7 @@ function PetCompanionSpawnService.spawn(
 			return 0, "SPAWN_CANCELLED"
 		end
 
-		local record = nil
+		local record: any = nil
 		for _, ownedRecord in ipairs(profile.owned) do
 			if ownedRecord.petId == petId then
 				record = ownedRecord
