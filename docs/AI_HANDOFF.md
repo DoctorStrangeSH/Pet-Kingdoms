@@ -1484,7 +1484,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Fixed restored resource cooldown visuals so the gathering BillboardGui is disabled together with the model parts and ProximityPrompt.
 - [x] Extended the island-world lifecycle test to assert cooldown marker visibility and to assert the level-2 Pet House upgrade attribute survives initial spawn and island refresh after expansion.
 - [x] Added `docs/testing/ISLAND_PERSISTENCE_TESTING.md` and updated it with all six building types, upgrade persistence, cooldown marker visibility, and isolated DataStore test setup.
-- [ ] CI remains queued for commits `b314415`, `cb6a737`, `729e3ad`, `cff57f7`, `2e2ceb2`, `306227e`, `500565e`, `b0f2635`, and `9a29c5f` at the latest inspection. Do not mark those checks green until GitHub reports completed/success.
+- [ ] Rojo build runs for commits `b314415`, `cb6a737`, `729e3ad`, `cff57f7`, `2e2ceb2`, `306227e`, `500565e`, `b0f2635`, `9a29c5f`, `2d772a5`, and `519a9be` are queued or in progress at the latest inspection. These runs only build the place file; they do not execute Studio tests. Do not mark any runtime test green from a successful build.
 - [x] The earlier persistence contract commit `4f3cf84` has a successful Rojo build (run `45352472617`).
 - [ ] Execute Studio-only `IslandDataTests.server.lua` and `IslandWorldServiceTests.server.lua`; a successful Rojo build does not execute these scripts.
 - [ ] Run `IslandStoreTests.server.lua` only in a dedicated non-production test universe with `Workspace.RunIslandStoreIntegrationTests = true` and Studio API access enabled. Never point synthetic records at production DataStores.
