@@ -1543,3 +1543,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run `CompanionFollowControllerTests.client.lua` in Studio with Workspace attribute `RunPetKingdomsStudioTests = true`. This test is client-side and its PASS lines must be read from the client Output.
 - [ ] Verify real island obstacles and mobile frame pacing with the published project Bunny mesh. Raycast detours are local steering, not full PathfindingService navigation; narrow mazes or fully enclosed obstacles still require real-world testing and may need a pathfinding stage.
 - [ ] Keep the companion follow stage open until Studio and device checks are recorded.
+
+## Companion jump response — 2026-11-24
+
+- [x] `CompanionFollowController` observes the target character's Humanoid state. A Jumping transition starts one short hop if the companion is within 18 studs of its formation target; a descending Freefall does not start another hop.
+- [x] The hop uses a 0.68-second sine arc with 2.2-stud peak height, layered onto the existing ground-snapped follow target. The controller keeps normal horizontal steering and returns to the grounded slot after the arc.
+- [x] Added `jump` to the procedural animation state machine. The airborne pose tucks the front paws, folds the hind legs, and adjusts the head/ears/tail.
+- [x] Extended client follow tests for take-off, vertical lift, no retrigger during the same airborne interval, and hop completion; extended animation tests for jump state and limb transforms.
+- [ ] Rojo build validation for commits `c5d9e0b`, `c819094`, `8220ab4`, `8ed3cb1`, `b7fa15b`, and `f55a906`.
+- [ ] Run the server animation smoke test and client follow test in Studio. The client test requires Workspace attribute `RunPetKingdomsStudioTests = true`; inspect client Output for its PASS lines.
+- [ ] Verify the actual published Bunny mesh, jump/landing alignment, and mobile frame pacing. Runtime acceptance is not complete from source changes or a Rojo build alone.
