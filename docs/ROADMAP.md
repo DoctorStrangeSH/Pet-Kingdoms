@@ -781,3 +781,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run IslandStoreTests in a dedicated Roblox test universe with Studio API access; the test writes a synthetic DataStore key and must not be treated as a live-user save test.
 - [ ] Run IslandWorldServiceTests in Studio to confirm persisted building records are rendered into the regenerated island world.
 - [ ] Manual end-to-end test: build, gather, expand, leave, rejoin, and compare structures/resources/positions/cooldowns.
+
+### Stage 1 — Restored island cooldown world-state checks (2026-11-24)
+
+- [x] Extend the Studio island-world lifecycle test with a persisted wood-node cooldown.
+- [x] Assert island spawn restores the node's AvailableAt timestamp, hidden visual state and disabled ProximityPrompt.
+- [x] Assert a world refresh after expansion does not accidentally respawn/re-enable a node whose saved cooldown is still active.
+- [ ] CI validation for persistence round-trip commit 4f3cf84 and world cooldown restoration test commit b314415.
+- [ ] Execute the DataStore round-trip test in a dedicated Roblox test universe and the world lifecycle test in Studio.
+- [ ] Complete manual build/gather/expand/leave/rejoin verification before closing the persistence stage.
