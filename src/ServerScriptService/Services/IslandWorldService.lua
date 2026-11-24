@@ -264,8 +264,15 @@ local function gridToWorld(spawnCFrame: CFrame, record: any, profile: any, cellS
 	if footprintWidth == nil or footprintDepth == nil then
 		error("Invalid building rotation for " .. tostring(record.instanceId))
 	end
-	local localX = (record.x + footprintWidth / 2 - profile.boundsWidth / 2) * cellSize
-	local localZ = (record.z + footprintDepth / 2 - profile.boundsDepth / 2) * cellSize
+	local localX, localZ = GridMath.getFootprintCenterOffset(
+		{ x = record.x, z = record.z, width = footprintWidth, depth = footprintDepth },
+		profile.boundsWidth,
+		profile.boundsDepth,
+		cellSize
+	)
+	if localX == nil or localZ == nil then
+		error("Invalid grid footprint for " .. tostring(record.instanceId))
+	end
 	return spawnCFrame * CFrame.new(localX, 0, localZ)
 end
 
