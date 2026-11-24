@@ -812,3 +812,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Assert every saved catalogue ID survives reload and the expected grid positions are shifted correctly by island expansion.
 - [ ] CI validation for all-six-building persistence test commit 2e2ceb2.
 - [ ] Run the isolated DataStore integration test and verify all six records survive a load/save/load cycle.
+
+### Stage 1 — Building upgrade persistence integrity (2026-11-24)
+
+- [x] Validate optional saved `upgradeLevel` against the server-owned building catalogue; legacy records without the field remain valid and use level 1 at render time.
+- [x] Reject fractional levels, values below 1, levels above the building's maximum and upgrade levels on catalog entries that do not support upgrades.
+- [x] Add data-contract coverage for valid and invalid saved upgrade levels.
+- [x] Extend the DataStore round-trip fixture so the pet house's level-2 upgrade survives profile reload.
+- [ ] CI validation for data validation commit 306227e, data tests commit 500565e and persistence test commit b0f2635.
+- [ ] Run Studio data tests and the isolated DataStore integration scenario.
