@@ -49,7 +49,7 @@ assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
 -- non-default wallet, expanded plot and a resource node on cooldown.
 local persistenceBuildings = {
 	{ instanceId = "store-test-main-house", catalogId = "main_house", x = 1, z = 1, rotation = 90 },
-	{ instanceId = "store-test-pet-house", catalogId = "pet_house", x = 5, z = 1, rotation = 0 },
+	{ instanceId = "store-test-pet-house", catalogId = "pet_house", x = 5, z = 1, rotation = 0, upgradeLevel = 2 },
 	{ instanceId = "store-test-stone-path", catalogId = "stone_path", x = 9, z = 1, rotation = 0 },
 	{ instanceId = "store-test-lantern", catalogId = "garden_lantern", x = 10, z = 1, rotation = 0 },
 	{ instanceId = "store-test-flower-bed", catalogId = "flower_bed", x = 11, z = 1, rotation = 0 },
@@ -100,6 +100,7 @@ assert(receiptLoadOk and receiptLoaded ~= nil
 	and receiptLoaded.buildings[2].catalogId == "pet_house"
 	and receiptLoaded.buildings[2].x == 9
 	and receiptLoaded.buildings[2].z == 5
+	and receiptLoaded.buildings[2].upgradeLevel == 2
 	and receiptLoaded.buildings[3].catalogId == "stone_path"
 	and receiptLoaded.buildings[3].x == 13
 	and receiptLoaded.buildings[4].catalogId == "garden_lantern"
