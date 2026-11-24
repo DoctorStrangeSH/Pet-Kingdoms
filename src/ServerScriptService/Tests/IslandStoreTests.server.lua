@@ -37,6 +37,8 @@ assert(seed ~= nil, "synthetic profile should be created")
 -- Remove newer fields to emulate a legacy schema-v1 profile.
 seed.buildingOperations = nil
 seed.resourceNodes = nil
+seed.questProgress = nil
+seed.trackedQuestId = nil
 
 local claimAOk, profileA, claimAStatus = IslandStore.claimSession(seed)
 assert(claimAOk, "first session claim failed: " .. claimAStatus)
@@ -44,6 +46,12 @@ assert(type(profileA.buildingOperations) == "table" and #profileA.buildingOperat
 	"legacy profile claim should migrate an empty building operation ledger")
 assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
 	"legacy profile claim should migrate an empty resource node state list")
+assert(type(profileA.questProgress) == "table"
+	and profileA.questProgress.gather_wood.count == 0
+	and profileA.questProgress.gather_stone.count == 0,
+	"legacy profile claim should migrate default introductory quest progress")
+assert(profileA.trackedQuestId == "gather_wood",
+	"legacy profile claim should migrate the default tracked quest")
 
 -- Build a representative island snapshot before saving: a placed house,
 -- non-default wallet, expanded plot and a resource node on cooldown.
@@ -59,6 +67,11 @@ for _, building in ipairs(persistenceBuildings) do
 	table.insert(profileA.buildings, building)
 end
 profileA.resources = { wood = 17, stone = 9, gold = 4, gems = 2 }
+profileA.questProgress = {
+	gather_wood = { count = 2 },
+	gather_stone = { count = 1 },
+}
+profileA.trackedQuestId = "gather_stone"
 local expandedProfile, expansionCode = IslandExpansion.expandProfile(profileA)
 assert(expandedProfile ~= nil and expansionCode == "EXPANDED", "synthetic island should expand before persistence")
 profileA = expandedProfile
@@ -115,9 +128,12 @@ assert(receiptLoadOk and receiptLoaded ~= nil
 	and receiptLoaded.resources.gems == 2
 	and receiptLoaded.expansionLevel == 1
 	and receiptLoaded.boundsWidth == 18
-	and receiptLoaded.boundsDepth == 18,
+	and receiptLoaded.boundsDepth == 18
+	and receiptLoaded.questProgress.gather_wood.count == 2
+	and receiptLoaded.questProgress.gather_stone.count == 1
+	and receiptLoaded.trackedQuestId == "gather_stone",
 	"all six catalog buildings, exact grid positions, wallet, expansion and cooldown should survive DataStore save/load")
-print("[PetKingdoms Test] PASS: all six building types, wallet, expansion bounds and cooldown survive save/load")
+print("[PetKingdoms Test] PASS: all six building types, wallet, expansion bounds, cooldown and quest state survive save/load")
 
 -- A delayed loader holding the original generation-zero snapshot must not
 -- supersede the first session after its claim has committed.
@@ -127,6 +143,10 @@ assert(not staleClaimOk and staleClaimStatus == "SESSION_CLAIM_REJECTED", "stale
 local claimBOk, profileB, claimBStatus = IslandStore.claimSession(profileA)
 assert(claimBOk, "second sequential session claim failed: " .. claimBStatus)
 assert(profileB.sessionGeneration > profileA.sessionGeneration, "new claim must increment generation")
+assert(profileB.questProgress.gather_wood.count == 2
+	and profileB.questProgress.gather_stone.count == 1
+	and profileB.trackedQuestId == "gather_stone",
+	"quest progress and tracked objective must remain available to the next claimed session")
 
 profileA.revision += 1
 local staleSaveOk, staleSaveCode = IslandStore.save(profileA)
