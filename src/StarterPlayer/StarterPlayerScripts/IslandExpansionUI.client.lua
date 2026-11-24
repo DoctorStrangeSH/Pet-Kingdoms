@@ -449,7 +449,10 @@ local function resize()
 		12
 	)
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
-	panel.Position = UDim2.fromOffset(safeSize.X * 0.5, safeSize.Y * 0.5)
+	panel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
 	panel.Size = UDim2.fromOffset(safePanelSize.X, safePanelSize.Y)
 	panelConstraint.MinSize = Vector2.new(math.min(220, safePanelSize.X), math.min(compact and compactHeight or 320, safePanelSize.Y))
 	panelConstraint.MaxSize = safePanelSize
