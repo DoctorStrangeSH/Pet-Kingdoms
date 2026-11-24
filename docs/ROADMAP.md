@@ -856,7 +856,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a newer collection writer generation fences out the previous writer.
 - [x] Check the synthetic key is empty before use and remove it after success or assertion failure.
 - [x] Document safe contract tests, isolated DataStore setup and the manual player journey in `docs/testing/PET_COLLECTION_TESTING.md`.
-- [ ] Rojo build validation for test commit `fea5228`; build success does not execute the Studio integration test.
+- [ ] Rojo build validation for test commits `fea5228` and `a6f4651`; build success does not execute the Studio integration test.
 - [ ] Run the pure collection contract tests in Studio.
 - [ ] Run the gated DataStore integration test in a dedicated non-production test universe.
 - [ ] Verify real pet spawn, collection UI, equip order and state after leaving/rejoining with a dedicated test account.
