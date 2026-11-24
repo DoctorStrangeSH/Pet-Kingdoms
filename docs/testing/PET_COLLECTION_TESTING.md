@@ -61,3 +61,12 @@ A successful Rojo build proves only that the place file can be assembled. It doe
 5. Remove the attribute or set it to false after testing.
 
 The test creates and removes a temporary floor and wall in Workspace. It does not write DataStores or grant pets to a player. It validates a single wall detour fixture only; it does not replace the manual test around actual island buildings, fences, bridges, ramps, slopes, streaming and mobile performance.
+## 5. Server companion spawn lifecycle test — Studio only
+
+`PetCompanionSpawnServiceTests.server.lua` runs only in Roblox Studio and does not require a DataStore flag.
+
+1. Start a Studio server test (**Test → Start**) with Server Output visible.
+2. Confirm the test prints PASS lines for ordered pet spawning, owner/slot attributes, formation placement, duplicate prevention, invalid-profile rejection, cancellation, overlapping spawn attempts, disabled/unapproved asset behavior, and idempotent cleanup.
+3. Confirm the final `PetCompanionSpawnService tests completed` message appears without an assertion error.
+
+The test uses a synthetic owner ID and the procedural prototype factory injected only by the test. It removes its temporary owner folder after completion and does not grant or modify any real player's collection.
