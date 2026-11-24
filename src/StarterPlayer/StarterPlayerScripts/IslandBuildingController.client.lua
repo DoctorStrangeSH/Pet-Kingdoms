@@ -368,7 +368,7 @@ local function resizeBuildingPanel()
 	local ultraShort = compact and safeSize.Y < 220
 	compactBuildingUI = compact
 	local desiredWidth = math.min(compact and 380 or 480, safeSize.X - 20)
-	local desiredHeight = if ultraShort then 160 elseif compact then 190 else 228
+	local desiredHeight = if ultraShort then 126 elseif compact then 190 else 228
 	local safePanelSize = InterfaceComponents.ClampPanelSize(
 		Vector2.new(math.max(180, desiredWidth), desiredHeight),
 		safeSize,
@@ -381,15 +381,15 @@ local function resizeBuildingPanel()
 	panelScale.Scale = if ultraShort then 1
 		elseif compact then math.clamp((viewport.Y - 100) / panelHeight, 0.82, 1)
 		else math.clamp((viewport.Y - 72) / panelHeight, 0.82, 1)
-	panelConstraint.MinSize = Vector2.new(math.min(180, panelWidth), math.min(if ultraShort then 160 elseif compact then 184 else 210, panelHeight))
+	panelConstraint.MinSize = Vector2.new(math.min(180, panelWidth), math.min(if ultraShort then 116 elseif compact then 184 else 210, panelHeight))
 	panelConstraint.MaxSize = safePanelSize
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
-	status.Position = UDim2.fromOffset(0, if ultraShort then 23 elseif compact then 27 else 30)
-	status.Size = UDim2.new(1, 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
-	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 42 elseif compact then 52 else 62)
-	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 48 elseif compact then 62 else 84)
-	buttons.Position = UDim2.fromOffset(0, if ultraShort then 96 elseif compact then 120 else 157)
-	buttons.Size = UDim2.new(1, 0, 0, 48)
+	status.Position = UDim2.fromOffset(0, if ultraShort then 4 elseif compact then 27 else 30)
+	status.Size = UDim2.new(1, if ultraShort then -78 else 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
+	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 52 else 62)
+	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 62 else 84)
+	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 120 else 157)
+	buttons.Size = UDim2.new(1, 0, 0, 44)
 	-- Keep the construction panel inside the Roblox safe area at the bottom.
 	-- This changes only the panel; placement preview and grid coordinates stay world-driven.
 	panel.AnchorPoint = Vector2.new(0.5, 1)
@@ -404,17 +404,18 @@ local function resizeBuildingPanel()
 	local tiny = viewport.X < 360
 	local title = panel:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
-		title.TextSize = if ultraShort then 12 else (if compact then 14 else 16)
-		title.Size = UDim2.new(1, -52, 0, if ultraShort then 22 else 28)
+		title.Visible = not ultraShort
+		title.TextSize = if compact then 14 else 16
+		title.Size = UDim2.new(1, -52, 0, 28)
 	end
-	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 32 else 40, if ultraShort then 32 else 40)
-	collapseButton.Size = UDim2.fromOffset(if ultraShort then 32 else 36, if ultraShort then 32 else 36)
-	collapseButton.Position = UDim2.new(1, if ultraShort then -40 else -48, 0, 0)
+	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 40, if ultraShort then 28 else 40)
+	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
+	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
 	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 		button.TextSize = if ultraShort then 8 else (if tiny then 9 else (if compact then 10 else 13))
-		button.Size = UDim2.fromOffset(if ultraShort then 100 else (if compact then (if tiny then 106 else 112) else 130), if ultraShort then 44 else (if compact then 52 else 70))
+		button.Size = UDim2.fromOffset(if ultraShort then 100 else (if compact then (if tiny then 106 else 112) else 130), if ultraShort then 40 else (if compact then 52 else 70))
 	end
 	catalogRow.ScrollBarThickness = if compact then 3 else 4
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
