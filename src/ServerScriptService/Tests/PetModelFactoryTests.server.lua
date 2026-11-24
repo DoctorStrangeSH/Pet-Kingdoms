@@ -56,7 +56,7 @@ local scaledBunny, scaledStatus = PetModelFactory.create("bunny", 1.5)
 expect("valid scale accepted", scaledBunny ~= nil and scaledStatus == "CREATED")
 if scaledBunny then
 	expect("scale is recorded", scaledBunny:GetAttribute("Scale") == 1.5)
-	expect("ground contact offset scales with the rig", scaledBunny:GetAttribute("GroundOffset") == 0.42)
+	expect("ground contact offset scales with the rig", math.abs((scaledBunny:GetAttribute("GroundOffset") or 0) - 0.42) < 0.001)
 	scaledBunny:Destroy()
 end
 
