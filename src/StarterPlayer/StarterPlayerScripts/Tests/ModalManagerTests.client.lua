@@ -14,20 +14,17 @@ local function expect(name: string, condition: boolean)
 	print("[PetKingdoms Test] PASS:", name)
 end
 
-local closeOrder = {}
 local activeChanges: { string } = {}
 local activeChangedConnection = ModalManager.ActiveChanged:Connect(function(name: string?)
 	table.insert(activeChanges, name or "none")
 end)
 local firstOpen = false
 local secondOpen = false
-local firstClose = function(reason: string)
+local firstClose = function(_reason: string)
 	firstOpen = false
-	table.insert(closeOrder, "first:" .. reason)
 end
-local secondClose = function(reason: string)
+local secondClose = function(_reason: string)
 	secondOpen = false
-	table.insert(closeOrder, "second:" .. reason)
 end
 
 ModalManager.Register("ModalManagerTestFirst", firstClose)
@@ -50,7 +47,6 @@ ModalManager.CloseAll()
 expect("CloseAll clears active focus", ModalManager.GetActive() == nil)
 expect("CloseAll closes every registered modal", not firstOpen and not secondOpen)
 
--- Escape routing is based on one focused top-level window.
 ModalManager.Open("ModalManagerTestFirst")
 expect("only focused modal reports active", ModalManager.IsActive("ModalManagerTestFirst")
 	and not ModalManager.IsActive("ModalManagerTestSecond"))
@@ -58,8 +54,46 @@ ModalManager.Close("ModalManagerTestFirst")
 expect("closing focused modal clears focus", ModalManager.GetActive() == nil)
 expect("closing modal publishes empty focus", activeChanges[#activeChanges] == "none")
 
-activeChangedConnection:Disconnect()
+-- Unregistering a visible controller must run cleanup before dropping its callback.
+firstOpen = true
+ModalManager.Open("ModalManagerTestFirst")
 ModalManager.Unregister("ModalManagerTestFirst")
+expect("unregister closes visible modal", not firstOpen)
+expect("unregister clears modal focus", ModalManager.GetActive() == nil)
+expect("unregister publishes empty focus", activeChanges[#activeChanges] == "none")
+
+-- Re-registering a live controller must clean the old controller before replacement.
+ModalManager.Register("ModalManagerTestFirst", firstClose)
+firstOpen = true
+ModalManager.Open("ModalManagerTestFirst")
+ModalManager.Register("ModalManagerTestFirst", function(_reason: string)
+	firstOpen = false
+end)
+expect("re-register closes previous controller", not firstOpen)
+expect("re-register clears previous focus", ModalManager.GetActive() == nil)
+expect("re-register publishes empty focus", activeChanges[#activeChanges] == "none")
+ModalManager.Open("ModalManagerTestFirst")
+expect("replacement registration can open", ModalManager.IsActive("ModalManagerTestFirst"))
+
+-- Cleanup callbacks must be able to unregister themselves without recursion.
+local recursiveCleanupCount = 0
+ModalManager.Register("ModalManagerTestRecursive", function(_reason: string)
+	recursiveCleanupCount += 1
+	ModalManager.Unregister("ModalManagerTestRecursive")
+end)
+ModalManager.Open("ModalManagerTestRecursive")
+ModalManager.Unregister("ModalManagerTestRecursive")
+expect("cleanup callback can unregister itself safely", recursiveCleanupCount == 1)
+expect("self-unregistered modal loses focus", ModalManager.GetActive() == nil)
+
+-- Unregister must also clean a stale visible panel when focus bookkeeping was lost.
+ModalManager.Close("ModalManagerTestFirst")
+firstOpen = true
+ModalManager.Unregister("ModalManagerTestFirst")
+expect("inactive unregister still runs cleanup", not firstOpen)
+expect("inactive unregister leaves no focus", ModalManager.GetActive() == nil)
+
+activeChangedConnection:Disconnect()
 ModalManager.Unregister("ModalManagerTestSecond")
 expect("unregistered modal cannot retain focus", ModalManager.GetActive() == nil)
 
