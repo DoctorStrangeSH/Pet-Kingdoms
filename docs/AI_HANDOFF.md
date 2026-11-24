@@ -1498,3 +1498,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Assert the quest state survives DataStore reload and remains present in the next claimed session generation.
 - [ ] CI validation for commit `2d772a5`; run remains pending until GitHub Actions reports a completed result.
 - [ ] Execute the gated integration test only in a dedicated test universe, then verify the tracked quest and counters in a real leave/rejoin Studio journey.
+
+## Persistence test hygiene — 2026-11-24
+
+- [x] The gated `IslandStoreTests.server.lua` integration scenario now runs inside an `xpcall` and always attempts to remove its randomly generated synthetic `PetKingdoms_Islands_v1` profile after success or assertion failure.
+- [x] The test fails explicitly if `RemoveAsync` cleanup cannot be confirmed, instead of silently accumulating synthetic records.
+- [ ] CI validation for commit `519a9be`; Studio API execution remains pending in the dedicated test universe.
