@@ -433,6 +433,11 @@ local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
 		clone:SetAttribute("VisualBoundsHeight", bounds.height)
 		clone:SetAttribute("VisualBoundsDepth", bounds.depth)
 
+		local physics = BuildingModelPivot.prepareForWorld(clone)
+		clone:SetAttribute("PhysicsPartCount", physics.partCount)
+		clone:SetAttribute("PhysicsAnchoredCount", physics.anchoredCount)
+		clone:SetAttribute("PhysicsTouchDisabledCount", physics.touchDisabledCount)
+
 		local definition = BuildingCatalog[catalogId]
 		local fit = if definition then BuildingModelPivot.checkFootprintFit(
 			bounds,
