@@ -92,6 +92,7 @@ function PetAssetLoader.create(speciesId: string, scale: number?): (Model?, stri
 	local moveToGround = CFrame.new(0, boundsSize.Y / 2, 0) * boundsCFrame:Inverse()
 	model:PivotTo(moveToGround * oldPivot)
 	model:SetAttribute("VisualHeight", boundsSize.Y)
+	model:SetAttribute("GroundOffset", math.clamp(boundsSize.Y * 0.025, 0.08, 0.28))
 
 	return model, "CREATED"
 end
