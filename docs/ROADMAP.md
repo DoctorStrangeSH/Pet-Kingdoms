@@ -894,7 +894,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add a dedicated procedural jump pose with tucked front paws, folded hind legs, and responsive ears.
 - [x] Add client follow regression coverage for take-off detection, vertical lift, no repeated hop during one airborne interval, descending-fall rejection, and landing completion.
 - [x] Extend the animation smoke test to verify the jump state and limb pose.
-- [ ] Rojo build validation for commits `c5d9e0b`, `c819094`, `8220ab4`, `8ed3cb1`, `b7fa15b`, , `f55a906`, and `860e3fa`.
+- [ ] Rojo build validation for commits `c5d9e0b`, `c819094`, `8220ab4`, `8ed3cb1`, `b7fa15b`, `f55a906`, and `860e3fa`.
 - [ ] Run `PetAnimationControllerTests.server.lua` and `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Server and client Output respectively.
 - [ ] Verify jump timing, landing height, and repeated jump behavior with the published project Bunny mesh on desktop and mobile.
 - [ ] Keep companion movement Stage 1 open until Studio runtime and device checks are recorded.
