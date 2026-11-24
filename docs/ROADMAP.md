@@ -805,3 +805,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend the island-world lifecycle test to assert the restored cooldown hides the gathering marker as well as the resource model and prompt.
 - [ ] CI validation for runtime fix commit 729e3ad and regression test commit cff57f7.
 - [ ] Verify visually in Studio: rejoin while a node is cooling down; no floating gathering label should remain until the node respawns.
+
+### Stage 1 — Full building catalogue persistence coverage (2026-11-24)
+
+- [x] Expand the DataStore round-trip fixture from one house to all six current catalogue types: main house, pet house, stone path, garden lantern, flower bed and wooden fence.
+- [x] Assert every saved catalogue ID survives reload and the expected grid positions are shifted correctly by island expansion.
+- [ ] CI validation for all-six-building persistence test commit 2e2ceb2.
+- [ ] Run the isolated DataStore integration test and verify all six records survive a load/save/load cycle.
