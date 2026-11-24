@@ -119,6 +119,38 @@ check("moving building ignores its old footprint", {
 	movingInstanceId = "building-1",
 }, occupiedIsland, 1001, "VALID")
 
+check("moving building may keep its exact current footprint", {
+	catalogId = "main_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+	movingInstanceId = "building-1",
+}, occupiedIsland, 1001, "VALID")
+
+check("moving building cannot overlap a different building", {
+	catalogId = "main_house",
+	x = 2,
+	z = 2,
+	rotation = 0,
+	movingInstanceId = "building-1",
+}, occupiedIsland, 1001, "FOOTPRINT_OVERLAP")
+
+check("moving building cannot leave island bounds", {
+	catalogId = "main_house",
+	x = 8,
+	z = 7,
+	rotation = 0,
+	movingInstanceId = "building-1",
+}, occupiedIsland, 1001, "OUT_OF_BOUNDS")
+
+check("moving building rejects unsupported rotation", {
+	catalogId = "main_house",
+	x = 5,
+	z = 5,
+	rotation = 45,
+	movingInstanceId = "building-1",
+}, occupiedIsland, 1001, "ROTATION_NOT_ALLOWED")
+
 check("spoofed move target rejected", {
 	catalogId = "main_house",
 	x = 5,
