@@ -1605,3 +1605,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Pinned Rojo build validation for `c9cabdd`.
 - [ ] Studio visual/touch verification at 320×180, 360×180, 320×240, portrait phones, tablet and desktop; verify the topbar inset and no collision with other controls.
 - Do not close Stage 1 until runtime/device checks are recorded.
+
+
+## Ultra-short landscape modal reflow — 2026-11-24
+
+- [x] Quest Journal now detects `ViewportSize.Y < 220`, sizes its panel to viewport height minus 20 px, compresses title/subtitle and controls, retains a scrollable quest list, and places status within the visible panel.
+- [x] Island Expansion now detects the same ultra-short landscape threshold, fits its panel within viewport height minus 20 px, uses compact 34 px information cards, preserves a close control and refresh action, and hides nonessential subtitle/status copy in this mode.
+- [ ] Validate Quest Journal commit `ffea06e` and Island Expansion commit `80fc57e` with pinned Rojo build.
+- [ ] Roblox Studio runtime test at 320×180 and 360×180, then rotate back to portrait; verify no clipping, button overlap, or stale visibility state.
+- Stage 1 remains open. Continue the safe-area audit with Pet Collection, building controls, Resource HUD, and notifications.
