@@ -355,6 +355,85 @@ local demolishButton = make("TextButton", {
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 
+-- A single compact context card replaces the old floating action buttons.
+-- It is shown only while an owned building is selected.
+local selectionPanel = make("Frame", {
+	Name = "BuildingContextCard",
+	AnchorPoint = Vector2.new(0, 0),
+	Position = UDim2.fromOffset(12, 62),
+	Size = UDim2.fromOffset(340, 124),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 0.04,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 15,
+}, gui) :: Frame
+make("UICorner", { CornerRadius = UDim.new(0, 16) }, selectionPanel)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.3 }, selectionPanel)
+make("UIPadding", {
+	PaddingTop = UDim.new(0, 10),
+	PaddingBottom = UDim.new(0, 10),
+	PaddingLeft = UDim.new(0, 12),
+	PaddingRight = UDim.new(0, 12),
+}, selectionPanel)
+local selectionTitle = make("TextLabel", {
+	Name = "BuildingTitle",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 0),
+	Size = UDim2.new(1, -34, 0, 24),
+	Font = Enum.Font.GothamBold,
+	Text = "ПОСТРОЙКА",
+	TextColor3 = COLORS.gold,
+	TextSize = 15,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextTruncate = Enum.TextTruncate.AtEnd,
+	ZIndex = 16,
+}, selectionPanel) :: TextLabel
+local selectionDetails = make("TextLabel", {
+	Name = "BuildingDetails",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 26),
+	Size = UDim2.new(1, 0, 0, 26),
+	Font = Enum.Font.Gotham,
+	Text = "Уровень 1",
+	TextColor3 = COLORS.textMuted,
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextWrapped = true,
+	ZIndex = 16,
+}, selectionPanel) :: TextLabel
+local selectionCloseButton = make("TextButton", {
+	Name = "CloseBuildingContext",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, 0, 0, -3),
+	Size = UDim2.fromOffset(28, 28),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "×",
+	TextColor3 = COLORS.text,
+	TextSize = 21,
+	ZIndex = 17,
+}, selectionPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 9) }, selectionCloseButton)
+local upgradeButton = make("TextButton", {
+	Name = "UpgradeSelectedBuilding",
+	BackgroundColor3 = Color3.fromRGB(75, 126, 102),
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "УЛУЧШИТЬ",
+	TextColor3 = COLORS.text,
+	TextSize = 11,
+	Visible = false,
+	ZIndex = 16,
+}, selectionPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, upgradeButton)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.65, Thickness = 1 }, upgradeButton)
+moveButton.Parent = selectionPanel
+demolishButton.Parent = selectionPanel
+moveButton.ZIndex = 16
+demolishButton.ZIndex = 16
+
 -- Fit all construction actions inside the actual panel content width.
 -- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
 local compactBuildingUI = false
