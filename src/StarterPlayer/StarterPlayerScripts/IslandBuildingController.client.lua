@@ -204,7 +204,7 @@ local collapseButton = make("TextButton", {
 	ZIndex = 4,
 }, panel) :: TextButton
 InterfaceComponents.StyleCloseButton(collapseButton)
-collapseButton.Text = "−"
+collapseButton.Text = "-"
 
 local reopenConstructionButton = make("TextButton", {
 	Name = "ReopenConstruction",
