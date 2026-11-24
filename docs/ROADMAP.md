@@ -848,3 +848,15 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Fail the test explicitly if synthetic-record cleanup cannot be confirmed; never silently accumulate test profiles.
 - [ ] CI validation for cleanup commit 519a9be.
 - [ ] Verify the cleanup path in the dedicated test universe with Studio API access enabled.
+ 
+### Stage 1 — Pet collection DataStore round-trip (2026-11-24)
+
+- [x] Add an opt-in Studio integration test against the dedicated `PetKingdoms_PetCollections_v1` store.
+- [x] Verify owned pet identity/species/rarity, XP, bond state, favorite/lock flags, equipped order and acquisition receipt survive reload.
+- [x] Verify a newer collection writer generation fences out the previous writer.
+- [x] Check the synthetic key is empty before use and remove it after success or assertion failure.
+- [x] Document safe contract tests, isolated DataStore setup and the manual player journey in `docs/testing/PET_COLLECTION_TESTING.md`.
+- [ ] Rojo build validation for test commit `fea5228`; build success does not execute the Studio integration test.
+- [ ] Run the pure collection contract tests in Studio.
+- [ ] Run the gated DataStore integration test in a dedicated non-production test universe.
+- [ ] Verify real pet spawn, collection UI, equip order and state after leaving/rejoining with a dedicated test account.
