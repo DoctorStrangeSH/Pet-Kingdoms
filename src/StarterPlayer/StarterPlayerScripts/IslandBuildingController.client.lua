@@ -944,7 +944,7 @@ local function updatePreview(screenPosition: Vector2)
 	if not placing or currentPreview == nil then return end
 	local top, _, _, cellSize = getIslandGrid()
 	if top == nil or cellSize == nil then
-		currentValid = false
+		hideUnavailablePreview()
 		setStatus("Не удалось найти поверхность острова", false)
 		return
 	end
@@ -959,16 +959,7 @@ local function updatePreview(screenPosition: Vector2)
 	params.FilterDescendantsInstances = { top }
 	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
 	if result == nil or result.Instance ~= top then
-		currentValid = false
-		currentCellX, currentCellZ = nil, nil
-		if currentPreview then currentPreview.Transparency = 1 end
-		if previewVisual then
-			for _, descendant in ipairs(previewVisual:GetDescendants()) do
-				if descendant:IsA("BasePart") then descendant.Transparency = 1 end
-			end
-			local highlight = previewVisual:FindFirstChild("PlacementHighlight")
-			if highlight and highlight:IsA("Highlight") then highlight.Enabled = false end
-		end
+		hideUnavailablePreview()
 		setStatus("Нажми на траву своего острова", false)
 		return
 	end
