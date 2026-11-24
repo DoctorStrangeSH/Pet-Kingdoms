@@ -1062,3 +1062,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Replace the font-dependent diamond glyph in the Expansion launcher with a native UI-shape island-and-palm pictogram.
 - [x] Scale the pictogram with the existing compact/desktop launcher sizes; preserve the launcher hitbox and action.
 - [ ] Verify icon centering, contrast, and legibility at 320×180, 360×360, 443×426, 482×467, tablet, and desktop in Roblox Studio. Stage 1 remains open.
+
+
+### Stage 1 — Pet Collection readable action labels (2026-11-24)
+
+- [x] Replace font-dependent back/favorite/lock/petting/play glyphs in Pet Collection controls with readable Russian labels.
+- [x] Expand the favorites filter to a labeled button; rebalance filter widths to keep all four filters visible.
+- [x] Give favorite/lock controls enough width for short labels and reduce typography to fit their touch targets; use concise main-pet labels.
+- [x] Replace glyph-only favorite/lock status markers in pet rows with readable status words and truncate safely.
+- [ ] Verify action labels, filter taps, lock/favorite toggles, selected-pet actions, and compact/ultra-short layout in Roblox Studio. Stage 1 remains open.
