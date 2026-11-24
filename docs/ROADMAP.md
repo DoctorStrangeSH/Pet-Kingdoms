@@ -1233,4 +1233,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the building level on its own readable line and show only resources required by the next server-defined upgrade.
 - [x] Hide the cost row at maximum level and retain the available action buttons without leaving empty icon placeholders.
 - [x] Keep all chips and actions inside the responsive context card safe-area bounds.
+- [x] GitHub Actions run #757: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify glyph rendering, cost chip spacing, maximum-level state, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
