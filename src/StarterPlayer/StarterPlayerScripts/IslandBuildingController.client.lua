@@ -551,14 +551,6 @@ local function resizeBuildingPanel()
 		-- uncertain server operation has been resolved.
 		buildLauncher.Visible = not recoveryPanel.Visible and not placing
 	end
-	moveButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin, actionTop)
-	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
-	moveButton.Text = "ПЕРЕНЕСТИ"
-	moveButton.TextSize = if compact then 10 else 12
-	demolishButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin + moveWidth + actionGap, actionTop)
-	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
-	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТИРОВАТЬ"
-	demolishButton.TextSize = if compact then 11 else 13
 end
 
 local buildingViewportConnection: RBXScriptConnection? = nil
