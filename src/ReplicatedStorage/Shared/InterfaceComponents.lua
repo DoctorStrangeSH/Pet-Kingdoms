@@ -2,7 +2,38 @@
 -- Shared button styling for Pet Kingdoms primary interface windows.
 
 local Theme = require(script.Parent:WaitForChild("InterfaceTheme"))
+local GuiService = game:GetService("GuiService")
 local Components = {}
+
+-- Returns the camera viewport plus the usable rectangle after Roblox's
+-- top-bar/notch insets. UI panels can center and clamp against this rectangle
+-- instead of assuming the entire viewport is available.
+function Components.GetSafeViewport(camera: Camera?): (Vector2, Vector2, Vector2)
+	local activeCamera = camera or workspace.CurrentCamera
+	local viewport = if activeCamera then activeCamera.ViewportSize else Vector2.zero
+	local topLeftInset, bottomRightInset = GuiService:GetGuiInset()
+	local safeOrigin = Vector2.new(
+		math.clamp(topLeftInset.X, 0, viewport.X),
+		math.clamp(topLeftInset.Y, 0, viewport.Y)
+	)
+	local safeSize = Vector2.new(
+		math.max(0, viewport.X - safeOrigin.X - math.max(0, bottomRightInset.X)),
+		math.max(0, viewport.Y - safeOrigin.Y - math.max(0, bottomRightInset.Y))
+	)
+	return viewport, safeOrigin, safeSize
+end
+
+function Components.ClampPanelSize(desired: Vector2, safeSize: Vector2, margin: number?): Vector2
+	local inset = math.max(0, margin or 12)
+	local available = Vector2.new(
+		math.max(0, safeSize.X - inset * 2),
+		math.max(0, safeSize.Y - inset * 2)
+	)
+	return Vector2.new(
+		math.min(math.max(0, desired.X), available.X),
+		math.min(math.max(0, desired.Y), available.Y)
+	)
+end
 
 function Components.StyleCloseButton(button: TextButton)
 	local colors = Theme.Colors
