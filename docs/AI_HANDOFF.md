@@ -1575,3 +1575,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Rojo build validation for commits `f96b077`, `6064618`, `eddd03b`, `47e9d9f`, and `7e81a36`, plus turn-fixture correction `41bc463`.
 - [ ] Run both companion Studio smoke tests and inspect the correct Server/client Output windows.
 - [ ] Verify the same behavior with the published Bunny mesh and on mobile. Do not mark runtime acceptance from a green Rojo build alone.
+
+
+## Latest UI lifecycle hardening — 2026-11-24
+
+- [x] Updated `ModalManager.Register` to close and detach an existing controller before replacing its close callback; this prevents stale visible panels/input shades after LocalScript rebinding.
+- [x] Updated `ModalManager.Unregister` to invoke cleanup even when focus bookkeeping is stale. The old callback is detached before invocation to avoid recursive unregister loops.
+- [x] Preserved `ModalManager.ActiveChanged`; active focus loss is published when the focused controller is replaced or unregistered.
+- [x] Expanded `src/StarterPlayer/StarterPlayerScripts/Tests/ModalManagerTests.client.lua` for visible and inactive unregister, re-registration, self-unregistering cleanup, focus state and event notifications.
+- [ ] Validate implementation commit `3a284fd` and test commit `1048ec1` with the pinned Rojo GitHub Actions workflow.
+- [ ] Run the ModalManager client smoke test in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`; inspect client Output for PASS lines.
+- [ ] Manually exercise rapid modal handoffs among Pet Collection, Quest Journal, Island Expansion and Build. Build success does not prove modal runtime behavior.
+- Stage 1 remains open. Continue UI/responsive/construction acceptance only; do not advance to Stage 2 before Studio/device checks are recorded.
