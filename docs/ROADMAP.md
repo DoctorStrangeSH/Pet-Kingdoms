@@ -587,6 +587,7 @@ Source commits: `639d343`, `a9fcfe5`, `3d6cd07`, `742be87`, `a32852e`, `035659b`
 - [x] Replace Resource HUD's duplicate base palette with `InterfaceTheme.Colors`.
 - [x] Use shared typography tokens for resource amounts, labels, gather feedback, kingdom-bond label, and responsive sizes.
 - [x] Use shared radius tokens and shared Build icon token.
+- [x] Source wood, stone, gold, and gems glyphs from `InterfaceTheme.Icons` instead of duplicating symbols in the HUD.
 - [x] Preserve per-resource semantic accent tints and existing responsive grid layout.
 - [ ] Finish cross-screen overflow/spacing audit and complete Roblox Studio desktop/mobile regression before Stage 1 sign-off.
 
