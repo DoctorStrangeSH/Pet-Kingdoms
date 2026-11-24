@@ -14,6 +14,46 @@ local function expect(label: string, condition: boolean)
 	print("[PetKingdoms Test] PASS: " .. label)
 end
 
+local fitInside = BuildingModelPivot.checkFootprintFit(
+	{ width = 9.5, height = 4, depth = 9.8 },
+	2,
+	2,
+	5
+)
+expect("visual bounds inside grid footprint are accepted", fitInside ~= nil and fitInside.fits)
+expect("visual bounds do not report negative overhang",
+	fitInside ~= nil and fitInside.overhangX == 0 and fitInside.overhangZ == 0)
+
+local fitWithinTolerance = BuildingModelPivot.checkFootprintFit(
+	{ width = 10.2, height = 4, depth = 10.1 },
+	2,
+	2,
+	5,
+	0.25
+)
+expect("tiny visual overhang inside tolerance is accepted",
+	fitWithinTolerance ~= nil and fitWithinTolerance.fits)
+
+local fitOutside = BuildingModelPivot.checkFootprintFit(
+	{ width = 10.6, height = 4, depth = 11.1 },
+	2,
+	2,
+	5,
+	0.25
+)
+expect("visual bounds beyond tolerance are reported",
+	fitOutside ~= nil and not fitOutside.fits
+		and math.abs(fitOutside.overhangX - 0.6) < 0.001
+		and math.abs(fitOutside.overhangZ - 1.1) < 0.001)
+
+local invalidFit = BuildingModelPivot.checkFootprintFit(
+	{ width = 10, height = 4, depth = 10 },
+	2,
+	2,
+	0
+)
+expect("invalid cell size rejects footprint diagnostics", invalidFit == nil)
+
 local model = Instance.new("Model")
 model.Name = "BuildingPivotTestFixture"
 local first = Instance.new("Part")
