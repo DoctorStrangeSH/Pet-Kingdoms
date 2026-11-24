@@ -1224,4 +1224,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Publish the same metadata on initial island spawn and every server-side building sync/rebuild.
 - [x] Remove duplicated upgrade level/cost tables from the client context card; render its details from replicated model attributes.
 - [x] Extend `IslandWorldServiceTests` to verify main-house level-2 costs and pet-house level-3 costs are replicated from the server catalog.
+- [x] GitHub Actions run #755: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run `IslandWorldServiceTests.server.lua` in Roblox Studio and verify UI labels refresh after upgrade and island reload. Runtime validation pending.
