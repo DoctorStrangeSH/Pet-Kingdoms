@@ -1167,3 +1167,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Pass each owning ScreenGui from Construction, Resource HUD, Island Expansion, Quest Journal, and Pet Collection.
 - [x] GitHub Actions run #734: pinned Rojo verification, place build, and Studio-ready artifact upload all passed.
 - [ ] Verify safe-area origin and panel/launcher alignment in Roblox Studio with both inset modes, phone portrait/landscape, tablet, and desktop. Runtime visual validation pending.
+
+### Stage 1 — Pet Collection safe-area centering and modal animation (2026-11-24)
+
+- [x] Re-center the collection panel inside the current safe viewport after every responsive layout pass, including desktop layouts.
+- [x] Preserve the computed safe-area resting position during the opening animation instead of overwriting it with viewport-relative `fromScale(0.5, 0.5)` coordinates.
+- [x] Center the nested delete-confirmation panel in the same safe viewport so it does not drift toward the raw ScreenGui center on inset devices.
+- [ ] Verify collection open/close/reopen, delete confirmation, resize/orientation changes, and touch/backdrop behavior in Roblox Studio. Runtime visual validation pending.
