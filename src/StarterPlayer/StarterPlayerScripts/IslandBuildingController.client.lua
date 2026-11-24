@@ -406,7 +406,7 @@ local function resizeBuildingPanel()
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth
 	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
-	rotateButton.Text = if narrow then "ПОВОРОТ"
+	rotateButton.Text = "ПОВОРОТ"
 	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
 	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
