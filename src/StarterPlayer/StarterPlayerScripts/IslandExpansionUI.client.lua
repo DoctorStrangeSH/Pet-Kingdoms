@@ -40,13 +40,61 @@ local openButton = make("TextButton", {
 	Position = UDim2.new(1, -22, 0.70, 0),
 	Size = UDim2.fromOffset(62, 62),
 	BackgroundColor3 = COLORS.panel,
-	Text = InterfaceTheme.Icons.Island,
-	TextSize = 28,
-	Font = Enum.Font.GothamBold,
-	TextColor3 = COLORS.cream,
+	Text = "",
 	AutoButtonColor = true,
 }, screen) :: TextButton
 InterfaceComponents.StyleFloatingButton(openButton, "gold")
+
+-- Draw the island pictogram with native UI shapes instead of the
+-- font-dependent diamond glyph, which can render as an empty square.
+local islandIcon = make("Frame", {
+	Name = "IslandIcon",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(34, 32),
+	BackgroundTransparency = 1,
+}, openButton) :: Frame
+local islandBase = make("Frame", {
+	Name = "IslandBase",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.new(0.5, 0, 0.68, 0),
+	Size = UDim2.fromOffset(31, 13),
+	Rotation = -5,
+	BackgroundColor3 = Color3.fromRGB(111, 157, 104),
+	BorderSizePixel = 0,
+}, islandIcon) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, islandBase)
+local islandTop = make("Frame", {
+	Name = "IslandTop",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.new(0.5, 0, 0.48, 0),
+	Size = UDim2.fromOffset(23, 9),
+	BackgroundColor3 = COLORS.mint,
+	BorderSizePixel = 0,
+}, islandIcon) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, islandTop)
+local palmTrunk = make("Frame", {
+	Name = "PalmTrunk",
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.55, 0, 0.55, 0),
+	Size = UDim2.fromOffset(3, 15),
+	Rotation = 12,
+	BackgroundColor3 = Color3.fromRGB(190, 145, 91),
+	BorderSizePixel = 0,
+}, islandIcon) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, palmTrunk)
+for index, rotation in ipairs({ -48, -18, 24, 52 }) do
+	local leaf = make("Frame", {
+		Name = "PalmLeaf" .. index,
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.55, 0, 0.13, 0),
+		Size = UDim2.fromOffset(4, 12),
+		Rotation = rotation,
+		BackgroundColor3 = if index % 2 == 0 then COLORS.mint else Color3.fromRGB(164, 218, 151),
+		BorderSizePixel = 0,
+	}, islandIcon) :: Frame
+	make("UICorner", { CornerRadius = UDim.new(1, 0) }, leaf)
+end
 
 local shade = make("TextButton", {
 	Name = "Shade",
@@ -374,7 +422,7 @@ local function resize()
 	title.Text = if compact then "РАСШИРЕНИЕ" else "РАСШИРЕНИЕ ОСТРОВА"
 	title.TextSize = if compact then 15 else 18
 	openButton.Size = UDim2.fromOffset(compact and 48 or 62, compact and 48 or 62)
-	openButton.TextSize = if compact then 22 else 28
+	islandIcon.Size = UDim2.fromOffset(compact and 28 or 34, compact and 26 or 32)
 	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	refreshButton.TextSize = if compact then 11 else 12
 	-- Keep the expansion launcher below the pet launcher on compact screens.
