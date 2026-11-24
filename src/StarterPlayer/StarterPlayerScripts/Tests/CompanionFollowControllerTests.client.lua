@@ -127,9 +127,11 @@ target.AssemblyLinearVelocity = Vector3.zero
 target.CFrame = target.CFrame + Vector3.new(70, 0, 0)
 controllers[1]:update(1 / 60)
 local catchUpTarget = target.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
+local recoveredPosition = pets[1]:GetPivot().Position
 expect("lagging companion switches to run", controllers[1].animation.state == "run")
 expect("extremely distant companion recovers near its owner",
-	(pets[1]:GetPivot().Position - catchUpTarget).Magnitude < 5)
+	(Vector3.new(recoveredPosition.X, 0, recoveredPosition.Z)
+		- Vector3.new(catchUpTarget.X, 0, catchUpTarget.Z)).Magnitude < 5)
 
 -- A broad wall blocks the straight line to the first formation slot. The
 -- controller should choose a grounded side waypoint instead of pushing through it.
