@@ -1563,3 +1563,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Rojo build validation for commits `eff6503`, `8b2c295`, and `5a98d33`.
 - [ ] Run `CompanionFollowControllerTests.client.lua` in Studio with Workspace attribute `RunPetKingdomsStudioTests = true`; inspect client Output.
 - [ ] Test real bridge/ramp transitions, ground contact and mobile frame pacing using the published Bunny mesh. The ramp fixture is not a substitute for an island playtest.
+
+## Companion locomotion polish — 2026-11-24
+
+- [x] Added `turnSmoothing` (default 9, bounded 4–18) and blend the desired horizontal facing direction before building the slope-aware target CFrame.
+- [x] Fixed a double-interpolation issue in the follow tail: the controller now creates the target CFrame at the desired position and applies one positional/rotational interpolation. `movementSpeed` is measured from the resulting next CFrame's actual displacement divided by dt.
+- [x] The final locomotion state is chosen from measured pet movement: idle below 0.35 studs/s, walk above that threshold, and run at 7.5 studs/s or during a sufficiently fast catch-up. Jump remains the highest-priority locomotion state.
+- [x] Added `PetAnimationController:setMovementSpeed`; procedural walk/run leg cadence scales with actual speed and clamps input to 0–24 studs/s.
+- [x] Client follow tests now cover smooth direction change, a pet walking toward formation while its owner is stationary, settling to idle, and remaining in place after stopping.
+- [x] Server animation tests compare slow/fast gait poses and verify speed clamping.
+- [ ] Rojo build validation for commits `f96b077`, `6064618`, `eddd03b`, `47e9d9f`, and `7e81a36`.
+- [ ] Run both companion Studio smoke tests and inspect the correct Server/client Output windows.
+- [ ] Verify the same behavior with the published Bunny mesh and on mobile. Do not mark runtime acceptance from a green Rojo build alone.
