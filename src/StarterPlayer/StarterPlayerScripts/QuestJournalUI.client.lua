@@ -327,7 +327,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
-			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 110 else 124),
+			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 84 else 124),
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
@@ -336,8 +336,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		local trackButton = make("TextButton", {
 			Name = "TrackQuest",
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -10, 0, 8),
-			Size = UDim2.fromOffset(if compactCard then 88 else 102, if compactCard then 28 else 27),
+			Position = UDim2.new(1, -10, 0, 6),
+			Size = UDim2.fromOffset(if compactCard then 82 else 102, if compactCard then 24 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
 			Text = if trackedQuestId == quest.id then "СЛЕЖУ" else "СЛЕДИТЬ",
 			TextSize = 12,
@@ -378,8 +378,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 
 		local questIcon = make("Frame", {
 			Name = "QuestTypeIcon",
-			Position = UDim2.fromOffset(14, 9),
-			Size = UDim2.fromOffset(22, 22),
+			Position = UDim2.fromOffset(14, 7),
+			Size = UDim2.fromOffset(20, 20),
 			BackgroundColor3 = if quest.id == "gather_wood" then Color3.fromRGB(105, 142, 92) else Color3.fromRGB(105, 121, 145),
 		}, card) :: Frame
 		make("UICorner", { CornerRadius = UDim.new(0, 7) }, questIcon)
@@ -392,22 +392,22 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		end
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 44, 0, 9),
-			Size = UDim2.new(1, if compactCard then -150 else -126, 0, 23),
+			Position = UDim2.new(0, 42, 0, 7),
+			Size = UDim2.new(1, if compactCard then -138 else -126, 0, 20),
 			Font = Enum.Font.GothamBold,
 			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else "") .. quest.name,
-			TextSize = if compactCard then 12 else 14,
+			TextSize = if compactCard then 11 else 14,
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = if done then COLORS.mint else COLORS.cream,
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 16, 0, 35),
-			Size = UDim2.new(1, -32, 0, if compactCard then 18 else 21),
+			Position = UDim2.new(0, 16, 0, 29),
+			Size = UDim2.new(1, -32, 0, if compactCard then 16 else 21),
 			Font = Enum.Font.Gotham,
 			Text = quest.description,
-			TextSize = if compactCard then 11 else 11,
+			TextSize = if compactCard then 10 else 11,
 			TextWrapped = false,
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextYAlignment = Enum.TextYAlignment.Top,
@@ -417,7 +417,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		local count = math.clamp(quest.count, 0, quest.target)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 16, 0, if compactCard then 60 else 65),
+			Position = UDim2.new(0, 16, 0, if compactCard then 49 else 65),
 			Size = UDim2.new(0.5, 0, 0, 18),
 			Font = Enum.Font.GothamBold,
 			Text = if done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
@@ -427,7 +427,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -76, 0, if compactCard then 59 else 64),
+			Position = UDim2.new(1, -76, 0, if compactCard then 48 else 64),
 			Size = UDim2.fromOffset(60, 19),
 			Font = Enum.Font.GothamBold,
 			Text = string.format("%d / %d", count, quest.target),
@@ -436,8 +436,8 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			TextColor3 = COLORS.cream,
 		}, card)
 		local track = make("Frame", {
-			Position = UDim2.new(0, 16, 1, -11),
-			Size = UDim2.new(1, -32, 0, 6),
+			Position = UDim2.new(0, 16, 1, -8),
+			Size = UDim2.new(1, -32, 0, 5),
 			BackgroundColor3 = COLORS.track,
 		}, card) :: Frame
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, track)
