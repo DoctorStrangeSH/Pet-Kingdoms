@@ -280,20 +280,23 @@ local function resize()
 		-- Reserve the top-right lane for the construction launcher. A centered,
 		-- full-width resource bar used to sit underneath that button on phones.
 		local launcherWidth = if tiny then 112 else 128
-		local compactWidth = math.max(140, math.min(
-			math.floor(safeSize.X * 0.62),
-			safeSize.X - launcherWidth - 28
-		))
+		-- The resource HUD owns only the left lane. Never force a minimum
+		-- width that would intrude into the build launcher on narrow screens.
+		local availableWidth = math.max(1, safeSize.X - launcherWidth - 28)
+		local compactWidth = math.min(math.floor(safeSize.X * 0.62), availableWidth)
+		local compactHeight = math.min(84, math.max(44, safeSize.Y - 16))
 		root.AnchorPoint = Vector2.new(0, 0)
 		root.Position = UDim2.fromOffset(safeOrigin.X + 8, safeOrigin.Y + 10)
-		root.Size = UDim2.fromOffset(compactWidth, math.min(92, safeSize.Y - 16))
+		root.Size = UDim2.fromOffset(compactWidth, compactHeight)
 	else
 		root.AnchorPoint = Vector2.new(0.5, 0)
 		root.Position = UDim2.fromOffset(safeOrigin.X + safeSize.X * 0.5, safeOrigin.Y + 10)
 		root.Size = UDim2.fromOffset(math.min(420, safeSize.X - 32), math.min(54, safeSize.Y - 16))
 	end
 	layout.FillDirectionMaxCells = if compact then 2 else 4
-	layout.CellSize = if compact then UDim2.new(0.5, -10, 0, 36) else UDim2.new(0.25, -6, 1, 0)
+	layout.CellSize = if compact
+		then UDim2.new(0.5, -5, 0, 34)
+		else UDim2.new(0.25, -6, 1, 0)
 	layout.CellPadding = UDim2.fromOffset(compact and 4 or 6, compact and 4 or 0)
 	padding.PaddingLeft = UDim.new(0, compact and 6 or 7)
 	padding.PaddingRight = UDim.new(0, compact and 6 or 7)
