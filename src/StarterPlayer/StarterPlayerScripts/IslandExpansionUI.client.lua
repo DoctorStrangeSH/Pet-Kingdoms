@@ -382,41 +382,72 @@ local function resize()
 	-- Use a genuinely shorter layout on phones instead of shrinking the
 	-- desktop composition until its cards and tap targets become tiny.
 	local veryShort = viewport.Y < 380
-	local compactHeight = if veryShort then 306 elseif short then 330 else 390
+	local ultraShort = viewport.Y < 220
+	local compactHeight = if ultraShort then math.max(144, viewport.Y - 20)
+		elseif veryShort then 306 elseif short then 330 else 390
 	local compactWidth = math.max(220, viewport.X - 20)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 390)
 	panelConstraint.MinSize = Vector2.new(math.min(250, compactWidth), if compact then compactHeight else 320)
 	panelConstraint.MaxSize = Vector2.new(math.min(compact and 440 or 440, compactWidth), if compact then compactHeight else 390)
 	panelScale.Scale = if compact then 1 else math.clamp((viewport.Y - 24) / 390, 0.82, 1)
-	title.TextSize = if compact then 15 else 18
+	title.TextSize = if compact then (if ultraShort then 13 else 15) else 18
 	subtitle.TextSize = if narrow then 10 else 11
 	if compact then
-		local cardHeight = if veryShort then 56 else 64
-		local currentY = if veryShort then 82 else 88
-		local nextY = currentY + cardHeight + 10
-		currentCard.Position = UDim2.fromOffset(16, currentY)
-		currentCard.Size = UDim2.new(1, -32, 0, cardHeight)
-		nextCard.Position = UDim2.fromOffset(16, nextY)
-		nextCard.Size = UDim2.new(1, -32, 0, cardHeight)
-		currentTitle.Position = UDim2.fromOffset(12, 7)
-		currentTitle.Size = UDim2.new(1, -24, 0, 18)
-		currentValue.Position = UDim2.fromOffset(12, 27)
-		currentValue.Size = UDim2.new(1, -24, 0, 25)
-		nextTitle.Position = UDim2.fromOffset(12, 7)
-		nextTitle.Size = UDim2.new(1, -24, 0, 18)
-		nextValue.Position = UDim2.fromOffset(12, 27)
-		nextValue.Size = UDim2.new(1, -24, 0, 25)
-		subtitle.Position = UDim2.fromOffset(16, 48)
-		subtitle.Size = UDim2.new(1, -32, 0, 30)
-		subtitle.TextSize = if narrow then 9 else 10
-		status.Position = UDim2.fromOffset(16, nextY + cardHeight + 10)
-		status.Size = UDim2.new(1, -32, 0, if veryShort then 36 else 42)
-		refreshButton.Position = UDim2.new(0, 16, 1, -48)
-		refreshButton.Size = UDim2.new(1, -32, 0, 40)
-		refreshButton.TextSize = 11
-		closeButton.Position = UDim2.new(1, -12, 0, 10)
-		closeButton.Size = UDim2.fromOffset(36, 36)
+		if ultraShort then
+			title.Position = UDim2.fromOffset(14, 7)
+			title.Size = UDim2.new(1, -88, 0, 24)
+			subtitle.Visible = false
+			currentCard.Position = UDim2.fromOffset(14, 38)
+			currentCard.Size = UDim2.new(1, -28, 0, 34)
+			nextCard.Position = UDim2.fromOffset(14, 78)
+			nextCard.Size = UDim2.new(1, -28, 0, 34)
+			for _, card in ipairs({ currentCard, nextCard }) do
+				local heading = if card == currentCard then currentTitle else nextTitle
+				local value = if card == currentCard then currentValue else nextValue
+				heading.Position = UDim2.fromOffset(10, 2)
+				heading.Size = UDim2.new(1, -20, 0, 12)
+				heading.TextSize = 8
+				value.Position = UDim2.fromOffset(10, 15)
+				value.Size = UDim2.new(1, -20, 0, 16)
+				value.TextSize = 11
+			end
+			status.Visible = false
+			refreshButton.Position = UDim2.new(0, 14, 1, -40)
+			refreshButton.Size = UDim2.new(1, -28, 0, 32)
+			refreshButton.TextSize = 10
+			closeButton.Position = UDim2.new(1, -10, 0, 5)
+			closeButton.Size = UDim2.fromOffset(32, 32)
+		else
+			local cardHeight = if veryShort then 56 else 64
+			local currentY = if veryShort then 82 else 88
+			local nextY = currentY + cardHeight + 10
+			currentCard.Position = UDim2.fromOffset(16, currentY)
+			currentCard.Size = UDim2.new(1, -32, 0, cardHeight)
+			nextCard.Position = UDim2.fromOffset(16, nextY)
+			nextCard.Size = UDim2.new(1, -32, 0, cardHeight)
+			currentTitle.Position = UDim2.fromOffset(12, 7)
+			currentTitle.Size = UDim2.new(1, -24, 0, 18)
+			currentValue.Position = UDim2.fromOffset(12, 27)
+			currentValue.Size = UDim2.new(1, -24, 0, 25)
+			nextTitle.Position = UDim2.fromOffset(12, 7)
+			nextTitle.Size = UDim2.new(1, -24, 0, 18)
+			nextValue.Position = UDim2.fromOffset(12, 27)
+			nextValue.Size = UDim2.new(1, -24, 0, 25)
+			subtitle.Visible = true
+			subtitle.Position = UDim2.fromOffset(16, 48)
+			subtitle.Size = UDim2.new(1, -32, 0, 30)
+			subtitle.TextSize = if narrow then 9 else 10
+			status.Visible = true
+			status.Position = UDim2.fromOffset(16, nextY + cardHeight + 10)
+			status.Size = UDim2.new(1, -32, 0, 42)
+			refreshButton.Position = UDim2.new(0, 16, 1, -48)
+			refreshButton.Size = UDim2.new(1, -32, 0, 40)
+			refreshButton.TextSize = 11
+			closeButton.Position = UDim2.new(1, -12, 0, 10)
+			closeButton.Size = UDim2.fromOffset(36, 36)
+		end
 	else
+		subtitle.Visible = true
 		subtitle.Position = UDim2.new(0, 24, 0, 57)
 		subtitle.Size = UDim2.new(1, -48, 0, 34)
 		currentCard.Position = UDim2.new(0, 22, 0, 108)
