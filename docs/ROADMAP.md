@@ -1056,3 +1056,9 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Follow-up compact top-bar collision fix: on viewports below 560 px, the resource HUD moves to a left-aligned lane whose width reserves space for the construction launcher at the top-right.
 - [x] Match the construction launcher width to the resource HUD reservation (112 px on very narrow screens, 128 px on other compact screens); desktop placement remains centered/top-right as before.
 - [ ] Verify no overlap at 320×180, 360×360, 443×426 and 482×467 in Roblox Studio; confirm all four resource labels remain legible and the build button remains tappable.
+
+### Stage 1 — Island Expansion launcher icon fallback (2026-11-24)
+
+- [x] Replace the font-dependent diamond glyph in the Expansion launcher with a native UI-shape island-and-palm pictogram.
+- [x] Scale the pictogram with the existing compact/desktop launcher sizes; preserve the launcher hitbox and action.
+- [ ] Verify icon centering, contrast, and legibility at 320×180, 360×360, 443×426, 482×467, tablet, and desktop in Roblox Studio. Stage 1 remains open.
