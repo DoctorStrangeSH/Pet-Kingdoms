@@ -741,7 +741,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Refresh the visible ghost immediately after rotation, even before a touch player has locked a target cell.
 - [x] Preserve a locked placement cell when rotating and revalidate the rotated footprint; if no cell has been chosen yet, reseed the preview at the nearest free grid cell.
 - [x] Confirm the compact construction tray CI passed (7b08295, run 45350460447).
-- [ ] CI validation for immediate rotation feedback commit 07791bf.
+- [x] CI validation for immediate rotation feedback commit 07791bf (GitHub Actions run `45350635172`: pinned Rojo verification, place build, and Studio-ready artifact upload passed).
 - [ ] Verify touch rotate updates the silhouette before confirmation; verify invalid rotated footprints become red and cannot be submitted.
 - [ ] Verify the full six-entry place/move/cancel/save flow in Roblox Studio; Stage 1 remains open.
 
