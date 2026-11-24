@@ -715,8 +715,19 @@ upgradeButton.Activated:Connect(function()
 		return
 	end
 	if type(response) == "table" and response.ok == true then
-		model:SetAttribute("UpgradeLevel", response.upgradeLevel)
-		updateBuildingContext(model)
+		-- The server rebuilds the world model when syncing an upgrade. The
+		-- previously selected instance is therefore destroyed and replaced.
+		local island = findOwnIsland()
+		local upgradedModel: Model? = nil
+		if island then
+			for _, child in ipairs(island:GetChildren()) do
+				if child:IsA("Model") and child:GetAttribute("BuildingInstanceId") == instanceId then
+					upgradedModel = child
+					break
+				end
+			end
+		end
+		selectBuilding(upgradedModel)
 		setStatus("Постройка улучшена до уровня " .. tostring(response.upgradeLevel), true)
 		NotificationManager.Notify("Постройка улучшена!", "success")
 	else
@@ -733,7 +744,9 @@ upgradeButton.Activated:Connect(function()
 		setStatus(messages[code] or ("Не удалось улучшить: " .. code), false)
 		NotificationManager.Notify(messages[code] or "Не удалось улучшить постройку", "error")
 	end
-	updateBuildingContext(if selectedBuildingModel == model then model else nil)
+	if selectedBuildingModel and selectedBuildingModel.Parent then
+		updateBuildingContext(selectedBuildingModel)
+	end
 end)
 
 demolishButton.Activated:Connect(function()
