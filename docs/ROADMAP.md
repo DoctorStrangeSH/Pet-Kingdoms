@@ -1175,3 +1175,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Center the nested delete-confirmation panel in the same safe viewport so it does not drift toward the raw ScreenGui center on inset devices.
 - [x] GitHub Actions run #736: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify collection open/close/reopen, delete confirmation, resize/orientation changes, and touch/backdrop behavior in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Construction panel reflow for ultra-short landscape screens (2026-11-24)
+
+- [x] Reflow the construction panel on ultra-short viewports (safe height below 220 px): use a compact status header, a shorter horizontal catalogue, and a dedicated 44 px action row.
+- [x] Hide the redundant panel title in this constrained mode so the close/collapse controls and live placement status remain accessible without vertical overlap.
+- [x] Reduce the panel's target height to a safe-area-clamped compact layout instead of allowing the catalogue and action row to extend below the panel.
+- [ ] Verify at 320×180 and 360×180 in Roblox Studio, including all six catalogue entries via horizontal scroll, rotate, confirm, cancel, collapse/reopen, and touch targets. Runtime visual validation pending.
