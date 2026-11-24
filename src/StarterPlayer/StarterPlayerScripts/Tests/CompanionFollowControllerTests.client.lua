@@ -20,6 +20,13 @@ local folder = Instance.new("Folder")
 folder.Name = "CompanionFollowControllerTests"
 folder.Parent = workspace
 
+local floor = Instance.new("Part")
+floor.Name = "CompanionFollowTestFloor"
+floor.Anchored = true
+floor.Size = Vector3.new(200, 1, 200)
+floor.Position = Vector3.new(0, -0.5, 0)
+floor.Parent = workspace
+
 local target = Instance.new("Part")
 target.Name = "TestTargetRoot"
 target.Anchored = true
@@ -124,11 +131,41 @@ expect("lagging companion switches to run", controllers[1].animation.state == "r
 expect("extremely distant companion recovers near its owner",
 	(pets[1]:GetPivot().Position - catchUpTarget).Magnitude < 5)
 
+-- A broad wall blocks the straight line to the first formation slot. The
+-- controller should choose a grounded side waypoint instead of pushing through it.
+target.CFrame = CFrame.new(0, 5, 0)
+pets[1]:PivotTo(CFrame.new(0, 0.28, 0))
+controllers[1].pathDetourPosition = nil
+controllers[1].pathDetourUntil = 0
+controllers[1].nextObstacleScan = 0
+controllers[1].lastPathTarget = nil
+local obstacleDestination = target.CFrame:PointToWorldSpace(Vector3.new(-2.4, 0, 4.5))
+local obstacleDirection = (obstacleDestination - pets[1]:GetPivot().Position).Unit
+local obstacleMidpoint = (obstacleDestination + pets[1]:GetPivot().Position) * 0.5
+local wall = Instance.new("Part")
+wall.Name = "CompanionFollowTestWall"
+wall.Anchored = true
+wall.Size = Vector3.new(8, 4, 1)
+wall.CFrame = CFrame.lookAt(obstacleMidpoint + Vector3.new(0, 1, 0),
+	obstacleMidpoint + Vector3.new(0, 1, 0) + obstacleDirection)
+wall.Parent = workspace
+controllers[1]:update(1 / 60)
+local detour = controllers[1].pathDetourPosition
+expect("companion detects a wall between itself and its formation slot", detour ~= nil)
+if detour ~= nil then
+	local side = Vector3.new(-obstacleDirection.Z, 0, obstacleDirection.X)
+	local lateralClearance = math.abs((detour - obstacleMidpoint):Dot(side))
+	expect("detour clears the wall instead of staying on the blocked centerline", lateralClearance > 4)
+	expect("detour remains grounded on the island floor", math.abs(detour.Y - 0.28) < 0.05)
+end
+wall:Destroy()
+
 for _, controller in ipairs(controllers) do
 	controller:destroy()
 	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil)
 end
 
 target:Destroy()
+floor:Destroy()
 folder:Destroy()
 print("[PetKingdoms Test] CompanionFollowController smoke tests completed.")
