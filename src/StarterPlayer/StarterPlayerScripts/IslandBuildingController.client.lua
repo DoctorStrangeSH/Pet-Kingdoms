@@ -828,6 +828,8 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 	return false
 end
 
+local hideUnavailablePreview: () -> ()
+
 -- Re-check the selected grid cell without using the screen pointer.
 local function updatePreviewAtCell(x: number, z: number)
 	if not placing or currentPreview == nil then return end
@@ -881,7 +883,7 @@ end
 
 -- Hide every placement indicator and invalidate its coordinates when
 -- there is no selectable ground/cell. Never leave a stale ghost on screen.
-local function hideUnavailablePreview()
+hideUnavailablePreview = function()
 	currentValid = false
 	currentCellX, currentCellZ = nil, nil
 	placementLocked = false
