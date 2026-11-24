@@ -1213,4 +1213,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the context card hidden while construction/move placement mode is active and restore it when placement closes.
 - [x] Wire the Upgrade action to the existing server-authoritative, idempotent upgrade transaction; display server rejection messages and preserve pending-operation recovery on timeouts.
 - [x] Publish the resource snapshot after a successful upgrade so the resource HUD refreshes instead of showing stale balances.
+- [x] Re-select the replacement world model after server-side upgrade synchronization rebuilds the model, keeping the context card/highlight attached to the upgraded building.
 - [ ] Verify selection, close/deselect, main-house protection, each building's upgrade costs/max level, insufficient resources, upgrade persistence, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
