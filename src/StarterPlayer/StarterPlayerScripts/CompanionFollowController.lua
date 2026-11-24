@@ -130,7 +130,7 @@ local function findObstacleDetour(
 	)
 	-- The waypoint-to-target segment converges back toward the formation slot.
 	-- Increase its side offset so it still clears the wall at the exact crossing.
-	local clearance = math.max(3.5, (obstacleHalfWidth + petRadius + 1.5) / lateralRetention)
+	local clearance = math.clamp((obstacleHalfWidth + petRadius + 1.5) / lateralRetention, 3.5, 14)
 	local bestCandidate: Vector3? = nil
 	local bestRouteLength = math.huge
 
