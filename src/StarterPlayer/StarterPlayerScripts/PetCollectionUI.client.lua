@@ -893,8 +893,14 @@ resize = function()
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
 		local veryShort = viewport.Y < 400
-		panel.Size = UDim2.new(0.94, 0, shortCompact and 0.92 or 0.84, 0)
+		-- Keep a predictable safe margin in portrait and landscape. A fixed
+		-- pixel height avoids oversized panels on tall phones and clipped
+		-- content on short landscape viewports.
+		local mobilePanelHeight = math.max(280, math.min(620, viewport.Y - 32))
+		panel.Position = UDim2.fromScale(0.5, 0.5)
+		panel.Size = UDim2.new(0.94, 0, 0, mobilePanelHeight)
 		panelScale.Scale = 1
+		title.TextSize = if viewport.X < 360 then 14 else 16
 		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
 		search.Position = UDim2.fromOffset(24, 88)
 		search.Size = UDim2.fromOffset(contentWidth, 38)
