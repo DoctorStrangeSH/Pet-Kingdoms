@@ -1559,7 +1559,7 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Added a separate ground-normal raycast helper. Each follow controller refreshes its surface normal every 0.15 seconds rather than adding a raycast to every RenderStepped update.
 - [x] The companion target CFrame now uses the sampled surface normal as its up vector, while preserving the smoothed horizontal facing direction. This lets the model lean with bridges and ramps.
 - [x] Surface normals steeper than 50 degrees fall back to world-up to avoid rotating the pet onto near-vertical walls.
-- [x] Added a client Studio fixture with an 18-degree rotated ramp and checks for body alignment and the supported slope limit.
-- [ ] Rojo build validation for commits `eff6503` and `8b2c295`.
+- [x] Added a client Studio fixture with an 18-degree rotated ramp and checks for body alignment on an 18-degree ramp and upright fallback on a 65-degree surface.
+- [ ] Rojo build validation for commits `eff6503`, `8b2c295`, and `5a98d33`.
 - [ ] Run `CompanionFollowControllerTests.client.lua` in Studio with Workspace attribute `RunPetKingdomsStudioTests = true`; inspect client Output.
 - [ ] Test real bridge/ramp transitions, ground contact and mobile frame pacing using the published Bunny mesh. The ramp fixture is not a substitute for an island playtest.
