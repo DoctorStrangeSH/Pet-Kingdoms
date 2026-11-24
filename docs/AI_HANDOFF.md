@@ -1511,3 +1511,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - It does not launch Roblox Studio or execute `src/ServerScriptService/Tests` scripts.
 - Therefore all queued/completed Actions runs are build checks only. Do not describe them as passing persistence, data, world, or gameplay tests.
 - Studio-only tests and the manual leave/rejoin journey remain NOT DONE until their actual Studio Output and observed behavior are recorded.
+
+## Pet collection persistence follow-up — 2026-11-24
+
+- [x] Added `PetCollectionStoreTests.server.lua`, gated by Workspace attribute `RunPetCollectionStoreIntegrationTests`.
+- [x] The integration fixture uses the production collection store name with a randomly generated synthetic key, verifies the key is empty before use, and removes the synthetic record after success or assertion failure.
+- [x] Covered first session claim, reservation/grant, pet bond interaction, XP, favorite/lock flags, equipped order, durable acquisition receipt, DataStore reload, and stale-writer rejection after a newer generation claims the profile.
+- [x] Added `docs/testing/PET_COLLECTION_TESTING.md` with safe Studio instructions and a manual leave/rejoin journey.
+- [ ] CI/Rojo build validation for `fea5228`; this workflow does not execute Studio tests.
+- [ ] Run pure collection tests and the gated integration test in Roblox Studio; use a dedicated non-production test universe only.
+- [ ] Verify real pet spawn and UI restoration after leave/rejoin.
