@@ -1616,3 +1616,15 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - Stage 1 remains open. Continue the safe-area audit with Pet Collection, building controls, Resource HUD, and notifications.
 
 - [x] Follow-up fix `52dd49e`: explicitly restore Island Expansion's status label when resizing back from ultra-short landscape to portrait/desktop, avoiding stale hidden UI state.
+
+
+## Pet Collection ultra-short landscape reflow — 2026-11-24
+
+- [x] Added a dedicated `ViewportSize.Y < 220` layout; panel height is viewport height minus 20 px, removing the previous 280 px minimum that clipped 320×180 / 360×180 screens.
+- [x] List view retains title/close, search, filters and a scrollable pet list.
+- [x] Selected-pet view retains Back, favorite, lock, equip, set-main and delete controls; hides the 3D preview, description, bond and nonessential team/interaction rows at this extreme height.
+- [x] Explicitly restores subtitle, status label, preview and standard controls when returning to taller/portrait viewports.
+- [x] Commits: `ed55732` (initial reflow), `5bbf9fb` (viewport rotation restoration), `f517f67` (cleanup).
+- [ ] Run pinned Rojo build validation for the three commits.
+- [ ] Run Studio/device acceptance at 320×180 and 360×180, including list/search/filter, selection/back, favorite/lock/equip/main/delete, close/shade and orientation changes.
+- Stage 1 remains open; source-level layout changes are not a substitute for Studio runtime/device verification.
