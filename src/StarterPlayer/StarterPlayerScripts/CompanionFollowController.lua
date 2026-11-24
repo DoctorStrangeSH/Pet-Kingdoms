@@ -17,7 +17,7 @@ export type FollowOptions = {
 	slotIndex: number?,
 	followDistance: number?,
 	sideSpacing: number?,
-	smoothing: number?,
+	smoothing: number?,	turnSmoothing: number?,
 	walkSpeed: number?,
 	runSpeed: number?,
 }
@@ -29,6 +29,8 @@ export type FollowController = {
 	followDistance: number,
 	sideSpacing: number,
 	smoothing: number,
+	turnSmoothing: number,
+	movementSpeed: number,
 	walkSpeed: number,
 	runSpeed: number,
 	catchUpDistance: number,
@@ -230,6 +232,13 @@ function CompanionFollowController.new(
 	groundRaycastParams.FilterDescendantsInstances = { model, targetRoot.Parent }
 	groundRaycastParams.IgnoreWater = false
 
+	local initialFacing = horizontal(targetRoot.CFrame.LookVector)
+	if initialFacing.Magnitude <= 0.001 then
+		initialFacing = Vector3.new(0, 0, -1)
+	else
+		initialFacing = initialFacing.Unit
+	end
+
 	local self = setmetatable({
 		model = model,
 		targetRoot = targetRoot,
@@ -238,6 +247,8 @@ function CompanionFollowController.new(
 		followDistance = math.clamp(settings.followDistance or 4.5, 3, 8),
 		sideSpacing = math.clamp(settings.sideSpacing or 2.4, 1.5, 4),
 		smoothing = math.clamp(settings.smoothing or 8, 2, 16),
+		turnSmoothing = math.clamp(settings.turnSmoothing or 9, 4, 18),
+		movementSpeed = 0,
 		walkSpeed = math.clamp(settings.walkSpeed or 1.5, 0.5, 4),
 		runSpeed = math.clamp(settings.runSpeed or 18, 5, 24),
 		catchUpDistance = 8,
@@ -245,7 +256,7 @@ function CompanionFollowController.new(
 		animation = animation,
 		connection = nil,
 		destroyed = false,
-		lastFacing = horizontal(targetRoot.CFrame.LookVector).Unit,
+		lastFacing = initialFacing,
 		idleElapsed = 0,
 		nextIdleActionAt = math.random(35, 65) / 10,
 		idleActionRemaining = 0,
@@ -513,17 +524,37 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		state = "jump"
 	end
 
-	if self.animation then
-		self.animation:setState(state)
-	end
-
 	local facing = if speed > 0.75 then targetVelocity.Unit else horizontal(self.targetRoot.CFrame.LookVector)
 	if facing.Magnitude > 0.001 then
-		self.lastFacing = facing.Unit
+		local turnAlpha = 1 - math.exp(-self.turnSmoothing * math.min(dt, 0.1))
+		local blendedFacing = self.lastFacing:Lerp(facing.Unit, turnAlpha)
+		self.lastFacing = if blendedFacing.Magnitude > 0.001 then blendedFacing.Unit else facing.Unit
 	end
 
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
 	local nextPosition = currentPosition:Lerp(desired, alpha)
+	self.movementSpeed = (nextPosition - currentPosition).Magnitude / dt
+
+	-- Locomotion is selected from the companion's actual displacement, not
+	-- the owner's velocity alone. This prevents idle leg cycles and sliding
+	-- when the pet has already reached its formation slot.
+	if jumpActive then
+		state = "jump"
+	elseif self.movementSpeed >= 7.5
+		or (lagDistance >= self.catchUpDistance and self.movementSpeed >= 2.5)
+	then
+		state = "run"
+	elseif self.movementSpeed >= 0.35 then
+		state = "walk"
+	elseif state == "walk" or state == "run" then
+		state = "idle"
+	end
+
+	if self.animation then
+		self.animation:setMovementSpeed(self.movementSpeed)
+		self.animation:setState(state)
+	end
+
 	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing, self.groundNormal)
 	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
 	if self.animation then
