@@ -911,7 +911,7 @@ end
 resize = function()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport = camera.ViewportSize
+	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
 	compactCollection = viewport.X < 650
 	local launcherCompact = viewport.X < 560
 	openButton.Size = UDim2.fromOffset(launcherCompact and 48 or 62, launcherCompact and 48 or 62)
@@ -928,10 +928,18 @@ resize = function()
 		local ultraShort = viewport.Y < 220
 		-- On a 320×180 landscape viewport, use a purpose-built single-column
 		-- mode. Never enforce the portrait minimum height on a short screen.
-		local mobilePanelHeight = if ultraShort then math.max(144, viewport.Y - 20)
-			else math.max(280, math.min(620, viewport.Y - 32))
-		panel.Position = UDim2.fromScale(0.5, 0.5)
-		panel.Size = UDim2.new(0.94, 0, 0, mobilePanelHeight)
+		local desiredPanelHeight = if ultraShort then math.max(120, safeSize.Y - 16)
+			else math.max(240, math.min(620, safeSize.Y - 24))
+		local safePanelSize = InterfaceComponents.ClampPanelSize(
+			Vector2.new(math.max(160, safeSize.X - 20), desiredPanelHeight),
+			safeSize,
+			8
+		)
+		-- IgnoreGuiInset=false: position within the usable ScreenGui area,
+		-- not the raw camera viewport, so top-bar/notch space is respected.
+		panel.AnchorPoint = Vector2.new(0.5, 0.5)
+		panel.Position = UDim2.fromOffset(safeSize.X * 0.5, safeSize.Y * 0.5)
+		panel.Size = UDim2.fromOffset(safePanelSize.X, safePanelSize.Y)
 		panelScale.Scale = 1
 		title.TextSize = if ultraShort then 13 else (if viewport.X < 360 then 14 else 16)
 		subtitle.Visible = not ultraShort
