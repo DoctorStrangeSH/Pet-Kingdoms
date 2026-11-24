@@ -159,7 +159,9 @@ controllers[1]:update(0.1)
 expect("one airborne owner jump does not restart the companion hop",
 	controllers[1].jumpElapsed < controllers[1].jumpDuration)
 ownerHumanoid:ChangeState(Enum.HumanoidStateType.Landed)
-controllers[1]:update(0.8)
+for _ = 1, 8 do
+	controllers[1]:update(0.1)
+end
 expect("companion completes the hop and returns to ground follow", controllers[1].jumpElapsed < 0)
 
 -- A broad wall blocks the straight line to the first formation slot. The
