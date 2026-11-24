@@ -990,6 +990,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 ### Stage 1 — Shared placement geometry contract (2026-11-24)
 
 - [x] Use the shared ReplicatedStorage GridMath helpers in the client preview for rotated footprints, island bounds, and occupied-footprint intersection instead of maintaining separate rectangle-overlap arithmetic.
+- [x] Extend the shared GridMath Studio smoke tests for 270-degree dimensions and overlap/edge-adjacency with an existing rotated rectangular footprint.
 - [x] Replicate each server-catalog building's base footprint dimensions as `FootprintWidth`/`FootprintDepth` attributes on spawned and transaction-synced world Models; client overlap checks now read those authoritative dimensions.
 - [x] Invalidate the current preview cell and visual when the island grid becomes unavailable instead of retaining stale coordinates.
 - [ ] Verify existing buildings expose footprint attributes after initial spawn, move, upgrade, and island refresh in Studio.
