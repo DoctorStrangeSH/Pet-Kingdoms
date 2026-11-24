@@ -379,16 +379,72 @@ local function resize()
 	refreshButton.TextSize = if compact then 11 else 12
 	-- Keep the expansion launcher below the pet launcher on compact screens.
 	openButton.Position = UDim2.new(1, compact and -12 or -22, compact and 0.72 or 0.70, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, 390)
-	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(210, viewport.X - 20)), 280)
-	panelConstraint.MaxSize = Vector2.new(math.min(440, math.max(210, viewport.X - 12)), 390)
-	panelScale.Scale = math.clamp((viewport.Y - 24) / 390, short and 0.62 or 0.72, 1)
+	-- Use a genuinely shorter layout on phones instead of shrinking the
+	-- desktop composition until its cards and tap targets become tiny.
+	local veryShort = viewport.Y < 380
+	local compactHeight = if veryShort then 306 elseif short then 330 else 390
+	local compactWidth = math.max(220, viewport.X - 20)
+	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 390)
+	panelConstraint.MinSize = Vector2.new(math.min(250, compactWidth), if compact then compactHeight else 320)
+	panelConstraint.MaxSize = Vector2.new(math.min(compact and 440 or 440, compactWidth), if compact then compactHeight else 390)
+	panelScale.Scale = if compact then 1 else math.clamp((viewport.Y - 24) / 390, 0.82, 1)
 	title.TextSize = if compact then 15 else 18
 	subtitle.TextSize = if narrow then 10 else 11
-	subtitle.Size = UDim2.new(1, -48, 0, if narrow then 42 else 34)
-	currentValue.TextSize = if compact then 16 else 20
-	nextValue.TextSize = if compact then 16 else 20
-	status.TextSize = if compact then 11 else 12
+	if compact then
+		local cardHeight = if veryShort then 56 else 64
+		local currentY = if veryShort then 82 else 88
+		local nextY = currentY + cardHeight + 10
+		currentCard.Position = UDim2.fromOffset(16, currentY)
+		currentCard.Size = UDim2.new(1, -32, 0, cardHeight)
+		nextCard.Position = UDim2.fromOffset(16, nextY)
+		nextCard.Size = UDim2.new(1, -32, 0, cardHeight)
+		currentTitle.Position = UDim2.fromOffset(12, 7)
+		currentTitle.Size = UDim2.new(1, -24, 0, 18)
+		currentValue.Position = UDim2.fromOffset(12, 27)
+		currentValue.Size = UDim2.new(1, -24, 0, 25)
+		nextTitle.Position = UDim2.fromOffset(12, 7)
+		nextTitle.Size = UDim2.new(1, -24, 0, 18)
+		nextValue.Position = UDim2.fromOffset(12, 27)
+		nextValue.Size = UDim2.new(1, -24, 0, 25)
+		subtitle.Position = UDim2.fromOffset(16, 48)
+		subtitle.Size = UDim2.new(1, -32, 0, 30)
+		subtitle.TextSize = if narrow then 9 else 10
+		status.Position = UDim2.fromOffset(16, nextY + cardHeight + 10)
+		status.Size = UDim2.new(1, -32, 0, if veryShort then 36 else 42)
+		refreshButton.Position = UDim2.new(0, 16, 1, -48)
+		refreshButton.Size = UDim2.new(1, -32, 0, 40)
+		refreshButton.TextSize = 11
+		closeButton.Position = UDim2.new(1, -12, 0, 10)
+		closeButton.Size = UDim2.fromOffset(36, 36)
+	else
+		subtitle.Position = UDim2.new(0, 24, 0, 57)
+		subtitle.Size = UDim2.new(1, -48, 0, 34)
+		currentCard.Position = UDim2.new(0, 22, 0, 108)
+		currentCard.Size = UDim2.new(1, -44, 0, 82)
+		currentTitle.Position = UDim2.fromOffset(15, 12)
+		currentTitle.Size = UDim2.new(1, -30, 0, 22)
+		currentValue.Position = UDim2.fromOffset(15, 36)
+		currentValue.Size = UDim2.new(1, -30, 0, 28)
+		nextCard.Position = UDim2.new(0, 22, 0, 202)
+		nextCard.Size = UDim2.new(1, -44, 0, 82)
+		nextTitle.Position = UDim2.fromOffset(15, 12)
+		nextTitle.Size = UDim2.new(1, -30, 0, 22)
+		nextValue.Position = UDim2.fromOffset(15, 36)
+		nextValue.Size = UDim2.new(1, -30, 0, 28)
+		status.Position = UDim2.new(0, 24, 0, 296)
+		status.Size = UDim2.new(1, -48, 0, 38)
+		refreshButton.Position = UDim2.new(0, 22, 1, -52)
+		refreshButton.Size = UDim2.new(1, -44, 0, 44)
+		closeButton.Position = UDim2.new(1, -16, 0, 14)
+		closeButton.Size = UDim2.fromOffset(40, 40)
+		currentValue.TextSize = 20
+		nextValue.TextSize = 20
+		status.TextSize = 12
+		refreshButton.TextSize = 12
+	end
+	currentValue.TextSize = if compact then 15 else 20
+	nextValue.TextSize = if compact then 15 else 20
+	status.TextSize = if compact then 10 else 12
 	refreshButton.TextSize = if compact then 11 else 12
 end
 
