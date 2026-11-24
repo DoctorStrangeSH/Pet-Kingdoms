@@ -1572,6 +1572,6 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Added `PetAnimationController:setMovementSpeed`; procedural walk/run leg cadence scales with actual speed and clamps input to 0–24 studs/s.
 - [x] Client follow tests now cover smooth direction change, a pet walking toward formation while its owner is stationary, settling to idle, and remaining in place after stopping.
 - [x] Server animation tests compare slow/fast gait poses and verify speed clamping.
-- [ ] Rojo build validation for commits `f96b077`, `6064618`, `eddd03b`, `47e9d9f`, and `7e81a36`.
+- [ ] Rojo build validation for commits `f96b077`, `6064618`, `eddd03b`, `47e9d9f`, and `7e81a36`, plus turn-fixture correction `41bc463`.
 - [ ] Run both companion Studio smoke tests and inspect the correct Server/client Output windows.
 - [ ] Verify the same behavior with the published Bunny mesh and on mobile. Do not mark runtime acceptance from a green Rojo build alone.
