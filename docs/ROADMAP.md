@@ -885,3 +885,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Verify following around actual island buildings, fences, paths, ramps, and bridges with the published Bunny mesh. A single wall fixture does not prove full navigation around complex geometry.
 - [ ] Verify walk/run/idle transitions, slopes, jumps, streaming gaps, death/respawn and mobile frame pacing in Studio on desktop and a physical mobile device.
 - [ ] Keep the companion follow stage open until actual Studio and device acceptance is recorded.
+ 
+### Stage 1 — Companion jump response (2026-11-24)
+
+- [x] Detect the owner's Jumping state and trigger one short cosmetic companion hop when the pet is within follow range.
+- [x] Do not retrigger during the same airborne interval; descending Freefall does not count as a new take-off.
+- [x] Blend a bounded vertical arc into the normal follow target so the pet returns to its ground-snapped formation position.
+- [x] Add a dedicated procedural jump pose with tucked front paws, folded hind legs, and responsive ears.
+- [x] Add client follow regression coverage for take-off detection, vertical lift, no repeated hop during one airborne interval, and landing completion.
+- [x] Extend the animation smoke test to verify the jump state and limb pose.
+- [ ] Rojo build validation for commits `c5d9e0b`, `c819094`, `8220ab4`, `8ed3cb1`, `b7fa15b`, and `f55a906`.
+- [ ] Run `PetAnimationControllerTests.server.lua` and `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Server and client Output respectively.
+- [ ] Verify jump timing, landing height, and repeated jump behavior with the published project Bunny mesh on desktop and mobile.
+- [ ] Keep companion movement Stage 1 open until Studio runtime and device checks are recorded.
