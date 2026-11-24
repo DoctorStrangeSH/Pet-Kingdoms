@@ -949,6 +949,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 
 - [x] Add a dedicated `ViewportSize.Y < 220` layout for Quest Journal; constrain its panel to viewport height minus 20 px, compress the header, retain a scrollable quest list, and keep status inside the panel.
 - [x] Add a dedicated `ViewportSize.Y < 220` layout for Island Expansion; constrain its panel to viewport height minus 20 px, compact both information cards, preserve a close control and refresh action, and hide nonessential subtitle/status copy at this extreme height.
+- [x] Restore the Expansion status label when returning from ultra-short landscape to portrait/desktop layout.
 - [ ] Run pinned Rojo build validation for Quest Journal commit `ffea06e` and Island Expansion commit `80fc57e`.
 - [ ] Verify at 320×180 and 360×180 that each panel remains fully on-screen, buttons remain tappable, list/cards do not overlap, and returning to portrait restores the normal compact layout.
 - [ ] Continue remaining Pet Collection, building, Resource HUD, and notification safe-area regression. Stage 1 remains open.
