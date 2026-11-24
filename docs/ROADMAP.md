@@ -1051,3 +1051,8 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 
 - [x] Follow-up compact Quest Journal pass `42a6106`: reduce compact quest summaries to 84 px so two introductory objectives fit in the normal compact journal viewport without a vertical swipe.
 - [x] Follow-up viewport clamp `83d9eeb`: calculate the compact journal panel height from the actual viewport height, including short 240–380 px screens, rather than enforcing a fixed 320–350 px panel that could extend off-screen.
+
+
+- [x] Follow-up compact top-bar collision fix: on viewports below 560 px, the resource HUD moves to a left-aligned lane whose width reserves space for the construction launcher at the top-right.
+- [x] Match the construction launcher width to the resource HUD reservation (112 px on very narrow screens, 128 px on other compact screens); desktop placement remains centered/top-right as before.
+- [ ] Verify no overlap at 320×180, 360×360, 443×426 and 482×467 in Roblox Studio; confirm all four resource labels remain legible and the build button remains tappable.
