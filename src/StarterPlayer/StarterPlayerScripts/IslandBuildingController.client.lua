@@ -337,20 +337,22 @@ local function resizeBuildingPanel()
 	if activeCamera == nil then return end
 	local viewport = activeCamera.ViewportSize
 	local compact = viewport.X < 520
+	local ultraShort = compact and viewport.Y < 220
 	compactBuildingUI = compact
 	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
-	local panelHeight = if compact then 190 else 228
-	-- Keep touch targets usable. Only apply a small scale reduction on very
-	-- short viewports; ordinary phones use the full compact layout.
-	panelScale.Scale = if compact then math.clamp((viewport.Y - 100) / panelHeight, 0.82, 1)
+	local panelHeight = if ultraShort then 160 elseif compact then 190 else 228
+	-- Keep all three placement actions at a full 44 px touch height on
+	-- ultra-short landscape screens; reflow the panel instead of scaling taps down.
+	panelScale.Scale = if ultraShort then 1
+		elseif compact then math.clamp((viewport.Y - 100) / panelHeight, 0.82, 1)
 		else math.clamp((viewport.Y - 72) / panelHeight, 0.82, 1)
-	panelConstraint.MinSize = Vector2.new(220, if compact then 184 else 210)
+	panelConstraint.MinSize = Vector2.new(220, if ultraShort then 160 elseif compact then 184 else 210)
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
-	status.Position = UDim2.fromOffset(0, compact and 27 or 30)
-	status.Size = UDim2.new(1, 0, 0, compact and 24 or 30)
-	catalogRow.Position = UDim2.fromOffset(0, compact and 52 or 62)
-	catalogRow.Size = UDim2.new(1, 0, 0, compact and 62 or 84)
-	buttons.Position = UDim2.fromOffset(0, compact and 120 or 157)
+	status.Position = UDim2.fromOffset(0, if ultraShort then 23 elseif compact then 27 else 30)
+	status.Size = UDim2.new(1, 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
+	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 42 elseif compact then 52 else 62)
+	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 48 elseif compact then 62 else 84)
+	buttons.Position = UDim2.fromOffset(0, if ultraShort then 96 elseif compact then 120 else 157)
 	buttons.Size = UDim2.new(1, 0, 0, 48)
 	panel.Position = UDim2.new(0.5, 0, 1, compact and -8 or -22)
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
@@ -359,11 +361,15 @@ local function resizeBuildingPanel()
 	local narrow = panelWidth < 370
 	local tiny = viewport.X < 360
 	local title = panel:FindFirstChild("Title")
-	if title and title:IsA("TextLabel") then title.TextSize = if compact then 15 else 18 end
-	status.TextSize = if tiny then 10 else (if compact then 11 else 12)
+	if title and title:IsA("TextLabel") then
+		title.TextSize = if ultraShort then 13 else (if compact then 15 else 18)
+		title.Size = UDim2.new(1, -52, 0, if ultraShort then 22 else 28)
+	end
+	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 32 else 40, if ultraShort then 32 else 40)
+	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
-		button.TextSize = if tiny then 9 else (if compact then 10 else 13)
-		button.Size = UDim2.fromOffset(compact and (if tiny then 106 else 112) or 130, compact and 52 or 70)
+		button.TextSize = if ultraShort then 8 else (if tiny then 9 else (if compact then 10 else 13))
+		button.Size = UDim2.fromOffset(if ultraShort then 100 else (if compact then (if tiny then 106 else 112) else 130), if ultraShort then 44 else (if compact then 52 else 70))
 	end
 	catalogRow.ScrollBarThickness = if compact then 3 else 4
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
@@ -387,6 +393,9 @@ local function resizeBuildingPanel()
 		buildLauncher.Size = UDim2.fromOffset(compact and 128 or 154, compact and 42 or 48)
 		buildLauncher.Position = UDim2.new(1, compact and -10 or -22, 0, compact and 12 or 24)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
+		-- The full-width recovery notice owns the top safe area until the
+		-- uncertain server operation has been resolved.
+		buildLauncher.Visible = not recoveryPanel.Visible and not placing
 	end
 	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
