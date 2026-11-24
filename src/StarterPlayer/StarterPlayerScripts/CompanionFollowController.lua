@@ -59,6 +59,8 @@ export type FollowController = {
 	jumpDuration: number,
 	jumpHeight: number,
 	wasOwnerAirborne: boolean,
+	groundNormal: Vector3,
+	nextGroundNormalScan: number,
 	nextJumpAt: number,
 	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
@@ -93,6 +95,24 @@ local function resolveGroundPosition(model: Model, desired: Vector3, params: Ray
 		return Vector3.new(desired.X, result.Position.Y + resolvedOffset, desired.Z)
 	end
 	return desired
+end
+
+local MAX_COMPANION_SLOPE_DEGREES = 50
+local function resolveGroundNormal(desired: Vector3, params: RaycastParams): Vector3
+	local result = Workspace:Raycast(
+		desired + Vector3.new(0, 8, 0),
+		Vector3.new(0, -32, 0),
+		params
+	)
+	if result == nil then
+		return Vector3.yAxis
+	end
+
+	local normal = result.Normal.Unit
+	if normal:Dot(Vector3.yAxis) < math.cos(math.rad(MAX_COMPANION_SLOPE_DEGREES)) then
+		return Vector3.yAxis
+	end
+	return normal
 end
 
 -- A short local detour is cheaper than recomputing a full navigation path every
@@ -248,6 +268,8 @@ function CompanionFollowController.new(
 		jumpDuration = 0.68,
 		jumpHeight = 2.2,
 		wasOwnerAirborne = false,
+		groundNormal = Vector3.yAxis,
+		nextGroundNormalScan = 0,
 		nextJumpAt = 0,
 	}, CompanionFollowController)
 
@@ -479,6 +501,13 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 		end
 	end
 
+	-- Sample the surface normal at a modest rate and smoothly align the pet
+	-- with ramps/bridges without adding a raycast to every rendered frame.
+	if now >= self.nextGroundNormalScan then
+		self.nextGroundNormalScan = now + 0.15
+		self.groundNormal = resolveGroundNormal(desired, self.groundRaycastParams)
+	end
+
 	if jumpActive then
 		desired += Vector3.new(0, jumpOffset, 0)
 		state = "jump"
@@ -495,7 +524,7 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 
 	local alpha = 1 - math.exp(-self.smoothing * math.min(dt, 0.1))
 	local nextPosition = currentPosition:Lerp(desired, alpha)
-	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing)
+	local targetCFrame = CFrame.lookAt(nextPosition, nextPosition + self.lastFacing, self.groundNormal)
 	self.model:PivotTo(current:Lerp(targetCFrame, alpha))
 	if self.animation then
 		self.animation:update(dt)
