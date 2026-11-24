@@ -1253,3 +1253,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Rebuild cell tiles only when the rotated footprint dimensions change; reuse them while the preview moves to reduce per-frame instance churn.
 - [x] GitHub Actions run #761: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify all catalog footprints, rotation transitions, mobile performance, and visual clarity in Roblox Studio. Runtime validation pending.
+
+### Stage 1 — Placement size and actionable validation hints (2026-11-24)
+
+- [x] Show the rotated footprint dimensions beside the live placement state (for example, `2 × 3 клетки • Свободно`).
+- [x] Distinguish out-of-bounds, occupied, and valid cells using concise Russian hints that fit the compact construction panel.
+- [x] Translate server-side placement rejections into actionable Russian messages for insufficient resources, locked buildings, build limits, overlap, bounds, unsupported rotation, missing move target, and island/session errors.
+- [x] Keep server validation authoritative; client hints are explanatory only and do not enable placement or bypass resource/unlock checks.
+- [ ] Verify all rejection messages, dimensions after rotation, and text fit on narrow phones/tablets/desktop in Roblox Studio. Runtime validation pending.
