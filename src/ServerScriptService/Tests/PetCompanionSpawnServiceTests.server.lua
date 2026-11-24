@@ -19,6 +19,8 @@ local function expect(name: string, condition: boolean)
 	print("[PetKingdoms Test] PASS:", name)
 end
 
+local existingPetRoot = Workspace:FindFirstChild("PlayerPets")
+local createdPetRoot = existingPetRoot == nil
 local ownerUserId = 900_000_000 + math.random(1, 90_000_000)
 local profile = PetCollectionData.createDefault(ownerUserId)
 assert(profile ~= nil)
@@ -186,4 +188,12 @@ expect("cleanup of an absent owner folder is harmless", missingRemoved == 0 and 
 
 character:Destroy()
 PetCompanionSpawnService.clear(ownerUserId)
+local petRoot = Workspace:FindFirstChild("PlayerPets")
+local ownerFolder = petRoot and petRoot:FindFirstChild(tostring(ownerUserId))
+if ownerFolder then
+	ownerFolder:Destroy()
+end
+if createdPetRoot and petRoot and #petRoot:GetChildren() == 0 then
+	petRoot:Destroy()
+end
 print("[PetKingdoms Test] PetCompanionSpawnService tests completed.")
