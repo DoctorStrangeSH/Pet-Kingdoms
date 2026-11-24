@@ -1236,6 +1236,7 @@ local touchCandidate: InputObject? = nil
 local touchStartPosition: Vector2? = nil
 local touchStartTime = 0
 local touchStartedPlacing = false
+local touchDraggingPlacement = false
 
 local function isOverInteractiveGui(screenPosition: Vector2): boolean
 	for _, object in ipairs(playerGui:GetGuiObjectsAtPosition(screenPosition.X, screenPosition.Y)) do
@@ -1290,6 +1291,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		touchStartPosition = position
 		touchStartTime = os.clock()
 		touchStartedPlacing = placing
+		touchDraggingPlacement = false
 		return
 	end
 	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
@@ -1319,16 +1321,24 @@ UserInputService.InputEnded:Connect(function(input)
 	local startPosition = touchStartPosition
 	local elapsed = os.clock() - touchStartTime
 	local sameMode = touchStartedPlacing == placing
+	local wasDraggingPlacement = touchDraggingPlacement
 	if isCandidate then
 		touchCandidate = nil
 		touchStartPosition = nil
+		touchDraggingPlacement = false
 	end
 	local blocked = gestureBlocked
 	if touchCount == 0 then gestureBlocked = false end
 	if not isCandidate or blocked or touchCount ~= 0 then return end
 	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil or not sameMode then return end
-	if elapsed > MAX_TAP_DURATION then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
+	-- A deliberate drag moves the ghost continuously and locks the final
+	-- valid cell on release. Short stationary touches remain simple tap-to-place.
+	if wasDraggingPlacement then
+		chooseWorldPoint(endPosition)
+		return
+	end
+	if elapsed > MAX_TAP_DURATION then return end
 	if (endPosition - startPosition).Magnitude > TAP_DRAG_THRESHOLD then return end
 	chooseWorldPoint(endPosition)
 end)
@@ -1336,6 +1346,19 @@ end)
 UserInputService.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement and not placementLocked then
 		pointerPosition = UserInputService:GetMouseLocation()
+	elseif input.UserInputType == Enum.UserInputType.Touch
+		and input == touchCandidate and placing and touchStartedPlacing
+		and touchStartPosition ~= nil and not buildRequestInFlight then
+		local position = Vector2.new(input.Position.X, input.Position.Y)
+		if not touchDraggingPlacement
+			and (position - touchStartPosition).Magnitude > TAP_DRAG_THRESHOLD then
+			touchDraggingPlacement = true
+			placementLocked = false
+		end
+		if touchDraggingPlacement then
+			pointerPosition = position
+			updatePreview(position)
+		end
 	end
 end)
 
