@@ -121,36 +121,52 @@ local function findObstacleDetour(
 		obstacleHalfWidth = math.abs(side:Dot(obstaclePart.CFrame.RightVector)) * obstaclePart.Size.X * 0.5
 			+ math.abs(side:Dot(obstaclePart.CFrame.LookVector)) * obstaclePart.Size.Z * 0.5
 	end
-	local clearance = math.max(3.5, obstacleHalfWidth + petRadius + 1.5)
+	local approachDistance = math.max(0.25, obstacle.Distance - 1.5)
+	local remainingDistance = math.max(0.5, displacement.Magnitude - approachDistance)
+	local lateralRetention = math.clamp(
+		(displacement.Magnitude - obstacle.Distance) / remainingDistance,
+		0.15,
+		1
+	)
+	-- The waypoint-to-target segment converges back toward the formation slot.
+	-- Increase its side offset so it still clears the wall at the exact crossing.
+	local clearance = math.max(3.5, (obstacleHalfWidth + petRadius + 1.5) / lateralRetention)
 	local bestCandidate: Vector3? = nil
-	local bestScore = math.huge
+	local bestRouteLength = math.huge
 
-	local approachDistance = math.max(0.75, obstacle.Distance - 2)
 	for _, sideSign in ipairs({ -1, 1 }) do
 		-- Stop short of the obstacle, move laterally around its edge, then
 		-- let the next update resume the direct route to the formation slot.
 		local candidate = currentPosition + direction * approachDistance + side * (clearance * sideSign)
 		candidate = Vector3.new(candidate.X, desiredPosition.Y, candidate.Z)
-		candidate = resolveGroundPosition(model, candidate, params)
+		local groundResult = Workspace:Raycast(
+			candidate + Vector3.new(0, 8, 0),
+			Vector3.new(0, -32, 0),
+			params
+		)
+		if groundResult ~= nil then
+			local groundOffset = model:GetAttribute("GroundOffset")
+			local resolvedOffset = if type(groundOffset) == "number"
+				then math.clamp(groundOffset, 0.08, 1.2)
+				else 0.28
+			candidate = Vector3.new(candidate.X, groundResult.Position.Y + resolvedOffset, candidate.Z)
 
-		local candidateProbe = candidate + Vector3.new(0, 1, 0)
-		local firstBlocked = Workspace:Raycast(origin, candidateProbe - origin, params) ~= nil
-		local secondBlocked = Workspace:Raycast(candidateProbe, destination - candidateProbe, params) ~= nil
-		local blockedSegments = (if firstBlocked then 1 else 0) + (if secondBlocked then 1 else 0)
-		local routeLength = horizontal(candidate - currentPosition).Magnitude
-			+ horizontal(desiredPosition - candidate).Magnitude
-		local score = blockedSegments * 100 + routeLength
-		if score < bestScore then
-			bestScore = score
-			bestCandidate = candidate
+			local candidateProbe = candidate + Vector3.new(0, 1, 0)
+			local firstBlocked = Workspace:Raycast(origin, candidateProbe - origin, params) ~= nil
+			local secondBlocked = Workspace:Raycast(candidateProbe, destination - candidateProbe, params) ~= nil
+			if not firstBlocked and not secondBlocked then
+				local routeLength = horizontal(candidate - currentPosition).Magnitude
+					+ horizontal(desiredPosition - candidate).Magnitude
+				if routeLength < bestRouteLength then
+					bestRouteLength = routeLength
+					bestCandidate = candidate
+				end
+			end
 		end
 	end
 
-	-- If both sides are completely blocked, keep the direct target and try again
-	-- later instead of repeatedly steering the pet into a corner.
-	if bestScore >= 200 then
-		return nil
-	end
+	-- If neither side has a grounded, clear route, keep the direct target and
+	-- retry later rather than steering the pet into a wall or off the island.
 	return bestCandidate
 end
 
