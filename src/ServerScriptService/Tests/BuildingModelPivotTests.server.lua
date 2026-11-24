@@ -102,6 +102,33 @@ else
 	end
 end
 
+local physicsFixture = Instance.new("Model")
+local looseSolid = Instance.new("Part")
+looseSolid.Name = "LooseSolid"
+looseSolid.Anchored = false
+looseSolid.CanCollide = true
+looseSolid.CanTouch = true
+looseSolid.CanQuery = true
+looseSolid.Parent = physicsFixture
+local looseDecoration = Instance.new("Part")
+looseDecoration.Name = "LooseDecoration"
+looseDecoration.Anchored = false
+looseDecoration.CanCollide = false
+looseDecoration.CanTouch = true
+looseDecoration.CanQuery = false
+looseDecoration.Parent = physicsFixture
+
+local physicsResult = BuildingModelPivot.prepareForWorld(physicsFixture)
+expect("all imported parts are anchored before world placement",
+	physicsResult.partCount == 2 and physicsResult.anchoredCount == 2
+		and looseSolid.Anchored and looseDecoration.Anchored)
+expect("touch events are disabled on imported building parts",
+	physicsResult.touchDisabledCount == 2 and not looseSolid.CanTouch and not looseDecoration.CanTouch)
+expect("authored collision and query settings are preserved",
+	looseSolid.CanCollide and looseSolid.CanQuery
+		and not looseDecoration.CanCollide and not looseDecoration.CanQuery)
+physicsFixture:Destroy()
+
 local model = Instance.new("Model")
 model.Name = "BuildingPivotTestFixture"
 local first = Instance.new("Part")
