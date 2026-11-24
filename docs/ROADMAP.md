@@ -1205,3 +1205,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Place the initial move preview on the building's current footprint instead of seeding it at the island center, preventing a visible jump before the player chooses a destination.
 - [x] Keep the initial valid position locked until the player taps/clicks or drags to a new destination; preserve the existing server-side footprint validation and free move transaction.
 - [ ] Verify move start for every footprint size, rotate, same-cell save, destination selection, cancel/restore, touch drag, and desktop click in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Selected-building context card and upgrade action (2026-11-24)
+
+- [x] Replace the two detached selection buttons with one compact context card containing the building name, current level, upgrade cost, and close control.
+- [x] Fit the card and its visible actions to the safe viewport; show Move, Upgrade, and Demolish only when each action is available.
+- [x] Keep the context card hidden while construction/move placement mode is active and restore it when placement closes.
+- [x] Wire the Upgrade action to the existing server-authoritative, idempotent upgrade transaction; display server rejection messages and preserve pending-operation recovery on timeouts.
+- [x] Publish the resource snapshot after a successful upgrade so the resource HUD refreshes instead of showing stale balances.
+- [ ] Verify selection, close/deselect, main-house protection, each building's upgrade costs/max level, insufficient resources, upgrade persistence, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
