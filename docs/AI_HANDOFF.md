@@ -1686,3 +1686,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `393ba60`: added Studio smoke tests for asymmetric 3×1 and even-sized footprints, out-of-bounds footprints, and invalid cell sizes.
 - [x] Commit `5bcf9fb`: pointer-off-island and missing-surface branches now use the same preview invalidation helper, clearing stale cell/lock/ghost state.
 - [ ] Studio: compare preview and spawned Model pivot positions/orientations on rotated spawn points, at all supported rotations, and after island expansion. Runtime acceptance pending.
+
+
+## Imported building model pivot normalization — 2026-11-24
+
+- [x] Commit `0864641`: added `BuildingModelPivot.normalizeToGroundCenter` to calculate visual bounds and normalize the model pivot to the ground-level center of the bounding box.
+- [x] Commit `b07891b`: `IslandWorldService.getBuildingTemplate` now normalizes cloned ServerStorage templates before spawn/move placement, records `VisualBoundsWidth/Height/Depth`, and falls back to procedural geometry if bounds are invalid.
+- [x] Commit `8eafa01`: removed the parent requirement so freshly cloned, unparented templates can be normalized before they enter Workspace.
+- [x] Commits `203f5ba`, `d5fcfd6`, `fe9ec1a`: added Studio smoke tests for unparented and rotated fixtures, ground-center alignment, orientation preservation, bounds reporting, and idempotence.
+- [ ] Run `BuildingModelPivotTests.server.lua` in Roblox Studio and inspect production templates against their grid footprints. No Studio runtime execution has been claimed.
