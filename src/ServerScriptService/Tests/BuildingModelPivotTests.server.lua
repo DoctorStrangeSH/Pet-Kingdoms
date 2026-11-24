@@ -6,7 +6,6 @@ if not RunService:IsStudio() then
 end
 
 local BuildingModelPivot = require(script.Parent.Parent:WaitForChild("BuildingModelPivot"))
-local Workspace = game:GetService("Workspace")
 
 local function expect(label: string, condition: boolean)
 	if not condition then
