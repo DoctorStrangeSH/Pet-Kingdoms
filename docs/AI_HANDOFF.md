@@ -1695,3 +1695,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `8eafa01`: removed the parent requirement so freshly cloned, unparented templates can be normalized before they enter Workspace.
 - [x] Commits `203f5ba`, `d5fcfd6`, `fe9ec1a`: added Studio smoke tests for unparented and rotated fixtures, ground-center alignment, orientation preservation, bounds reporting, and idempotence.
 - [ ] Run `BuildingModelPivotTests.server.lua` in Roblox Studio and inspect production templates against their grid footprints. No Studio runtime execution has been claimed.
+
+
+## Visual model footprint diagnostics — 2026-11-24
+
+- [x] Commit `b9046ba`: added `BuildingModelPivot.checkFootprintFit`, comparing measured visual bounds to catalog footprint dimensions in studs with a default 5% cell-size tolerance. Diagnostic only; no automatic asset scaling.
+- [x] Commit `d18db3b`: template clones now expose `VisualFootprintFits`, `VisualOverhangX`, `VisualOverhangZ`, and measured visual bounds; oversized models produce a server warning.
+- [x] Commit `d97e095`: added synthetic tests for in-footprint dimensions, tolerated small overhang, excess overhang reporting, and invalid cell size.
+- [x] Commit `56dc287`: Studio test now audits actual `ServerStorage/BuildingModels` entries on clones, reporting measured bounds, footprint, overhang, and missing-template fallback status without mutating source assets.
+- [ ] Run `BuildingModelPivotTests.server.lua` in Roblox Studio and review `[PetKingdoms Audit]` output; no actual Studio measurements are available yet.
