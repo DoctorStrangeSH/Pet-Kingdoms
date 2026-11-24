@@ -1804,3 +1804,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `eae1ac4`: `selectBuilding` now creates a gold `Highlight` on the selected building with `AlwaysOnTop` depth mode and high-transparency fill; the outline remains clearly visible.
 - [x] Switching selection, tapping empty ground, and selected-model destruction clean up the previous highlight. The existing action controls still gate demolition of the main house.
 - [ ] Studio verification is still needed for touch ray selection, actual model highlight readability, selection clearing, and transitions into/out of move mode.
+
+
+## Resource HUD compact card overflow — 2026-11-24
+
+- [x] Commit `47665e7`: compact resource bar width is now strictly bounded by the space left after reserving the construction launcher lane; removed the forced 140 px minimum that could overflow narrow viewports.
+- [x] Compact grid cells use a fixed 34 px height, and the root height is capped at 84 px so the two resource rows cannot expand to consume the world view.
+- [ ] Verify screenshot reproduction in Roblox Studio on phone-size viewport; confirm no overlap with build launcher, character, or world controls.
