@@ -10,6 +10,10 @@ local GridMath = require(game:GetService("ReplicatedStorage")
 	:WaitForChild("Shared")
 	:WaitForChild("Building")
 	:WaitForChild("GridMath"))
+local BuildingFootprints = require(game:GetService("ReplicatedStorage")
+	:WaitForChild("Shared")
+	:WaitForChild("Building")
+	:WaitForChild("BuildingFootprints"))
 
 local function expect(name: string, condition: boolean)
 	assert(condition, name .. " failed")
@@ -17,6 +21,11 @@ local function expect(name: string, condition: boolean)
 end
 
 expect("snap to cell center", GridMath.snapWorldToGrid(1.4, 4) == 0)
+for catalogId, footprint in pairs(BuildingFootprints) do
+	expect(catalogId .. " shared footprint has positive integer dimensions",
+		type(footprint.width) == "number" and footprint.width > 0 and footprint.width == math.floor(footprint.width)
+			and type(footprint.depth) == "number" and footprint.depth > 0 and footprint.depth == math.floor(footprint.depth))
+end
 expect("snap across half-cell", GridMath.snapWorldToGrid(2.1, 4) == 4)
 expect("invalid grid size rejected", GridMath.snapWorldToGrid(1, 0) == nil)
 expect("non-finite world coordinate rejected", GridMath.snapWorldToGrid(math.huge, 4) == nil)
