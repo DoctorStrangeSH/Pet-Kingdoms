@@ -11,6 +11,7 @@ local sharedPets = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets")
 local PetCollectionData = require(sharedPets:WaitForChild("PetCollectionData"))
 local PetCollectionSessionData = require(sharedPets:WaitForChild("PetCollectionSessionData"))
 local PetAssetLoader = require(script.Parent:WaitForChild("PetAssetLoader"))
+local PetCompanionSpawnService = require(script.Parent:WaitForChild("PetCompanionSpawnService"))
 local IslandSessionService = require(script.Parent:WaitForChild("IslandSessionService"))
 
 local PetCollectionService = {}
@@ -30,6 +31,8 @@ type PlayerCollection = {
 local collections: { [number]: PlayerCollection } = {}
 local remote: RemoteFunction? = nil
 local characterConnections: { [number]: RBXScriptConnection } = {}
+local characterRemovingConnections: { [number]: RBXScriptConnection } = {}
+local spawnedCharacterByUserId: { [number]: Model } = {}
 local mutationRequestTimes: { [number]: number } = {}
 local spawnTokens: { [number]: {} } = {}
 
@@ -101,30 +104,8 @@ local function observeCollection(userId: number): (boolean, any)
 end
 
 
-local function getPlayerPetFolder(player: Player): Folder
-	local root = Workspace:FindFirstChild("PlayerPets")
-	if root == nil then
-		root = Instance.new("Folder")
-		root.Name = "PlayerPets"
-		root.Parent = Workspace
-	end
-	local playerFolder = root:FindFirstChild(tostring(player.UserId))
-	if playerFolder == nil then
-		playerFolder = Instance.new("Folder")
-		playerFolder.Name = tostring(player.UserId)
-		playerFolder.Parent = root
-	end
-	return playerFolder :: Folder
-end
-
 local function clearSpawnedPets(player: Player)
-	local root = Workspace:FindFirstChild("PlayerPets")
-	local playerFolder = root and root:FindFirstChild(tostring(player.UserId))
-	if playerFolder then
-		for _, child in ipairs(playerFolder:GetChildren()) do
-			child:Destroy()
-		end
-	end
+	PetCompanionSpawnService.clear(player.UserId)
 end
 
 local function spawnEquippedPets(player: Player)
@@ -132,14 +113,18 @@ local function spawnEquippedPets(player: Player)
 	local state = collections[userId]
 	local character = player.Character
 	if state == nil or state.player ~= player or state.loading or state.profile == nil
-		or not IslandSessionService.canWrite(player.UserId, player) or character == nil then
+		or not IslandSessionService.canWrite(userId, player) or character == nil then
 		return
 	end
 
 	local spawnToken = {}
 	spawnTokens[userId] = spawnToken
-	local targetRoot = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart", 10)
+	spawnedCharacterByUserId[userId] = character
+
+	local targetRoot = character:FindFirstChild("HumanoidRootPart")
+		or character:WaitForChild("HumanoidRootPart", 10)
 	if spawnToken ~= spawnTokens[userId]
+		or spawnedCharacterByUserId[userId] ~= character
 		or targetRoot == nil
 		or not targetRoot:IsA("BasePart")
 		or player.Character ~= character
@@ -148,35 +133,26 @@ local function spawnEquippedPets(player: Player)
 		return
 	end
 
-	clearSpawnedPets(player)
-	local playerFolder = getPlayerPetFolder(player)
-	for slotIndex, petId in ipairs(state.profile.equipped) do
-		local record: any = nil
-		for _, ownedRecord in ipairs(state.profile.owned) do
-			if ownedRecord.petId == petId then
-				record = ownedRecord
-				break
-			end
+	local spawnedCount, status = PetCompanionSpawnService.spawn(
+		userId,
+		character,
+		state.profile,
+		function(speciesId: string, scale: number?)
+			return PetAssetLoader.create(speciesId, scale)
+		end,
+		function(): boolean
+			return spawnToken == spawnTokens[userId]
+				and spawnedCharacterByUserId[userId] == character
+				and player.Character == character
+				and player.Parent == Players
+				and collections[userId] == state
+				and IslandSessionService.canWrite(userId, player)
 		end
-		if record then
-			local petModel, status = PetAssetLoader.create(record.speciesId, 1)
-			if spawnToken ~= spawnTokens[userId] or player.Character ~= character then
-				if petModel then
-					petModel:Destroy()
-				end
-				return
-			end
-			if petModel and status == "CREATED" then
-				petModel.Name = petId
-				petModel:SetAttribute("PetId", petId)
-				petModel:SetAttribute("OwnerUserId", player.UserId)
-				petModel:SetAttribute("FormationSlot", slotIndex)
-				petModel.Parent = playerFolder
-				petModel:PivotTo((targetRoot :: BasePart).CFrame * CFrame.new((slotIndex - 2) * 2.4, 0, 4.5))
-			else
-				warn("[PetKingdoms] Could not create equipped pet", petId, status)
-			end
-		end
+	)
+	if status ~= "SPAWNED" and status ~= "SPAWNED_PARTIAL"
+		and status ~= "NO_EQUIPPED_PETS" and status ~= "NO_PETS_CREATED"
+	then
+		warn("[PetKingdoms] Equipped pet spawn did not complete:", userId, spawnedCount, status)
 	end
 end
 
@@ -272,10 +248,23 @@ local function loadPlayer(player: Player)
 	if characterConnections[userId] then
 		characterConnections[userId]:Disconnect()
 	end
+	if characterRemovingConnections[userId] then
+		characterRemovingConnections[userId]:Disconnect()
+	end
 	characterConnections[userId] = player.CharacterAdded:Connect(function()
 		task.delay(0.75, function()
 			spawnEquippedPets(player)
 		end)
+	end)
+	characterRemovingConnections[userId] = player.CharacterRemoving:Connect(function(character)
+		-- A delayed removal from an old character must not clear the new
+		-- character's formation after a rapid respawn.
+		if spawnedCharacterByUserId[userId] ~= character then
+			return
+		end
+		spawnedCharacterByUserId[userId] = nil
+		spawnTokens[userId] = nil
+		clearSpawnedPets(player)
 	end)
 	spawnEquippedPets(player)
 	print("[PetKingdoms] Pet collection ready for", player.Name)
