@@ -430,10 +430,17 @@ local function resizeBuildingPanel()
 	-- Selection actions share a row and remain within the mobile viewport.
 	local outerMargin = compact and 10 or 22
 	local actionGap = 8
-	local actionAvailable = math.max(160, safeSize.X - outerMargin * 2 - actionGap)
+	-- Selection actions must stay inside the same safe rectangle as the rest
+	-- of the HUD. Do not force a minimum width that can overflow tiny viewports.
+	local actionAvailable = math.max(0, safeSize.X - outerMargin * 2 - actionGap)
 	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
-	local demolishWidth = math.min(180, actionAvailable - moveWidth)
-	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
+	local demolishWidth = math.min(180, math.max(0, actionAvailable - moveWidth))
+	local preferredActionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
+	local actionTop = safeOrigin.Y + math.clamp(
+		preferredActionTop,
+		8,
+		math.max(8, safeSize.Y - 46)
+	)
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
 		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
@@ -447,10 +454,11 @@ local function resizeBuildingPanel()
 		-- uncertain server operation has been resolved.
 		buildLauncher.Visible = not recoveryPanel.Visible and not placing
 	end
-	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
+	moveButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
-	moveButton.Text = if compact then "ПЕРЕНЕСТИ" else "ПЕРЕНЕСТИ"
-	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
+	moveButton.Text = "ПЕРЕНЕСТИ"
+	moveButton.TextSize = if compact then 10 else 12
+	demolishButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
 	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТИРОВАТЬ"
 	demolishButton.TextSize = if compact then 11 else 13
