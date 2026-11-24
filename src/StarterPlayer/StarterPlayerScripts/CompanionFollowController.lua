@@ -114,7 +114,14 @@ local function findObstacleDetour(
 
 	local side = Vector3.new(-direction.Z, 0, direction.X)
 	local extents = model:GetExtentsSize()
-	local clearance = math.max(3.5, math.max(extents.X, extents.Z) * 0.5 + 1.5)
+	local petRadius = math.max(extents.X, extents.Z) * 0.5
+	local obstacleHalfWidth = 0
+	if obstacle.Instance:IsA("BasePart") then
+		local obstaclePart = obstacle.Instance :: BasePart
+		obstacleHalfWidth = math.abs(side:Dot(obstaclePart.CFrame.RightVector)) * obstaclePart.Size.X * 0.5
+			+ math.abs(side:Dot(obstaclePart.CFrame.LookVector)) * obstaclePart.Size.Z * 0.5
+	end
+	local clearance = math.max(3.5, obstacleHalfWidth + petRadius + 1.5)
 	local bestCandidate: Vector3? = nil
 	local bestScore = math.huge
 
