@@ -1217,3 +1217,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Re-select the replacement world model after server-side upgrade synchronization rebuilds the model, keeping the context card/highlight attached to the upgraded building.
 - [x] GitHub Actions run #753: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify selection, close/deselect, main-house protection, each building's upgrade costs/max level, insufficient resources, upgrade persistence, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Upgrade details use server-owned metadata (2026-11-24)
+
+- [x] Replicate each building's maximum upgrade level and next-level resource costs from `BuildingCatalog` onto its world model.
+- [x] Publish the same metadata on initial island spawn and every server-side building sync/rebuild.
+- [x] Remove duplicated upgrade level/cost tables from the client context card; render its details from replicated model attributes.
+- [x] Extend `IslandWorldServiceTests` to verify main-house level-2 costs and pet-house level-3 costs are replicated from the server catalog.
+- [ ] Run `IslandWorldServiceTests.server.lua` in Roblox Studio and verify UI labels refresh after upgrade and island reload. Runtime validation pending.
