@@ -1016,3 +1016,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Record imported visual bounds on spawned templates for later footprint-fit diagnostics.
 - [x] Add Studio-only tests for an offset, rotated, unparented cloned-model fixture, reported bounds, orientation preservation, and idempotence.
 - [ ] Run the pivot tests in Roblox Studio and inspect every production template for overhang/footprint fit. Stage 1 remains open pending runtime verification.
+
+
+### Stage 1 — Visual model footprint diagnostics (2026-11-24)
+
+- [x] Add a non-destructive bounds-vs-grid check with a 5% cell-size tolerance; report X/Z overhang without silently resizing or rejecting an asset.
+- [x] During template cloning, publish `VisualFootprintFits`, `VisualOverhangX/Z`, and visual bounds attributes; warn when an imported model exceeds its catalog footprint.
+- [x] Extend Studio tests for inside-footprint assets, tolerated tiny overhang, excessive overhang, and invalid cell size.
+- [x] Add a Studio audit that scans actual `ServerStorage/BuildingModels` templates using cloned instances, reports missing templates/fallback use, and prints each asset's measured bounds and overhang.
+- [ ] Run the audit in Roblox Studio and correct any real asset overhangs; runtime output has not yet been collected.
