@@ -159,6 +159,42 @@ table.insert(builtProfile.buildings, {
 local builtOk = IslandData.validate(builtProfile, 1001, Catalog)
 expect("valid building record accepted", builtOk)
 
+local upgradedProfile = IslandData.create(1001, 10, 10)
+table.insert(upgradedProfile.buildings, {
+	instanceId = "upgraded-pet-house",
+	catalogId = "pet_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+	upgradeLevel = 2,
+})
+local upgradedOk = IslandData.validate(upgradedProfile, 1001, Catalog)
+expect("valid saved building upgrade level accepted", upgradedOk)
+local invalidUpgradeProfile = IslandData.create(1001, 10, 10)
+table.insert(invalidUpgradeProfile.buildings, {
+	instanceId = "invalid-upgrade",
+	catalogId = "pet_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+	upgradeLevel = 4,
+})
+local invalidUpgradeOk, invalidUpgradeCode = IslandData.validate(invalidUpgradeProfile, 1001, Catalog)
+expect("saved building upgrade above catalogue maximum rejected",
+	not invalidUpgradeOk and invalidUpgradeCode == "INVALID_BUILDING_UPGRADE_LEVEL")
+local fractionalUpgradeProfile = IslandData.create(1001, 10, 10)
+table.insert(fractionalUpgradeProfile.buildings, {
+	instanceId = "fractional-upgrade",
+	catalogId = "pet_house",
+	x = 0,
+	z = 0,
+	rotation = 0,
+	upgradeLevel = 1.5,
+})
+local fractionalUpgradeOk, fractionalUpgradeCode = IslandData.validate(fractionalUpgradeProfile, 1001, Catalog)
+expect("fractional saved building upgrade level rejected",
+	not fractionalUpgradeOk and fractionalUpgradeCode == "INVALID_BUILDING_UPGRADE_LEVEL")
+
 local overlapProfile = IslandData.create(1001, 10, 10)
 table.insert(overlapProfile.buildings, {
 	instanceId = "house-1",
