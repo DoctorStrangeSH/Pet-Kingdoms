@@ -894,69 +894,131 @@ resize = function()
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
 		local veryShort = viewport.Y < 400
-		-- Keep a predictable safe margin in portrait and landscape. A fixed
-		-- pixel height avoids oversized panels on tall phones and clipped
-		-- content on short landscape viewports.
-		local mobilePanelHeight = math.max(280, math.min(620, viewport.Y - 32))
+		local ultraShort = viewport.Y < 220
+		-- On a 320×180 landscape viewport, use a purpose-built single-column
+		-- mode. Never enforce the portrait minimum height on a short screen.
+		local mobilePanelHeight = if ultraShort then math.max(144, viewport.Y - 20)
+			else math.max(280, math.min(620, viewport.Y - 32))
 		panel.Position = UDim2.fromScale(0.5, 0.5)
 		panel.Size = UDim2.new(0.94, 0, 0, mobilePanelHeight)
 		panelScale.Scale = 1
-		title.TextSize = if viewport.X < 360 then 14 else 16
-		local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
-		search.Position = UDim2.fromOffset(24, 88)
-		search.Size = UDim2.fromOffset(contentWidth, 38)
-		filterBar.Position = UDim2.fromOffset(24, 132)
-		filterBar.Size = UDim2.fromOffset(contentWidth, 32)
-		for _, filterButton in ipairs({ allFilterButton, teamFilterButton, favoriteFilterButton, sortButton }) do
-			filterButton.TextSize = if viewport.X < 360 then 8 else 9
-		end
-		list.Position = UDim2.fromOffset(24, 172)
-		list.Size = UDim2.new(1, -48, 1, -196)
-		mobileBackButton.Visible = mobileDetailVisible
-		list.Visible = not mobileDetailVisible
-		search.Visible = not mobileDetailVisible
-		filterBar.Visible = not mobileDetailVisible
-		detail.Position = UDim2.fromOffset(24, if mobileDetailVisible then 130 else 172)
-		detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -154 else -196)
-		detail.Visible = mobileDetailVisible
-
-		-- The two-column desktop detail layout is too tall for a phone.
-		-- Reflow it into a compact vertical card and remove secondary actions
-		-- that would otherwise collide with the bond/equip controls.
-		preview.Size = UDim2.new(1, -20, if veryShort then 0.18 elseif shortCompact then 0.28 else 0.38, -10)
-		petName.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
-		petName.Size = UDim2.new(1, -112, 0, 27)
-		petName.TextSize = 18
-		petRarity.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 25 elseif shortCompact then 26 else 28)
-		petRarity.TextSize = 9
-		petDescription.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 45 elseif shortCompact then 46 else 50)
-		petDescription.Size = UDim2.new(1, -32, 0, if veryShort then 20 elseif shortCompact then 24 else 36)
-		petDescription.TextSize = 11
-		petDescription.Visible = not veryShort
-		favoriteButton.Position = UDim2.new(1, -88, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
-		lockButton.Position = UDim2.new(1, -48, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
-		bondLabel.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 68 elseif shortCompact then 70 else 88)
-		bondLabel.TextSize = 10
-		bondLabel.Visible = not veryShort
-		if shortCompact then
-			equipButton.Position = UDim2.new(0, 14, 1, -48)
-			equipButton.Size = UDim2.new(0.50, -18, 0, 40)
-			mainButton.Position = UDim2.new(0.50, 1, 1, -48)
-			mainButton.Size = UDim2.new(0.18, -2, 0, 40)
-			deleteButton.Position = UDim2.new(0.68, 2, 1, -48)
-			deleteButton.Size = UDim2.new(0.32, -16, 0, 40)
+		title.TextSize = if ultraShort then 13 else (if viewport.X < 360 then 14 else 16)
+		subtitle.Visible = not ultraShort
+		if ultraShort then
+			local innerWidth = math.max(180, math.floor(viewport.X * 0.94) - 24)
+			closeButton.Position = UDim2.new(1, -6, 0, 4)
+			closeButton.Size = UDim2.fromOffset(30, 30)
+			if mobileDetailVisible then
+				mobileBackButton.Visible = true
+				mobileBackButton.Position = UDim2.fromOffset(10, 34)
+				mobileBackButton.Size = UDim2.new(1, -20, 0, 26)
+				mobileBackButton.TextSize = 9
+				list.Visible = false
+				search.Visible = false
+				filterBar.Visible = false
+				detail.Visible = true
+				detail.Position = UDim2.fromOffset(10, 64)
+				detail.Size = UDim2.new(1, -20, 1, -72)
+				preview.Visible = false
+				petName.Position = UDim2.fromOffset(10, 4)
+				petName.Size = UDim2.new(1, -100, 0, 20)
+				petName.TextSize = 13
+				petRarity.Position = UDim2.fromOffset(10, 26)
+				petRarity.Size = UDim2.new(1, -20, 0, 14)
+				petRarity.TextSize = 8
+				petDescription.Visible = false
+				bondLabel.Visible = false
+				teamLabel.Visible = false
+				interactionRow.Visible = false
+				favoriteButton.Position = UDim2.new(1, -76, 0, 2)
+				favoriteButton.Size = UDim2.fromOffset(30, 28)
+				lockButton.Position = UDim2.new(1, -40, 0, 2)
+				lockButton.Size = UDim2.fromOffset(30, 28)
+				equipButton.Position = UDim2.new(0, 8, 1, -34)
+				equipButton.Size = UDim2.new(0.52, -10, 0, 28)
+				equipButton.TextSize = 9
+				mainButton.Position = UDim2.new(0.52, 1, 1, -34)
+				mainButton.Size = UDim2.new(0.16, -2, 0, 28)
+				deleteButton.Position = UDim2.new(0.68, 2, 1, -34)
+				deleteButton.Size = UDim2.new(0.32, -10, 0, 28)
+				deleteButton.TextSize = 8
+			else
+				mobileBackButton.Visible = false
+				detail.Visible = false
+				list.Visible = true
+				search.Visible = true
+				filterBar.Visible = true
+				search.Position = UDim2.fromOffset(10, 34)
+				search.Size = UDim2.new(1, -20, 0, 28)
+				search.TextSize = 11
+				filterBar.Position = UDim2.fromOffset(10, 66)
+				filterBar.Size = UDim2.new(1, -20, 0, 22)
+				for _, filterButton in ipairs({ allFilterButton, teamFilterButton, favoriteFilterButton, sortButton }) do
+					filterButton.TextSize = 8
+				end
+				list.Position = UDim2.fromOffset(10, 92)
+				list.Size = UDim2.new(1, -20, 1, -98)
+			end
+			statusLabel.Visible = false
 		else
-			equipButton.Position = UDim2.new(0, 14, 1, -58)
-			equipButton.Size = UDim2.new(0.50, -18, 0, 46)
-			mainButton.Position = UDim2.new(0.50, 1, 1, -58)
-			mainButton.Size = UDim2.new(0.18, -2, 0, 46)
-			deleteButton.Position = UDim2.new(0.68, 2, 1, -58)
-			deleteButton.Size = UDim2.new(0.32, -16, 0, 46)
+			local contentWidth = math.max(180, math.floor(viewport.X * 0.94) - 48)
+			search.Position = UDim2.fromOffset(24, 88)
+			search.Size = UDim2.fromOffset(contentWidth, 38)
+			filterBar.Position = UDim2.fromOffset(24, 132)
+			filterBar.Size = UDim2.fromOffset(contentWidth, 32)
+			for _, filterButton in ipairs({ allFilterButton, teamFilterButton, favoriteFilterButton, sortButton }) do
+				filterButton.TextSize = if viewport.X < 360 then 8 else 9
+			end
+			list.Position = UDim2.fromOffset(24, 172)
+			list.Size = UDim2.new(1, -48, 1, -196)
+			mobileBackButton.Visible = mobileDetailVisible
+			list.Visible = not mobileDetailVisible
+			search.Visible = not mobileDetailVisible
+			filterBar.Visible = not mobileDetailVisible
+			detail.Position = UDim2.fromOffset(24, if mobileDetailVisible then 130 else 172)
+			detail.Size = UDim2.new(1, -48, 1, if mobileDetailVisible then -154 else -196)
+			detail.Visible = mobileDetailVisible
+			statusLabel.Visible = true
+
+			-- The two-column desktop detail layout is too tall for a phone.
+			-- Reflow it into a compact vertical card and remove secondary actions
+			-- that would otherwise collide with the bond/equip controls.
+			preview.Visible = true
+			preview.Size = UDim2.new(1, -20, if veryShort then 0.18 elseif shortCompact then 0.28 else 0.38, -10)
+			petName.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
+			petName.Size = UDim2.new(1, -112, 0, 27)
+			petName.TextSize = 18
+			petRarity.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 25 elseif shortCompact then 26 else 28)
+			petRarity.TextSize = 9
+			petDescription.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 45 elseif shortCompact then 46 else 50)
+			petDescription.Size = UDim2.new(1, -32, 0, if veryShort then 20 elseif shortCompact then 24 else 36)
+			petDescription.TextSize = 11
+			petDescription.Visible = not veryShort
+			favoriteButton.Position = UDim2.new(1, -88, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
+			lockButton.Position = UDim2.new(1, -48, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, 0)
+			bondLabel.Position = UDim2.new(0, 16, if veryShort then 0.22 elseif shortCompact then 0.32 else 0.42, if veryShort then 68 elseif shortCompact then 70 else 88)
+			bondLabel.TextSize = 10
+			bondLabel.Visible = not veryShort
+			if shortCompact then
+				equipButton.Position = UDim2.new(0, 14, 1, -48)
+				equipButton.Size = UDim2.new(0.50, -18, 0, 40)
+				mainButton.Position = UDim2.new(0.50, 1, 1, -48)
+				mainButton.Size = UDim2.new(0.18, -2, 0, 40)
+				deleteButton.Position = UDim2.new(0.68, 2, 1, -48)
+				deleteButton.Size = UDim2.new(0.32, -16, 0, 40)
+			else
+				equipButton.Position = UDim2.new(0, 14, 1, -58)
+				equipButton.Size = UDim2.new(0.50, -18, 0, 46)
+				mainButton.Position = UDim2.new(0.50, 1, 1, -58)
+				mainButton.Size = UDim2.new(0.18, -2, 0, 46)
+				deleteButton.Position = UDim2.new(0.68, 2, 1, -58)
+				deleteButton.Size = UDim2.new(0.32, -16, 0, 46)
+			end
+			equipButton.TextSize = 10
+			deleteButton.TextSize = 9
+			teamLabel.Visible = false
+			interactionRow.Visible = false
 		end
-		equipButton.TextSize = 10
-		deleteButton.TextSize = 9
-		teamLabel.Visible = false
-		interactionRow.Visible = false
 	else
 		panel.Size = if viewport.X < 900 then UDim2.new(0.9, 0, 0.8, 0) else UDim2.fromScale(0.78, 0.78)
 		panelScale.Scale = if viewport.X < 900 then 0.96 else 1
