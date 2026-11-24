@@ -11,10 +11,8 @@ export type Bounds = {
 }
 
 function BuildingModelPivot.normalizeToGroundCenter(model: Model): Bounds?
-	if model.Parent == nil then
-		return nil
-	end
-
+	-- Cloned templates are intentionally normalized before parenting so their
+	-- pivot is correct before the placement transform is applied.
 	local currentPivot = model:GetPivot()
 	local boundsCFrame, boundsSize = model:GetBoundingBox()
 	if boundsSize.X <= 0 or boundsSize.Y <= 0 or boundsSize.Z <= 0 then
