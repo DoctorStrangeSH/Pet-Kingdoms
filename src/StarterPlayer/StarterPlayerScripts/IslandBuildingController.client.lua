@@ -35,6 +35,7 @@ local previewVisual: Model? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
 local selectedBuildingDestroyConnection: RBXScriptConnection? = nil
+local selectedBuildingHighlight: Highlight? = nil
 local movingInstanceId: string? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
@@ -491,6 +492,10 @@ local function selectBuilding(model: Model?)
 		selectedBuildingDestroyConnection:Disconnect()
 		selectedBuildingDestroyConnection = nil
 	end
+	if selectedBuildingHighlight then
+		selectedBuildingHighlight:Destroy()
+		selectedBuildingHighlight = nil
+	end
 	selectedBuildingModel = model
 	demolitionArmed = false
 	moveButton.Visible = model ~= nil
@@ -502,12 +507,26 @@ local function selectBuilding(model: Model?)
 		then "УДАЛИТЬ"
 		else "ДЕМОНТИРОВАТЬ"
 	if model then
+		-- Make world selection visible; action buttons alone are too subtle,
+		-- especially on mobile where the player taps a small building model.
+		local highlight = Instance.new("Highlight")
+		highlight.Name = "SelectedBuildingHighlight"
+		highlight.Adornee = model
+		highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		highlight.FillColor = COLORS.gold
+		highlight.FillTransparency = 0.88
+		highlight.OutlineColor = COLORS.gold
+		highlight.OutlineTransparency = 0.04
+		highlight.Parent = model
+		selectedBuildingHighlight = highlight
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
 			if selectedBuildingModel == model and not demolitionRequestInFlight then
 				selectBuilding(nil)
 			end
 		end)
+	else
+		setStatus("Постройка не выбрана")
 	end
 end
 
