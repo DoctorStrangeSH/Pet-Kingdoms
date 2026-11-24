@@ -1140,6 +1140,54 @@ local function updateFootprintGuide(
 	local height = top.Size.Y / 2 + 0.09
 	local rotationCFrame = CFrame.Angles(0, math.rad(rotation), 0)
 	local color = if valid then COLORS.valid else COLORS.invalid
+
+	-- Show the exact occupied cells inside the footprint, not just its border.
+	-- Rebuild only when the rotated footprint dimensions change.
+	if guide:GetAttribute("CellColumns") ~= footprintWidth
+		or guide:GetAttribute("CellRows") ~= footprintDepth
+	then
+		for _, child in ipairs(guide:GetChildren()) do
+			if string.sub(child.Name, 1, 5) == "Cell_" then
+				child:Destroy()
+			end
+		end
+		for cellZ = 0, footprintDepth - 1 do
+			for cellX = 0, footprintWidth - 1 do
+				local tile = Instance.new("Part")
+				tile.Name = "Cell_" .. tostring(cellX) .. "_" .. tostring(cellZ)
+				tile.Anchored = true
+				tile.CanCollide = false
+				tile.CanTouch = false
+				tile.CanQuery = false
+				tile.CastShadow = false
+				tile.Material = Enum.Material.SmoothPlastic
+				tile.Size = Vector3.new(
+					math.max(0.1, cellSize - thickness * 1.8),
+					0.035,
+					math.max(0.1, cellSize - thickness * 1.8)
+				)
+				tile.Parent = guide
+			end
+		end
+		guide:SetAttribute("CellColumns", footprintWidth)
+		guide:SetAttribute("CellRows", footprintDepth)
+	end
+	for cellZ = 0, footprintDepth - 1 do
+		for cellX = 0, footprintWidth - 1 do
+			local tile = guide:FindFirstChild("Cell_" .. tostring(cellX) .. "_" .. tostring(cellZ))
+			if tile and tile:IsA("BasePart") then
+				local offsetX = (cellX + 0.5 - footprintWidth / 2) * cellSize
+				local offsetZ = (cellZ + 0.5 - footprintDepth / 2) * cellSize
+				tile.CFrame = top.CFrame
+					* CFrame.new(centerX, top.Size.Y / 2 + 0.055, centerZ)
+					* rotationCFrame
+					* CFrame.new(offsetX, 0, offsetZ)
+				tile.Color = color
+				tile.Transparency = if valid then 0.72 else 0.82
+			end
+		end
+	end
+
 	local placements = {
 		{ name = "North", size = Vector3.new(width, 0.08, thickness), offset = Vector3.new(0, height, -depth / 2) },
 		{ name = "South", size = Vector3.new(width, 0.08, thickness), offset = Vector3.new(0, height, depth / 2) },
