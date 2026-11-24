@@ -1165,4 +1165,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] For `IgnoreGuiInset=false`, use a zero local origin because Roblox applies the top-bar inset to the ScreenGui automatically; still clamp the usable size by both GUI insets.
 - [x] For `IgnoreGuiInset=true`, retain the explicit top-left inset origin so the same helper supports full-viewport ScreenGuis without double-offsetting.
 - [x] Pass each owning ScreenGui from Construction, Resource HUD, Island Expansion, Quest Journal, and Pet Collection.
+- [x] GitHub Actions run #734: pinned Rojo verification, place build, and Studio-ready artifact upload all passed.
 - [ ] Verify safe-area origin and panel/launcher alignment in Roblox Studio with both inset modes, phone portrait/landscape, tablet, and desktop. Runtime visual validation pending.
