@@ -4,7 +4,7 @@
 local PetAnimationController = {}
 PetAnimationController.__index = PetAnimationController
 
-export type PetState = "idle" | "walk" | "run" | "happy" | "curious" | "sniff" | "alert" | "combat"
+export type PetState = "idle" | "walk" | "run" | "jump" | "happy" | "curious" | "sniff" | "alert" | "combat"
 
 export type Controller = {
 	model: Model,
@@ -21,6 +21,7 @@ local VALID_STATES: { [string]: boolean } = {
 	idle = true,
 	walk = true,
 	run = true,
+	jump = true,
 	happy = true,
 	curious = true,
 	sniff = true,
@@ -129,6 +130,20 @@ function PetAnimationController.update(self: Controller, dt: number)
 		put(self.motors, "Head_EarLeft", CFrame.Angles(wave * 0.16, 0, math.rad(-5) + secondary * 0.08))
 		put(self.motors, "Head_EarRight", CFrame.Angles(-wave * 0.16, 0, math.rad(5) - secondary * 0.08))
 		put(self.motors, "Body_Tail", CFrame.Angles(0, wave * 0.18, secondary * 0.12))
+	elseif self.state == "jump" then
+		-- The follow controller owns the actual vertical arc; this pose adds
+		-- a compact airborne silhouette with tucked paws and responsive ears.
+		local tuck = math.max(0, math.sin(t * 8))
+		put(self.motors, "Root_Body", CFrame.new(0, 0.045 + tuck * 0.025, 0)
+			* CFrame.Angles(-0.14, 0, 0))
+		put(self.motors, "Body_FrontLeftLeg", CFrame.Angles(-0.72, 0, -0.06))
+		put(self.motors, "Body_FrontRightLeg", CFrame.Angles(-0.72, 0, 0.06))
+		put(self.motors, "Body_BackLeftLeg", CFrame.Angles(0.48, 0, 0))
+		put(self.motors, "Body_BackRightLeg", CFrame.Angles(0.48, 0, 0))
+		put(self.motors, "Body_Head", CFrame.Angles(-0.08, 0, 0))
+		put(self.motors, "Head_EarLeft", CFrame.Angles(-0.24 - tuck * 0.08, 0, -0.12))
+		put(self.motors, "Head_EarRight", CFrame.Angles(-0.24 - tuck * 0.08, 0, 0.12))
+		put(self.motors, "Body_Tail", CFrame.Angles(0, math.sin(t * 10) * 0.16, 0))
 	elseif self.state == "happy" then
 		local hop = math.max(0, math.sin(t * 7))
 		put(self.motors, "Root_Body", CFrame.new(0, hop * 0.2, 0) * CFrame.Angles(-hop * 0.12, 0, 0))
