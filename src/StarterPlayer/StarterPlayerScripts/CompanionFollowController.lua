@@ -125,8 +125,11 @@ local function findObstacleDetour(
 	local bestCandidate: Vector3? = nil
 	local bestScore = math.huge
 
+	local approachDistance = math.max(0.75, obstacle.Distance - 2)
 	for _, sideSign in ipairs({ -1, 1 }) do
-		local candidate = obstacle.Position + direction * 2.5 + side * (clearance * sideSign)
+		-- Stop short of the obstacle, move laterally around its edge, then
+		-- let the next update resume the direct route to the formation slot.
+		local candidate = currentPosition + direction * approachDistance + side * (clearance * sideSign)
 		candidate = Vector3.new(candidate.X, desiredPosition.Y, candidate.Z)
 		candidate = resolveGroundPosition(model, candidate, params)
 
