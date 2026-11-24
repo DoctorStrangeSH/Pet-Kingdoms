@@ -371,17 +371,11 @@ local selectionPanel = make("Frame", {
 }, gui) :: Frame
 make("UICorner", { CornerRadius = UDim.new(0, 16) }, selectionPanel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.3 }, selectionPanel)
-make("UIPadding", {
-	PaddingTop = UDim.new(0, 10),
-	PaddingBottom = UDim.new(0, 10),
-	PaddingLeft = UDim.new(0, 12),
-	PaddingRight = UDim.new(0, 12),
-}, selectionPanel)
 local selectionTitle = make("TextLabel", {
 	Name = "BuildingTitle",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 0),
-	Size = UDim2.new(1, -34, 0, 24),
+	Position = UDim2.fromOffset(12, 8),
+	Size = UDim2.new(1, -46, 0, 24),
 	Font = Enum.Font.GothamBold,
 	Text = "ПОСТРОЙКА",
 	TextColor3 = COLORS.gold,
@@ -393,8 +387,8 @@ local selectionTitle = make("TextLabel", {
 local selectionDetails = make("TextLabel", {
 	Name = "BuildingDetails",
 	BackgroundTransparency = 1,
-	Position = UDim2.fromOffset(0, 26),
-	Size = UDim2.new(1, 0, 0, 26),
+	Position = UDim2.fromOffset(12, 34),
+	Size = UDim2.new(1, -24, 0, 26),
 	Font = Enum.Font.Gotham,
 	Text = "Уровень 1",
 	TextColor3 = COLORS.muted,
@@ -406,7 +400,7 @@ local selectionDetails = make("TextLabel", {
 local selectionCloseButton = make("TextButton", {
 	Name = "CloseBuildingContext",
 	AnchorPoint = Vector2.new(1, 0),
-	Position = UDim2.new(1, 0, 0, -3),
+	Position = UDim2.new(1, -8, 0, 8),
 	Size = UDim2.fromOffset(28, 28),
 	BackgroundColor3 = COLORS.panelLight,
 	BorderSizePixel = 0,
@@ -524,7 +518,7 @@ local function resizeBuildingPanel()
 	local actionWidth = math.max(0, (cardContentWidth - cardGap * (actionCount - 1)) / actionCount)
 	local actionY = 70
 	local actionHeight = 42
-	local nextActionX = 0
+	local nextActionX = 12
 	moveButton.Position = UDim2.fromOffset(nextActionX, actionY)
 	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
 	moveButton.TextSize = if compact then 10 else 11
