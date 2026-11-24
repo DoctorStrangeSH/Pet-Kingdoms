@@ -26,6 +26,7 @@ local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
 local placing = false
+local panelCollapsed = false
 local currentCellX: number? = nil
 local currentCellZ: number? = nil
 local currentIsland: Model? = nil
@@ -188,6 +189,38 @@ local panelCloseButton = make("TextButton", {
 	ZIndex = 4,
 }, panel) :: TextButton
 InterfaceComponents.StyleCloseButton(panelCloseButton)
+
+local collapseButton = make("TextButton", {
+	Name = "CollapseConstruction",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -48, 0, 0),
+	Size = UDim2.fromOffset(40, 40),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "−",
+	TextColor3 = COLORS.text,
+	TextSize = 24,
+	ZIndex = 4,
+}, panel) :: TextButton
+InterfaceComponents.StyleCloseButton(collapseButton)
+collapseButton.Text = "−"
+
+local reopenConstructionButton = make("TextButton", {
+	Name = "ReopenConstruction",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -10, 0, 62),
+	Size = UDim2.fromOffset(112, 38),
+	BackgroundColor3 = COLORS.panel,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "СТРОЙКА",
+	TextColor3 = COLORS.gold,
+	TextSize = 12,
+	Visible = false,
+	ZIndex = 30,
+}, gui) :: TextButton
+InterfaceComponents.StyleActionButton(reopenConstructionButton, "gold")
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -356,10 +389,13 @@ local function resizeBuildingPanel()
 	local tiny = viewport.X < 360
 	local title = panel:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
-		title.TextSize = if ultraShort then 13 else (if compact then 15 else 18)
+		title.TextSize = if ultraShort then 12 else (if compact then 14 else 16)
 		title.Size = UDim2.new(1, -52, 0, if ultraShort then 22 else 28)
 	end
 	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 32 else 40, if ultraShort then 32 else 40)
+	collapseButton.Size = UDim2.fromOffset(if ultraShort then 32 else 36, if ultraShort then 32 else 36)
+	collapseButton.Position = UDim2.new(1, if ultraShort then -40 else -48, 0, 0)
+	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 		button.TextSize = if ultraShort then 8 else (if tiny then 9 else (if compact then 10 else 13))
@@ -1059,6 +1095,8 @@ local function beginMoveSelected()
 	movingInstanceId = instanceId
 	rotation = if type(savedRotation) == "number" then savedRotation else 0
 	placing = true
+	panelCollapsed = false
+	reopenConstructionButton.Visible = false
 	panel.Visible = true
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
@@ -1101,6 +1139,8 @@ local function stopPlacing()
 		return
 	end
 	placing = false
+	panelCollapsed = false
+	reopenConstructionButton.Visible = false
 	movingInstanceId = nil
 	panel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
@@ -1128,6 +1168,8 @@ local function beginPlacing()
 	setSelectedBuilding(selectedCatalogId)
 	rotation = 0
 	placing = true
+	panelCollapsed = false
+	reopenConstructionButton.Visible = false
 	panel.Visible = true
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
@@ -1166,6 +1208,23 @@ end
 rotateButton.Activated:Connect(rotatePlacement)
 
 cancelButton.Activated:Connect(stopPlacing)
+collapseButton.Activated:Connect(function()
+	if not placing or buildRequestInFlight then return end
+	panelCollapsed = true
+	panel.Visible = false
+	reopenConstructionButton.Visible = true
+end)
+
+reopenConstructionButton.Activated:Connect(function()
+	if not placing then
+		reopenConstructionButton.Visible = false
+		return
+	end
+	panelCollapsed = false
+	panel.Visible = true
+	reopenConstructionButton.Visible = false
+end)
+
 panelCloseButton.Activated:Connect(stopPlacing)
 
 confirmButton.Activated:Connect(function()
