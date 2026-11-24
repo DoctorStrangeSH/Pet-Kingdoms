@@ -23,6 +23,8 @@ expect("non-finite world coordinate rejected", GridMath.snapWorldToGrid(math.hug
 
 local width90, depth90 = GridMath.getRotatedFootprint(2, 3, 90)
 expect("quarter turn swaps footprint", width90 == 3 and depth90 == 2)
+local width270, depth270 = GridMath.getRotatedFootprint(2, 3, 270)
+expect("three-quarter turn swaps footprint", width270 == 3 and depth270 == 2)
 local width45 = GridMath.getRotatedFootprint(2, 3, 45)
 expect("unsupported rotation rejected", width45 == nil)
 
@@ -36,5 +38,11 @@ local adjacent = { x = 3, z = 0, width = 3, depth = 3 }
 local overlap = { x = 2, z = 2, width = 3, depth = 3 }
 expect("edge-adjacent footprints do not overlap", not GridMath.footprintsOverlap(left, adjacent))
 expect("positive-area intersection overlaps", GridMath.footprintsOverlap(left, overlap))
+local rotatedExistingWidth, rotatedExistingDepth = GridMath.getRotatedFootprint(2, 3, 90)
+local rotatedExisting = { x = 2, z = 2, width = rotatedExistingWidth, depth = rotatedExistingDepth }
+local touchingRotated = { x = 5, z = 2, width = 2, depth = 3 }
+local crossingRotated = { x = 4, z = 2, width = 2, depth = 3 }
+expect("rotated footprint edge adjacency does not overlap", not GridMath.footprintsOverlap(rotatedExisting, touchingRotated))
+expect("rotated footprint intersection overlaps", GridMath.footprintsOverlap(rotatedExisting, crossingRotated))
 
 print("[PetKingdoms Test] GridMath smoke tests completed.")
