@@ -448,6 +448,7 @@ local function resize()
 		end
 	else
 		subtitle.Visible = true
+		status.Visible = true -- Restore optional copy after leaving ultra-short landscape mode.
 		subtitle.Position = UDim2.new(0, 24, 0, 57)
 		subtitle.Size = UDim2.new(1, -48, 0, 34)
 		currentCard.Position = UDim2.new(0, 22, 0, 108)
