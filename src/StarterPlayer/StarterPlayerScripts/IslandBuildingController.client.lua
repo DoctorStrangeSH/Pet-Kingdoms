@@ -362,18 +362,26 @@ local buildEntryButton: TextButton? = nil
 local function resizeBuildingPanel()
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera == nil then return end
-	local viewport = activeCamera.ViewportSize
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(activeCamera)
 	local compact = viewport.X < 520
-	local ultraShort = compact and viewport.Y < 220
+	local ultraShort = compact and safeSize.Y < 220
 	compactBuildingUI = compact
-	local panelWidth = math.max(220, math.min(viewport.X - 16, compact and 380 or 480))
-	local panelHeight = if ultraShort then 160 elseif compact then 190 else 228
+	local desiredWidth = math.min(compact and 380 or 480, safeSize.X - 20)
+	local desiredHeight = if ultraShort then 160 elseif compact then 190 else 228
+	local safePanelSize = InterfaceComponents.ClampPanelSize(
+		Vector2.new(math.max(180, desiredWidth), desiredHeight),
+		safeSize,
+		10
+	)
+	local panelWidth = safePanelSize.X
+	local panelHeight = safePanelSize.Y
 	-- Keep all three placement actions at a full 44 px touch height on
 	-- ultra-short landscape screens; reflow the panel instead of scaling taps down.
 	panelScale.Scale = if ultraShort then 1
 		elseif compact then math.clamp((viewport.Y - 100) / panelHeight, 0.82, 1)
 		else math.clamp((viewport.Y - 72) / panelHeight, 0.82, 1)
-	panelConstraint.MinSize = Vector2.new(220, if ultraShort then 160 elseif compact then 184 else 210)
+	panelConstraint.MinSize = Vector2.new(math.min(180, panelWidth), math.min(if ultraShort then 160 elseif compact then 184 else 210, panelHeight))
+	panelConstraint.MaxSize = safePanelSize
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
 	status.Position = UDim2.fromOffset(0, if ultraShort then 23 elseif compact then 27 else 30)
 	status.Size = UDim2.new(1, 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
@@ -381,7 +389,13 @@ local function resizeBuildingPanel()
 	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 48 elseif compact then 62 else 84)
 	buttons.Position = UDim2.fromOffset(0, if ultraShort then 96 elseif compact then 120 else 157)
 	buttons.Size = UDim2.new(1, 0, 0, 48)
-	panel.Position = UDim2.new(0.5, 0, 1, compact and -8 or -22)
+	-- Keep the construction panel inside the Roblox safe area at the bottom.
+	-- This changes only the panel; placement preview and grid coordinates stay world-driven.
+	panel.AnchorPoint = Vector2.new(0.5, 1)
+	panel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y - (if compact then 8 else 18)
+	)
 	local contentWidth = panelWidth - 28 -- 14-pixel left and right padding.
 	local gap = 8
 	local available = contentWidth - 2 * gap
@@ -414,7 +428,7 @@ local function resizeBuildingPanel()
 	-- Selection actions share a row and remain within the mobile viewport.
 	local outerMargin = compact and 10 or 22
 	local actionGap = 8
-	local actionAvailable = math.max(196, viewport.X - outerMargin * 2 - actionGap)
+	local actionAvailable = math.max(160, safeSize.X - outerMargin * 2 - actionGap)
 	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
 	local demolishWidth = math.min(180, actionAvailable - moveWidth)
 	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
@@ -422,7 +436,10 @@ local function resizeBuildingPanel()
 	if buildLauncher and buildLauncher:IsA("TextButton") then
 		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
 		buildLauncher.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
-		buildLauncher.Position = UDim2.new(1, compact and -10 or -22, 0, compact and 12 or 24)
+		buildLauncher.Position = UDim2.fromOffset(
+			safeOrigin.X + safeSize.X - launcherWidth - (if compact then 10 else 22),
+			safeOrigin.Y + (if compact then 12 else 24)
+		)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
 		-- The full-width recovery notice owns the top safe area until the
 		-- uncertain server operation has been resolved.
