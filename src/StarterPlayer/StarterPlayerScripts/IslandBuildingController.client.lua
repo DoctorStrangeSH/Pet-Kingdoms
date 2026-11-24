@@ -1352,10 +1352,10 @@ local function updatePreviewAtCell(x: number, z: number)
 	end
 	currentPreview.Transparency = 0.65
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
-	local reason = if not inside then "Выход за границы острова"
-		elseif overlaps then "Клетки заняты другой постройкой"
-		else "Место свободно"
-	local message = string.format("Размер: %d × %d клетки • %s", footprintWidth, footprintDepth, reason)
+	local reason = if not inside then "Вне острова"
+		elseif overlaps then "Занято"
+		else "Свободно"
+	local message = string.format("%d × %d клетки • %s", footprintWidth, footprintDepth, reason)
 	setStatus(message, valid)
 end
 
