@@ -821,3 +821,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend the DataStore round-trip fixture so the pet house's level-2 upgrade survives profile reload.
 - [ ] CI validation for data validation commit 306227e, data tests commit 500565e and persistence test commit b0f2635.
 - [ ] Run Studio data tests and the isolated DataStore integration scenario.
+- [x] Update `docs/testing/ISLAND_PERSISTENCE_TESTING.md` to include all six building types, the pet-house level-2 upgrade, and the hidden gathering marker during cooldown.
+- [ ] CI validation for the latest persistence/data-validation changes; current GitHub Actions runs are queued and have not started.
