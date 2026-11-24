@@ -1121,6 +1121,11 @@ resize = function()
 	)
 	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
 	confirmPanel.Size = UDim2.fromOffset(confirmWidth, 178)
+	confirmPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	confirmPanel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
 	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
 	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
