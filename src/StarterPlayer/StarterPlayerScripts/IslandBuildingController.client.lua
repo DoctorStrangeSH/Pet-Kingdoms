@@ -42,6 +42,7 @@ local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
 local buildRequestInFlight = false
 local demolitionRequestInFlight = false
+local upgradeRequestInFlight = false
 local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
@@ -355,6 +356,79 @@ local demolishButton = make("TextButton", {
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 
+-- A single compact context card replaces the old floating action buttons.
+-- It is shown only while an owned building is selected.
+local selectionPanel = make("Frame", {
+	Name = "BuildingContextCard",
+	AnchorPoint = Vector2.new(0, 0),
+	Position = UDim2.fromOffset(12, 62),
+	Size = UDim2.fromOffset(340, 124),
+	BackgroundColor3 = COLORS.panel,
+	BackgroundTransparency = 0.04,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 15,
+}, gui) :: Frame
+make("UICorner", { CornerRadius = UDim.new(0, 16) }, selectionPanel)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.3 }, selectionPanel)
+local selectionTitle = make("TextLabel", {
+	Name = "BuildingTitle",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 8),
+	Size = UDim2.new(1, -46, 0, 24),
+	Font = Enum.Font.GothamBold,
+	Text = "ПОСТРОЙКА",
+	TextColor3 = COLORS.gold,
+	TextSize = 15,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextTruncate = Enum.TextTruncate.AtEnd,
+	ZIndex = 16,
+}, selectionPanel) :: TextLabel
+local selectionDetails = make("TextLabel", {
+	Name = "BuildingDetails",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 34),
+	Size = UDim2.new(1, -24, 0, 26),
+	Font = Enum.Font.Gotham,
+	Text = "Уровень 1",
+	TextColor3 = COLORS.muted,
+	TextSize = 11,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextWrapped = true,
+	ZIndex = 16,
+}, selectionPanel) :: TextLabel
+local selectionCloseButton = make("TextButton", {
+	Name = "CloseBuildingContext",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -8, 0, 8),
+	Size = UDim2.fromOffset(28, 28),
+	BackgroundColor3 = COLORS.panelLight,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "×",
+	TextColor3 = COLORS.text,
+	TextSize = 21,
+	ZIndex = 17,
+}, selectionPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 9) }, selectionCloseButton)
+local upgradeButton = make("TextButton", {
+	Name = "UpgradeSelectedBuilding",
+	BackgroundColor3 = Color3.fromRGB(75, 126, 102),
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "УЛУЧШИТЬ",
+	TextColor3 = COLORS.text,
+	TextSize = 11,
+	Visible = false,
+	ZIndex = 16,
+}, selectionPanel) :: TextButton
+make("UICorner", { CornerRadius = UDim.new(0, 10) }, upgradeButton)
+make("UIStroke", { Color = COLORS.gold, Transparency = 0.65, Thickness = 1 }, upgradeButton)
+moveButton.Parent = selectionPanel
+demolishButton.Parent = selectionPanel
+moveButton.ZIndex = 16
+demolishButton.ZIndex = 16
+
 -- Fit all construction actions inside the actual panel content width.
 -- A tiny phone should never require horizontal scrolling to reach Confirm/Cancel.
 local compactBuildingUI = false
@@ -427,20 +501,39 @@ local function resizeBuildingPanel()
 	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
 	cancelButton.Text = "ОТМЕНА"
-	-- Selection actions share a row and remain within the mobile viewport.
-	local outerMargin = compact and 10 or 22
-	local actionGap = 8
-	-- Selection actions must stay inside the same safe rectangle as the rest
-	-- of the HUD. Do not force a minimum width that can overflow tiny viewports.
-	local actionAvailable = math.max(0, safeSize.X - outerMargin * 2 - actionGap)
-	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
-	local demolishWidth = math.min(180, math.max(0, actionAvailable - moveWidth))
-	local preferredActionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
-	local actionTop = safeOrigin.Y + math.clamp(
-		preferredActionTop,
-		8,
-		math.max(8, safeSize.Y - 46)
-	)
+	-- Selected-building controls live inside one safe-area card, below the
+	-- build launcher. Its width follows the viewport instead of overflowing it.
+	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
+	local cardHeight = 124
+	-- Keep the card below the resource/bond HUD stack on normal screens,
+	-- but clamp it upward on short landscape viewports.
+	local cardTop = safeOrigin.Y + math.clamp(180, 8, math.max(8, safeSize.Y - cardHeight))
+	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
+	selectionPanel.Size = UDim2.fromOffset(cardWidth, cardHeight)
+	local cardContentWidth = math.max(0, cardWidth - 24)
+	local cardGap = 6
+	local showUpgrade = upgradeButton.Visible
+	local showDemolish = demolishButton.Visible
+	local actionCount = 1 + (if showUpgrade then 1 else 0) + (if showDemolish then 1 else 0)
+	local actionWidth = math.max(0, (cardContentWidth - cardGap * (actionCount - 1)) / actionCount)
+	local actionY = 70
+	local actionHeight = 42
+	local nextActionX = 12
+	moveButton.Position = UDim2.fromOffset(nextActionX, actionY)
+	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	moveButton.TextSize = if compact then 10 else 11
+	nextActionX += actionWidth + cardGap
+	if showUpgrade then
+		upgradeButton.Position = UDim2.fromOffset(nextActionX, actionY)
+		upgradeButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+		nextActionX += actionWidth + cardGap
+	end
+	if showDemolish then
+		demolishButton.Position = UDim2.fromOffset(nextActionX, actionY)
+		demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	end
+	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ"
+	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
 		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
@@ -454,14 +547,6 @@ local function resizeBuildingPanel()
 		-- uncertain server operation has been resolved.
 		buildLauncher.Visible = not recoveryPanel.Visible and not placing
 	end
-	moveButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin, actionTop)
-	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
-	moveButton.Text = "ПЕРЕНЕСТИ"
-	moveButton.TextSize = if compact then 10 else 12
-	demolishButton.Position = UDim2.fromOffset(safeOrigin.X + outerMargin + moveWidth + actionGap, actionTop)
-	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
-	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТИРОВАТЬ"
-	demolishButton.TextSize = if compact then 11 else 13
 end
 
 local buildingViewportConnection: RBXScriptConnection? = nil
@@ -495,8 +580,45 @@ local function findBuildingModel(target: Instance?): Model?
 	return nil
 end
 
+local BUILDING_DISPLAY = {
+	main_house = { title = "Главный дом", maxLevel = 3, costs = { [2] = "12 дерева • 6 камня", [3] = "24 дерева • 14 камня" } },
+	pet_house = { title = "Домик питомцев", maxLevel = 3, costs = { [2] = "10 дерева • 5 камня", [3] = "20 дерева • 12 камня" } },
+	stone_path = { title = "Каменная дорожка", maxLevel = 2, costs = { [2] = "3 камня" } },
+	garden_lantern = { title = "Садовый фонарь", maxLevel = 2, costs = { [2] = "4 дерева • 2 камня" } },
+	flower_bed = { title = "Клумба", maxLevel = 2, costs = { [2] = "3 дерева" } },
+	wooden_fence = { title = "Деревянный забор", maxLevel = 2, costs = { [2] = "3 дерева" } },
+}
+
+local function updateBuildingContext(model: Model?)
+	if model == nil or model.Parent == nil then
+		selectionPanel.Visible = false
+		upgradeButton.Visible = false
+		return
+	end
+	local catalogId = model:GetAttribute("BuildingCatalogId")
+	local info = if type(catalogId) == "string" then BUILDING_DISPLAY[catalogId] else nil
+	local levelAttribute = model:GetAttribute("UpgradeLevel")
+	local level = if type(levelAttribute) == "number" then math.max(1, math.floor(levelAttribute)) else 1
+	local maxLevel = if info then info.maxLevel else 1
+	selectionTitle.Text = if info then info.title else "Постройка"
+	if level >= maxLevel then
+		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel) .. " • Максимум"
+		upgradeButton.Visible = false
+	else
+		local nextLevel = level + 1
+		local cost = if info then info.costs[nextLevel] else nil
+		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel)
+			.. (if cost then " • Улучшение: " .. cost else " • Улучшение доступно")
+		upgradeButton.Visible = true
+	end
+	upgradeButton.Active = upgradeButton.Visible and not upgradeRequestInFlight
+	upgradeButton.Text = if upgradeRequestInFlight then "УЛУЧШАЕМ..." else "УЛУЧШИТЬ"
+	selectionPanel.Visible = true
+	resizeBuildingPanel()
+end
+
 local function selectBuilding(model: Model?)
-	if demolitionRequestInFlight then return end
+	if demolitionRequestInFlight or upgradeRequestInFlight then return end
 	if selectedBuildingDestroyConnection then
 		selectedBuildingDestroyConnection:Disconnect()
 		selectedBuildingDestroyConnection = nil
@@ -507,6 +629,7 @@ local function selectBuilding(model: Model?)
 	end
 	selectedBuildingModel = model
 	demolitionArmed = false
+	selectionPanel.Visible = model ~= nil
 	moveButton.Visible = model ~= nil
 	moveButton.Active = model ~= nil
 	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
@@ -516,6 +639,10 @@ local function selectBuilding(model: Model?)
 		then "УДАЛИТЬ"
 		else "ДЕМОНТИРОВАТЬ"
 	if model then
+		-- Treat the context card as the active top-level interaction surface so
+		-- it cannot remain underneath another modal window.
+		ModalManager.Open(script.Name)
+		updateBuildingContext(model)
 		-- Make world selection visible; action buttons alone are too subtle,
 		-- especially on mobile where the player taps a small building model.
 		local highlight = Instance.new("Highlight")
@@ -535,12 +662,93 @@ local function selectBuilding(model: Model?)
 			end
 		end)
 	else
+		selectionPanel.Visible = false
+		upgradeButton.Visible = false
+		ModalManager.Close(script.Name)
 		setStatus("Постройка не выбрана")
 	end
+	resizeBuildingPanel()
 end
 
+upgradeButton.Activated:Connect(function()
+	if upgradeRequestInFlight or buildRequestInFlight or demolitionRequestInFlight or placing then return end
+	local model = selectedBuildingModel
+	if model == nil or model.Parent == nil then
+		selectBuilding(nil)
+		return
+	end
+	local instanceId = model:GetAttribute("BuildingInstanceId")
+	if type(instanceId) ~= "string" or instanceId == "" then
+		setStatus("Не удалось определить постройку", false)
+		return
+	end
+	local operationKey = "upgrade:" .. instanceId
+	if pendingBuildingOperationKey ~= nil and pendingBuildingOperationKey ~= operationKey then
+		setStatus("Сначала проверь результат предыдущей операции", false)
+		return
+	end
+	upgradeRequestInFlight = true
+	InterfaceComponents.SetButtonLoading(upgradeButton, true, "УЛУЧШАЕМ...")
+	moveButton.Active = false
+	demolishButton.Active = false
+	setStatus("Улучшаем постройку…")
+	local requestId = getPendingRequestId(operationKey)
+	local requestPayload = { requestId = requestId, action = "upgrade", instanceId = instanceId }
+	local requestResult = RequestRunner.Invoke(function()
+		return remote:InvokeServer(requestPayload)
+	end, 12)
+	local ok, response = requestResult.ok, requestResult.value
+	upgradeRequestInFlight = false
+	InterfaceComponents.SetButtonLoading(upgradeButton, false)
+	moveButton.Active = true
+	demolishButton.Active = model:GetAttribute("BuildingCatalogId") ~= "main_house"
+	if ok and not shouldKeepPendingRequest(response) then
+		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
+	elseif not ok or shouldKeepPendingRequest(response) then
+		setPendingBuildingOperation(operationKey, requestId, requestPayload, "Улучшение постройки")
+	end
+	if not ok then
+		setStatus("Нет ответа сервера. Повтори попытку для проверки результата", false)
+		NotificationManager.Notify("Результат улучшения пока неизвестен", "warning")
+		return
+	end
+	if type(response) == "table" and response.ok == true then
+		-- The server rebuilds the world model when syncing an upgrade. The
+		-- previously selected instance is therefore destroyed and replaced.
+		local island = findOwnIsland()
+		local upgradedModel: Model? = nil
+		if island then
+			for _, child in ipairs(island:GetChildren()) do
+				if child:IsA("Model") and child:GetAttribute("BuildingInstanceId") == instanceId then
+					upgradedModel = child
+					break
+				end
+			end
+		end
+		selectBuilding(upgradedModel)
+		setStatus("Постройка улучшена до уровня " .. tostring(response.upgradeLevel), true)
+		NotificationManager.Notify("Постройка улучшена!", "success")
+	else
+		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
+		local messages = {
+			NOT_ENOUGH_WOOD = "Не хватает дерева для улучшения",
+			NOT_ENOUGH_STONE = "Не хватает камня для улучшения",
+			MAX_UPGRADE_LEVEL = "У постройки уже максимальный уровень",
+			UPGRADE_NOT_AVAILABLE = "Для этой постройки улучшение недоступно",
+			BUILDING_NOT_FOUND = "Постройка уже отсутствует",
+			SESSION_NOT_WRITABLE = "Сохранение временно недоступно",
+			BUILDING_OPERATION_BUSY = "Сервер занят. Попробуй позже",
+		}
+		setStatus(messages[code] or ("Не удалось улучшить: " .. code), false)
+		NotificationManager.Notify(messages[code] or "Не удалось улучшить постройку", "error")
+	end
+	if selectedBuildingModel and selectedBuildingModel.Parent then
+		updateBuildingContext(selectedBuildingModel)
+	end
+end)
+
 demolishButton.Activated:Connect(function()
-	if demolitionRequestInFlight or buildRequestInFlight or placing then return end
+	if demolitionRequestInFlight or upgradeRequestInFlight or buildRequestInFlight or placing then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		selectBuilding(nil)
@@ -1120,7 +1328,7 @@ woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
 local function beginMoveSelected()
-	if buildRequestInFlight or demolitionRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -1146,8 +1354,10 @@ local function beginMoveSelected()
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
 	panel.Visible = true
+	selectionPanel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
+	upgradeButton.Visible = false
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
 	petHouseButton.Active = false
@@ -1171,6 +1381,7 @@ local function beginMoveSelected()
 		woodenFenceButton.Active = true
 		moveButton.Visible = true
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
+		updateBuildingContext(model)
 		return
 	end
 	-- Start the move ghost exactly where the selected building currently
@@ -1202,7 +1413,6 @@ local function stopPlacing()
 	movingInstanceId = nil
 	panel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
-	if not overview.Visible then ModalManager.Close(script.Name) end
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
@@ -1215,11 +1425,16 @@ local function stopPlacing()
 		local selectedCatalog = selectedBuildingModel:GetAttribute("BuildingCatalogId")
 		moveButton.Visible = true
 		demolishButton.Visible = selectedCatalog ~= "main_house"
+		updateBuildingContext(selectedBuildingModel)
+		if not overview.Visible then ModalManager.Open(script.Name) end
+	else
+		selectionPanel.Visible = false
+		if not overview.Visible then ModalManager.Close(script.Name) end
 	end
 end
 
 local function beginPlacing()
-	if buildRequestInFlight or demolitionRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	dismissKingdomOverview()
 	announcePanelOpened()
 	movingInstanceId = nil
@@ -1229,8 +1444,10 @@ local function beginPlacing()
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
 	panel.Visible = true
+	selectionPanel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
+	upgradeButton.Visible = false
 	demolishButton.Visible = false
 	createPreview()
 	if currentPreview == nil then
@@ -1240,6 +1457,7 @@ local function beginPlacing()
 		if selectedBuildingModel and selectedBuildingModel.Parent then
 			moveButton.Visible = true
 			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
+			updateBuildingContext(selectedBuildingModel)
 		end
 		return
 	end
@@ -1407,6 +1625,10 @@ local function isOverInteractiveGui(screenPosition: Vector2): boolean
 	return false
 end
 
+selectionCloseButton.Activated:Connect(function()
+	selectBuilding(nil)
+end)
+
 local function selectBuildingAt(screenPosition: Vector2)
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera == nil then return end
@@ -1444,7 +1666,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			touchStartPosition = nil
 			return
 		end
-		if processed or buildRequestInFlight or demolitionRequestInFlight or gestureBlocked then return end
+		if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or gestureBlocked then return end
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if isOverInteractiveGui(position) then return end
 		touchCandidate = input
@@ -1454,7 +1676,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		touchDraggingPlacement = false
 		return
 	end
-	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
+	if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	if input.KeyCode == Enum.KeyCode.R and placing then
 		rotatePlacement()
 	elseif input.KeyCode == Enum.KeyCode.Escape and ModalManager.IsActive(script.Name) then
@@ -1490,7 +1712,7 @@ UserInputService.InputEnded:Connect(function(input)
 	local blocked = gestureBlocked
 	if touchCount == 0 then gestureBlocked = false end
 	if not isCandidate or blocked or touchCount ~= 0 then return end
-	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil or not sameMode then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or startPosition == nil or not sameMode then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
 	-- A deliberate drag moves the ghost continuously and locks the final
 	-- valid cell on release. Short stationary touches remain simple tap-to-place.
@@ -1508,7 +1730,7 @@ UserInputService.InputChanged:Connect(function(input)
 		pointerPosition = UserInputService:GetMouseLocation()
 	elseif input.UserInputType == Enum.UserInputType.Touch
 		and input == touchCandidate and placing and touchStartedPlacing
-		and touchStartPosition ~= nil and not buildRequestInFlight then
+		and touchStartPosition ~= nil and not buildRequestInFlight and not upgradeRequestInFlight then
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if not touchDraggingPlacement
 			and (position - touchStartPosition).Magnitude > TAP_DRAG_THRESHOLD then

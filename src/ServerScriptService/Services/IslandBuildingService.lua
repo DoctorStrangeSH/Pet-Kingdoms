@@ -210,6 +210,9 @@ local function handleRequest(player: Player, request: any): any
 				end
 				return fail(commitCode)
 			end
+			-- The upgrade transaction spends server-owned resources. Publish the
+			-- committed wallet so the client HUD does not keep showing stale balances.
+			IslandResourceService.publishSnapshot(userId, "SPENT")
 			remember(userId, request.requestId, fingerprint, upgradeResult)
 			return upgradeResult
 		elseif request.action ~= "demolish" then
