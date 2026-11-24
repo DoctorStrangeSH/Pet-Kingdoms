@@ -42,6 +42,7 @@ local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
 local buildRequestInFlight = false
 local demolitionRequestInFlight = false
+local upgradeRequestInFlight = false
 local closeAfterBuildResponse = false
 local touchPlacement = UserInputService.TouchEnabled
 local pendingRequestIds: { [string]: string } = {}
@@ -587,8 +588,45 @@ local function findBuildingModel(target: Instance?): Model?
 	return nil
 end
 
+local BUILDING_DISPLAY = {
+	main_house = { title = "Главный дом", maxLevel = 3, costs = { [2] = "12 дерева • 6 камня", [3] = "24 дерева • 14 камня" } },
+	pet_house = { title = "Домик питомцев", maxLevel = 3, costs = { [2] = "10 дерева • 5 камня", [3] = "20 дерева • 12 камня" } },
+	stone_path = { title = "Каменная дорожка", maxLevel = 2, costs = { [2] = "3 камня" } },
+	garden_lantern = { title = "Садовый фонарь", maxLevel = 2, costs = { [2] = "4 дерева • 2 камня" } },
+	flower_bed = { title = "Клумба", maxLevel = 2, costs = { [2] = "3 дерева" } },
+	wooden_fence = { title = "Деревянный забор", maxLevel = 2, costs = { [2] = "3 дерева" } },
+}
+
+local function updateBuildingContext(model: Model?)
+	if model == nil or model.Parent == nil then
+		selectionPanel.Visible = false
+		upgradeButton.Visible = false
+		return
+	end
+	local catalogId = model:GetAttribute("BuildingCatalogId")
+	local info = if type(catalogId) == "string" then BUILDING_DISPLAY[catalogId] else nil
+	local levelAttribute = model:GetAttribute("UpgradeLevel")
+	local level = if type(levelAttribute) == "number" then math.max(1, math.floor(levelAttribute)) else 1
+	local maxLevel = if info then info.maxLevel else 1
+	selectionTitle.Text = if info then info.title else "Постройка"
+	if level >= maxLevel then
+		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel) .. " • Максимум"
+		upgradeButton.Visible = false
+	else
+		local nextLevel = level + 1
+		local cost = if info then info.costs[nextLevel] else nil
+		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel)
+			.. (if cost then " • Улучшение: " .. cost else " • Улучшение доступно")
+		upgradeButton.Visible = true
+	end
+	upgradeButton.Active = upgradeButton.Visible and not upgradeRequestInFlight
+	upgradeButton.Text = if upgradeRequestInFlight then "УЛУЧШАЕМ..." else "УЛУЧШИТЬ"
+	selectionPanel.Visible = true
+	resizeBuildingPanel()
+end
+
 local function selectBuilding(model: Model?)
-	if demolitionRequestInFlight then return end
+	if demolitionRequestInFlight or upgradeRequestInFlight then return end
 	if selectedBuildingDestroyConnection then
 		selectedBuildingDestroyConnection:Disconnect()
 		selectedBuildingDestroyConnection = nil
@@ -599,6 +637,7 @@ local function selectBuilding(model: Model?)
 	end
 	selectedBuildingModel = model
 	demolitionArmed = false
+	selectionPanel.Visible = model ~= nil
 	moveButton.Visible = model ~= nil
 	moveButton.Active = model ~= nil
 	local catalogId = if model then model:GetAttribute("BuildingCatalogId") else nil
@@ -608,6 +647,7 @@ local function selectBuilding(model: Model?)
 		then "УДАЛИТЬ"
 		else "ДЕМОНТИРОВАТЬ"
 	if model then
+		updateBuildingContext(model)
 		-- Make world selection visible; action buttons alone are too subtle,
 		-- especially on mobile where the player taps a small building model.
 		local highlight = Instance.new("Highlight")
@@ -627,9 +667,76 @@ local function selectBuilding(model: Model?)
 			end
 		end)
 	else
+		selectionPanel.Visible = false
+		upgradeButton.Visible = false
 		setStatus("Постройка не выбрана")
 	end
+	resizeBuildingPanel()
 end
+
+upgradeButton.Activated:Connect(function()
+	if upgradeRequestInFlight or buildRequestInFlight or demolitionRequestInFlight or placing then return end
+	local model = selectedBuildingModel
+	if model == nil or model.Parent == nil then
+		selectBuilding(nil)
+		return
+	end
+	local instanceId = model:GetAttribute("BuildingInstanceId")
+	if type(instanceId) ~= "string" or instanceId == "" then
+		setStatus("Не удалось определить постройку", false)
+		return
+	end
+	local operationKey = "upgrade:" .. instanceId
+	if pendingBuildingOperationKey ~= nil and pendingBuildingOperationKey ~= operationKey then
+		setStatus("Сначала проверь результат предыдущей операции", false)
+		return
+	end
+	upgradeRequestInFlight = true
+	InterfaceComponents.SetButtonLoading(upgradeButton, true, "УЛУЧШАЕМ...")
+	moveButton.Active = false
+	demolishButton.Active = false
+	setStatus("Улучшаем постройку…")
+	local requestId = getPendingRequestId(operationKey)
+	local requestPayload = { requestId = requestId, action = "upgrade", instanceId = instanceId }
+	local requestResult = RequestRunner.Invoke(function()
+		return remote:InvokeServer(requestPayload)
+	end, 12)
+	local ok, response = requestResult.ok, requestResult.value
+	upgradeRequestInFlight = false
+	InterfaceComponents.SetButtonLoading(upgradeButton, false)
+	moveButton.Active = true
+	demolishButton.Active = model:GetAttribute("BuildingCatalogId") ~= "main_house"
+	if ok and not shouldKeepPendingRequest(response) then
+		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
+	elseif not ok or shouldKeepPendingRequest(response) then
+		setPendingBuildingOperation(operationKey, requestId, requestPayload, "Улучшение постройки")
+	end
+	if not ok then
+		setStatus("Нет ответа сервера. Повтори попытку для проверки результата", false)
+		NotificationManager.Notify("Результат улучшения пока неизвестен", "warning")
+		return
+	end
+	if type(response) == "table" and response.ok == true then
+		model:SetAttribute("UpgradeLevel", response.upgradeLevel)
+		updateBuildingContext(model)
+		setStatus("Постройка улучшена до уровня " .. tostring(response.upgradeLevel), true)
+		NotificationManager.Notify("Постройка улучшена!", "success")
+	else
+		local code = if type(response) == "table" then tostring(response.code) else "UNKNOWN"
+		local messages = {
+			NOT_ENOUGH_WOOD = "Не хватает дерева для улучшения",
+			NOT_ENOUGH_STONE = "Не хватает камня для улучшения",
+			MAX_UPGRADE_LEVEL = "У постройки уже максимальный уровень",
+			UPGRADE_NOT_AVAILABLE = "Для этой постройки улучшение недоступно",
+			BUILDING_NOT_FOUND = "Постройка уже отсутствует",
+			SESSION_NOT_WRITABLE = "Сохранение временно недоступно",
+			BUILDING_OPERATION_BUSY = "Сервер занят. Попробуй позже",
+		}
+		setStatus(messages[code] or ("Не удалось улучшить: " .. code), false)
+		NotificationManager.Notify(messages[code] or "Не удалось улучшить постройку", "error")
+	end
+	updateBuildingContext(if selectedBuildingModel == model then model else nil)
+end)
 
 demolishButton.Activated:Connect(function()
 	if demolitionRequestInFlight or buildRequestInFlight or placing then return end
