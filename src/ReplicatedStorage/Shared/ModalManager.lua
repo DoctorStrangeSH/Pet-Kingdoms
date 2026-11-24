@@ -122,4 +122,23 @@ end
 
 ModalManager.ActiveChanged = activeChanged.Event
 
+-- Top-level UI survives character respawns (ResetOnSpawn=false), so explicitly
+-- clear every modal before the old character disappears and again after the
+-- replacement character is installed. This prevents stale shades, focus, and
+-- world previews from blocking the freshly spawned player.
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+if localPlayer ~= nil then
+	localPlayer.CharacterRemoving:Connect(function()
+		task.defer(function()
+			ModalManager.CloseAll()
+		end)
+	end)
+	localPlayer.CharacterAdded:Connect(function()
+		task.defer(function()
+			ModalManager.CloseAll()
+		end)
+	end)
+end
+
 return table.freeze(ModalManager)
