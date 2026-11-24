@@ -1797,3 +1797,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `f59afc2`: add four validator regression cases for exact same-cell move, overlap with a different building, out-of-bounds move, and unsupported rotation during move.
 - [x] Existing validator remains server-authoritative: it validates ownership, allowed rotations, bounds, and overlaps before the transaction service mutates resources/world state.
 - [ ] Run the expanded Studio smoke test and perform in-experience input/preview checks; source-level test additions are not execution evidence.
+
+
+## Visible world selection for buildings — 2026-11-24
+
+- [x] Commit `eae1ac4`: `selectBuilding` now creates a gold `Highlight` on the selected building with `AlwaysOnTop` depth mode and high-transparency fill; the outline remains clearly visible.
+- [x] Switching selection, tapping empty ground, and selected-model destruction clean up the previous highlight. The existing action controls still gate demolition of the main house.
+- [ ] Studio verification is still needed for touch ray selection, actual model highlight readability, selection clearing, and transitions into/out of move mode.
