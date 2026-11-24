@@ -1740,3 +1740,9 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `69f4361`: construction launcher uses a 112 px width below 360 px viewport width and 128 px otherwise, matching the HUD's reserved lane.
 - [ ] Studio verification remains required at 320×180, 360×360, 443×426 and 482×467. Check icon/label readability, touch hitboxes, and launcher/resource separation.
 - [ ] This is a source-level layout correction, not a claim of device or runtime acceptance.
+
+
+## Island Expansion launcher icon fallback — 2026-11-24
+
+- [x] Commit `006f469`: replaced `InterfaceTheme.Icons.Island` (font glyph `◇`) with a native UI-shape island/palm pictogram, avoiding missing-font squares. The icon scales in compact mode without changing the launcher hitbox or action.
+- [ ] Verify in Roblox Studio at documented phone/tablet/desktop viewports; source-level implementation only, no runtime visual approval claimed.
