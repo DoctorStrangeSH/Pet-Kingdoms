@@ -154,10 +154,11 @@ local duringJumpY = pets[1]:GetPivot().Position.Y
 expect("owner take-off starts a companion jump", controllers[1].jumpElapsed >= 0)
 expect("companion switches to its airborne pose", controllers[1].animation.state == "jump")
 expect("companion gains height during the jump", duringJumpY > beforeJumpY + 0.05)
+local elapsedAfterTakeoff = controllers[1].jumpElapsed
 ownerHumanoid:ChangeState(Enum.HumanoidStateType.Freefall)
 controllers[1]:update(0.1)
 expect("one airborne owner jump does not restart the companion hop",
-	controllers[1].jumpElapsed < controllers[1].jumpDuration)
+	controllers[1].jumpElapsed > elapsedAfterTakeoff)
 ownerHumanoid:ChangeState(Enum.HumanoidStateType.Landed)
 for _ = 1, 8 do
 	controllers[1]:update(0.1)
