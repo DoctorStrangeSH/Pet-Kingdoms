@@ -509,7 +509,7 @@ local function resizeBuildingPanel()
 	cancelButton.Text = "ОТМЕНА"
 	-- Selected-building controls live inside one safe-area card, below the
 	-- build launcher. Its width follows the viewport instead of overflowing it.
-	local cardWidth = math.max(180, math.min(340, safeSize.X - 20))
+	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
 	local cardTop = safeOrigin.Y + (recoveryPanel.Visible and 118 or 60)
 	local cardHeight = 124
 	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
@@ -735,7 +735,7 @@ upgradeButton.Activated:Connect(function()
 end)
 
 demolishButton.Activated:Connect(function()
-	if demolitionRequestInFlight or buildRequestInFlight or placing then return end
+	if demolitionRequestInFlight or upgradeRequestInFlight or buildRequestInFlight or placing then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		selectBuilding(nil)
@@ -1315,7 +1315,7 @@ woodenFenceButton.Activated:Connect(function()
 	setSelectedBuilding("wooden_fence")
 end)
 local function beginMoveSelected()
-	if buildRequestInFlight or demolitionRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	local model = selectedBuildingModel
 	if model == nil or model.Parent == nil then
 		setStatus("Сначала выбери свою постройку", false)
@@ -1414,7 +1414,7 @@ local function stopPlacing()
 end
 
 local function beginPlacing()
-	if buildRequestInFlight or demolitionRequestInFlight then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	dismissKingdomOverview()
 	announcePanelOpened()
 	movingInstanceId = nil
@@ -1643,7 +1643,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			touchStartPosition = nil
 			return
 		end
-		if processed or buildRequestInFlight or demolitionRequestInFlight or gestureBlocked then return end
+		if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or gestureBlocked then return end
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if isOverInteractiveGui(position) then return end
 		touchCandidate = input
@@ -1653,7 +1653,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		touchDraggingPlacement = false
 		return
 	end
-	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
+	if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight then return end
 	if input.KeyCode == Enum.KeyCode.R and placing then
 		rotatePlacement()
 	elseif input.KeyCode == Enum.KeyCode.Escape and ModalManager.IsActive(script.Name) then
@@ -1689,7 +1689,7 @@ UserInputService.InputEnded:Connect(function(input)
 	local blocked = gestureBlocked
 	if touchCount == 0 then gestureBlocked = false end
 	if not isCandidate or blocked or touchCount ~= 0 then return end
-	if buildRequestInFlight or demolitionRequestInFlight or startPosition == nil or not sameMode then return end
+	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or startPosition == nil or not sameMode then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
 	-- A deliberate drag moves the ghost continuously and locks the final
 	-- valid cell on release. Short stationary touches remain simple tap-to-place.
@@ -1707,7 +1707,7 @@ UserInputService.InputChanged:Connect(function(input)
 		pointerPosition = UserInputService:GetMouseLocation()
 	elseif input.UserInputType == Enum.UserInputType.Touch
 		and input == touchCandidate and placing and touchStartedPlacing
-		and touchStartPosition ~= nil and not buildRequestInFlight then
+		and touchStartPosition ~= nil and not buildRequestInFlight and not upgradeRequestInFlight then
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if not touchDraggingPlacement
 			and (position - touchStartPosition).Magnitude > TAP_DRAG_THRESHOLD then
