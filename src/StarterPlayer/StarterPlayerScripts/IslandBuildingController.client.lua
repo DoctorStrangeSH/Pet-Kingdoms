@@ -517,21 +517,25 @@ local function resizeBuildingPanel()
 	local cardContentWidth = math.max(0, cardWidth - 24)
 	local cardGap = 6
 	local showUpgrade = upgradeButton.Visible
-	local actionCount = if showUpgrade then 3 else 2
+	local showDemolish = demolishButton.Visible
+	local actionCount = 1 + (if showUpgrade then 1 else 0) + (if showDemolish then 1 else 0)
 	local actionWidth = math.max(0, (cardContentWidth - cardGap * (actionCount - 1)) / actionCount)
 	local actionY = 70
 	local actionHeight = 42
-	moveButton.Position = UDim2.fromOffset(0, actionY)
+	local nextActionX = 0
+	moveButton.Position = UDim2.fromOffset(nextActionX, actionY)
 	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
 	moveButton.TextSize = if compact then 10 else 11
+	nextActionX += actionWidth + cardGap
 	if showUpgrade then
-		upgradeButton.Position = UDim2.fromOffset(actionWidth + cardGap, actionY)
+		upgradeButton.Position = UDim2.fromOffset(nextActionX, actionY)
 		upgradeButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
-		demolishButton.Position = UDim2.fromOffset((actionWidth + cardGap) * 2, actionY)
-	else
-		demolishButton.Position = UDim2.fromOffset(actionWidth + cardGap, actionY)
+		nextActionX += actionWidth + cardGap
 	end
-	demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	if showDemolish then
+		demolishButton.Position = UDim2.fromOffset(nextActionX, actionY)
+		demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	end
 	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ"
 	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
@@ -1605,6 +1609,10 @@ local function isOverInteractiveGui(screenPosition: Vector2): boolean
 	end
 	return false
 end
+
+selectionCloseButton.Activated:Connect(function()
+	selectBuilding(nil)
+end)
 
 local function selectBuildingAt(screenPosition: Vector2)
 	local activeCamera = Workspace.CurrentCamera
