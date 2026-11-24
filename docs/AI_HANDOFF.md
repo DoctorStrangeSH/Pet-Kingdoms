@@ -1504,3 +1504,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] The gated `IslandStoreTests.server.lua` integration scenario now runs inside an `xpcall` and always attempts to remove its randomly generated synthetic `PetKingdoms_Islands_v1` profile after success or assertion failure.
 - [x] The test fails explicitly if `RemoveAsync` cleanup cannot be confirmed, instead of silently accumulating synthetic records.
 - [ ] CI validation for commit `519a9be`; Studio API execution remains pending in the dedicated test universe.
+
+## Verification boundary reminder — 2026-11-24
+
+- GitHub Actions workflow `.github/workflows/roblox-project-build.yml` runs only `rojo build` and uploads the Studio-ready place file.
+- It does not launch Roblox Studio or execute `src/ServerScriptService/Tests` scripts.
+- Therefore all queued/completed Actions runs are build checks only. Do not describe them as passing persistence, data, world, or gameplay tests.
+- Studio-only tests and the manual leave/rejoin journey remain NOT DONE until their actual Studio Output and observed behavior are recorded.
