@@ -1614,3 +1614,5 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Validate Quest Journal commit `ffea06e` and Island Expansion commit `80fc57e` with pinned Rojo build.
 - [ ] Roblox Studio runtime test at 320×180 and 360×180, then rotate back to portrait; verify no clipping, button overlap, or stale visibility state.
 - Stage 1 remains open. Continue the safe-area audit with Pet Collection, building controls, Resource HUD, and notifications.
+
+- [x] Follow-up fix `52dd49e`: explicitly restore Island Expansion's status label when resizing back from ultra-short landscape to portrait/desktop, avoiding stale hidden UI state.
