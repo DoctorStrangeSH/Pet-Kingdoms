@@ -1665,3 +1665,5 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `61e009c`: when the island grid/surface becomes unavailable, preview coordinates, validity, lock state and ghost visuals are invalidated rather than leaving a stale cell.
 - [ ] Studio: inspect footprint attributes for every catalog entry after initial spawn, move, upgrade, and island refresh; compare client preview with actual server Model pivot on rotated spawn points and after expansion.
 - [ ] Rojo CI/build and Roblox Studio runtime/device verification remain pending; source-level checks are not runtime acceptance.
+
+- [x] Commit `c898465`: extended `GridMathTests.server.lua` with 270-degree footprint dimension checks and rotated-rectangle overlap/edge-adjacency assertions. Studio execution remains pending.
