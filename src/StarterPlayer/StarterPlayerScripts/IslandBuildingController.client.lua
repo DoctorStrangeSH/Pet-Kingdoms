@@ -308,12 +308,12 @@ local function makeCatalogButton(name: string, label: string): TextButton
 	return button
 end
 
-local mainHouseButton = makeCatalogButton("MainHouse", InterfaceTheme.Icons.Build .. "  ГЛАВНЫЙ ДОМ")
-local petHouseButton = makeCatalogButton("PetHouse", InterfaceTheme.Icons.Pet .. "  ДОМИК ПИТОМЦЕВ\n5 ♣  •  2 ◆")
-local stonePathButton = makeCatalogButton("StonePath", InterfaceTheme.Icons.Stone .. "  КАМЕННАЯ ДОРОЖКА\n1 ♣  •  1 ◆")
-local gardenLanternButton = makeCatalogButton("GardenLantern", InterfaceTheme.Icons.Lantern .. "  САДОВЫЙ ФОНАРЬ\n2 ♣  •  1 ◆")
-local flowerBedButton = makeCatalogButton("FlowerBed", InterfaceTheme.Icons.Flower .. "  КЛУМБА\n1 ♣")
-local woodenFenceButton = makeCatalogButton("WoodenFence", InterfaceTheme.Icons.Fence .. "  ЗАБОР\n1 ♣")
+local mainHouseButton = makeCatalogButton("MainHouse", "ГЛАВНЫЙ ДОМ")
+local petHouseButton = makeCatalogButton("PetHouse", "ДОМИК ПИТОМЦЕВ\n5 дерева • 2 камня")
+local stonePathButton = makeCatalogButton("StonePath", "КАМЕННАЯ ДОРОЖКА\n1 дерево • 1 камень")
+local gardenLanternButton = makeCatalogButton("GardenLantern", "САДОВЫЙ ФОНАРЬ\n2 дерева • 1 камень")
+local flowerBedButton = makeCatalogButton("FlowerBed", "КЛУМБА\n1 дерево")
+local woodenFenceButton = makeCatalogButton("WoodenFence", "ЗАБОР\n1 дерево")
 local setStatus: (string, boolean?) -> ()
 local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
 local clearPendingBuildingOperation: () -> ()
@@ -330,7 +330,7 @@ local moveButton = make("TextButton", {
 	BackgroundColor3 = Color3.fromRGB(65, 112, 153),
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ",
+	Text = "ПЕРЕНЕСТИ",
 	TextColor3 = COLORS.text,
 	TextSize = 12,
 	Visible = false,
@@ -346,7 +346,7 @@ local demolishButton = make("TextButton", {
 	BackgroundColor3 = Color3.fromRGB(139, 67, 76),
 	BorderSizePixel = 0,
 	Font = Enum.Font.GothamBold,
-	Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ",
+	Text = "ДЕМОНТИРОВАТЬ",
 	TextColor3 = COLORS.text,
 	TextSize = 13,
 	Visible = false,
@@ -406,11 +406,11 @@ local function resizeBuildingPanel()
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth
 	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
-	rotateButton.Text = if narrow then InterfaceTheme.Icons.Rotate else InterfaceTheme.Icons.Rotate .. "  ПОВОРОТ"
+	rotateButton.Text = if narrow then "ПОВОРОТ"
 	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
 	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
-	cancelButton.Text = if narrow then "✕" else "ОТМЕНА"
+	cancelButton.Text = "ОТМЕНА"
 	-- Selection actions share a row and remain within the mobile viewport.
 	local outerMargin = compact and 10 or 22
 	local actionGap = 8
@@ -429,10 +429,10 @@ local function resizeBuildingPanel()
 	end
 	moveButton.Position = UDim2.fromOffset(outerMargin, actionTop)
 	moveButton.Size = UDim2.fromOffset(moveWidth, 46)
-	moveButton.Text = if compact then InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ" else InterfaceTheme.Icons.Move .. "  ПЕРЕНЕСТИ"
+	moveButton.Text = if compact then "ПЕРЕНЕСТИ" else "ПЕРЕНЕСТИ"
 	demolishButton.Position = UDim2.fromOffset(outerMargin + moveWidth + actionGap, actionTop)
 	demolishButton.Size = UDim2.fromOffset(demolishWidth, 46)
-	demolishButton.Text = if compact then InterfaceTheme.Icons.Demolish .. "  УДАЛИТЬ" else InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТИРОВАТЬ"
 	demolishButton.TextSize = if compact then 11 else 13
 end
 
@@ -481,8 +481,8 @@ local function selectBuilding(model: Model?)
 	demolishButton.Visible = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Text = if compactBuildingUI
-		then InterfaceTheme.Icons.Demolish .. "  УДАЛИТЬ"
-		else InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
+		then "УДАЛИТЬ"
+		else "ДЕМОНТИРОВАТЬ"
 	if model then
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
@@ -530,7 +530,7 @@ demolishButton.Activated:Connect(function()
 	demolitionRequestInFlight = false
 	InterfaceComponents.SetButtonLoading(demolishButton, false)
 	moveButton.Active = true
-	demolishButton.Text = InterfaceTheme.Icons.Demolish .. "  ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = "ДЕМОНТИРОВАТЬ"
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then
 		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end
@@ -1478,7 +1478,7 @@ local function addBuildEntry()
 		BackgroundColor3 = COLORS.panel,
 		BorderSizePixel = 0,
 		Font = Enum.Font.GothamBold,
-		Text = InterfaceTheme.Icons.Build .. "  СТРОИТЬ",
+		Text = "СТРОИТЬ",
 		TextColor3 = COLORS.gold,
 		TextSize = 15,
 	}, gui) :: TextButton
