@@ -1587,3 +1587,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run the ModalManager client smoke test in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`; inspect client Output for PASS lines.
 - [ ] Manually exercise rapid modal handoffs among Pet Collection, Quest Journal, Island Expansion and Build. Build success does not prove modal runtime behavior.
 - Stage 1 remains open. Continue UI/responsive/construction acceptance only; do not advance to Stage 2 before Studio/device checks are recorded.
+
+
+## Resource HUD icon token completion — 2026-11-24
+
+- [x] Replaced the four duplicated resource glyph literals in `IslandResourceHUD.client.lua` with `InterfaceTheme.Icons.Wood`, `Stone`, `Gold`, and `Gems`.
+- [x] Preserved each resource's semantic accent color and the existing responsive 2×2 compact / 1×4 wide layout.
+- [x] Updated the Resource HUD shared-theme section in `docs/ROADMAP.md`.
+- [ ] Run pinned Rojo build validation for commit `0647cc2`; no workflow run/status is currently associated with this commit.
+- [ ] Verify all four symbols render on desktop, 320/360/390 px portrait and short landscape in Roblox Studio; check toast and HUD do not overlap the safe-area controls.
+- Stage 1 remains open; do not sign off iconography until visual Studio/device verification is complete.
