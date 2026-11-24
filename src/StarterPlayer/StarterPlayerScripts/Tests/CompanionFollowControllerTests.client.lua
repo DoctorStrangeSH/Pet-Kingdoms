@@ -27,13 +27,21 @@ floor.Size = Vector3.new(200, 1, 200)
 floor.Position = Vector3.new(0, -0.5, 0)
 floor.Parent = workspace
 
+local targetCharacter = Instance.new("Model")
+targetCharacter.Name = "TestOwnerCharacter"
+targetCharacter.Parent = folder
+
 local target = Instance.new("Part")
-target.Name = "TestTargetRoot"
+target.Name = "HumanoidRootPart"
 target.Anchored = true
 target.CanCollide = false
 target.Size = Vector3.new(2, 2, 1)
 target.CFrame = CFrame.new(0, 5, 0)
-target.Parent = folder
+target.Parent = targetCharacter
+targetCharacter.PrimaryPart = target
+
+local ownerHumanoid = Instance.new("Humanoid")
+ownerHumanoid.Parent = targetCharacter
 
 local pets = {}
 local controllers = {}
@@ -133,6 +141,27 @@ expect("extremely distant companion recovers near its owner",
 	(Vector3.new(recoveredPosition.X, 0, recoveredPosition.Z)
 		- Vector3.new(catchUpTarget.X, 0, catchUpTarget.Z)).Magnitude < 5)
 
+-- A companion mirrors one owner take-off, then returns to normal follow.
+target.CFrame = CFrame.new(0, 5, 0)
+pets[1]:PivotTo(CFrame.new(-2.4, 0.28, 4.5))
+controllers[1].jumpElapsed = -1
+controllers[1].wasOwnerAirborne = false
+controllers[1].nextJumpAt = 0
+ownerHumanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+local beforeJumpY = pets[1]:GetPivot().Position.Y
+controllers[1]:update(0.1)
+local duringJumpY = pets[1]:GetPivot().Position.Y
+expect("owner take-off starts a companion jump", controllers[1].jumpElapsed >= 0)
+expect("companion switches to its airborne pose", controllers[1].animation.state == "jump")
+expect("companion gains height during the jump", duringJumpY > beforeJumpY + 0.05)
+ownerHumanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+controllers[1]:update(0.1)
+expect("one airborne owner jump does not restart the companion hop",
+	controllers[1].jumpElapsed < controllers[1].jumpDuration)
+ownerHumanoid:ChangeState(Enum.HumanoidStateType.Landed)
+controllers[1]:update(0.8)
+expect("companion completes the hop and returns to ground follow", controllers[1].jumpElapsed < 0)
+
 -- A broad wall blocks the straight line to the first formation slot. The
 -- controller should choose a grounded side waypoint instead of pushing through it.
 target.CFrame = CFrame.new(0, 5, 0)
@@ -167,7 +196,7 @@ for _, controller in ipairs(controllers) do
 	expect("controller disconnects and destroys safely", controller.destroyed and controller.connection == nil)
 end
 
-target:Destroy()
+targetCharacter:Destroy()
 floor:Destroy()
 folder:Destroy()
 print("[PetKingdoms Test] CompanionFollowController smoke tests completed.")
