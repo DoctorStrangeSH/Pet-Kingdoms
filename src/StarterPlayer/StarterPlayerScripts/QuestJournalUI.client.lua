@@ -550,25 +550,30 @@ local function resize()
 	-- Compact screens get a shorter, reflowed journal instead of a scaled
 	-- desktop panel with tiny text and cramped touch targets.
 	local veryShort = viewport.Y < 380
-	local compactHeight = if veryShort then 320 elseif short then 350 else 380
+	local ultraShort = viewport.Y < 220
+	local compactHeight = if ultraShort then math.max(144, viewport.Y - 20)
+		elseif veryShort then 320 elseif short then 350 else 380
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 410)
 	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), if compact then compactHeight else 300)
 	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), if compact then compactHeight else 440)
 	panelScale.Scale = if compact then 1 else math.clamp((viewport.Y - 24) / 410, 0.82, 1)
 	if compact then
-		local listTop = if veryShort then 76 else 82
-		title.Position = UDim2.fromOffset(16, 14)
-		title.Size = UDim2.new(1, -112, 0, 28)
-		subtitle.Position = UDim2.fromOffset(18, 44)
-		subtitle.Size = UDim2.new(1, -36, 0, 22)
-		closeButton.Position = UDim2.new(1, -10, 0, 10)
-		refreshButton.Position = UDim2.new(1, -52, 0, 10)
-		closeButton.Size = UDim2.fromOffset(36, 36)
-		refreshButton.Size = UDim2.fromOffset(36, 36)
-		list.Position = UDim2.fromOffset(14, listTop)
-		list.Size = UDim2.new(1, -28, 1, -(listTop + 54))
-		status.Position = UDim2.new(0.5, 0, 1, -8)
-		status.Size = UDim2.new(1, -32, 0, 34)
+		local listTop = if ultraShort then 50 elseif veryShort then 76 else 82
+		title.Position = UDim2.fromOffset(ultraShort and 10 or 16, ultraShort and 5 or 14)
+		title.Size = UDim2.new(1, ultraShort and -92 or -112, 0, ultraShort and 24 or 28)
+		title.TextSize = if ultraShort then 13 else (if compact then 15 else 18)
+		subtitle.Position = UDim2.fromOffset(ultraShort and 12 or 18, ultraShort and 29 or 44)
+		subtitle.Size = UDim2.new(1, ultraShort and -24 or -36, 0, ultraShort and 16 or 22)
+		subtitle.Visible = not ultraShort or not narrow
+		closeButton.Position = UDim2.new(1, -10, 0, ultraShort and 5 or 10)
+		refreshButton.Position = UDim2.new(1, -52, 0, ultraShort and 5 or 10)
+		closeButton.Size = UDim2.fromOffset(ultraShort and 32 or 36, ultraShort and 32 or 36)
+		refreshButton.Size = UDim2.fromOffset(ultraShort and 32 or 36, ultraShort and 32 or 36)
+		list.Position = UDim2.fromOffset(ultraShort and 10 or 14, listTop)
+		list.Size = UDim2.new(1, ultraShort and -20 or -28, 1, -(listTop + (ultraShort and 28 or 54)))
+		status.Position = UDim2.new(0.5, 0, 1, ultraShort and -3 or -8)
+		status.Size = UDim2.new(1, -32, 0, ultraShort and 18 or 34)
+		status.TextSize = if ultraShort then 9 else (if compact then 11 else 12)
 	else
 		title.Position = UDim2.new(0, 22, 0, 17)
 		title.Size = UDim2.new(1, -132, 0, 31)
