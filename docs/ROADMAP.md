@@ -1198,3 +1198,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep compact labels and legible text sizing for the mobile action row.
 - [x] GitHub Actions run #743: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify selecting buildings near all four island edges, action visibility with/without recovery banner, phone portrait/landscape, and touch targets in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Move preview starts at the selected building's current cell (2026-11-24)
+
+- [x] Read the selected model's saved `GridX`/`GridZ` before entering move mode.
+- [x] Place the initial move preview on the building's current footprint instead of seeding it at the island center, preventing a visible jump before the player chooses a destination.
+- [x] Keep the initial valid position locked until the player taps/clicks or drags to a new destination; preserve the existing server-side footprint validation and free move transaction.
+- [ ] Verify move start for every footprint size, rotate, same-cell save, destination selection, cancel/restore, touch drag, and desktop click in Roblox Studio. Runtime visual validation pending.
