@@ -55,6 +55,41 @@ function BuildingModelPivot.checkFootprintFit(
 	}
 end
 
+export type PhysicsPreparation = {
+	partCount: number,
+	anchoredCount: number,
+	touchDisabledCount: number,
+}
+
+-- Imported templates may contain unanchored pieces or touch-enabled decoration.
+-- Anchor every physical part before the model enters the live island, disable
+-- touch events for predictable performance, and preserve CanCollide/CanQuery.
+function BuildingModelPivot.prepareForWorld(model: Model): PhysicsPreparation
+	local partCount = 0
+	local anchoredCount = 0
+	local touchDisabledCount = 0
+
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			partCount += 1
+			if not descendant.Anchored then
+				descendant.Anchored = true
+				anchoredCount += 1
+			end
+			if descendant.CanTouch then
+				descendant.CanTouch = false
+				touchDisabledCount += 1
+			end
+		end
+	end
+
+	return {
+		partCount = partCount,
+		anchoredCount = anchoredCount,
+		touchDisabledCount = touchDisabledCount,
+	}
+end
+
 function BuildingModelPivot.normalizeToGroundCenter(model: Model): Bounds?
 	-- Cloned templates are intentionally normalized before parenting so their
 	-- pivot is correct before the placement transform is applied.
