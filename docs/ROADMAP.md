@@ -750,6 +750,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Preserve tap-to-place for short stationary touches and keep two-finger gestures blocked from selecting world cells.
 - [x] Preserve the existing guard that ignores touches beginning on interactive UI controls.
 - [x] Confirm CI passed for immediate placement-rotation feedback (07791bf, run 45350635172).
-- [ ] CI validation for touch-drag placement commit 4d3cd46 (run 45351087149).
+- [x] CI passed for touch-drag placement commit 4d3cd46 (run 45351087149).
 - [ ] Verify on a real touch device: tap selection, drag preview, release-to-lock, rotate after drag, invalid footprint rejection, two-finger camera gestures and UI-originated gestures.
 - [ ] Verify server confirmation, resource deduction and persistence after a successful drag placement; Stage 1 remains open.
+
+### Stage 1 — Touch placement guidance (2026-11-24)
+
+- [x] Update the mobile construction hint to explain the actual interaction: drag the ghost with one finger, or tap free grass; release over a valid cell to lock placement.
+- [x] Update move-mode hint to explain that an existing building can be dragged to a new location or repositioned by tapping free grass.
+- [x] Document the touch-drag control alongside tap-to-place in BUILDING_CLIENT_CONTROLLER.md.
+- [ ] Verify the touch gesture on a physical device; CI confirms the project builds but cannot simulate Roblox touch input.
+- [ ] Verify resource spending, server commit, world model sync and rejoin persistence for each of the six catalog entries.
