@@ -623,6 +623,20 @@ local function attachBuildingInteraction(model: Model, catalogId: string)
 	prompt.Parent = promptPart
 end
 
+local function applyBuildingUpgradeAttributes(model: Model, record: any, definition: any)
+	local level = if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1
+	local maxLevel = if type(definition.maxUpgradeLevel) == "number" then math.max(1, math.floor(definition.maxUpgradeLevel)) else 1
+	local nextCost = if level < maxLevel and type(definition.upgradeCosts) == "table"
+		then definition.upgradeCosts[level + 1]
+		else nil
+	model:SetAttribute("UpgradeLevel", level)
+	model:SetAttribute("MaxUpgradeLevel", maxLevel)
+	model:SetAttribute("NextUpgradeWoodCost", if type(nextCost) == "table" then nextCost.wood or 0 else 0)
+	model:SetAttribute("NextUpgradeStoneCost", if type(nextCost) == "table" then nextCost.stone or 0 else 0)
+	model:SetAttribute("NextUpgradeGoldCost", if type(nextCost) == "table" then nextCost.gold or 0 else 0)
+	model:SetAttribute("NextUpgradeGemsCost", if type(nextCost) == "table" then nextCost.gems or 0 else 0)
+end
+
 local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, cellSize: number)
 	for _, record in ipairs(profile.buildings) do
 		local clone = getBuildingTemplate(record.catalogId, cellSize)
@@ -640,7 +654,7 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 		local footprintDefinition = BuildingCatalog[record.catalogId]
 		clone:SetAttribute("FootprintWidth", footprintDefinition.footprintWidth)
 		clone:SetAttribute("FootprintDepth", footprintDefinition.footprintDepth)
-		clone:SetAttribute("UpgradeLevel", if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1)
+		applyBuildingUpgradeAttributes(clone, record, footprintDefinition)
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
 		clone:PivotTo(pivot * CFrame.Angles(0, math.rad(record.rotation), 0))
