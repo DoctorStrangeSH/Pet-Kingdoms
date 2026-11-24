@@ -32,6 +32,7 @@ local currentCellZ: number? = nil
 local currentIsland: Model? = nil
 local currentPreview: BasePart? = nil
 local previewVisual: Model? = nil
+local footprintGuide: Model? = nil
 local currentValid = false
 local selectedBuildingModel: Model? = nil
 local selectedBuildingDestroyConnection: RBXScriptConnection? = nil
@@ -976,6 +977,10 @@ local function clearPreview()
 		previewVisual:Destroy()
 		previewVisual = nil
 	end
+	if footprintGuide then
+		footprintGuide:Destroy()
+		footprintGuide = nil
+	end
 	currentCellX = nil
 	currentCellZ = nil
 	currentValid = false
@@ -1095,6 +1100,63 @@ local function makePreviewVisual(catalogId: string, unit: number): Model
 	return model
 end
 
+local function createFootprintGuide()
+	if footprintGuide then footprintGuide:Destroy() end
+	local guide = Instance.new("Model")
+	guide.Name = "LocalPlacementFootprintGuide"
+	for _, edgeName in ipairs({ "North", "South", "East", "West" }) do
+		local edge = Instance.new("Part")
+		edge.Name = edgeName
+		edge.Anchored = true
+		edge.CanCollide = false
+		edge.CanTouch = false
+		edge.CanQuery = false
+		edge.Material = Enum.Material.Neon
+		edge.Transparency = 1
+		edge.Size = Vector3.new(1, 0.08, 0.08)
+		edge.Parent = guide
+	end
+	guide.Parent = Workspace
+	footprintGuide = guide
+end
+
+local function updateFootprintGuide(
+	top: BasePart,
+	centerX: number,
+	centerZ: number,
+	footprintWidth: number,
+	footprintDepth: number,
+	cellSize: number,
+	valid: boolean
+)
+	if footprintGuide == nil or footprintGuide.Parent == nil then
+		createFootprintGuide()
+	end
+	local guide = footprintGuide
+	if guide == nil then return end
+	local width = footprintWidth * cellSize
+	local depth = footprintDepth * cellSize
+	local thickness = math.clamp(cellSize * 0.055, 0.045, 0.11)
+	local height = top.Size.Y / 2 + 0.09
+	local rotationCFrame = CFrame.Angles(0, math.rad(rotation), 0)
+	local color = if valid then COLORS.valid else COLORS.invalid
+	local placements = {
+		{ name = "North", size = Vector3.new(width, 0.08, thickness), offset = Vector3.new(0, height, -depth / 2) },
+		{ name = "South", size = Vector3.new(width, 0.08, thickness), offset = Vector3.new(0, height, depth / 2) },
+		{ name = "East", size = Vector3.new(thickness, 0.08, depth), offset = Vector3.new(width / 2, height, 0) },
+		{ name = "West", size = Vector3.new(thickness, 0.08, depth), offset = Vector3.new(-width / 2, height, 0) },
+	}
+	for _, placement in ipairs(placements) do
+		local edge = guide:FindFirstChild(placement.name)
+		if edge and edge:IsA("BasePart") then
+			edge.Size = placement.size
+			edge.CFrame = top.CFrame * CFrame.new(centerX, 0, centerZ) * rotationCFrame * CFrame.new(placement.offset)
+			edge.Color = color
+			edge.Transparency = 0.12
+		end
+	end
+end
+
 local function createPreview()
 	clearPreview()
 	local island = findOwnIsland()
@@ -1124,6 +1186,7 @@ local function createPreview()
 	currentPreview = part
 	previewVisual = makePreviewVisual(selectedCatalogId, cellSize)
 	previewVisual.Parent = Workspace
+	createFootprintGuide()
 end
 
 local function getIslandGrid(): (BasePart?, number?, number?, number?)
@@ -1222,6 +1285,7 @@ local function updatePreviewAtCell(x: number, z: number)
 	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 elseif selectedCatalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
 	currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
 	currentPreview.CFrame = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0)
+	updateFootprintGuide(top, centerX, centerZ, footprintWidth, footprintDepth, cellSize, valid)
 	if previewVisual then
 		previewVisual:PivotTo(top.CFrame * CFrame.new(centerX, top.Size.Y / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0))
 		for _, descendant in ipairs(previewVisual:GetDescendants()) do
@@ -1251,6 +1315,11 @@ hideUnavailablePreview = function()
 	currentCellX, currentCellZ = nil, nil
 	placementLocked = false
 	if currentPreview then currentPreview.Transparency = 1 end
+	if footprintGuide then
+		for _, edge in ipairs(footprintGuide:GetChildren()) do
+			if edge:IsA("BasePart") then edge.Transparency = 1 end
+		end
+	end
 	if previewVisual then
 		for _, descendant in ipairs(previewVisual:GetDescendants()) do
 			if descendant:IsA("BasePart") then descendant.Transparency = 1 end
