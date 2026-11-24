@@ -47,13 +47,17 @@ assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
 
 -- Build a representative island snapshot before saving: a placed house,
 -- non-default wallet, expanded plot and a resource node on cooldown.
-table.insert(profileA.buildings, {
-	instanceId = "store-test-house",
-	catalogId = "main_house",
-	x = 1,
-	z = 1,
-	rotation = 90,
-})
+local persistenceBuildings = {
+	{ instanceId = "store-test-main-house", catalogId = "main_house", x = 1, z = 1, rotation = 90 },
+	{ instanceId = "store-test-pet-house", catalogId = "pet_house", x = 5, z = 1, rotation = 0 },
+	{ instanceId = "store-test-stone-path", catalogId = "stone_path", x = 9, z = 1, rotation = 0 },
+	{ instanceId = "store-test-lantern", catalogId = "garden_lantern", x = 10, z = 1, rotation = 0 },
+	{ instanceId = "store-test-flower-bed", catalogId = "flower_bed", x = 11, z = 1, rotation = 0 },
+	{ instanceId = "store-test-fence", catalogId = "wooden_fence", x = 12, z = 1, rotation = 0 },
+}
+for _, building in ipairs(persistenceBuildings) do
+	table.insert(profileA.buildings, building)
+end
 profileA.resources = { wood = 17, stone = 9, gold = 4, gems = 2 }
 local expandedProfile, expansionCode = IslandExpansion.expandProfile(profileA)
 assert(expandedProfile ~= nil and expansionCode == "EXPANDED", "synthetic island should expand before persistence")
@@ -86,12 +90,24 @@ assert(receiptLoadOk and receiptLoaded ~= nil
 	and receiptLoaded.buildingOperations[1].requestId == "store-test-request"
 	and #receiptLoaded.resourceNodes == 1
 	and receiptLoaded.resourceNodes[1].nodeId == "WoodNode_A"
-	and #receiptLoaded.buildings == 1
-	and receiptLoaded.buildings[1].instanceId == "store-test-house"
+	and #receiptLoaded.buildings == 6
+	and receiptLoaded.buildings[1].instanceId == "store-test-main-house"
 	and receiptLoaded.buildings[1].catalogId == "main_house"
 	and receiptLoaded.buildings[1].x == 5
 	and receiptLoaded.buildings[1].z == 5
 	and receiptLoaded.buildings[1].rotation == 90
+	and receiptLoaded.buildings[2].instanceId == "store-test-pet-house"
+	and receiptLoaded.buildings[2].catalogId == "pet_house"
+	and receiptLoaded.buildings[2].x == 9
+	and receiptLoaded.buildings[2].z == 5
+	and receiptLoaded.buildings[3].catalogId == "stone_path"
+	and receiptLoaded.buildings[3].x == 13
+	and receiptLoaded.buildings[4].catalogId == "garden_lantern"
+	and receiptLoaded.buildings[4].x == 14
+	and receiptLoaded.buildings[5].catalogId == "flower_bed"
+	and receiptLoaded.buildings[5].x == 15
+	and receiptLoaded.buildings[6].catalogId == "wooden_fence"
+	and receiptLoaded.buildings[6].x == 16
 	and receiptLoaded.resources.wood == 17
 	and receiptLoaded.resources.stone == 9
 	and receiptLoaded.resources.gold == 4
@@ -99,8 +115,8 @@ assert(receiptLoadOk and receiptLoaded ~= nil
 	and receiptLoaded.expansionLevel == 1
 	and receiptLoaded.boundsWidth == 18
 	and receiptLoaded.boundsDepth == 18,
-	"buildings, exact grid positions, wallet, expansion and cooldown should survive DataStore save/load")
-print("[PetKingdoms Test] PASS: placed building, resource wallet, expansion bounds and cooldown survive save/load")
+	"all six catalog buildings, exact grid positions, wallet, expansion and cooldown should survive DataStore save/load")
+print("[PetKingdoms Test] PASS: all six building types, wallet, expansion bounds and cooldown survive save/load")
 
 -- A delayed loader holding the original generation-zero snapshot must not
 -- supersede the first session after its claim has committed.
