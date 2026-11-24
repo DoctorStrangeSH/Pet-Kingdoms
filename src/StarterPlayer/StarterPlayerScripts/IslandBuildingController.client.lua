@@ -18,6 +18,7 @@ end
 
 local camera = Workspace.CurrentCamera
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceBuilding") :: RemoteFunction
+local GridMath = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 
 local selectedCatalogId = "main_house"
 local BUILDING_SIZES = {
@@ -798,26 +799,28 @@ local function hasBuildingOverlap(x: number, z: number, footprintWidth: number, 
 	if island == nil or island.Parent == nil then
 		return true
 	end
+	local candidate = { x = x, z = z, width = footprintWidth, depth = footprintDepth }
 	for _, child in ipairs(island:GetChildren()) do
 		if child:IsA("Model")
 			and (movingInstanceId == nil or child ~= selectedBuildingModel)
 			and type(child:GetAttribute("BuildingInstanceId")) == "string"
 		then
-			local catalogId = child:GetAttribute("BuildingCatalogId")
 			local otherX = child:GetAttribute("GridX")
 			local otherZ = child:GetAttribute("GridZ")
 			local otherRotation = child:GetAttribute("GridRotation")
-			local otherSize = if type(catalogId) == "string" then BUILDING_SIZES[catalogId] else nil
-			if otherSize == nil or type(otherX) ~= "number" or type(otherZ) ~= "number" or type(otherRotation) ~= "number" then
+			local baseWidth = child:GetAttribute("FootprintWidth")
+			local baseDepth = child:GetAttribute("FootprintDepth")
+			if type(otherX) ~= "number" or type(otherZ) ~= "number"
+				or type(otherRotation) ~= "number" or type(baseWidth) ~= "number" or type(baseDepth) ~= "number"
+			then
 				return true
 			end
-			local otherWidth = if otherRotation % 180 == 0 then otherSize.width else otherSize.depth
-			local otherDepth = if otherRotation % 180 == 0 then otherSize.depth else otherSize.width
-			local separated = x + footprintWidth <= otherX
-				or otherX + otherWidth <= x
-				or z + footprintDepth <= otherZ
-				or otherZ + otherDepth <= z
-			if not separated then
+			local otherWidth, otherDepth = GridMath.getRotatedFootprint(baseWidth, baseDepth, otherRotation)
+			if otherWidth == nil or otherDepth == nil then
+				return true
+			end
+			local occupied = { x = otherX, z = otherZ, width = otherWidth, depth = otherDepth }
+			if GridMath.footprintsOverlap(candidate, occupied) then
 				return true
 			end
 		end
@@ -834,9 +837,17 @@ local function updatePreviewAtCell(x: number, z: number)
 		setStatus("Не удалось найти поверхность острова", false)
 		return
 	end
-	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
-	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
-	local inside = x >= 0 and z >= 0 and x + footprintWidth <= width and z + footprintDepth <= depth
+	local footprintWidth, footprintDepth = GridMath.getRotatedFootprint(BUILDING_WIDTH, BUILDING_DEPTH, rotation)
+	if footprintWidth == nil or footprintDepth == nil then
+		hideUnavailablePreview()
+		setStatus("Поворот постройки недоступен", false)
+		return
+	end
+	local inside = GridMath.isWithinBounds(
+		{ x = x, z = z, width = footprintWidth, depth = footprintDepth },
+		width,
+		depth
+	)
 	local overlaps = inside and hasBuildingOverlap(x, z, footprintWidth, footprintDepth)
 	local valid = inside and not overlaps
 	currentCellX, currentCellZ = x, z
@@ -895,8 +906,12 @@ local function seedPreview()
 		setStatus("Не удалось найти сетку острова", false)
 		return
 	end
-	local footprintWidth = if rotation % 180 == 0 then BUILDING_WIDTH else BUILDING_DEPTH
-	local footprintDepth = if rotation % 180 == 0 then BUILDING_DEPTH else BUILDING_WIDTH
+	local footprintWidth, footprintDepth = GridMath.getRotatedFootprint(BUILDING_WIDTH, BUILDING_DEPTH, rotation)
+	if footprintWidth == nil or footprintDepth == nil then
+		hideUnavailablePreview()
+		setStatus("Поворот постройки недоступен", false)
+		return
+	end
 	local centerX = math.floor((width - footprintWidth) / 2)
 	local centerZ = math.floor((depth - footprintDepth) / 2)
 	local bestX: number? = nil
