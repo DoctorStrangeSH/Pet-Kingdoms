@@ -2,6 +2,8 @@
 
 > Rule: deliver the approved MVP in order. No scope expansion before 1.0. A task is DONE only when the implementation is in this repository and its relevant verification has passed.
 
+> Verification boundary: the current GitHub Actions workflow only runs a Rojo place build and uploads the `.rbxlx` artifact. It does **not** execute any Roblox Studio test scripts. A green CI run is a build check only; every Studio-only contract/integration test and manual runtime journey remains NOT DONE until its Output/result is observed in Studio.
+
 ## Stage 0 — Repository foundation
 
 - [x] Create project README and central specification.
