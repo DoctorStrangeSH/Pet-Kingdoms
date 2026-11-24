@@ -1181,3 +1181,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Placement/world-selection hit testing now treats every visible `GuiObject` returned at the pointer location as UI-owned space, not only buttons, scrolling frames, and text boxes.
 - [x] Prevent taps on empty construction-panel padding, labels, and other visible HUD surfaces from selecting or locking the world cell underneath them.
 - [ ] Verify mouse and touch placement over panel background, labels, catalogue, buttons, HUD, and unobstructed island ground in Roblox Studio. Runtime interaction validation pending.
+
+### Stage 1 — Construction panel reflow for ultra-short landscape screens (2026-11-24)
+
+- [x] Reflow the construction panel when the safe viewport is ultra-short (under 220 px high): compact status header, shorter horizontal catalogue, and dedicated 44 px rotate/confirm/cancel action row.
+- [x] Hide the redundant title in this constrained mode while preserving accessible close and collapse controls.
+- [x] Reduce the panel's target height to 126 px and clamp it to the safe viewport; keep catalogue item tap targets at 40 px and action targets at 44 px.
+- [ ] Verify at 320×180 and 360×180 in Roblox Studio, including all six catalogue entries via horizontal scroll, rotate, confirm, cancel, collapse/reopen, and touch targets. Runtime visual validation pending.
