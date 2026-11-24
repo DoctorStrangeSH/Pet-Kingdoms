@@ -282,11 +282,11 @@ local petDescription = make("TextLabel", {
 
 local favoriteButton = make("TextButton", {
 	Name = "ToggleFavorite",
-	Position = UDim2.new(1, -88, 0.55, 0),
-	Size = UDim2.fromOffset(34, 30),
+	Position = UDim2.new(1, -142, 0.55, 0),
+	Size = UDim2.fromOffset(66, 30),
 	BackgroundColor3 = COLORS.card,
 	Text = "ИЗБР.",
-	TextSize = 19,
+	TextSize = 9,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
 }, detail) :: TextButton
@@ -294,11 +294,11 @@ make("UICorner", { CornerRadius = UDim.new(0, 9) }, favoriteButton)
 
 local lockButton = make("TextButton", {
 	Name = "ToggleLock",
-	Position = UDim2.new(1, -48, 0.55, 0),
-	Size = UDim2.fromOffset(34, 30),
+	Position = UDim2.new(1, -72, 0.55, 0),
+	Size = UDim2.fromOffset(66, 30),
 	BackgroundColor3 = COLORS.card,
 	Text = "ЗАЩИТА",
-	TextSize = 16,
+	TextSize = 9,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, detail) :: TextButton
@@ -374,8 +374,8 @@ local mainButton = make("TextButton", {
 	Position = UDim2.new(0.50, 1, 1, -58),
 	Size = UDim2.new(0.18, -2, 0, 46),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "ГЛАВНЫЙ",
-	TextSize = 20,
+	Text = "ОСНОВ.",
+	TextSize = 9,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
 }, detail) :: TextButton
@@ -562,7 +562,7 @@ local function updateDetail()
 	deleteButton.Visible = not selected.isLocked
 	local equippedIndex = table.find(collection.equipped, selected.petId)
 	mainButton.Visible = equippedIndex ~= nil
-	mainButton.Text = if equippedIndex == 1 then "ГЛАВНЫЙ" else "НАЗНАЧИТЬ"
+	mainButton.Text = if equippedIndex == 1 then "ОСНОВ." else "НАЗНАЧ."
 	mainButton.BackgroundColor3 = if equippedIndex == 1 then COLORS.cardSelected else COLORS.card
 	mainButton.Active = equippedIndex ~= nil and equippedIndex ~= 1
 	equipButton.Text = if compactCollection
@@ -642,6 +642,7 @@ local function renderList()
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0, 66, 0, 34),
 				Size = UDim2.new(1, -112, 0, 18),
+				TextTruncate = Enum.TextTruncate.AtEnd,
 				Text = table.concat({
 					if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
 					if record.isLocked then "ЗАЩИЩЁН" else "",
