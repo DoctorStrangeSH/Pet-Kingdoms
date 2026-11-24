@@ -54,6 +54,54 @@ local invalidFit = BuildingModelPivot.checkFootprintFit(
 )
 expect("invalid cell size rejects footprint diagnostics", invalidFit == nil)
 
+-- Audit real imported assets in ServerStorage without modifying source templates.
+local ServerStorage = game:GetService("ServerStorage")
+local BuildingCatalog = require(script.Parent.Parent:WaitForChild("BuildingCatalog"))
+local templateFolder = ServerStorage:FindFirstChild("BuildingModels")
+if templateFolder == nil then
+	warn("[PetKingdoms Audit] ServerStorage/BuildingModels folder is missing; imported-asset audit skipped.")
+else
+	for catalogId, definition in pairs(BuildingCatalog) do
+		local template = templateFolder:FindFirstChild(catalogId)
+		if template == nil or not template:IsA("Model") then
+			print(string.format("[PetKingdoms Audit] %s: no imported template; procedural fallback will be used.", catalogId))
+			continue
+		end
+
+		local clone = template:Clone()
+		local bounds = BuildingModelPivot.normalizeToGroundCenter(clone)
+		if bounds == nil then
+			warn(string.format("[PetKingdoms Audit] %s: invalid model bounds.", catalogId))
+			clone:Destroy()
+			continue
+		end
+		local fit = BuildingModelPivot.checkFootprintFit(
+			bounds,
+			definition.footprintWidth,
+			definition.footprintDepth,
+			game:GetService("Workspace"):GetAttribute("IslandGridCellSize") or 4
+		)
+		if fit == nil then
+			warn(string.format("[PetKingdoms Audit] %s: could not compare visual bounds to grid footprint.", catalogId))
+		else
+			local level = if fit.fits then "PASS" else "OVERHANG"
+			local message = string.format(
+				"[PetKingdoms Audit] %s: %s | bounds %.2f×%.2f | footprint %d×%d cells | overhang X=%.2f Z=%.2f",
+				catalogId,
+				level,
+				bounds.width,
+				bounds.depth,
+				definition.footprintWidth,
+				definition.footprintDepth,
+				fit.overhangX,
+				fit.overhangZ
+			)
+			if fit.fits then print(message) else warn(message) end
+		end
+		clone:Destroy()
+	end
+end
+
 local model = Instance.new("Model")
 model.Name = "BuildingPivotTestFixture"
 local first = Instance.new("Part")
