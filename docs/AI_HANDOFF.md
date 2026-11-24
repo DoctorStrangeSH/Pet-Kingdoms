@@ -1521,3 +1521,14 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] CI/Rojo build validation for `fea5228` and follow-up assertion commit `a6f4651`; this workflow does not execute Studio tests.
 - [ ] Run pure collection tests and the gated integration test in Roblox Studio; use a dedicated non-production test universe only.
 - [ ] Verify real pet spawn and UI restoration after leave/rejoin.
+
+## Companion spawn and character lifecycle — 2026-11-24
+
+- [x] Added `PetCompanionSpawnService.lua` to isolate server-side formation creation and cleanup. It validates the collection, preserves equipped order, assigns PetId/OwnerUserId/FormationSlot, positions models relative to HumanoidRootPart, and clears previous models before rebuilding.
+- [x] `PetCollectionService` now delegates formation creation to the spawn service while retaining `PetAssetLoader` as the only production asset factory.
+- [x] Added `CharacterRemoving` cleanup and spawn-token invalidation. The handler checks the exact character instance so a delayed removal from an old character cannot clear a newer formation.
+- [x] A cancelled model-factory attempt removes only models created by that attempt; it cannot wipe a newer spawn's folder after a yield.
+- [x] Added `PetCompanionSpawnServiceTests.server.lua` for ordered two-pet spawn, position/attributes, duplicate prevention, invalid profile, cancellation, gated asset behavior, and cleanup.
+- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, and `3388827`.
+- [ ] Run the new spawn-service test in Roblox Studio.
+- [ ] Real model spawning/follow/respawn/rejoin remains blocked until the original project-owned Bunny mesh is imported and published from Studio. Do not restore the rejected third-party asset ID or silently use the procedural test prototype in production.
