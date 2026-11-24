@@ -161,6 +161,44 @@ assert(unlockedResult.code == "VALID", "unlocked rectangular building should all
 assert(unlockedResult.footprintWidth == 3 and unlockedResult.footprintDepth == 2, "rotated footprint should swap dimensions")
 print("[PetKingdoms Test] PASS: unlocked rectangular building rotation")
 
+local rotated270 = PlacementValidator.validate(1001, {
+	catalogId = "locked_house",
+	x = 7,
+	z = 8,
+	rotation = 270,
+}, unlockedIsland, lockedCatalog)
+assert(rotated270.code == "VALID", "270-degree rectangular placement should fit exact rotated island boundary")
+assert(rotated270.footprintWidth == 3 and rotated270.footprintDepth == 2, "270-degree footprint should swap dimensions")
+print("[PetKingdoms Test] PASS: 270-degree rectangular rotation and exact boundary")
+
+check("rotated rectangular footprint out of bounds", {
+	catalogId = "locked_house",
+	x = 8,
+	z = 8,
+	rotation = 270,
+}, unlockedIsland, 1001, "OUT_OF_BOUNDS", lockedCatalog)
+
+local rotatedOccupiedIsland = makeIsland()
+table.insert(rotatedOccupiedIsland.buildings, {
+	instanceId = "rotated-rect",
+	catalogId = "locked_house",
+	x = 2,
+	z = 2,
+	rotation = 90,
+})
+check("rotated rectangular overlap rejected", {
+	catalogId = "locked_house",
+	x = 4,
+	z = 2,
+	rotation = 0,
+}, rotatedOccupiedIsland, 1001, "FOOTPRINT_OVERLAP", lockedCatalog)
+check("rotated rectangular edge adjacency accepted", {
+	catalogId = "locked_house",
+	x = 5,
+	z = 2,
+	rotation = 0,
+}, rotatedOccupiedIsland, 1001, "VALID", lockedCatalog)
+
 local malformedMoveIsland = makeIsland()
 table.insert(malformedMoveIsland.buildings, {
 	instanceId = "broken-building",
