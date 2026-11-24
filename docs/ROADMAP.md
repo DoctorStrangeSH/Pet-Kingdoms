@@ -922,3 +922,15 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run `PetAnimationControllerTests.server.lua` and `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Server and client Output respectively.
 - [ ] Verify turn response, stop distance, and gait synchronization with the published Bunny mesh on desktop and mobile.
 - [ ] Keep Stage 1 movement work open until Studio/device checks and earlier jump/ramp checks are recorded.
+
+
+### Stage 1 — Modal controller lifecycle hardening (2026-11-24)
+
+- [x] Make modal re-registration close the previous controller before replacing its callback, preventing an old ScreenGui or input-blocking shade from surviving a LocalScript rebind.
+- [x] Make unregister invoke cleanup even when active-window bookkeeping was already lost; remove the registration before invoking cleanup to prevent recursive unregister callbacks.
+- [x] Preserve the shared `ActiveChanged` event and publish focus loss when the active controller is replaced or unregistered.
+- [x] Add Studio client regression coverage for visible/inactive unregister, controller re-registration, self-unregistering cleanup, focus state and ActiveChanged notifications.
+- [ ] Rojo build validation for implementation commit `3a284fd` and test commit `1048ec1`.
+- [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`; inspect client Output for every PASS.
+- [ ] Verify real modal handoff/teardown in Studio: rapidly open/close Pet Collection, Quest Journal, Island Expansion and Build; confirm no stale shade, blocked input or visible panel remains.
+- [ ] Stage 1 remains open pending Studio/device regression and the remaining construction touch/persistence checks.
