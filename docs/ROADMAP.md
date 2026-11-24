@@ -1121,3 +1121,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add regression case: moving a building into another building's footprint is rejected.
 - [x] Add regression cases: move outside island bounds and unsupported rotation are rejected.
 - [ ] Run PlacementValidatorTests.server.lua in Roblox Studio and verify real client drag/tap, rotate, cancel, move, and demolition behavior. Runtime validation pending.
+
+
+### Stage 1 — Visible world selection for buildings (2026-11-24)
+
+- [x] Selecting an owned building now adds a gold Highlight outline/fill so the selected world object is unambiguous before Move/Demolish actions.
+- [x] Selecting another building or empty ground removes the previous highlight; selecting nil also resets the status text.
+- [x] Destroying the selected model disconnects selection state and removes its highlight through the existing Destroying handler.
+- [ ] Verify highlight visibility/occlusion, touch selection, deselection, and selection while opening/closing construction UI in Studio. Runtime validation pending.
