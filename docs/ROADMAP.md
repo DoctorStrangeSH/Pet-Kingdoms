@@ -1156,5 +1156,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 ### Stage 1 — Modal safe-area centering consistency (2026-11-24)
 
 - [x] Pet Collection, Quest Journal, and Island Expansion now center their modal panels relative to both `safeOrigin` and `safeSize`, matching the shared safe-area coordinate model used by their launchers and HUD controls.
-- [ ] Run pinned Rojo build validation for PR #3.
+- [x] GitHub Actions run #732: pinned Rojo version verification, full place build, and Studio-ready artifact upload all passed.
 - [ ] Verify all three panels with Roblox GUI insets in portrait, short landscape, tablet, and desktop Device Emulator configurations. Stage 1 remains open.
