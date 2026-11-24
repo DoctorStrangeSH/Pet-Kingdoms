@@ -12,6 +12,7 @@ local services = script.Parent.Parent:WaitForChild("Services")
 local IslandStore = require(services:WaitForChild("IslandStore"))
 local IslandData = require(services:WaitForChild("IslandData"))
 local BuildingJournal = require(services:WaitForChild("IslandBuildingJournalData"))
+local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
 
 local invalidOk, invalidCode = IslandStore.load(0)
 assert(not invalidOk and invalidCode == "INVALID_USER_ID", "invalid user ID should be rejected before DataStore access")
@@ -36,6 +37,20 @@ assert(type(profileA.buildingOperations) == "table" and #profileA.buildingOperat
 	"legacy profile claim should migrate an empty building operation ledger")
 assert(type(profileA.resourceNodes) == "table" and #profileA.resourceNodes == 0,
 	"legacy profile claim should migrate an empty resource node state list")
+
+-- Build a representative island snapshot before saving: a placed house,
+-- non-default wallet, expanded plot and a resource node on cooldown.
+table.insert(profileA.buildings, {
+	instanceId = "store-test-house",
+	catalogId = "main_house",
+	x = 1,
+	z = 1,
+	rotation = 90,
+})
+profileA.resources = { wood = 17, stone = 9, gold = 4, gems = 2 }
+local expandedProfile, expansionCode = IslandExpansion.expandProfile(profileA)
+assert(expandedProfile ~= nil and expansionCode == "EXPANDED", "synthetic island should expand before persistence")
+profileA = expandedProfile
 
 local gatheredAt = os.time()
 profileA.resourceNodes = {
@@ -63,8 +78,22 @@ assert(receiptLoadOk and receiptLoaded ~= nil
 	and #receiptLoaded.buildingOperations == 1
 	and receiptLoaded.buildingOperations[1].requestId == "store-test-request"
 	and #receiptLoaded.resourceNodes == 1
-	and receiptLoaded.resourceNodes[1].nodeId == "WoodNode_A",
-	"building receipt and resource node cooldown should survive DataStore save/load")
+	and receiptLoaded.resourceNodes[1].nodeId == "WoodNode_A"
+	and #receiptLoaded.buildings == 1
+	and receiptLoaded.buildings[1].instanceId == "store-test-house"
+	and receiptLoaded.buildings[1].catalogId == "main_house"
+	and receiptLoaded.buildings[1].x == 5
+	and receiptLoaded.buildings[1].z == 5
+	and receiptLoaded.buildings[1].rotation == 90
+	and receiptLoaded.resources.wood == 17
+	and receiptLoaded.resources.stone == 9
+	and receiptLoaded.resources.gold == 4
+	and receiptLoaded.resources.gems == 2
+	and receiptLoaded.expansionLevel == 1
+	and receiptLoaded.boundsWidth == 18
+	and receiptLoaded.boundsDepth == 18,
+	"buildings, exact grid positions, wallet, expansion and cooldown should survive DataStore save/load")
+print("[PetKingdoms Test] PASS: placed building, resource wallet, expansion bounds and cooldown survive save/load")
 
 -- A delayed loader holding the original generation-zero snapshot must not
 -- supersede the first session after its claim has committed.
