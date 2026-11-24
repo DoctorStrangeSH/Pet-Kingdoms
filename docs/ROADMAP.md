@@ -1196,4 +1196,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Clamp the action row vertically when the pending-operation recovery banner is visible, so its 46 px touch targets remain inside the usable screen height.
 - [x] Remove the forced 160 px minimum action-row width; calculate button widths from the actual safe viewport so narrow layouts cannot push Demolish beyond the right edge.
 - [x] Keep compact labels and legible text sizing for the mobile action row.
+- [x] GitHub Actions run #743: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify selecting buildings near all four island edges, action visibility with/without recovery banner, phone portrait/landscape, and touch targets in Roblox Studio. Runtime visual validation pending.
