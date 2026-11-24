@@ -869,7 +869,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Fence model-factory yields with a current-character/session callback; cancelled attempts destroy only models created by that attempt.
 - [x] Clear the matching character's companions immediately on `CharacterRemoving`; ignore delayed removal events for an older character.
 - [x] Add Studio tests for two-pet spawn order, placement, duplicate prevention, invalid-profile rejection, stale-spawn cancellation, overlapping spawn attempts, asset gate behavior and idempotent cleanup.
-- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, `3388827`, `934ddca`, and `fddd5d0`.
+- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, `3388827`, `934ddca`, `fddd5d0`, and `2e00a15`.
 - [ ] Run `PetCompanionSpawnServiceTests.server.lua` in Roblox Studio.
 - [ ] Import and publish the original Bunny mesh in the dedicated test universe, then verify actual model spawn/follow after join, death/respawn and rejoin. Do not enable an unapproved Creator Store replacement.
  
