@@ -839,3 +839,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Assert quest counters and tracked objective survive save/load and are present in the next claimed session.
 - [ ] CI validation for quest persistence test commit 2d772a5.
 - [ ] Execute the gated DataStore integration test in a dedicated Roblox test universe; Studio runtime verification remains required.
+ 
+### Stage 1 — Isolated persistence test cleanup (2026-11-24)
+
+- [x] Wrap the gated DataStore integration scenario so the synthetic island profile is removed after both success and assertion failure.
+- [x] Fail the test explicitly if synthetic-record cleanup cannot be confirmed; never silently accumulate test profiles.
+- [ ] CI validation for cleanup commit 519a9be.
+- [ ] Verify the cleanup path in the dedicated test universe with Studio API access enabled.
