@@ -59,6 +59,22 @@ function GridMath.getRotatedFootprint(width: number, depth: number, rotationDegr
 	return nil, nil
 end
 
+function GridMath.isWithinBounds(footprint: Footprint, boundsWidth: number, boundsDepth: number): boolean
+	if not isInteger(footprint.x) or not isInteger(footprint.z)
+		or not isInteger(footprint.width) or not isInteger(footprint.depth)
+		or footprint.width <= 0 or footprint.depth <= 0
+		or not isInteger(boundsWidth) or not isInteger(boundsDepth)
+		or boundsWidth <= 0 or boundsDepth <= 0
+	then
+		return false
+	end
+
+	return footprint.x >= 0
+		and footprint.z >= 0
+		and footprint.x + footprint.width <= boundsWidth
+		and footprint.z + footprint.depth <= boundsDepth
+end
+
 -- Returns the local-space center of a footprint relative to the island's
 -- centered grid origin. Both preview and server placement must use this exact
 -- conversion so rotated/asymmetric footprints cannot drift between them.
@@ -81,22 +97,6 @@ function GridMath.getFootprintCenterOffset(
 	local localX = (footprint.x + footprint.width / 2 - boundsWidth / 2) * cellSize
 	local localZ = (footprint.z + footprint.depth / 2 - boundsDepth / 2) * cellSize
 	return localX, localZ
-end
-
-function GridMath.isWithinBounds(footprint: Footprint, boundsWidth: number, boundsDepth: number): boolean
-	if not isInteger(footprint.x) or not isInteger(footprint.z)
-		or not isInteger(footprint.width) or not isInteger(footprint.depth)
-		or footprint.width <= 0 or footprint.depth <= 0
-		or not isInteger(boundsWidth) or not isInteger(boundsDepth)
-		or boundsWidth <= 0 or boundsDepth <= 0
-	then
-		return false
-	end
-
-	return footprint.x >= 0
-		and footprint.z >= 0
-		and footprint.x + footprint.width <= boundsWidth
-		and footprint.z + footprint.depth <= boundsDepth
 end
 
 function GridMath.footprintsOverlap(a: Footprint, b: Footprint): boolean
