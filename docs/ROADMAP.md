@@ -964,3 +964,13 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run pinned Rojo build validation for implementation commits `ed55732`, `5bbf9fb`, and cleanup commit `f517f67`.
 - [ ] Verify at 320×180 and 360×180 in Roblox Studio: list scrolling, search focus, each filter, select/back, favorite, lock, equip, main-pet, delete confirmation/cancel, close/shade and portrait restoration.
 - [ ] Verify touch targets and safe-area behavior on physical phone/tablet. Stage 1 remains open.
+
+
+### Stage 1 — Construction panel short-screen reflow (2026-11-24)
+
+- [x] Add a dedicated ultra-short landscape mode for `ViewportSize.Y < 220`; reduce panel height to 160 px and keep UIScale at 1 instead of shrinking touch targets.
+- [x] Reflow construction status/catalog/action rows into the 160 px panel; catalog cards become 44 px high and rotate/build/cancel controls retain 44 px height.
+- [x] Prevent the Build launcher from overlapping the full-width pending-operation recovery notice; it stays hidden while a server operation is unresolved or placement mode is active.
+- [ ] Run pinned Rojo build validation for implementation commit `5e524b7`.
+- [ ] Verify 320×180 and 360×180 in Roblox Studio: panel bounds, catalog horizontal scroll, rotate, confirm, cancel, close, touch placement, pending-operation recovery and launcher restoration.
+- [ ] Verify selection Move/Demolish actions, overview modal handoff and portrait/desktop restoration. Stage 1 remains open.
