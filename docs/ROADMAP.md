@@ -1071,3 +1071,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Give favorite/lock controls enough width for short labels and reduce typography to fit their touch targets; use concise main-pet labels.
 - [x] Replace glyph-only favorite/lock status markers in pet rows with readable status words and truncate safely.
 - [ ] Verify action labels, filter taps, lock/favorite toggles, selected-pet actions, and compact/ultra-short layout in Roblox Studio. Stage 1 remains open.
+
+
+### Stage 1 — Shared safe viewport layout (2026-11-24)
+
+- [x] Add `InterfaceComponents.GetSafeViewport(camera)` to calculate the usable viewport after Roblox GUI insets.
+- [x] Add `InterfaceComponents.ClampPanelSize(desired, safeSize, margin)` to prevent requested panel dimensions from exceeding the usable area.
+- [x] Integrate the shared safe-area metrics and panel clamp into Pet Collection's compact layout; center it within the usable ScreenGui area and clamp both width and height on short landscape devices.
+- [ ] Verify safe-area behavior with Roblox top bar/device insets and ScreenGui `IgnoreGuiInset=false` in Studio; inspect 320×180, 360×180, 360×360, 443×426, 482×467, tablet and desktop.
+- [ ] Integrate the shared helper into Quest Journal, Expansion, Building, and other top-level windows after confirming each ScreenGui inset mode. Stage 1 remains open.
