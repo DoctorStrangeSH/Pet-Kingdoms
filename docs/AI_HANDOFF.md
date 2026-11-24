@@ -1638,3 +1638,5 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run pinned Rojo build validation for commit `5e524b7`.
 - [ ] Studio/device acceptance at 320×180 and 360×180: panel clipping, catalog scroll, rotate/confirm/cancel/close, world touch placement, pending operation recovery and launcher restoration.
 - [ ] Verify Move/Demolish controls, overview modal handoff, and return to portrait/desktop layout. Stage 1 remains open; no runtime acceptance implied.
+
+- [x] Follow-up commit `4513354`: apply recovery-aware launcher visibility in placement failure/stop paths and ModalManager focus callbacks, preventing those callbacks from accidentally showing the launcher over an unresolved recovery notice.
