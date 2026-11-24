@@ -1704,3 +1704,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `d97e095`: added synthetic tests for in-footprint dimensions, tolerated small overhang, excess overhang reporting, and invalid cell size.
 - [x] Commit `56dc287`: Studio test now audits actual `ServerStorage/BuildingModels` entries on clones, reporting measured bounds, footprint, overhang, and missing-template fallback status without mutating source assets.
 - [ ] Run `BuildingModelPivotTests.server.lua` in Roblox Studio and review `[PetKingdoms Audit]` output; no actual Studio measurements are available yet.
+
+
+## Imported building physics safety — 2026-11-24
+
+- [x] Commit `25e3e6f`: added `BuildingModelPivot.prepareForWorld`, which anchors every BasePart and disables `CanTouch` before placement while preserving each part's authored `CanCollide` and `CanQuery` settings.
+- [x] Commit `2618e98`: integrate preparation into `IslandWorldService.getBuildingTemplate`; clone records `PhysicsPartCount`, `PhysicsAnchoredCount`, and `PhysicsTouchDisabledCount` for diagnostics.
+- [x] Commit `3b1b147`: add Studio smoke coverage for anchored parts, touch-disabled parts, and collision/query preservation.
+- [ ] Run tests against real ServerStorage templates in Studio; verify ProximityPrompt and player collision behavior in the live experience. Runtime validation pending.
