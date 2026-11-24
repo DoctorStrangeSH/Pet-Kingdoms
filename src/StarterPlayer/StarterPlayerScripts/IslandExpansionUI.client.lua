@@ -415,7 +415,7 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500
@@ -426,7 +426,15 @@ local function resize()
 	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	refreshButton.TextSize = if compact then 11 else 12
 	-- Keep the expansion launcher below the pet launcher on compact screens.
-	openButton.Position = UDim2.new(1, compact and -12 or -22, compact and 0.72 or 0.70, 0)
+	local launcherSize = compact and 48 or 62
+	local launcherX = safeOrigin.X + safeSize.X - launcherSize - (compact and 12 or 22)
+	local launcherY = safeOrigin.Y + math.clamp(
+		safeSize.Y * (compact and 0.72 or 0.70),
+		launcherSize * 0.5 + 8,
+		math.max(launcherSize * 0.5 + 8, safeSize.Y - launcherSize * 0.5 - 8)
+	)
+	openButton.AnchorPoint = Vector2.new(0, 0.5)
+	openButton.Position = UDim2.fromOffset(launcherX, launcherY)
 	-- Use a genuinely shorter layout on phones instead of shrinking the
 	-- desktop composition until its cards and tap targets become tiny.
 	local veryShort = viewport.Y < 380
