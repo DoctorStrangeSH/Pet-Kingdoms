@@ -282,7 +282,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		if done then completedCount += 1 end
 		local card = make("Frame", {
 			Name = "Quest_" .. quest.id,
-			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 164 else 124),
+			Size = UDim2.new(1, -6, 0, if (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) then 110 else 124),
 			BackgroundColor3 = COLORS.panelSoft,
 			LayoutOrder = index,
 		}, list) :: Frame
@@ -290,9 +290,9 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		local compactCard = (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X < 520) or false
 		local trackButton = make("TextButton", {
 			Name = "TrackQuest",
-			AnchorPoint = if compactCard then Vector2.new(0, 0) else Vector2.new(1, 0),
-			Position = if compactCard then UDim2.new(0, 15, 0, 104) else UDim2.new(1, -10, 0, 9),
-			Size = UDim2.fromOffset(if compactCard then 112 else 102, if compactCard then 32 else 27),
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -10, 0, 8),
+			Size = UDim2.fromOffset(if compactCard then 88 else 102, if compactCard then 28 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
 			Text = if trackedQuestId == quest.id then "СЛЕЖУ" else "СЛЕДИТЬ",
 			TextSize = 12,
@@ -331,25 +331,40 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		end)
 		make("UIStroke", { Color = if done then COLORS.mint else COLORS.track, Transparency = 0.58, Thickness = 1 }, card)
 
+		local questIcon = make("Frame", {
+			Name = "QuestTypeIcon",
+			Position = UDim2.fromOffset(14, 9),
+			Size = UDim2.fromOffset(22, 22),
+			BackgroundColor3 = if quest.id == "gather_wood" then Color3.fromRGB(105, 142, 92) else Color3.fromRGB(105, 121, 145),
+		}, card) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(0, 7) }, questIcon)
+		if quest.id == "gather_wood" then
+			local log = make("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(14, 6), Rotation = -28, BackgroundColor3 = Color3.fromRGB(226, 190, 137), BorderSizePixel = 0 }, questIcon)
+			make("UICorner", { CornerRadius = UDim.new(1, 0) }, log)
+		else
+			local rock = make("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(11, 11), Rotation = 45, BackgroundColor3 = Color3.fromRGB(210, 221, 232), BorderSizePixel = 0 }, questIcon)
+			make("UICorner", { CornerRadius = UDim.new(0, 3) }, rock)
+		end
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 15, 0, 9),
-			Size = UDim2.new(1, if compactCard then -30 else -126, 0, 23),
+			Position = UDim2.new(0, 44, 0, 9),
+			Size = UDim2.new(1, if compactCard then -150 else -126, 0, 23),
 			Font = Enum.Font.GothamBold,
-			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else "✦  ") .. quest.name,
-			TextSize = 14,
+			Text = (if done then InterfaceTheme.Icons.Confirm .. "  " else "") .. quest.name,
+			TextSize = if compactCard then 12 else 14,
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = if done then COLORS.mint else COLORS.cream,
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0, 16, 0, 35),
-			Size = UDim2.new(1, -32, 0, if compactCard then 38 else 21),
+			Size = UDim2.new(1, -32, 0, if compactCard then 18 else 21),
 			Font = Enum.Font.Gotham,
 			Text = quest.description,
-			TextSize = if compactCard then 12 else 11,
-			TextWrapped = compactCard,
-			TextTruncate = if compactCard then Enum.TextTruncate.None else Enum.TextTruncate.AtEnd,
+			TextSize = if compactCard then 11 else 11,
+			TextWrapped = false,
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextYAlignment = Enum.TextYAlignment.Top,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = COLORS.muted,
@@ -357,7 +372,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		local count = math.clamp(quest.count, 0, quest.target)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 16, 0, if compactCard then 77 else 65),
+			Position = UDim2.new(0, 16, 0, if compactCard then 60 else 65),
 			Size = UDim2.new(0.5, 0, 0, 18),
 			Font = Enum.Font.GothamBold,
 			Text = if done then "ВЫПОЛНЕНО" else "ПРОГРЕСС",
@@ -367,7 +382,7 @@ local function render(quests: any, serverTrackedQuestId: string?)
 		}, card)
 		make("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -76, 0, if compactCard then 76 else 64),
+			Position = UDim2.new(1, -76, 0, if compactCard then 59 else 64),
 			Size = UDim2.fromOffset(60, 19),
 			Font = Enum.Font.GothamBold,
 			Text = string.format("%d / %d", count, quest.target),
