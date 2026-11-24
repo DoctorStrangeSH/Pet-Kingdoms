@@ -606,7 +606,10 @@ local function resize()
 	openButton.TextSize = if compact then 23 else 27
 	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	refreshButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
-	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
+	openButton.Position = UDim2.fromOffset(
+		safeOrigin.X + (compact and 10 or 20),
+		safeOrigin.Y + math.clamp(safeSize.Y * 0.56, 72, math.max(72, safeSize.Y - 72))
+	)
 	-- Compact screens get a shorter, reflowed journal instead of a scaled
 	-- desktop panel with tiny text and cramped touch targets.
 	local veryShort = viewport.Y < 380
@@ -659,8 +662,14 @@ local function resize()
 		status.Position = UDim2.new(0.5, 0, 1, -10)
 		status.Size = UDim2.new(1, -44, 0, 32)
 	end
-	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, short and -8 or -12)
-	tracker.Size = UDim2.fromOffset(math.max(190, math.min(compact and 220 or 260, viewport.X - 20)), compact and 68 or 78)
+	local trackerWidth = math.min(compact and 220 or 260, math.max(1, safeSize.X - (compact and 20 or 40)))
+	local trackerHeight = math.min(compact and 68 or 78, math.max(44, safeSize.Y - 20))
+	tracker.AnchorPoint = Vector2.new(0, 0)
+	tracker.Position = UDim2.fromOffset(
+		safeOrigin.X + (compact and 10 or 20),
+		safeOrigin.Y + safeSize.Y - trackerHeight - (short and 8 or 12)
+	)
+	tracker.Size = UDim2.fromOffset(trackerWidth, trackerHeight)
 	trackerTitle.TextSize = if compact then 9 else 10
 	trackerName.TextSize = if compact then 11 else 12
 	trackerProgress.TextSize = if compact then 10 else 11
