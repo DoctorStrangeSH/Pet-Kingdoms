@@ -50,3 +50,14 @@ After automated checks pass, test with a dedicated account in the test universe:
 - Collection revision, session generation and session token.
 
 A successful Rojo build proves only that the place file can be assembled. It does not execute Studio tests or prove DataStore behavior, pet spawning, UI state, or mobile interaction.
+## 4. Client companion follow test — Studio only
+
+`CompanionFollowControllerTests.client.lua` is a client-side smoke/regression test. It is disabled unless the Workspace boolean attribute `RunPetKingdomsStudioTests` is set to `true`.
+
+1. Use a dedicated Roblox Studio test place. Do not enable test flags in the production universe.
+2. In Workspace properties, add boolean attribute `RunPetKingdomsStudioTests = true`.
+3. Start **Test → Start** with at least one client. Keep both Server Output and the selected client's Output visible.
+4. Confirm the client Output reports the `CompanionFollowController smoke tests completed` message and PASS lines for formation slots, idle personality, player reactions, resource inspection, catch-up recovery, obstacle detour clearance, and ground alignment.
+5. Remove the attribute or set it to false after testing.
+
+The test creates and removes a temporary floor and wall in Workspace. It does not write DataStores or grant pets to a player. It validates a single wall detour fixture only; it does not replace the manual test around actual island buildings, fences, bridges, ramps, slopes, streaming and mobile performance.
