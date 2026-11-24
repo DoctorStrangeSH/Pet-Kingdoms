@@ -823,3 +823,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run Studio data tests and the isolated DataStore integration scenario.
 - [x] Update `docs/testing/ISLAND_PERSISTENCE_TESTING.md` to include all six building types, the pet-house level-2 upgrade, and the hidden gathering marker during cooldown.
 - [ ] CI validation for the latest persistence/data-validation changes; current GitHub Actions runs are queued and have not started.
+
+### Stage 1 — Restored building upgrade runtime state (2026-11-24)
+
+- [x] Extend the island-world lifecycle fixture with a level-2 pet house.
+- [x] Assert initial island spawn exposes the persisted `UpgradeLevel = 2` attribute on the rendered pet-house model.
+- [x] Assert island refresh after expansion preserves that same upgrade level.
+- [ ] Run the Studio world lifecycle test to verify restored building upgrade state in the actual Roblox runtime.
+- [ ] CI validation for world regression test commit 9a29c5f.
