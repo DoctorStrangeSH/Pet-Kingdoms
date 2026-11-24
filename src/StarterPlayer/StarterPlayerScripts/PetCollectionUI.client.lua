@@ -905,6 +905,8 @@ resize = function()
 		title.TextSize = if ultraShort then 13 else (if viewport.X < 360 then 14 else 16)
 		subtitle.Visible = not ultraShort
 		if ultraShort then
+			title.Position = UDim2.fromOffset(10, 5)
+			title.Size = UDim2.new(1, -86, 0, 24)
 			local innerWidth = math.max(180, math.floor(viewport.X * 0.94) - 24)
 			closeButton.Position = UDim2.new(1, -6, 0, 4)
 			closeButton.Size = UDim2.fromOffset(30, 30)
@@ -1020,6 +1022,9 @@ resize = function()
 			interactionRow.Visible = false
 		end
 	else
+		subtitle.Visible = true
+		statusLabel.Visible = true
+		preview.Visible = true
 		panel.Size = if viewport.X < 900 then UDim2.new(0.9, 0, 0.8, 0) else UDim2.fromScale(0.78, 0.78)
 		panelScale.Scale = if viewport.X < 900 then 0.96 else 1
 		if viewport.Y < 540 then
