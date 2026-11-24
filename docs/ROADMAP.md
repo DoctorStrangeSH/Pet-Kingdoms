@@ -872,3 +872,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, `3388827`, `934ddca`, and `fddd5d0`.
 - [ ] Run `PetCompanionSpawnServiceTests.server.lua` in Roblox Studio.
 - [ ] Import and publish the original Bunny mesh in the dedicated test universe, then verify actual model spawn/follow after join, death/respawn and rejoin. Do not enable an unapproved Creator Store replacement.
+ 
+### Stage 1 — Companion ground alignment and obstacle avoidance (2026-11-24)
+
+- [x] Add a model-specific `GroundOffset` contract: procedural Bunny rigs expose their scaled ground clearance; imported mesh pets derive a conservative offset from their published bounding-box height.
+- [x] Ground-snap the follow target using the pet's own offset rather than a hard-coded value shared by every asset.
+- [x] Detect a blocked direct follow segment with a client raycast and select a short-lived lateral waypoint around the obstacle; re-check the direct route after reaching the waypoint.
+- [x] Size the lateral clearance from the obstacle's oriented bounds and the pet's footprint; if both sides are blocked, do not repeatedly steer into the obstruction.
+- [x] Add Studio regression coverage for wall detection, lateral clearance, ground alignment, and scale-aware ground metadata.
+- [ ] Rojo build validation for commits `cfc95c6`, `5cf865d`, `8d26140`, `5cd34b4`, `01768ec`, `a0ddbd2`, `a815332`, `801a993`, and `f21a69e`.
+- [ ] Run `CompanionFollowControllerTests.client.lua` with `Workspace.RunPetKingdomsStudioTests = true` in Roblox Studio; inspect the client Output for every PASS.
+- [ ] Verify following around actual island buildings, fences, paths, ramps, and bridges with the published Bunny mesh. A single wall fixture does not prove full navigation around complex geometry.
+- [ ] Verify walk/run/idle transitions, slopes, jumps, streaming gaps, death/respawn and mobile frame pacing in Studio on desktop and a physical mobile device.
+- [ ] Keep the companion follow stage open until actual Studio and device acceptance is recorded.
