@@ -772,3 +772,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for economy contract test commit f938f1e and missing-material guidance commit fd30e19.
 - [ ] Studio runtime verification: trigger each of the four gathering prompts, confirm HUD balances/toasts, wait for respawn, rejoin during cooldown, and confirm the saved timer/reward.
 - [ ] Studio runtime verification: place all six catalog entries, confirm exact costs are deducted once, and verify buildings plus balances persist after rejoin.
+
+### Stage 1 — Full island persistence round-trip coverage (2026-11-24)
+
+- [x] Extend the dedicated Studio/DataStore integration test to persist and reload a representative placed main house, exact rotated grid coordinates, all four resource balances, level-1 expansion bounds, resource-node cooldown, and the building idempotency receipt.
+- [x] Assert the expanded building coordinates remain the shifted grid coordinates (x=5, z=5) and the expanded plot remains 18×18 after reload.
+- [ ] CI validation for expanded persistence integration test commit 4f3cf84.
+- [ ] Run IslandStoreTests in a dedicated Roblox test universe with Studio API access; the test writes a synthetic DataStore key and must not be treated as a live-user save test.
+- [ ] Run IslandWorldServiceTests in Studio to confirm persisted building records are rendered into the regenerated island world.
+- [ ] Manual end-to-end test: build, gather, expand, leave, rejoin, and compare structures/resources/positions/cooldowns.
