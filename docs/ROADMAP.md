@@ -898,3 +898,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run `PetAnimationControllerTests.server.lua` and `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Server and client Output respectively.
 - [ ] Verify jump timing, landing height, and repeated jump behavior with the published project Bunny mesh on desktop and mobile.
 - [ ] Keep companion movement Stage 1 open until Studio runtime and device checks are recorded.
+ 
+### Stage 1 — Companion slope and ramp alignment (2026-11-24)
+
+- [x] Sample the ground surface normal at a bounded 6–7 Hz rate instead of raycasting every rendered frame.
+- [x] Smoothly orient the companion body to traversable ramp/bridge surfaces while preserving its movement-facing direction.
+- [x] Keep surfaces steeper than 50 degrees on a safe upright fallback to avoid unstable wall-like rotations.
+- [x] Add a Studio client regression fixture using an 18-degree ramp and assert the companion's up vector aligns with the ramp normal.
+- [ ] Rojo build validation for commit `eff6503` and ramp regression commit `8b2c295`.
+- [ ] Run `CompanionFollowControllerTests.client.lua` in Roblox Studio and inspect the client Output.
+- [ ] Verify actual island bridges, ramps, slopes, and flat-to-slope transitions with the published Bunny mesh on desktop and mobile.
+- [ ] Keep movement Stage 1 open until runtime slope, jump, obstacle, and device checks are recorded.
