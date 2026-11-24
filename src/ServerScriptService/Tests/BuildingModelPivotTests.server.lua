@@ -29,7 +29,7 @@ second.Anchored = true
 second.Size = Vector3.new(10, 2, 8)
 second.CFrame = CFrame.new(12, 11.5, 24)
 second.Parent = model
-model.Parent = Workspace
+-- Keep the fixture unparented, matching a freshly cloned ServerStorage template.
 
 local authoredPivot = CFrame.new(17, 13, 29) * CFrame.Angles(0, math.rad(37), 0)
 model:PivotTo(authoredPivot)
