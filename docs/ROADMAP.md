@@ -1243,3 +1243,4 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the guide aligned to the island surface and rotated footprint dimensions; disable query/collision/touch so it cannot interfere with placement input or gameplay.
 - [x] Hide the guide whenever the pointer is not over a valid island cell and destroy it with the preview on cancel/close.
 - [ ] Verify guide alignment for every footprint/rotation, overlap/out-of-bounds colors, touch movement, and no residual outline after cancel in Roblox Studio. Runtime validation pending.
+- [x] GitHub Actions run #759: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
