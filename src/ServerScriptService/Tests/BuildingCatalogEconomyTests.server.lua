@@ -19,6 +19,16 @@ check("wooden fence uses wood", catalog.wooden_fence.cost.wood == 1)
 
 for buildingId, definition in pairs(catalog) do
 	check(buildingId .. " catalog key matches stable ID", definition.id == buildingId)
+	if definition.maxUpgradeLevel then
+		check(buildingId .. " upgrade level cap is valid", definition.maxUpgradeLevel >= 2)
+		check(buildingId .. " upgrade costs exist", type(definition.upgradeCosts) == "table")
+		for targetLevel = 2, definition.maxUpgradeLevel do
+			local upgradeCost = definition.upgradeCosts[targetLevel]
+			check(buildingId .. " has a cost for upgrade level " .. tostring(targetLevel), type(upgradeCost) == "table" and next(upgradeCost) ~= nil)
+			local validUpgradeCost, upgradeCode = resources.validate(upgradeCost)
+			check(buildingId .. " upgrade cost " .. tostring(targetLevel) .. " uses valid resource IDs", validUpgradeCost and upgradeCode == "VALID")
+		end
+	end
 	if definition.cost then
 		check(buildingId .. " cost is not empty", next(definition.cost) ~= nil)
 		local valid, code = resources.validate(definition.cost)
