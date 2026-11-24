@@ -913,14 +913,19 @@ function PetCollectionService.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		local activeState = collections[player.UserId]
-		if activeState == nil or activeState.player ~= player then
+		if activeState ~= nil and activeState.player ~= player then
 			return
 		end
 		if characterConnections[player.UserId] then
 			characterConnections[player.UserId]:Disconnect()
 			characterConnections[player.UserId] = nil
 		end
+		if characterRemovingConnections[player.UserId] then
+			characterRemovingConnections[player.UserId]:Disconnect()
+			characterRemovingConnections[player.UserId] = nil
+		end
 		spawnTokens[player.UserId] = nil
+		spawnedCharacterByUserId[player.UserId] = nil
 		clearSpawnedPets(player)
 		collections[player.UserId] = nil
 		mutationRequestTimes[player.UserId] = nil
