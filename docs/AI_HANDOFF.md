@@ -1536,10 +1536,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 ## Companion follow navigation — 2026-11-24
 
 - [x] The existing client follow controller now uses a per-model `GroundOffset` attribute. The procedural Bunny sets a scale-aware value; published mesh assets derive a conservative offset from their bounding-box height.
-- [x] Added short-lived, client-only obstacle detours. A raycast checks the direct segment from the companion to its formation/investigation target; when blocked, the controller tests lateral waypoints on both sides and selects the lowest-cost route that is not fully blocked.
+- [x] Added short-lived, client-only obstacle detours. A raycast checks the direct segment from the companion to its formation/investigation target; when blocked, the controller tests lateral waypoints on both sides and selects the shortest route with both segments clear and a grounded waypoint; the lateral offset accounts for how the waypoint-to-target segment converges back toward the formation slot.
 - [x] Detour width accounts for the obstacle's oriented BasePart bounds and the pet footprint. If both sides remain blocked, the controller does not keep steering into a corner; it retries on the next scan interval.
 - [x] Added client Studio regression assertions for obstacle detection, lateral clearance, grounded waypoint height, and companion ground metadata at normal and scaled rig sizes.
-- [ ] Rojo build validation for commits `cfc95c6`, `5cf865d`, `8d26140`, `5cd34b4`, `01768ec`, `a0ddbd2`, `a815332`, `801a993`, and `f21a69e`.
+- [ ] Rojo build validation for commits `cfc95c6`, `5cf865d`, `8d26140`, `5cd34b4`, `01768ec`, `a0ddbd2`, `a815332`, `801a993`, `f21a69e`, `b2a3d0e`, and `5e341c8`.
 - [ ] Run `CompanionFollowControllerTests.client.lua` in Studio with Workspace attribute `RunPetKingdomsStudioTests = true`. This test is client-side and its PASS lines must be read from the client Output.
 - [ ] Verify real island obstacles and mobile frame pacing with the published project Bunny mesh. Raycast detours are local steering, not full PathfindingService navigation; narrow mazes or fully enclosed obstacles still require real-world testing and may need a pathfinding stage.
 - [ ] Keep the companion follow stage open until Studio and device checks are recorded.
