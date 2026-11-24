@@ -1025,3 +1025,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend Studio tests for inside-footprint assets, tolerated tiny overhang, excessive overhang, and invalid cell size.
 - [x] Add a Studio audit that scans actual `ServerStorage/BuildingModels` templates using cloned instances, reports missing templates/fallback use, and prints each asset's measured bounds and overhang.
 - [ ] Run the audit in Roblox Studio and correct any real asset overhangs; runtime output has not yet been collected.
+
+
+### Stage 1 — Imported building physics safety (2026-11-24)
+
+- [x] Anchor every BasePart in imported building templates before they enter the live island, preventing loose mesh pieces from falling or separating after spawn/move.
+- [x] Disable touch-event generation on imported building parts while preserving authored `CanCollide` and `CanQuery` behavior.
+- [x] Record physics-preparation counts on the cloned Model for diagnostics.
+- [x] Add Studio smoke tests for anchored state, disabled touch events, and preserved collision/query settings.
+- [ ] Run the imported-template audit and physics tests in Roblox Studio; confirm prompt interaction and player collision on real assets.
