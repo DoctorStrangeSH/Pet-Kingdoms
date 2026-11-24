@@ -1226,3 +1226,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend `IslandWorldServiceTests` to verify main-house level-2 costs and pet-house level-3 costs are replicated from the server catalog.
 - [x] GitHub Actions run #755: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run `IslandWorldServiceTests.server.lua` in Roblox Studio and verify UI labels refresh after upgrade and island reload. Runtime validation pending.
+
+### Stage 1 — Selected-building upgrade cost chips (2026-11-24)
+
+- [x] Replace the long inline upgrade-cost sentence with compact, colored resource chips using the shared wood/stone/gold/gems icon tokens.
+- [x] Keep the building level on its own readable line and show only resources required by the next server-defined upgrade.
+- [x] Hide the cost row at maximum level and retain the available action buttons without leaving empty icon placeholders.
+- [x] Keep all chips and actions inside the responsive context card safe-area bounds.
+- [ ] Verify glyph rendering, cost chip spacing, maximum-level state, and phone/tablet/desktop layouts in Roblox Studio. Runtime visual validation pending.
