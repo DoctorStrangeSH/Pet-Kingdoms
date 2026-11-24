@@ -146,8 +146,8 @@ local wall = Instance.new("Part")
 wall.Name = "CompanionFollowTestWall"
 wall.Anchored = true
 wall.Size = Vector3.new(8, 4, 1)
-wall.CFrame = CFrame.lookAt(obstacleMidpoint + Vector3.new(0, 1, 0),
-	obstacleMidpoint + Vector3.new(0, 1, 0) + obstacleDirection)
+local wallCenter = Vector3.new(obstacleMidpoint.X, 1.5, obstacleMidpoint.Z)
+wall.CFrame = CFrame.lookAt(wallCenter, wallCenter + obstacleDirection)
 wall.Parent = workspace
 controllers[1]:update(1 / 60)
 local detour = controllers[1].pathDetourPosition
