@@ -1818,3 +1818,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `825192d`: quest journal launcher uses the shared safe-area origin and remains within the vertical safe bounds.
 - [x] Active quest tracker uses a safe-area anchored bottom-left position, caps width to `safeSize.X - margin`, and caps height for short viewports. Removed the forced 190 px width floor that could exceed the available space.
 - [ ] Validate actual touch target placement and overlap with resource/build/pet HUD in Studio at phone landscape/portrait, tablet, and desktop sizes.
+
+
+## Pet and expansion launchers safe-area alignment — 2026-11-24
+
+- [x] Commit `31b6cf7`: Pet Collection launcher now computes its right-side position from safe origin/size and clamps its vertical center inside the safe rectangle.
+- [x] Commit `fc6647a`: Island Expansion launcher uses the same safe-area positioning and vertical clamping; its prior viewport-relative placement is removed.
+- [ ] Verify touch-target spacing, visual alignment, and notch/top-bar insets on actual Roblox Studio device emulation. Runtime validation pending.
