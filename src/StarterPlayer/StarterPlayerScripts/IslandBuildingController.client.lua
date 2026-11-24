@@ -645,6 +645,9 @@ local function selectBuilding(model: Model?)
 		then "УДАЛИТЬ"
 		else "ДЕМОНТИРОВАТЬ"
 	if model then
+		-- Treat the context card as the active top-level interaction surface so
+		-- it cannot remain underneath another modal window.
+		ModalManager.Open(script.Name)
 		updateBuildingContext(model)
 		-- Make world selection visible; action buttons alone are too subtle,
 		-- especially on mobile where the player taps a small building model.
@@ -667,6 +670,7 @@ local function selectBuilding(model: Model?)
 	else
 		selectionPanel.Visible = false
 		upgradeButton.Visible = false
+		ModalManager.Close(script.Name)
 		setStatus("Постройка не выбрана")
 	end
 	resizeBuildingPanel()
@@ -1415,7 +1419,6 @@ local function stopPlacing()
 	movingInstanceId = nil
 	panel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = not recoveryPanel.Visible end
-	if not overview.Visible then ModalManager.Close(script.Name) end
 	clearPreview()
 	mainHouseButton.Active = true
 	petHouseButton.Active = true
@@ -1429,8 +1432,10 @@ local function stopPlacing()
 		moveButton.Visible = true
 		demolishButton.Visible = selectedCatalog ~= "main_house"
 		updateBuildingContext(selectedBuildingModel)
+		if not overview.Visible then ModalManager.Open(script.Name) end
 	else
 		selectionPanel.Visible = false
+		if not overview.Visible then ModalManager.Close(script.Name) end
 	end
 end
 
