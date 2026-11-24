@@ -975,3 +975,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run pinned Rojo build validation for implementation commit `5e524b7`.
 - [ ] Verify 320×180 and 360×180 in Roblox Studio: panel bounds, catalog horizontal scroll, rotate, confirm, cancel, close, touch placement, pending-operation recovery and launcher restoration.
 - [ ] Verify selection Move/Demolish actions, overview modal handoff and portrait/desktop restoration. Stage 1 remains open.
+
+
+### Stage 1 — Construction preview safety (2026-11-24)
+
+- [x] Add a single preview invalidation path for the no-free-cell case: clear selected grid coordinates, clear validity/lock state, hide the footprint, hide all ghost parts and disable its Highlight.
+- [x] Apply the same invalidation when the island grid is unavailable while seeding the initial preview.
+- [ ] Verify no-free-cell behavior for every catalog item in Studio; preview must disappear and Confirm must remain disabled.
+- [ ] Verify that switching from a valid item to an item with no free footprint cannot leave an old ghost or stale coordinates.
+- [ ] Verify returning to a valid catalog item restores a fresh preview and placement still requires an explicit tap/drag. Stage 1 remains open.
