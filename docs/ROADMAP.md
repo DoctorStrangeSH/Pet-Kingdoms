@@ -985,3 +985,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Verify no-free-cell behavior for every catalog item in Studio; preview must disappear and Confirm must remain disabled.
 - [ ] Verify that switching from a valid item to an item with no free footprint cannot leave an old ghost or stale coordinates.
 - [ ] Verify returning to a valid catalog item restores a fresh preview and placement still requires an explicit tap/drag. Stage 1 remains open.
+
+
+### Stage 1 — Shared placement geometry contract (2026-11-24)
+
+- [x] Use the shared ReplicatedStorage GridMath helpers in the client preview for rotated footprints, island bounds, and occupied-footprint intersection instead of maintaining separate rectangle-overlap arithmetic.
+- [x] Replicate each server-catalog building's base footprint dimensions as `FootprintWidth`/`FootprintDepth` attributes on spawned and transaction-synced world Models; client overlap checks now read those authoritative dimensions.
+- [x] Invalidate the current preview cell and visual when the island grid becomes unavailable instead of retaining stale coordinates.
+- [ ] Verify existing buildings expose footprint attributes after initial spawn, move, upgrade, and island refresh in Studio.
+- [ ] Compare preview center/rotation against actual server-spawned Models on rotated spawn points and after island expansion; Stage 1 remains open pending runtime/device tests.
