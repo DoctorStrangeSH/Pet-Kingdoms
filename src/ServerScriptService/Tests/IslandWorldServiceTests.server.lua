@@ -116,6 +116,11 @@ local ok, failure = pcall(function()
 	assert(savedWoodMarker and savedWoodMarker:IsA("BillboardGui") and not savedWoodMarker.Enabled,
 		"gathering marker must also be hidden during a restored cooldown")
 
+	assert(mainHouse and mainHouse:GetAttribute("MaxUpgradeLevel") == 3,
+		"spawned main house must expose its server-owned upgrade level cap")
+	assert(mainHouse and mainHouse:GetAttribute("NextUpgradeWoodCost") == 12
+		and mainHouse:GetAttribute("NextUpgradeStoneCost") == 6,
+		"spawned main house must expose the server-owned cost for its next upgrade")
 	local mainHousePrompt = mainHouse and mainHouse:FindFirstChild("MainHousePrompt", true)
 	assert(mainHousePrompt and mainHousePrompt:IsA("ProximityPrompt"), "main house must expose its kingdom interaction")
 	assert(mainHousePrompt.ActionText == "Управлять королевством", "main house prompt must have localized action text")
@@ -124,6 +129,11 @@ local ok, failure = pcall(function()
 	assert(petHouse and petHouse:IsA("Model"), "saved pet house must be rendered")
 	assert(petHouse and petHouse:GetAttribute("UpgradeLevel") == 2,
 		"spawned pet house must restore its saved level-2 upgrade attribute")
+	assert(petHouse and petHouse:GetAttribute("MaxUpgradeLevel") == 3,
+		"spawned pet house must expose its server-owned upgrade level cap")
+	assert(petHouse and petHouse:GetAttribute("NextUpgradeWoodCost") == 20
+		and petHouse:GetAttribute("NextUpgradeStoneCost") == 12,
+		"level-2 pet house must expose level-3 costs from the server catalog")
 	local petHousePrompt = petHouse and petHouse:FindFirstChild("PetHousePrompt", true)
 	assert(petHousePrompt and petHousePrompt:IsA("ProximityPrompt"), "pet house must expose its collection interaction")
 	assert(petHousePrompt.ActionText == "Открыть коллекцию", "pet house prompt must have localized action text")
