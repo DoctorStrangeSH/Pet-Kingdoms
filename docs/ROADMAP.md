@@ -732,3 +732,13 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Verify all six cards can be tapped and horizontally scrolled on 320/360/390 px screens; confirm rotate/place/cancel remain reachable and do not overlap.
 - [ ] Verify building preview tracks touch and mouse, invalid cells are rejected, and successful placement persists in Studio.
 - [ ] Stage 1 remains open pending device/runtime checks and final icon asset replacement.
+
+### Stage 1 — Live placement rotation feedback (2026-11-24)
+
+- [x] Route both the on-screen rotate button and PC R key through one placement-rotation handler.
+- [x] Refresh the visible ghost immediately after rotation, even before a touch player has locked a target cell.
+- [x] Preserve a locked placement cell when rotating and revalidate the rotated footprint; if no cell has been chosen yet, reseed the preview at the nearest free grid cell.
+- [x] Confirm the compact construction tray CI passed (7b08295, run 45350460447).
+- [ ] CI validation for immediate rotation feedback commit 07791bf.
+- [ ] Verify touch rotate updates the silhouette before confirmation; verify invalid rotated footprints become red and cannot be submitted.
+- [ ] Verify the full six-entry place/move/cancel/save flow in Roblox Studio; Stage 1 remains open.
