@@ -40,6 +40,12 @@ expect("walk animates front legs", leftLeg ~= nil and leftLeg:IsA("Motor6D") and
 
 expect("run state is accepted", controller:setState("run"))
 controller:update(1 / 30)
+expect("jump state is accepted", controller:setState("jump"))
+controller:update(1 / 30)
+local frontLeg = bunny:FindFirstChild("Body_FrontLeftLeg", true)
+local backLeg = bunny:FindFirstChild("Body_BackLeftLeg", true)
+expect("jump tucks the front paws", frontLeg ~= nil and frontLeg:IsA("Motor6D") and frontLeg.Transform ~= CFrame.identity)
+expect("jump folds the hind legs", backLeg ~= nil and backLeg:IsA("Motor6D") and backLeg.Transform ~= CFrame.identity)
 expect("happy state is accepted", controller:setState("happy"))
 controller:update(1 / 30)
 expect("curious state is accepted", controller:setState("curious"))
