@@ -58,13 +58,51 @@ local openButton = make("TextButton", {
 	Position = UDim2.new(1, -22, 0.55, 0),
 	Size = UDim2.fromOffset(62, 62),
 	BackgroundColor3 = COLORS.panel,
-	Text = InterfaceTheme.Icons.Pet,
+	Text = "",
 	TextSize = 30,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 	AutoButtonColor = true,
 }, screen) :: TextButton
 InterfaceComponents.StyleFloatingButton(openButton, "mint")
+
+local function addPawIcon(parent: Instance, position: UDim2, size: number)
+	local paw = make("Frame", {
+		Name = "PawIcon",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = position,
+		Size = UDim2.fromOffset(size, size),
+		BackgroundTransparency = 1,
+	}, parent)
+	local tint = COLORS.cream
+	local pad = make("Frame", {
+		Name = "Pad",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.68, 0),
+		Size = UDim2.fromOffset(size * 0.48, size * 0.36),
+		BackgroundColor3 = tint,
+		BorderSizePixel = 0,
+	}, paw)
+	make("UICorner", { CornerRadius = UDim.new(1, 0) }, pad)
+	for index, offset in ipairs({
+		Vector2.new(0.19, 0.34), Vector2.new(0.39, 0.16),
+		Vector2.new(0.62, 0.16), Vector2.new(0.82, 0.34),
+	}) do
+		local toe = make("Frame", {
+			Name = "Toe" .. index,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(offset.X, offset.Y),
+			Size = UDim2.fromOffset(size * 0.2, size * 0.24),
+			Rotation = if index <= 2 then -18 else 18,
+			BackgroundColor3 = tint,
+			BorderSizePixel = 0,
+		}, paw)
+		make("UICorner", { CornerRadius = UDim.new(1, 0) }, toe)
+	end
+	return paw
+end
+
+addPawIcon(openButton, UDim2.fromScale(0.5, 0.5), 28)
 
 local shade = make("TextButton", {
 	Name = "Shade",
@@ -589,15 +627,7 @@ local function renderList()
 			}, list) :: TextButton
 			make("UICorner", { CornerRadius = UDim.new(0, 13) }, button)
 			make("UIStroke", { Color = if equipped then COLORS.mint else COLORS.cardSelected, Thickness = 1, Transparency = 0.25 }, button)
-			make("TextLabel", {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 12, 0, 5),
-				Size = UDim2.fromOffset(46, 54),
-				Text = if record.speciesId == "bunny" then InterfaceTheme.Icons.Bunny else InterfaceTheme.Icons.Pet,
-				TextSize = 29,
-				Font = Enum.Font.Gotham,
-				TextColor3 = COLORS.cream,
-			}, button)
+			addPawIcon(button, UDim2.new(0, 35, 0.5, 0), 27)
 			make("TextLabel", {
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0, 66, 0, 12),
