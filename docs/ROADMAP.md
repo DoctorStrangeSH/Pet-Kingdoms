@@ -1211,6 +1211,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Replace the two detached selection buttons with one compact context card containing the building name, current level, upgrade cost, and close control.
 - [x] Fit the card and its visible actions to the safe viewport; show Move, Upgrade, and Demolish only when each action is available.
 - [x] Keep the context card hidden while construction/move placement mode is active and restore it when placement closes.
+- [x] Register the context card with the shared modal coordinator so it closes when another top-level window opens and cannot remain stacked beneath other menus.
 - [x] Wire the Upgrade action to the existing server-authoritative, idempotent upgrade transaction; display server rejection messages and preserve pending-operation recovery on timeouts.
 - [x] Publish the resource snapshot after a successful upgrade so the resource HUD refreshes instead of showing stale balances.
 - [x] Re-select the replacement world model after server-side upgrade synchronization rebuilds the model, keeping the context card/highlight attached to the upgraded building.
