@@ -334,11 +334,14 @@ task.spawn(function()
 	while player.Parent ~= nil do
 		attempt += 1
 		local result = RequestRunner.Invoke(function()
-			return request:InvokeServer("Get")
+			-- RemoteFunction returns (success, snapshot, revision). Pack the
+			-- tuple explicitly because RequestRunner's callback result is one value.
+			return table.pack(request:InvokeServer("Get"))
 		end, 12)
-		if result.ok then
-			local success, snapshot = result.value
-			if success == true then
+		if result.ok and type(result.value) == "table" then
+			local response = result.value
+			local success, snapshot = response[1], response[2]
+			if success == true and type(snapshot) == "table" then
 				applySnapshot(snapshot)
 				return
 			end
