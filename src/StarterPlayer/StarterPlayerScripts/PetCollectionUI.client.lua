@@ -946,7 +946,10 @@ resize = function()
 		-- IgnoreGuiInset=false: position within the usable ScreenGui area,
 		-- not the raw camera viewport, so top-bar/notch space is respected.
 		panel.AnchorPoint = Vector2.new(0.5, 0.5)
-		panel.Position = UDim2.fromOffset(safeSize.X * 0.5, safeSize.Y * 0.5)
+		panel.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
 		panel.Size = UDim2.fromOffset(safePanelSize.X, safePanelSize.Y)
 		panelScale.Scale = 1
 		title.TextSize = if ultraShort then 13 else (if viewport.X < 360 then 14 else 16)
