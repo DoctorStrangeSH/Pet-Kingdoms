@@ -907,7 +907,6 @@ resize = function()
 		if ultraShort then
 			title.Position = UDim2.fromOffset(10, 5)
 			title.Size = UDim2.new(1, -86, 0, 24)
-			local innerWidth = math.max(180, math.floor(viewport.X * 0.94) - 24)
 			closeButton.Position = UDim2.new(1, -6, 0, 4)
 			closeButton.Size = UDim2.fromOffset(30, 30)
 			if mobileDetailVisible then
