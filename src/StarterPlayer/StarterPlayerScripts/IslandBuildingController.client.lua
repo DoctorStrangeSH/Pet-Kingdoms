@@ -19,16 +19,9 @@ end
 local camera = Workspace.CurrentCamera
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceBuilding") :: RemoteFunction
 local GridMath = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
+local BUILDING_SIZES = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("BuildingFootprints"))
 
 local selectedCatalogId = "main_house"
-local BUILDING_SIZES = {
-	main_house = { width = 3, depth = 3 },
-	pet_house = { width = 3, depth = 3 },
-	stone_path = { width = 1, depth = 1 },
-	garden_lantern = { width = 1, depth = 1 },
-	flower_bed = { width = 1, depth = 1 },
-	wooden_fence = { width = 1, depth = 1 },
-}
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
 local BUILDING_DEPTH = BUILDING_SIZES.main_house.depth
 local rotation = 0
