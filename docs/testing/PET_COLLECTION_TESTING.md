@@ -83,7 +83,7 @@ The jump regression is part of `CompanionFollowControllerTests.client.lua`. It u
 These are deterministic controller/pose checks. They do not replace testing the published Bunny mesh, real character jump timing, slopes, bridges, or mobile performance.
 ## 7. Companion ramp alignment test — Studio only
 
-The client follow regression also creates a temporary 18-degree ramp and verifies that the Bunny's body up vector converges toward the ramp surface normal while staying within the supported slope limit.
+The client follow regression creates a temporary 18-degree ramp and verifies that the Bunny's body up vector converges toward its surface normal. It then changes the fixture to a 65-degree surface and verifies that the companion stays upright instead of tilting onto a near-vertical face.
 
 1. Use the dedicated Studio test place with Workspace boolean attribute `RunPetKingdomsStudioTests = true`.
 2. Start **Test → Start** with a client and keep the selected client's Output visible.
