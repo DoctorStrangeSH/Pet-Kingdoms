@@ -1783,3 +1783,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 
 - [x] Commit `81a6d04`: Resource HUD consumes `InterfaceComponents.GetSafeViewport`; compact layout reserves the construction launcher lane using safe width, and desktop centers/clamps within the safe area.
 - [ ] Verify in Studio with actual top-bar/device insets and launcher overlap at the documented phone/tablet/desktop viewports. Runtime visual validation pending.
+
+
+## Modal cleanup on character removal/respawn — 2026-11-24
+
+- [x] Commit `6040e24`: `ModalManager` listens to the local player's `CharacterRemoving` and `CharacterAdded`, deferring `CloseAll()` to clear all registered modal visibility/focus across death and respawn. The UI ScreenGuis intentionally use `ResetOnSpawn=false`, so explicit cleanup is required.
+- [x] Window-specific cleanup remains in each registration callback; building's callback preserves in-flight transaction handling rather than blindly cancelling a server request.
+- [ ] Studio runtime checks remain required for death/reset/manual respawn with each window and nested confirmation open, and during active construction requests.
