@@ -1341,8 +1341,10 @@ local function beginMoveSelected()
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
 	panel.Visible = true
+	selectionPanel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
+	upgradeButton.Visible = false
 	demolishButton.Visible = false
 	mainHouseButton.Active = false
 	petHouseButton.Active = false
@@ -1410,6 +1412,9 @@ local function stopPlacing()
 		local selectedCatalog = selectedBuildingModel:GetAttribute("BuildingCatalogId")
 		moveButton.Visible = true
 		demolishButton.Visible = selectedCatalog ~= "main_house"
+		updateBuildingContext(selectedBuildingModel)
+	else
+		selectionPanel.Visible = false
 	end
 end
 
@@ -1424,8 +1429,10 @@ local function beginPlacing()
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
 	panel.Visible = true
+	selectionPanel.Visible = false
 	if buildEntryButton then buildEntryButton.Visible = false end
 	moveButton.Visible = false
+	upgradeButton.Visible = false
 	demolishButton.Visible = false
 	createPreview()
 	if currentPreview == nil then
@@ -1435,6 +1442,7 @@ local function beginPlacing()
 		if selectedBuildingModel and selectedBuildingModel.Parent then
 			moveButton.Visible = true
 			demolishButton.Visible = selectedBuildingModel:GetAttribute("BuildingCatalogId") ~= "main_house"
+			updateBuildingContext(selectedBuildingModel)
 		end
 		return
 	end
