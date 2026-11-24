@@ -10,6 +10,51 @@ export type Bounds = {
 	depth: number,
 }
 
+export type FootprintFit = {
+	fits: boolean,
+	overhangX: number,
+	overhangZ: number,
+	expectedWidth: number,
+	expectedDepth: number,
+}
+
+-- A small tolerance absorbs floating-point and tiny bevel/trim differences.
+-- This is diagnostic only: oversized art is reported, never silently rescaled.
+function BuildingModelPivot.checkFootprintFit(
+	bounds: Bounds,
+	footprintWidth: number,
+	footprintDepth: number,
+	cellSize: number,
+	tolerance: number?
+): FootprintFit?
+	if type(footprintWidth) ~= "number" or footprintWidth <= 0
+		or type(footprintDepth) ~= "number" or footprintDepth <= 0
+		or type(cellSize) ~= "number" or cellSize <= 0
+		or cellSize ~= cellSize or cellSize == math.huge or cellSize == -math.huge
+	then
+		return nil
+	end
+
+	local allowedOverhang = tolerance or cellSize * 0.05
+	if type(allowedOverhang) ~= "number" or allowedOverhang < 0
+		or allowedOverhang ~= allowedOverhang or allowedOverhang == math.huge
+	then
+		return nil
+	end
+
+	local expectedWidth = footprintWidth * cellSize
+	local expectedDepth = footprintDepth * cellSize
+	local overhangX = math.max(0, bounds.width - expectedWidth)
+	local overhangZ = math.max(0, bounds.depth - expectedDepth)
+	return {
+		fits = overhangX <= allowedOverhang and overhangZ <= allowedOverhang,
+		overhangX = overhangX,
+		overhangZ = overhangZ,
+		expectedWidth = expectedWidth,
+		expectedDepth = expectedDepth,
+	}
+end
+
 function BuildingModelPivot.normalizeToGroundCenter(model: Model): Bounds?
 	-- Cloned templates are intentionally normalized before parenting so their
 	-- pivot is correct before the placement transform is applied.
