@@ -14,6 +14,7 @@ local KingdomBond = require(script.Parent:WaitForChild("KingdomBond"))
 local IslandResourceNodeCatalog = require(script.Parent:WaitForChild("IslandResourceNodeCatalog"))
 local IslandResourceNodeData = require(script.Parent:WaitForChild("IslandResourceNodeData"))
 local GridMath = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
+local BuildingModelPivot = require(script.Parent:WaitForChild("BuildingModelPivot"))
 
 local IslandWorldService = {}
 
@@ -421,7 +422,17 @@ local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
 	local templates = ServerStorage:FindFirstChild(BUILDING_FOLDER_NAME)
 	local template = templates and templates:FindFirstChild(catalogId)
 	if template and template:IsA("Model") then
-		return template:Clone()
+		local clone = template:Clone()
+		local bounds = BuildingModelPivot.normalizeToGroundCenter(clone)
+		if bounds == nil then
+			warn(string.format("[PetKingdoms] Building template '%s' has invalid visual bounds; using procedural fallback.", catalogId))
+			clone:Destroy()
+			return createFallbackBuilding(catalogId, cellSize)
+		end
+		clone:SetAttribute("VisualBoundsWidth", bounds.width)
+		clone:SetAttribute("VisualBoundsHeight", bounds.height)
+		clone:SetAttribute("VisualBoundsDepth", bounds.depth)
+		return clone
 	end
 	return createFallbackBuilding(catalogId, cellSize)
 end
