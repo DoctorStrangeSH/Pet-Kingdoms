@@ -1732,3 +1732,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `42a6106`: compact quest cards now use 84 px horizontal summaries. Two current introductory objectives fit in the normal compact viewport without a vertical swipe; scrolling remains available for future additional quests.
 - [x] Commit `83d9eeb`: panel height is clamped against the actual viewport for very short and short screens, instead of fixed heights that could exceed the viewport.
 - [ ] Verify 320×180, 320×240, 360×360, 443×426, and desktop in Studio; check status footer and refresh/close controls after each orientation change.
+
+
+## Compact top HUD collision fix — 2026-11-24
+
+- [x] Commit `cf7faf6`: compact resource HUD now uses a left-aligned lane and computes its width after reserving the top-right construction launcher lane. Desktop keeps its centered 420 px resource bar.
+- [x] Commit `69f4361`: construction launcher uses a 112 px width below 360 px viewport width and 128 px otherwise, matching the HUD's reserved lane.
+- [ ] Studio verification remains required at 320×180, 360×360, 443×426 and 482×467. Check icon/label readability, touch hitboxes, and launcher/resource separation.
+- [ ] This is a source-level layout correction, not a claim of device or runtime acceptance.
