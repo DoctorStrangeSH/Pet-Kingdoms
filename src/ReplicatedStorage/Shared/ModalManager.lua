@@ -20,26 +20,54 @@ local function getRegisteredNames(): { string }
 	return names
 end
 
-local function invokeClose(name: string, reason: string)
-	local handler = handlers[name]
-	if handler == nil then return end
+local function invokeHandler(name: string, handler: CloseHandler, reason: string)
 	local ok, err = pcall(handler, reason)
 	if not ok then
 		warn("[PetKingdomsUI] Failed to close " .. name .. ": " .. tostring(err))
 	end
 end
 
+local function invokeClose(name: string, reason: string)
+	local handler = handlers[name]
+	if handler == nil then return end
+	invokeHandler(name, handler, reason)
+end
+
 function ModalManager.Register(name: string, closeHandler: CloseHandler)
 	assert(name ~= "", "Modal name cannot be empty")
 	assert(type(closeHandler) == "function", "Modal close handler must be a function")
-	handlers[name] = closeHandler
+
+	-- A LocalScript can be rebound while its old controller still owns a visible
+	-- panel. Remove the old registration before invoking cleanup so callbacks
+	-- cannot recursively unregister themselves or leave stale focus behind.
+	local previousHandler = handlers[name]
+	if previousHandler ~= nil then
+		handlers[name] = nil
+		if activeWindow == name then
+			activeWindow = nil
+			activeChanged:Fire(nil)
+		end
+		invokeHandler(name, previousHandler, "reregister")
+	end
+
+	-- A cleanup callback may have deliberately installed a newer controller.
+	-- Do not overwrite that registration with an older caller's callback.
+	if handlers[name] == nil then
+		handlers[name] = closeHandler
+	end
 end
 
 function ModalManager.Unregister(name: string)
+	-- Clean up even when focus bookkeeping was lost: a stale panel or
+	-- input-blocking shade must not survive controller teardown.
+	local previousHandler = handlers[name]
 	handlers[name] = nil
 	if activeWindow == name then
 		activeWindow = nil
 		activeChanged:Fire(nil)
+	end
+	if previousHandler ~= nil then
+		invokeHandler(name, previousHandler, "unregister")
 	end
 end
 
