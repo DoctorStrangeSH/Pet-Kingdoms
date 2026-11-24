@@ -70,3 +70,14 @@ The test creates and removes a temporary floor and wall in Workspace. It does no
 3. Confirm the final `PetCompanionSpawnService tests completed` message appears without an assertion error.
 
 The test uses a synthetic owner ID and the procedural prototype factory injected only by the test. It removes its temporary owner folder after completion and does not grant or modify any real player's collection.
+## 6. Owner-triggered companion jump test — Studio only
+
+The jump regression is part of `CompanionFollowControllerTests.client.lua`. It uses a test character with a Humanoid and checks that one owner take-off starts a single companion hop, the companion gains vertical height, descending Freefall does not restart the hop, and the companion returns to its ground-follow state.
+
+1. Use the dedicated Studio test place and enable Workspace boolean attribute `RunPetKingdomsStudioTests = true`.
+2. Start **Test → Start** with a client. Keep the selected client's Output visible.
+3. Confirm PASS lines for owner take-off, airborne animation, vertical lift, no retrigger during Freefall, and completed landing.
+4. Run `PetAnimationControllerTests.server.lua` and confirm the server Output reports that the procedural jump state and tucked limb poses pass.
+5. Remove the test attribute after the run.
+
+These are deterministic controller/pose checks. They do not replace testing the published Bunny mesh, real character jump timing, slopes, bridges, or mobile performance.
