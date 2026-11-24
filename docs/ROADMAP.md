@@ -130,6 +130,7 @@
 - [x] Preserve the same client request ID for placement/move retries while the server reports BUILDING_OPERATION_IN_PROGRESS, BUILDING_OPERATION_BUSY, PERSIST_TIMEOUT, or SESSION_NOT_WRITABLE; clear it only after a definitive response (Studio fault-injection verification pending).
 - [ ] Complete server-side placement validation (catalog and validator are committed; Studio smoke tests remain unrun).
 - [x] Add Studio smoke-test coverage for placement validation and grid math (scripts committed; execution pending).
+- [x] Extend placement-validator smoke coverage for 270-degree rectangular footprints, exact rotated boundaries, out-of-bounds rejection, rotated overlap rejection, and edge-adjacent acceptance (Studio execution pending).
 - [x] Add server-authoritative placement/move/demolition transaction endpoint with recent request deduplication and world/profile rollback (Studio integration verification pending).
 - [x] Require the exact current Player instance and writable island lease before building mutations.
 - [x] Persist building operation receipts in the same island profile revision as placement/move/demolition results; fingerprint request payloads, replay only after the receipt revision is durable, and retain 512 recent receipts for seven days (Studio DataStore restart/failure-injection verification pending).
