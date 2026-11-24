@@ -415,7 +415,7 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera, screen)
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500

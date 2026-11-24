@@ -1158,3 +1158,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Pet Collection, Quest Journal, and Island Expansion now center their modal panels relative to both `safeOrigin` and `safeSize`, matching the shared safe-area coordinate model used by their launchers and HUD controls.
 - [x] GitHub Actions run #732: pinned Rojo version verification, full place build, and Studio-ready artifact upload all passed.
 - [ ] Verify all three panels with Roblox GUI insets in portrait, short landscape, tablet, and desktop Device Emulator configurations. Stage 1 remains open.
+
+### Stage 1 — Safe-area coordinates respect ScreenGui inset mode (2026-11-24)
+
+- [x] Extend `InterfaceComponents.GetSafeViewport(camera, screenGui)` so its returned origin is expressed in the caller's actual ScreenGui coordinate space.
+- [x] For `IgnoreGuiInset=false`, use a zero local origin because Roblox applies the top-bar inset to the ScreenGui automatically; still clamp the usable size by both GUI insets.
+- [x] For `IgnoreGuiInset=true`, retain the explicit top-left inset origin so the same helper supports full-viewport ScreenGuis without double-offsetting.
+- [x] Pass each owning ScreenGui from Construction, Resource HUD, Island Expansion, Quest Journal, and Pet Collection.
+- [ ] Verify safe-area origin and panel/launcher alignment in Roblox Studio with both inset modes, phone portrait/landscape, tablet, and desktop. Runtime visual validation pending.

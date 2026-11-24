@@ -911,7 +911,7 @@ end
 resize = function()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
+	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera, screen)
 	compactCollection = viewport.X < 650
 	local launcherCompact = viewport.X < 560
 	openButton.Size = UDim2.fromOffset(launcherCompact and 48 or 62, launcherCompact and 48 or 62)

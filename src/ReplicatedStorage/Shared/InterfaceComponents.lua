@@ -5,20 +5,22 @@ local Theme = require(script.Parent:WaitForChild("InterfaceTheme"))
 local GuiService = game:GetService("GuiService")
 local Components = {}
 
--- Returns the camera viewport plus the usable rectangle after Roblox's
--- top-bar/notch insets. UI panels can center and clamp against this rectangle
--- instead of assuming the entire viewport is available.
-function Components.GetSafeViewport(camera: Camera?): (Vector2, Vector2, Vector2)
+-- Returns the usable rectangle in the coordinate space of the supplied
+-- ScreenGui. Roblox already offsets ScreenGuis with IgnoreGuiInset=false, so
+-- their local origin is zero; IgnoreGuiInset=true needs the explicit inset.
+function Components.GetSafeViewport(camera: Camera?, screenGui: ScreenGui?): (Vector2, Vector2, Vector2)
 	local activeCamera = camera or workspace.CurrentCamera
 	local viewport = if activeCamera then activeCamera.ViewportSize else Vector2.zero
 	local topLeftInset, bottomRightInset = GuiService:GetGuiInset()
+	local ignoreGuiInset = screenGui ~= nil and screenGui.IgnoreGuiInset
+	local originInset = if ignoreGuiInset then topLeftInset else Vector2.zero
 	local safeOrigin = Vector2.new(
-		math.clamp(topLeftInset.X, 0, viewport.X),
-		math.clamp(topLeftInset.Y, 0, viewport.Y)
+		math.clamp(originInset.X, 0, viewport.X),
+		math.clamp(originInset.Y, 0, viewport.Y)
 	)
 	local safeSize = Vector2.new(
-		math.max(0, viewport.X - safeOrigin.X - math.max(0, bottomRightInset.X)),
-		math.max(0, viewport.Y - safeOrigin.Y - math.max(0, bottomRightInset.Y))
+		math.max(0, viewport.X - math.max(0, topLeftInset.X) - math.max(0, bottomRightInset.X)),
+		math.max(0, viewport.Y - math.max(0, topLeftInset.Y) - math.max(0, bottomRightInset.Y))
 	)
 	return viewport, safeOrigin, safeSize
 end

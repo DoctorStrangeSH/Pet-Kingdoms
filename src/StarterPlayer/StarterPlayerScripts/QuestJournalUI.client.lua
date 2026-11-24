@@ -594,7 +594,7 @@ end)
 local function resize()
 	local camera = workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
+	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera, screen)
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500

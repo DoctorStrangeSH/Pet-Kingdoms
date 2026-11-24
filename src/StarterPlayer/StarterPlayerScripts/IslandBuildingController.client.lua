@@ -363,7 +363,7 @@ local buildEntryButton: TextButton? = nil
 local function resizeBuildingPanel()
 	local activeCamera = Workspace.CurrentCamera
 	if activeCamera == nil then return end
-	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(activeCamera)
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(activeCamera, gui)
 	local compact = viewport.X < 520
 	local ultraShort = compact and safeSize.Y < 220
 	compactBuildingUI = compact
