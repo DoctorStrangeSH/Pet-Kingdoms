@@ -953,3 +953,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run pinned Rojo build validation for Quest Journal commit `ffea06e` and Island Expansion commit `80fc57e`.
 - [ ] Verify at 320×180 and 360×180 that each panel remains fully on-screen, buttons remain tappable, list/cards do not overlap, and returning to portrait restores the normal compact layout.
 - [ ] Continue remaining Pet Collection, building, Resource HUD, and notification safe-area regression. Stage 1 remains open.
+
+
+### Stage 1 — Pet Collection ultra-short landscape reflow (2026-11-24)
+
+- [x] Add a dedicated `ViewportSize.Y < 220` mode and size the collection panel to viewport height minus 20 px instead of enforcing the 280 px portrait minimum.
+- [x] Reflow the collection list into a single-column compact view: title/close, search, filters, and a scrollable pet list all remain reachable on 320×180 / 360×180 layouts.
+- [x] Reflow the selected-pet view: retain Back, favorite, lock, equip, main-pet and delete actions; hide preview/description/bond details that cannot fit safely at this height.
+- [x] Restore subtitle, status, preview and other normal controls after rotating back to a taller viewport.
+- [ ] Run pinned Rojo build validation for implementation commits `ed55732`, `5bbf9fb`, and cleanup commit `f517f67`.
+- [ ] Verify at 320×180 and 360×180 in Roblox Studio: list scrolling, search focus, each filter, select/back, favorite, lock, equip, main-pet, delete confirmation/cancel, close/shade and portrait restoration.
+- [ ] Verify touch targets and safe-area behavior on physical phone/tablet. Stage 1 remains open.
