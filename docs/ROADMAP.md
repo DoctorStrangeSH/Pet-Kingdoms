@@ -1175,3 +1175,9 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Center the nested delete-confirmation panel in the same safe viewport so it does not drift toward the raw ScreenGui center on inset devices.
 - [x] GitHub Actions run #736: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify collection open/close/reopen, delete confirmation, resize/orientation changes, and touch/backdrop behavior in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Building input hit-test respects all visible UI surfaces (2026-11-24)
+
+- [x] Placement/world-selection hit testing now treats every visible `GuiObject` returned at the pointer location as UI-owned space, not only buttons, scrolling frames, and text boxes.
+- [x] Prevent taps on empty construction-panel padding, labels, and other visible HUD surfaces from selecting or locking the world cell underneath them.
+- [ ] Verify mouse and touch placement over panel background, labels, catalogue, buttons, HUD, and unobstructed island ground in Roblox Studio. Runtime interaction validation pending.

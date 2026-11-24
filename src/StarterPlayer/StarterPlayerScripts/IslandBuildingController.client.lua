@@ -1375,8 +1375,11 @@ local touchStartedPlacing = false
 local touchDraggingPlacement = false
 
 local function isOverInteractiveGui(screenPosition: Vector2): boolean
+	-- Any visible GUI surface owns its screen-space area, not only buttons.
+	-- Ignoring plain Frames/TextLabels let clicks on empty panel padding or
+	-- labels pass through and select the island cell underneath the UI.
 	for _, object in ipairs(playerGui:GetGuiObjectsAtPosition(screenPosition.X, screenPosition.Y)) do
-		if object:IsA("GuiButton") or object:IsA("ScrollingFrame") or object:IsA("TextBox") then
+		if object:IsA("GuiObject") and object.Visible then
 			return true
 		end
 	end
