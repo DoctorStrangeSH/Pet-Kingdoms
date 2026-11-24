@@ -1129,6 +1129,8 @@ local function beginMoveSelected()
 	local instanceId = model:GetAttribute("BuildingInstanceId")
 	local catalogId = model:GetAttribute("BuildingCatalogId")
 	local savedRotation = model:GetAttribute("GridRotation")
+	local savedX = model:GetAttribute("GridX")
+	local savedZ = model:GetAttribute("GridZ")
 	if type(instanceId) ~= "string" or type(catalogId) ~= "string" or BUILDING_SIZES[catalogId] == nil then
 		setStatus("Не удалось прочитать данные постройки", false)
 		return
@@ -1171,9 +1173,19 @@ local function beginMoveSelected()
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
 		return
 	end
-	placementLocked = false
-	seedPreview()
-	setStatus(if touchPlacement then "Перетащи постройку или коснись свободной травы" else "Выбери новое место на свободной траве")
+	-- Start the move ghost exactly where the selected building currently
+	-- stands. Starting from the island center can make the object appear to
+	-- jump away before the player has chosen a destination.
+	if type(savedX) == "number" and type(savedZ) == "number" then
+		updatePreviewAtCell(math.floor(savedX), math.floor(savedZ))
+		placementLocked = currentValid
+	else
+		placementLocked = false
+		seedPreview()
+	end
+	setStatus(if currentValid
+		then "Постройка на исходном месте — выбери новую точку или нажми «СОХРАНИТЬ»"
+		else (if touchPlacement then "Перетащи постройку или коснись свободной травы" else "Выбери новое место на свободной траве"))
 end
 
 moveButton.Activated:Connect(beginMoveSelected)
