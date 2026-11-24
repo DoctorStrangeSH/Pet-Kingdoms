@@ -164,6 +164,13 @@ for _ = 1, 8 do
 	controllers[1]:update(0.1)
 end
 expect("companion completes the hop and returns to ground follow", controllers[1].jumpElapsed < 0)
+controllers[1].wasOwnerAirborne = false
+target.AssemblyLinearVelocity = Vector3.new(0, -12, 0)
+ownerHumanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+controllers[1]:update(0.1)
+expect("descending Freefall alone does not start a companion hop", controllers[1].jumpElapsed < 0)
+target.AssemblyLinearVelocity = Vector3.zero
+ownerHumanoid:ChangeState(Enum.HumanoidStateType.Landed)
 
 -- A broad wall blocks the straight line to the first formation slot. The
 -- controller should choose a grounded side waypoint instead of pushing through it.
