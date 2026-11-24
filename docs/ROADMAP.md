@@ -761,3 +761,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Document the touch-drag control alongside tap-to-place in BUILDING_CLIENT_CONTROLLER.md.
 - [ ] Verify the touch gesture on a physical device; CI confirms the project builds but cannot simulate Roblox touch input.
 - [ ] Verify resource spending, server commit, world model sync and rejoin persistence for each of the six catalog entries.
+
+### Stage 1 — Starter gathering/building economy contract (2026-11-24)
+
+- [x] Add a Studio-only cross-system contract test for the starter wallet, canonical wood/stone node rewards and all six building catalog entries.
+- [x] Verify the intended first-build path in the test: starter wallet (2 wood/1 stone) cannot afford the pet house; gathering one wood node (+3) and one stone node (+2) makes its 5 wood/2 stone cost affordable.
+- [x] Verify every priced starter building can be afforded after the starter gathering loop and a failed pet-house spend does not partially deduct either resource.
+- [x] Explain the actual gathering controls and rewards when construction is rejected for insufficient resources.
+- [x] Document the two wood nodes, two stone nodes, independent 60-second cooldown and starter pet-house progression in BUILDING_CLIENT_CONTROLLER.md.
+- [ ] CI validation for economy contract test commit f938f1e and missing-material guidance commit fd30e19.
+- [ ] Studio runtime verification: trigger each of the four gathering prompts, confirm HUD balances/toasts, wait for respawn, rejoin during cooldown, and confirm the saved timer/reward.
+- [ ] Studio runtime verification: place all six catalog entries, confirm exact costs are deducted once, and verify buildings plus balances persist after rejoin.
