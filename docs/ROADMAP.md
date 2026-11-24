@@ -790,3 +790,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for persistence round-trip commit 4f3cf84 and world cooldown restoration test commit b314415.
 - [ ] Execute the DataStore round-trip test in a dedicated Roblox test universe and the world lifecycle test in Studio.
 - [ ] Complete manual build/gather/expand/leave/rejoin verification before closing the persistence stage.
+
+### Stage 1 — Safe persistence test opt-in and manual checklist (2026-11-24)
+
+- [x] Gate synthetic DataStore writes behind Workspace attribute `RunIslandStoreIntegrationTests`; ordinary Studio play runs input-contract checks only and skips synthetic profile writes.
+- [x] Add `docs/testing/ISLAND_PERSISTENCE_TESTING.md` with dedicated-test-universe setup, safe Studio test steps, and a manual leave/rejoin acceptance journey.
+- [ ] CI validation for test gating commit cb6a737 and persistence test guide commit f4485c7.
+- [ ] Run the gated integration scenario only in an isolated test universe; never point synthetic tests at production player data.
+- [ ] Execute the full manual journey and record the observed result before marking island persistence DONE.
