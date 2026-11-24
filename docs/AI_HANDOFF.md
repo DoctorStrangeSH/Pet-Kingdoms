@@ -1628,3 +1628,13 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run pinned Rojo build validation for the three commits.
 - [ ] Run Studio/device acceptance at 320×180 and 360×180, including list/search/filter, selection/back, favorite/lock/equip/main/delete, close/shade and orientation changes.
 - Stage 1 remains open; source-level layout changes are not a substitute for Studio runtime/device verification.
+
+
+## Construction panel short-screen reflow — 2026-11-24
+
+- [x] Added `ViewportSize.Y < 220` layout to `resizeBuildingPanel`: panel is 160 px tall and UIScale remains 1, so action touch targets are not reduced below 44 px.
+- [x] Reflowed status, catalog and action rows into the compact panel; catalog cards are 44 px tall, action row retains 44 px rotate/build/cancel controls.
+- [x] Hide the Build launcher while placement is active or the full-width pending-operation recovery notice is visible, preventing overlap in the top safe area.
+- [ ] Run pinned Rojo build validation for commit `5e524b7`.
+- [ ] Studio/device acceptance at 320×180 and 360×180: panel clipping, catalog scroll, rotate/confirm/cancel/close, world touch placement, pending operation recovery and launcher restoration.
+- [ ] Verify Move/Demolish controls, overview modal handoff, and return to portrait/desktop layout. Stage 1 remains open; no runtime acceptance implied.
