@@ -612,7 +612,9 @@ local function resize()
 	local veryShort = viewport.Y < 380
 	local ultraShort = viewport.Y < 220
 	local compactHeight = if ultraShort then math.max(144, viewport.Y - 20)
-		elseif veryShort then 320 elseif short then 350 else 380
+		elseif veryShort then math.max(180, math.min(320, viewport.Y - 24))
+		elseif short then math.max(220, math.min(350, viewport.Y - 24))
+		else math.min(380, viewport.Y - 32)
 	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 410)
 	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), if compact then compactHeight else 300)
 	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), if compact then compactHeight else 440)
