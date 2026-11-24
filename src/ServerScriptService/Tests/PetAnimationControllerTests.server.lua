@@ -38,6 +38,21 @@ controller:update(1 / 30)
 local leftLeg = bunny:FindFirstChild("Body_FrontLeftLeg", true)
 expect("walk animates front legs", leftLeg ~= nil and leftLeg:IsA("Motor6D") and leftLeg.Transform ~= CFrame.identity)
 
+controller:setMovementSpeed(1)
+expect("animation accepts actual companion movement speed", controller.movementSpeed == 1)
+controller.phase = 0.4
+expect("walk state can be reselected for gait cadence test", controller:setState("walk"))
+controller:update(1 / 30)
+local slowGaitPose = leftLeg.Transform
+controller:setMovementSpeed(8)
+controller.phase = 0.4
+controller:update(1 / 30)
+local fastGaitPose = leftLeg.Transform
+expect("leg cadence changes with actual movement speed", slowGaitPose ~= fastGaitPose)
+controller:setMovementSpeed(100)
+expect("movement speed is capped safely", controller.movementSpeed == 24)
+controller:setMovementSpeed(0)
+
 expect("run state is accepted", controller:setState("run"))
 controller:update(1 / 30)
 expect("jump state is accepted", controller:setState("jump"))
