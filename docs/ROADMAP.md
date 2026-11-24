@@ -1047,3 +1047,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add a collapse/reopen control to construction mode so players can hide the catalogue while keeping placement active and restore it without cancelling.
 - [ ] Run Rojo build and Roblox Studio visual/runtime tests at 320×180, 360×180, 320×240, 443×426, 482×467, 768×1024, and desktop; verify actual resource values, icons, quest card fit, construction placement with panel collapsed/reopened, and orientation changes.
 - [ ] Confirm whether the user meant to request a new `iron` resource; current server wallet/catalog contains `wood`, `stone`, `gold`, and `gems` only. Do not silently rename stone or add iron without the game-system decision.
+
+
+- [x] Follow-up compact Quest Journal pass `42a6106`: reduce compact quest summaries to 84 px so two introductory objectives fit in the normal compact journal viewport without a vertical swipe.
+- [x] Follow-up viewport clamp `83d9eeb`: calculate the compact journal panel height from the actual viewport height, including short 240–380 px screens, rather than enforcing a fixed 320–350 px panel that could extend off-screen.
