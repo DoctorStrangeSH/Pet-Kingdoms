@@ -547,12 +547,42 @@ local function resize()
 	closeButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	refreshButton.Size = UDim2.fromOffset(compact and 36 or 40, compact and 36 or 40)
 	openButton.Position = UDim2.new(0, compact and 10 or 20, 0.56, 0)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, compact and 390 or 410)
-	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), 280)
-	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), 440)
-	local baseHeight = if compact then 390 else 410
-	panelScale.Scale = math.clamp((viewport.Y - 24) / baseHeight, 0.68, 1)
-	refreshButton.Position = UDim2.new(1, compact and -62 or -62, 0, 14)
+	-- Compact screens get a shorter, reflowed journal instead of a scaled
+	-- desktop panel with tiny text and cramped touch targets.
+	local veryShort = viewport.Y < 380
+	local compactHeight = if veryShort then 320 elseif short then 350 else 380
+	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 410)
+	panelConstraint.MinSize = Vector2.new(math.min(250, math.max(220, viewport.X - 24)), if compact then compactHeight else 300)
+	panelConstraint.MaxSize = Vector2.new(math.min(500, math.max(220, viewport.X - 16)), if compact then compactHeight else 440)
+	panelScale.Scale = if compact then 1 else math.clamp((viewport.Y - 24) / 410, 0.82, 1)
+	if compact then
+		local listTop = if veryShort then 76 else 82
+		title.Position = UDim2.fromOffset(16, 14)
+		title.Size = UDim2.new(1, -112, 0, 28)
+		subtitle.Position = UDim2.fromOffset(18, 44)
+		subtitle.Size = UDim2.new(1, -36, 0, 22)
+		closeButton.Position = UDim2.new(1, -10, 0, 10)
+		refreshButton.Position = UDim2.new(1, -52, 0, 10)
+		closeButton.Size = UDim2.fromOffset(36, 36)
+		refreshButton.Size = UDim2.fromOffset(36, 36)
+		list.Position = UDim2.fromOffset(14, listTop)
+		list.Size = UDim2.new(1, -28, 1, -(listTop + 54))
+		status.Position = UDim2.new(0.5, 0, 1, -8)
+		status.Size = UDim2.new(1, -32, 0, 34)
+	else
+		title.Position = UDim2.new(0, 22, 0, 17)
+		title.Size = UDim2.new(1, -132, 0, 31)
+		subtitle.Position = UDim2.new(0, 24, 0, 51)
+		subtitle.Size = UDim2.new(1, -48, 0, 25)
+		closeButton.Position = UDim2.new(1, -16, 0, 14)
+		refreshButton.Position = UDim2.new(1, -62, 0, 14)
+		closeButton.Size = UDim2.fromOffset(40, 40)
+		refreshButton.Size = UDim2.fromOffset(40, 40)
+		list.Position = UDim2.new(0, 20, 0, 88)
+		list.Size = UDim2.new(1, -40, 1, -145)
+		status.Position = UDim2.new(0.5, 0, 1, -10)
+		status.Size = UDim2.new(1, -44, 0, 32)
+	end
 	tracker.Position = UDim2.new(0, compact and 10 or 20, 1, short and -8 or -12)
 	tracker.Size = UDim2.fromOffset(math.max(190, math.min(compact and 220 or 260, viewport.X - 20)), compact and 68 or 78)
 	trackerTitle.TextSize = if compact then 9 else 10
