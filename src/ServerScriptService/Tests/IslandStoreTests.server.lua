@@ -4,6 +4,7 @@
 -- writes synthetic test records and requires a dedicated test universe.
 
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 if not RunService:IsStudio() then
 	return
 end
@@ -22,7 +23,13 @@ local saveOk, saveCode = IslandStore.save({})
 assert(not saveOk and saveCode == "INVALID_PROFILE", "invalid profile should be rejected before DataStore access")
 print("[PetKingdoms Test] PASS: IslandStore rejects invalid profile before DataStore access")
 
--- Integration scenario: run only in a dedicated test universe with API access.
+-- Never write synthetic records during ordinary Studio play. Opt in only
+-- after opening a dedicated test universe with Studio API access enabled.
+if Workspace:GetAttribute("RunIslandStoreIntegrationTests") ~= true then
+	print("[PetKingdoms Test] SKIP: set Workspace.RunIslandStoreIntegrationTests = true in a dedicated test universe to run DataStore integration checks.")
+	return
+end
+
 -- Synthetic user keys are intentionally unique; these records are test data.
 local syntheticUserId = 1_000_000_000 + math.random(1, 900_000_000)
 local seed = IslandData.create(syntheticUserId, 10, 10)
