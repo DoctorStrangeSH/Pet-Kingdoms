@@ -415,7 +415,7 @@ refreshButton.Activated:Connect(refresh)
 local function resize()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport = camera.ViewportSize
+	local viewport, _safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera)
 	local compact = viewport.X < 520
 	local narrow = viewport.X < 360
 	local short = viewport.Y < 500
@@ -433,10 +433,18 @@ local function resize()
 	local ultraShort = viewport.Y < 220
 	local compactHeight = if ultraShort then math.max(144, viewport.Y - 20)
 		elseif veryShort then 306 elseif short then 330 else 390
-	local compactWidth = math.max(220, viewport.X - 20)
-	panel.Size = UDim2.new(compact and 0.94 or 0.9, 0, 0, if compact then compactHeight else 390)
-	panelConstraint.MinSize = Vector2.new(math.min(250, compactWidth), if compact then compactHeight else 320)
-	panelConstraint.MaxSize = Vector2.new(math.min(compact and 440 or 440, compactWidth), if compact then compactHeight else 390)
+	local desiredWidth = math.min(440, safeSize.X - 24)
+	local desiredHeight = if compact then compactHeight else 390
+	local safePanelSize = InterfaceComponents.ClampPanelSize(
+		Vector2.new(math.max(180, desiredWidth), desiredHeight),
+		safeSize,
+		12
+	)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromOffset(safeSize.X * 0.5, safeSize.Y * 0.5)
+	panel.Size = UDim2.fromOffset(safePanelSize.X, safePanelSize.Y)
+	panelConstraint.MinSize = Vector2.new(math.min(220, safePanelSize.X), math.min(compact and compactHeight or 320, safePanelSize.Y))
+	panelConstraint.MaxSize = safePanelSize
 	panelScale.Scale = if compact then 1 else math.clamp((viewport.Y - 24) / 390, 0.82, 1)
 	title.TextSize = if compact then (if ultraShort then 13 else 15) else 18
 	subtitle.TextSize = if narrow then 10 else 11
