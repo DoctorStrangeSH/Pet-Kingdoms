@@ -432,6 +432,31 @@ local function getBuildingTemplate(catalogId: string, cellSize: number): Model?
 		clone:SetAttribute("VisualBoundsWidth", bounds.width)
 		clone:SetAttribute("VisualBoundsHeight", bounds.height)
 		clone:SetAttribute("VisualBoundsDepth", bounds.depth)
+
+		local definition = BuildingCatalog[catalogId]
+		local fit = if definition then BuildingModelPivot.checkFootprintFit(
+			bounds,
+			definition.footprintWidth,
+			definition.footprintDepth,
+			cellSize
+		) else nil
+		if fit == nil then
+			warn(string.format("[PetKingdoms] Could not validate visual footprint for '%s'.", catalogId))
+			clone:SetAttribute("VisualFootprintFits", false)
+		else
+			clone:SetAttribute("VisualFootprintFits", fit.fits)
+			clone:SetAttribute("VisualOverhangX", fit.overhangX)
+			clone:SetAttribute("VisualOverhangZ", fit.overhangZ)
+			if not fit.fits then
+				warn(string.format(
+					"[PetKingdoms] Building template '%s' exceeds its grid footprint by X=%.2f, Z=%.2f studs (allowed tolerance %.2f). Review the source asset.",
+					catalogId,
+					fit.overhangX,
+					fit.overhangZ,
+					cellSize * 0.05
+				))
+			end
+		end
 		return clone
 	end
 	return createFallbackBuilding(catalogId, cellSize)
