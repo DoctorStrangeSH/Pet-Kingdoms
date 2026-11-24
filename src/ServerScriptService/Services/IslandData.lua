@@ -219,6 +219,14 @@ function IslandData.validate(profile: any, expectedOwnerUserId: number, catalog:
 
 		seenIds[record.instanceId] = true
 		local definition = catalog[record.catalogId]
+		if record.upgradeLevel ~= nil and (
+			not isInteger(record.upgradeLevel)
+			or definition.maxUpgradeLevel == nil
+			or record.upgradeLevel < 1
+			or record.upgradeLevel > definition.maxUpgradeLevel
+		) then
+			return false, "INVALID_BUILDING_UPGRADE_LEVEL"
+		end
 		local rotation = record.rotation % 360
 		if definition.allowedRotations[rotation] ~= true then
 			return false, "INVALID_BUILDING_ROTATION"
