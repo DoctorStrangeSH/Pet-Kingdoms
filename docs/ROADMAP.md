@@ -798,3 +798,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for test gating commit cb6a737 and persistence test guide commit f4485c7.
 - [ ] Run the gated integration scenario only in an isolated test universe; never point synthetic tests at production player data.
 - [ ] Execute the full manual journey and record the observed result before marking island persistence DONE.
+
+### Stage 1 — Restored gathering marker visibility (2026-11-24)
+
+- [x] Fix island generation so a resource node restored during cooldown also disables its BillboardGui gathering marker; previously the model and prompt were hidden but the floating marker could remain visible.
+- [x] Extend the island-world lifecycle test to assert the restored cooldown hides the gathering marker as well as the resource model and prompt.
+- [ ] CI validation for runtime fix commit 729e3ad and regression test commit cff57f7.
+- [ ] Verify visually in Studio: rejoin while a node is cooling down; no floating gathering label should remain until the node respawns.
