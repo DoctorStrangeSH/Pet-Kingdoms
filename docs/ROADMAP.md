@@ -995,3 +995,6 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Invalidate the current preview cell and visual when the island grid becomes unavailable instead of retaining stale coordinates.
 - [ ] Verify existing buildings expose footprint attributes after initial spawn, move, upgrade, and island refresh in Studio.
 - [ ] Compare preview center/rotation against actual server-spawned Models on rotated spawn points and after island expansion; Stage 1 remains open pending runtime/device tests.
+
+- [x] Remove the last duplicated client/server footprint-size source: both construction preview and the server-owned BuildingCatalog now consume `ReplicatedStorage/Shared/Building/BuildingFootprints.lua` as the canonical base-size table.
+- [x] Add Studio smoke assertions that every canonical footprint has positive integer width/depth; runtime execution pending.
