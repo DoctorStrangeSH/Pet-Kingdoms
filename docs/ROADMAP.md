@@ -1144,3 +1144,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Active quest tracker is anchored within the safe rectangle and its width is capped by the actual available safe width; removed the 190 px forced minimum that could overflow very narrow screens.
 - [x] Tracker height is bounded by safe-area height for short landscape viewports.
 - [ ] Verify tracker/launcher positions and overlap with other HUD controls in Roblox Studio at narrow phone, landscape, tablet and desktop sizes. Runtime visual validation pending.
+
+
+### Stage 1 — Pet and expansion launchers safe-area alignment (2026-11-24)
+
+- [x] Pet Collection launcher now uses safe-area absolute coordinates and clamps its vertical center so its full touch target remains on-screen.
+- [x] Island Expansion launcher uses the same safe-area coordinate model and vertical clamping.
+- [x] Preserve the intended vertical separation between pet and expansion launchers while avoiding raw viewport-relative placement.
+- [ ] Verify touch target separation and actual device safe-area behavior in Studio across portrait, landscape, tablet and desktop. Runtime visual validation pending.
