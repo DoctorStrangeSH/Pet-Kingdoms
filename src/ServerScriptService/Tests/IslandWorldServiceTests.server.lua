@@ -32,6 +32,7 @@ assert(not wrongBoundsOk and wrongBoundsCode == "INVALID_EXPANSION_BOUNDS",
 	"world renderer must reject bounds that do not match the persisted expansion level")
 
 local function profileFor(userId: number)
+	local gatheredAt = os.time()
 	return {
 		ownerUserId = userId,
 		schemaVersion = 1,
@@ -53,7 +54,14 @@ local function profileFor(userId: number)
 				rotation = 0,
 			},
 		},
-		resourceNodes = {},
+		resourceNodes = {
+			{
+				nodeId = "WoodNode_A",
+				resourceId = "wood",
+				lastGatheredAt = gatheredAt,
+				availableAt = gatheredAt + 45,
+			},
+		},
 	}
 end
 
@@ -93,6 +101,17 @@ local ok, failure = pcall(function()
 	local firstWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
 	local mainHouse = firstWorld and firstWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
 	assert(mainHouse and mainHouse:IsA("Model"), "saved main house must be rendered")
+	local resourceNodes = firstWorld and firstWorld:FindFirstChild("ResourceNodes")
+	local savedWoodNode = resourceNodes and resourceNodes:FindFirstChild("WoodNode_A")
+	assert(savedWoodNode and savedWoodNode:GetAttribute("AvailableAt") > os.time(),
+		"saved resource node cooldown must be restored when the island spawns")
+	local savedWoodPrompt = savedWoodNode and savedWoodNode:FindFirstChild("GatherPrompt", true)
+	assert(savedWoodPrompt and savedWoodPrompt:IsA("ProximityPrompt") and not savedWoodPrompt.Enabled,
+		"resource prompt must remain disabled while its persisted cooldown is active")
+	local hiddenWoodPart = savedWoodNode and savedWoodNode:FindFirstChildWhichIsA("BasePart")
+	assert(hiddenWoodPart and hiddenWoodPart.Transparency == 1,
+		"resource node must remain hidden during its persisted cooldown")
+
 	local mainHousePrompt = mainHouse and mainHouse:FindFirstChild("MainHousePrompt", true)
 	assert(mainHousePrompt and mainHousePrompt:IsA("ProximityPrompt"), "main house must expose its kingdom interaction")
 	assert(mainHousePrompt.ActionText == "Управлять королевством", "main house prompt must have localized action text")
@@ -133,6 +152,13 @@ local ok, failure = pcall(function()
 		"expanded terrain must render at the persisted grid dimensions")
 	local expandedHouse = expandedWorld and expandedWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
 	assert(expandedHouse and expandedHouse:IsA("Model"), "expanded world must retain the saved main house")
+	local expandedNodes = expandedWorld and expandedWorld:FindFirstChild("ResourceNodes")
+	local expandedWoodNode = expandedNodes and expandedNodes:FindFirstChild("WoodNode_A")
+	assert(expandedWoodNode and expandedWoodNode:GetAttribute("AvailableAt") > os.time(),
+		"world refresh must preserve the resource node cooldown")
+	local expandedWoodPrompt = expandedWoodNode and expandedWoodNode:FindFirstChild("GatherPrompt", true)
+	assert(expandedWoodPrompt and expandedWoodPrompt:IsA("ProximityPrompt") and not expandedWoodPrompt.Enabled,
+		"world refresh must not re-enable a node that is still on cooldown")
 	assert((expandedHouse:GetPivot().Position - originalHousePivot.Position).Magnitude < 0.01,
 		"expansion coordinate shift must preserve existing building world position")
 
