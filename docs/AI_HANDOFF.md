@@ -1528,8 +1528,8 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] `PetCollectionService` now delegates formation creation to the spawn service while retaining `PetAssetLoader` as the only production asset factory.
 - [x] Added `CharacterRemoving` cleanup and spawn-token invalidation. The handler checks the exact character instance so a delayed removal from an old character cannot clear a newer formation.
 - [x] A cancelled model-factory attempt removes only models created by that attempt; it cannot wipe a newer spawn's folder after a yield.
-- [x] Added `PetCompanionSpawnServiceTests.server.lua` for ordered two-pet spawn, position/attributes, duplicate prevention, invalid profile, cancellation, gated asset behavior, and cleanup.
-- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, `3388827`, `934ddca`, and `fddd5d0`.
+- [x] Added `PetCompanionSpawnServiceTests.server.lua` for ordered two-pet spawn, position/attributes, duplicate prevention, invalid profile, cancellation, overlapping attempts, gated asset behavior, and cleanup of its temporary Workspace folder.
+- [ ] Rojo build validation for commits `62a013e`, `f42d9a7`, `d9ff948`, `c7017a6`, `3388827`, `934ddca`, `fddd5d0`, and `2e00a15`.
 - [ ] Run the new spawn-service test in Roblox Studio.
 - [ ] Real model spawning/follow/respawn/rejoin remains blocked until the original project-owned Bunny mesh is imported and published from Studio. Do not restore the rejected third-party asset ID or silently use the procedural test prototype in production.
 
