@@ -909,3 +909,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run `CompanionFollowControllerTests.client.lua` in Roblox Studio and inspect the client Output.
 - [ ] Verify actual island bridges, ramps, slopes, and flat-to-slope transitions with the published Bunny mesh on desktop and mobile.
 - [ ] Keep movement Stage 1 open until runtime slope, jump, obstacle, and device checks are recorded.
+ 
+### Stage 1 — Companion locomotion polish (2026-11-24)
+
+- [x] Smooth the facing direction independently from positional follow interpolation; keep the turn responsive but avoid instant heading snaps.
+- [x] Measure companion displacement from the actual next CFrame after interpolation, not from owner velocity or a predicted intermediate point.
+- [x] Select idle/walk/run from actual companion movement speed so the leg animation stops when the pet settles at its slot.
+- [x] Scale procedural leg cadence from the measured movement speed and clamp the accepted speed range.
+- [x] Add client regression coverage for gradual turning, walk gait while a stationary owner is approached, and a stable stop with no visible residual sliding.
+- [x] Add server animation coverage proving slow and fast movement speeds produce different gait poses and that excessive speed input is capped.
+- [ ] Rojo build validation for commits `f96b077`, `6064618`, `eddd03b`, `47e9d9f`, and `7e81a36`.
+- [ ] Run `PetAnimationControllerTests.server.lua` and `CompanionFollowControllerTests.client.lua` in Roblox Studio; inspect Server and client Output respectively.
+- [ ] Verify turn response, stop distance, and gait synchronization with the published Bunny mesh on desktop and mobile.
+- [ ] Keep Stage 1 movement work open until Studio/device checks and earlier jump/ramp checks are recorded.
