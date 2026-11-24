@@ -1136,3 +1136,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Remove the compact HUD's forced minimum width so the resource bar cannot extend into the construction-launcher lane on narrow screens.
 - [x] Set compact resource cards to a fixed 34 px grid-cell height and cap the compact root at 84 px, keeping the four resources in a bounded 2×2 layout.
 - [ ] Verify in Studio at phone/tablet sizes that card rows no longer stretch vertically and the build launcher remains independently tappable. Screenshot-driven source fix; runtime visual validation pending.
+
+
+### Stage 1 — Quest HUD safe-area bounds (2026-11-24)
+
+- [x] Quest journal launcher is now positioned from the shared safe-area origin instead of raw viewport-relative coordinates.
+- [x] Active quest tracker is anchored within the safe rectangle and its width is capped by the actual available safe width; removed the 190 px forced minimum that could overflow very narrow screens.
+- [x] Tracker height is bounded by safe-area height for short landscape viewports.
+- [ ] Verify tracker/launcher positions and overlap with other HUD controls in Roblox Studio at narrow phone, landscape, tablet and desktop sizes. Runtime visual validation pending.
