@@ -1640,3 +1640,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Verify Move/Demolish controls, overview modal handoff, and return to portrait/desktop layout. Stage 1 remains open; no runtime acceptance implied.
 
 - [x] Follow-up commit `4513354`: apply recovery-aware launcher visibility in placement failure/stop paths and ModalManager focus callbacks, preventing those callbacks from accidentally showing the launcher over an unresolved recovery notice.
+
+
+## Construction preview safety — 2026-11-24
+
+- [x] Commit `f9b38b4`: added `hideUnavailablePreview()` to clear stale footprint coordinates, validity and lock state, hide the footprint/ghost parts, and disable its Highlight when no valid free cell can be seeded or the island grid is unavailable.
+- [ ] Studio QA: fill the island until each catalog item's footprint has no free cell; verify the ghost disappears and Confirm stays disabled.
+- [ ] Switch from a valid catalog item to an item with no free cell, then back; verify no stale preview/coordinates and explicit tap/drag is still required.
+- Source-level change only; no Roblox Studio runtime verification has been performed.
