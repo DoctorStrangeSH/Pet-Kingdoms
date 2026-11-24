@@ -935,3 +935,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`; inspect client Output for every PASS.
 - [ ] Verify real modal handoff/teardown in Studio: rapidly open/close Pet Collection, Quest Journal, Island Expansion and Build; confirm no stale shade, blocked input or visible panel remains.
 - [ ] Stage 1 remains open pending Studio/device regression and the remaining construction touch/persistence checks.
+
+
+### Stage 1 — Compact floating launcher collision fix (2026-11-24)
+
+- [x] Move the compact Pet Collection launcher higher on the right edge (Y=0.34) to reserve a 48 px touch target and visible gap above Island Expansion (Y=0.72) on 320×180 / 360×180 landscape viewports.
+- [ ] Run pinned Rojo build validation for commit `c9cabdd`.
+- [ ] Verify launcher separation, tap targets, and safe-area placement at 320×180, 360×180, 320×240, portrait phones, tablet, and desktop in Roblox Studio.
+- Stage 1 remains open; this is a source-level layout correction, not a runtime acceptance claim.
