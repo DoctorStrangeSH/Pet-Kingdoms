@@ -34,12 +34,13 @@ After automated checks pass, test the complete flow with a dedicated test accoun
 4. Expand the island if the test account has the required progression/unlock.
 5. Leave the server and rejoin.
 6. Confirm the buildings return at the same world positions and rotations, the expanded bounds remain, and resource balances are unchanged.
-7. If a resource node was recently gathered, confirm its prompt remains disabled until the saved `AvailableAt` time, then becomes available again.
-8. Repeat with a second rejoin to catch one-time migration or session-generation problems.
+7. Upgrade the pet house to level 2; after rejoining, confirm its upgrade level and the deducted resource balances remain correct.
+8. If a resource node was recently gathered, confirm its prompt and floating gathering marker remain hidden until the saved `AvailableAt` time, then return together.
+9. Repeat with a second rejoin to catch one-time migration or session-generation problems.
 
 ## Expected persistence contract
 
-- Building records: catalog ID, instance ID, grid X/Z and rotation.
+- Building records: all six current catalogue IDs, instance ID, grid X/Z, rotation and optional validated upgrade level.
 - Resource wallet: wood, stone, gold and gems.
 - Island expansion level and bounds.
 - Resource-node cooldown timestamps.
