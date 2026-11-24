@@ -1597,3 +1597,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run pinned Rojo build validation for commit `0647cc2`; no workflow run/status is currently associated with this commit.
 - [ ] Verify all four symbols render on desktop, 320/360/390 px portrait and short landscape in Roblox Studio; check toast and HUD do not overlap the safe-area controls.
 - Stage 1 remains open; do not sign off iconography until visual Studio/device verification is complete.
+
+
+## Compact floating launcher collision fix — 2026-11-24
+
+- [x] Moved the compact Pet Collection launcher from vertical center 0.46 to 0.34 while preserving its right-edge inset and 48×48 touch size. This separates it from Island Expansion at 0.72 on 180 px-high landscape viewports (68.4 px center spacing).
+- [ ] Pinned Rojo build validation for `c9cabdd`.
+- [ ] Studio visual/touch verification at 320×180, 360×180, 320×240, portrait phones, tablet and desktop; verify the topbar inset and no collision with other controls.
+- Do not close Stage 1 until runtime/device checks are recorded.
