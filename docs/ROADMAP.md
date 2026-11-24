@@ -711,3 +711,13 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Verify both screens in Roblox Studio at 320×568, 360×640, 390×844, short landscape and desktop; check title/button collisions, scroll reachability, readable text and tap targets.
 - [ ] Continue mobile layout pass for Pet Collection and construction tray after verifying these two modal layouts.
 - [ ] Do not close Stage 1 until runtime/device acceptance is confirmed.
+
+### Stage 1 — Pet Collection mobile safe-area layout (2026-11-24)
+
+- [x] Bound the compact collection panel to the actual viewport height with a predictable 16 px top/bottom safe margin; cap tall-phone panel height at 620 px and avoid a percentage-height panel on short landscape screens.
+- [x] Keep the panel centered and preserve the existing mobile list/detail navigation, search/filter row, and large action controls.
+- [x] Adjust the mobile collection title size for very narrow screens.
+- [x] CI passed for Quest Journal compact reflow (f047713, run 45349998429) and Island Expansion compact reflow (a12deca, run 45349952553).
+- [ ] CI validation for Pet Collection safe-area commit ca8872b (run 45350278164).
+- [ ] Verify list/detail navigation, preview visibility, favorite/lock/equip/delete actions and scroll behavior on 320×568, 360×640, 390×844 and short landscape.
+- [ ] Continue with construction panel mobile reflow and final image-backed icon replacement; Stage 1 remains open pending Roblox Studio/device verification.
