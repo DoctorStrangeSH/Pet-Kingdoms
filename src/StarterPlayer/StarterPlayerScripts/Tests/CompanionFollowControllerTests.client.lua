@@ -172,9 +172,31 @@ expect("descending Freefall alone does not start a companion hop", controllers[1
 target.AssemblyLinearVelocity = Vector3.zero
 ownerHumanoid:ChangeState(Enum.HumanoidStateType.Landed)
 
+-- The companion should tilt its body to match a traversable ramp surface.
+local ramp = Instance.new("Part")
+ramp.Name = "CompanionFollowTestRamp"
+ramp.Anchored = true
+ramp.Size = Vector3.new(30, 1, 20)
+ramp.CFrame = CFrame.new(40, 2, 0) * CFrame.Angles(0, 0, math.rad(18))
+ramp.Parent = workspace
+target.CFrame = CFrame.new(42, 5, 0)
+pets[1]:PivotTo(CFrame.new(39.6, 0.28, 4.5))
+controllers[1].pathDetourPosition = nil
+controllers[1].nextObstacleScan = 0
+controllers[1].nextGroundNormalScan = 0
+for _ = 1, 20 do
+	controllers[1]:update(0.05)
+end
+local rampAlignment = pets[1]:GetPivot().UpVector:Dot(ramp.CFrame.UpVector)
+expect("companion aligns its body with the ramp surface", rampAlignment > 0.95)
+expect("companion remains within the supported slope limit",
+	pets[1]:GetPivot().UpVector:Dot(Vector3.yAxis) > 0.75)
+ramp:Destroy()
+
 -- A broad wall blocks the straight line to the first formation slot. The
 -- controller should choose a grounded side waypoint instead of pushing through it.
 target.CFrame = CFrame.new(0, 5, 0)
+pets[1]:PivotTo(CFrame.new(0, 0.28, 0))
 pets[1]:PivotTo(CFrame.new(0, 0.28, 0))
 controllers[1].pathDetourPosition = nil
 controllers[1].pathDetourUntil = 0
