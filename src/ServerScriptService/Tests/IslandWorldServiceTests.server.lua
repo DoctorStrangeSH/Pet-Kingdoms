@@ -111,6 +111,9 @@ local ok, failure = pcall(function()
 	local hiddenWoodPart = savedWoodNode and savedWoodNode:FindFirstChildWhichIsA("BasePart")
 	assert(hiddenWoodPart and hiddenWoodPart.Transparency == 1,
 		"resource node must remain hidden during its persisted cooldown")
+	local savedWoodMarker = savedWoodNode and savedWoodNode:FindFirstChild("GatheringMarker", true)
+	assert(savedWoodMarker and savedWoodMarker:IsA("BillboardGui") and not savedWoodMarker.Enabled,
+		"gathering marker must also be hidden during a restored cooldown")
 
 	local mainHousePrompt = mainHouse and mainHouse:FindFirstChild("MainHousePrompt", true)
 	assert(mainHousePrompt and mainHousePrompt:IsA("ProximityPrompt"), "main house must expose its kingdom interaction")
