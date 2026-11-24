@@ -1769,3 +1769,11 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `52ad37e`: Island Expansion consumes the same helpers and clamps/centers its panel within the usable region.
 - [x] Existing compact and ultra-short content reflow rules are retained; this change targets outer panel bounds, not a full redesign of inner controls.
 - [ ] Validate in Roblox Studio: actual safe inset values, title/close/refresh controls, journal tracker, expansion cards, orientation changes and mobile tap targets. Source-level CI is not runtime acceptance.
+
+
+## Construction panel safe-area migration — 2026-11-24
+
+- [x] Commit `6a3916d`: `IslandBuildingController.resizeBuildingPanel` now uses `InterfaceComponents.GetSafeViewport` and `ClampPanelSize`, positions the bottom-anchored panel inside the safe rectangle, and clamps selection action width against safe width.
+- [x] Build launcher now uses safe-origin coordinates. Placement preview and grid coordinates remain world-driven and are not changed by the UI layout calculation.
+- [x] Existing collapse/reopen state is retained; resize only changes geometry and does not toggle placement or recreate the preview.
+- [ ] Run Studio checks at phone/tablet/desktop viewport sizes, including collapsed panel and active placement while rotating/resizing; inspect move/demolish controls and safe-area offsets. Runtime visual validation pending.
