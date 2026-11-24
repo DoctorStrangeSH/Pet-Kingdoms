@@ -1656,3 +1656,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Run `PlacementValidatorTests.server.lua` in Roblox Studio and inspect client/server Output for every PASS.
 - [ ] Rojo CI build validation for test commit `6addbbf`.
 - These are committed test cases, not evidence that the validator has run in Studio.
+
+
+## Shared placement geometry contract — 2026-11-24
+
+- [x] Commits `e8a46d8` and `674e707`: client construction preview now imports the shared `ReplicatedStorage/Shared/Building/GridMath` module for rotated footprint dimensions, bounds checks, and overlap intersection; invalid rotation routes through preview invalidation.
+- [x] Commit `1a69faf`: `IslandWorldService` publishes base `FootprintWidth` and `FootprintDepth` from the server-owned `BuildingCatalog` on both initial-spawned and transaction-synced building Models. The client uses those attributes for existing-building overlap checks rather than duplicating their catalog sizes.
+- [x] Commit `61e009c`: when the island grid/surface becomes unavailable, preview coordinates, validity, lock state and ghost visuals are invalidated rather than leaving a stale cell.
+- [ ] Studio: inspect footprint attributes for every catalog entry after initial spawn, move, upgrade, and island refresh; compare client preview with actual server Model pivot on rotated spawn points and after expansion.
+- [ ] Rojo CI/build and Roblox Studio runtime/device verification remain pending; source-level checks are not runtime acceptance.
