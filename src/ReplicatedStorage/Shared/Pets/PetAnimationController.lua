@@ -10,9 +10,11 @@ export type Controller = {
 	model: Model,
 	state: PetState,
 	phase: number,
+	movementSpeed: number,
 	motors: { [string]: Motor6D },
 	destroyed: boolean,
 	setState: (self: Controller, state: PetState) -> boolean,
+	setMovementSpeed: (self: Controller, speed: number) -> (),
 	update: (self: Controller, dt: number) -> (),
 	destroy: (self: Controller) -> (),
 }
@@ -73,6 +75,7 @@ function PetAnimationController.new(model: Model): (Controller?, string)
 		model = model,
 		state = "idle" :: PetState,
 		phase = 0,
+		movementSpeed = 0,
 		motors = motors,
 		destroyed = false,
 	}, PetAnimationController)
@@ -86,6 +89,13 @@ function PetAnimationController.setState(self: Controller, state: PetState): boo
 	end
 	self.state = state
 	return true
+end
+
+function PetAnimationController.setMovementSpeed(self: Controller, speed: number)
+	if self.destroyed or type(speed) ~= "number" or speed ~= speed or speed == math.huge then
+		return
+	end
+	self.movementSpeed = math.clamp(speed, 0, 24)
 end
 
 function PetAnimationController.update(self: Controller, dt: number)
@@ -104,8 +114,10 @@ function PetAnimationController.update(self: Controller, dt: number)
 	elseif self.state == "walk" then
 		speed = 8
 	end
-	local wave = math.sin(t * speed)
-	local secondary = math.sin(t * speed * 2 + 0.7)
+	local gaitReferenceSpeed = if self.state == "run" then 8 else 3.5
+	local gaitScale = math.clamp(self.movementSpeed / gaitReferenceSpeed, 0.65, 1.4)
+	local wave = math.sin(t * speed * gaitScale)
+	local secondary = math.sin(t * speed * gaitScale * 2 + 0.7)
 
 	for _, motor in pairs(self.motors) do
 		motor.Transform = CFrame.identity
