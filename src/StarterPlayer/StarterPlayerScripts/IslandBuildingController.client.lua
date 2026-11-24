@@ -1368,6 +1368,7 @@ local function beginMoveSelected()
 		woodenFenceButton.Active = true
 		moveButton.Visible = true
 		demolishButton.Visible = model:GetAttribute("BuildingCatalogId") ~= "main_house"
+		updateBuildingContext(model)
 		return
 	end
 	-- Start the move ghost exactly where the selected building currently
