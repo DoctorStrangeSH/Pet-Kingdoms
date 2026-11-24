@@ -699,3 +699,15 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] CI validation for the handler-removal commits bb90b70, 5f56397, e4c15e8.
 - [ ] Runtime acceptance in Roblox Studio: tapping empty space inside a modal must keep it open; tapping outside must close it. Verify close X, Escape, switching modals and touch/desktop at 320/360/390 px plus landscape.
 - [ ] Stage 1 cannot be marked complete based solely on code/CI.
+
+### Stage 1 — Mobile modal layout pass (2026-11-24)
+
+- [x] Island Expansion: replace the scaled desktop layout on compact screens with a dedicated shorter layout; reposition title, subtitle, current/next cards, values, status and refresh button; preserve 36–40 px close/refresh targets.
+- [x] Island Expansion: use 306 px panel on very short screens, 330 px on short screens and 390 px on regular screens; keep the compact composition at UIScale 1 instead of shrinking all controls.
+- [x] Quest Journal: introduce compact 320/350/380 px panel heights for very short/short/regular mobile viewports; reflow title, subtitle, close/refresh buttons, scroll list and status area.
+- [x] Quest Journal: retain a scrollable task list in the compact layout and keep the footer status outside its scroll region.
+- [x] CI passed for Island Expansion mobile reflow commit a12deca (run 45349952553).
+- [ ] CI validation for Quest Journal mobile reflow commit f047713 (run 45349998429).
+- [ ] Verify both screens in Roblox Studio at 320×568, 360×640, 390×844, short landscape and desktop; check title/button collisions, scroll reachability, readable text and tap targets.
+- [ ] Continue mobile layout pass for Pet Collection and construction tray after verifying these two modal layouts.
+- [ ] Do not close Stage 1 until runtime/device acceptance is confirmed.
