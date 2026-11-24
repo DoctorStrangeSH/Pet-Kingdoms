@@ -921,7 +921,15 @@ resize = function()
 	subtitle.TextSize = if compactCollection then 11 else 12
 	search.TextSize = if compactCollection then 12 else 14
 	-- Reserve a full 48 px touch target plus a gap above the expansion launcher on short landscape screens.
-	openButton.Position = UDim2.new(1, launcherCompact and -12 or -22, launcherCompact and 0.34 or 0.55, 0)
+	local launcherSize = launcherCompact and 48 or 62
+	local launcherX = safeOrigin.X + safeSize.X - launcherSize - (launcherCompact and 12 or 22)
+	local launcherY = safeOrigin.Y + math.clamp(
+		safeSize.Y * (launcherCompact and 0.34 or 0.55),
+		launcherSize * 0.5 + 8,
+		math.max(launcherSize * 0.5 + 8, safeSize.Y - launcherSize * 0.5 - 8)
+	)
+	openButton.AnchorPoint = Vector2.new(0, 0.5)
+	openButton.Position = UDim2.fromOffset(launcherX, launcherY)
 	if compactCollection then
 		local shortCompact = viewport.Y < 520
 		local veryShort = viewport.Y < 400
