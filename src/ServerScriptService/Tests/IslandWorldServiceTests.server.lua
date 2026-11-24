@@ -52,6 +52,7 @@ local function profileFor(userId: number)
 				x = 10,
 				z = 10,
 				rotation = 0,
+				upgradeLevel = 2,
 			},
 		},
 		resourceNodes = {
@@ -121,6 +122,8 @@ local ok, failure = pcall(function()
 
 	local petHouse = firstWorld and firstWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
 	assert(petHouse and petHouse:IsA("Model"), "saved pet house must be rendered")
+	assert(petHouse and petHouse:GetAttribute("UpgradeLevel") == 2,
+		"spawned pet house must restore its saved level-2 upgrade attribute")
 	local petHousePrompt = petHouse and petHouse:FindFirstChild("PetHousePrompt", true)
 	assert(petHousePrompt and petHousePrompt:IsA("ProximityPrompt"), "pet house must expose its collection interaction")
 	assert(petHousePrompt.ActionText == "Открыть коллекцию", "pet house prompt must have localized action text")
@@ -155,6 +158,9 @@ local ok, failure = pcall(function()
 		"expanded terrain must render at the persisted grid dimensions")
 	local expandedHouse = expandedWorld and expandedWorld:FindFirstChild("main_house_test-main-house-" .. tostring(firstUserId))
 	assert(expandedHouse and expandedHouse:IsA("Model"), "expanded world must retain the saved main house")
+	local expandedPetHouse = expandedWorld and expandedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(expandedPetHouse and expandedPetHouse:GetAttribute("UpgradeLevel") == 2,
+		"world refresh after expansion must preserve the saved pet-house upgrade level")
 	local expandedNodes = expandedWorld and expandedWorld:FindFirstChild("ResourceNodes")
 	local expandedWoodNode = expandedNodes and expandedNodes:FindFirstChild("WoodNode_A")
 	assert(expandedWoodNode and expandedWoodNode:GetAttribute("AvailableAt") > os.time(),
