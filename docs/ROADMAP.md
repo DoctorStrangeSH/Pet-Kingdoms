@@ -1034,3 +1034,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Record physics-preparation counts on the cloned Model for diagnostics.
 - [x] Add Studio smoke tests for anchored state, disabled touch events, and preserved collision/query settings.
 - [ ] Run the imported-template audit and physics tests in Roblox Studio; confirm prompt interaction and player collision on real assets.
+
+
+### Stage 1 — Screenshot-driven interface correction (2026-11-24)
+
+- [x] Fix Resource HUD bootstrap: `IslandResourceRequest("Get")` returns `(success, snapshot, revision)`; pack the tuple inside `RequestRunner.Invoke` and read the snapshot from the packed result. This resolves the client-side first-value-only bug that left resource counters on their loading placeholder.
+- [x] Replace Resource HUD Unicode resource glyphs with native shape-based wood, stone, gold, and gem pictograms to avoid missing-font squares.
+- [x] Redesign compact Quest Journal cards as 110 px horizontal summaries with a native wood/stone icon, one-line description, progress and tracking action; the list remains scrollable only when the number of quests requires it.
+- [x] Replace Quest Journal launcher and refresh glyphs with drawn book/ring controls and readable text fallback.
+- [x] Replace Pet Collection paw/clover glyphs with native shape-based paw icons in the launcher and pet rows.
+- [x] Remove unsupported symbol glyphs from construction catalogue/material labels; show explicit localized costs (e.g. `5 дерева • 2 камня`) and text-only actions.
+- [x] Add a collapse/reopen control to construction mode so players can hide the catalogue while keeping placement active and restore it without cancelling.
+- [ ] Run Rojo build and Roblox Studio visual/runtime tests at 320×180, 360×180, 320×240, 443×426, 482×467, 768×1024, and desktop; verify actual resource values, icons, quest card fit, construction placement with panel collapsed/reopened, and orientation changes.
+- [ ] Confirm whether the user meant to request a new `iron` resource; current server wallet/catalog contains `wood`, `stone`, `gold`, and `gems` only. Do not silently rename stone or add iron without the game-system decision.
