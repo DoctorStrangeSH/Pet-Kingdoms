@@ -1173,4 +1173,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Re-center the collection panel inside the current safe viewport after every responsive layout pass, including desktop layouts.
 - [x] Preserve the computed safe-area resting position during the opening animation instead of overwriting it with viewport-relative `fromScale(0.5, 0.5)` coordinates.
 - [x] Center the nested delete-confirmation panel in the same safe viewport so it does not drift toward the raw ScreenGui center on inset devices.
+- [x] GitHub Actions run #736: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify collection open/close/reopen, delete confirmation, resize/orientation changes, and touch/backdrop behavior in Roblox Studio. Runtime visual validation pending.
