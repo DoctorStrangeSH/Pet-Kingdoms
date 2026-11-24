@@ -835,7 +835,7 @@ local function updatePreviewAtCell(x: number, z: number)
 	if not placing or currentPreview == nil then return end
 	local top, width, depth, cellSize = getIslandGrid()
 	if top == nil or width == nil or depth == nil or cellSize == nil then
-		currentValid = false
+		hideUnavailablePreview()
 		setStatus("Не удалось найти поверхность острова", false)
 		return
 	end
