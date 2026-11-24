@@ -45,13 +45,40 @@ local openButton = make("TextButton", {
 	Position = UDim2.new(0, 20, 0.56, 0),
 	Size = UDim2.fromOffset(58, 58),
 	BackgroundColor3 = COLORS.panel,
-	Text = InterfaceTheme.Icons.Quest,
+	Text = "",
 	TextSize = 27,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 	AutoButtonColor = true,
 }, screen) :: TextButton
 InterfaceComponents.StyleFloatingButton(openButton, "gold")
+
+-- Native shape-based journal icon; no font glyph fallback required.
+local bookIcon = make("Frame", {
+	Name = "BookIcon",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(25, 22),
+	BackgroundTransparency = 1,
+}, openButton)
+for index = 1, 2 do
+	local page = make("Frame", {
+		Name = "Page" .. index,
+		Position = UDim2.fromOffset(if index == 1 then 2 else 13, 2),
+		Size = UDim2.fromOffset(10, 18),
+		BackgroundColor3 = COLORS.panelSoft,
+		BorderSizePixel = 0,
+	}, bookIcon)
+	make("UICorner", { CornerRadius = UDim.new(0, 2) }, page)
+	make("UIStroke", { Color = COLORS.cream, Thickness = 1.4, Transparency = 0.08 }, page)
+end
+make("Frame", {
+	Name = "BookSpine",
+	Position = UDim2.fromOffset(12, 3),
+	Size = UDim2.fromOffset(1, 16),
+	BackgroundColor3 = COLORS.gold,
+	BorderSizePixel = 0,
+}, bookIcon)
 
 local badge = make("TextLabel", {
 	Name = "QuestCount",
@@ -117,12 +144,30 @@ local refreshButton = make("TextButton", {
 	Position = UDim2.new(1, -62, 0, 14),
 	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
-	Text = InterfaceTheme.Icons.Refresh,
-	TextSize = 22,
+	Text = "ОБН",
+	TextSize = 10,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
 }, panel) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 10) }, refreshButton)
+local refreshRing = make("Frame", {
+	Name = "RefreshRing",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(17, 17),
+	BackgroundTransparency = 1,
+}, refreshButton)
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, refreshRing)
+make("UIStroke", { Color = COLORS.cream, Thickness = 2, Transparency = 0.08 }, refreshRing)
+make("Frame", {
+	Name = "RefreshArrowHead",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.new(1, -1, 0, 3),
+	Size = UDim2.fromOffset(7, 7),
+	Rotation = 45,
+	BackgroundColor3 = COLORS.cream,
+	BorderSizePixel = 0,
+}, refreshRing)
 
 local closeButton = make("TextButton", {
 	AnchorPoint = Vector2.new(1, 0),
