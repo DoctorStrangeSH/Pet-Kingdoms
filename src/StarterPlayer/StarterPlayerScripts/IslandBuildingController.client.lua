@@ -581,12 +581,12 @@ local function findBuildingModel(target: Instance?): Model?
 end
 
 local BUILDING_DISPLAY = {
-	main_house = { title = "Главный дом", maxLevel = 3, costs = { [2] = "12 дерева • 6 камня", [3] = "24 дерева • 14 камня" } },
-	pet_house = { title = "Домик питомцев", maxLevel = 3, costs = { [2] = "10 дерева • 5 камня", [3] = "20 дерева • 12 камня" } },
-	stone_path = { title = "Каменная дорожка", maxLevel = 2, costs = { [2] = "3 камня" } },
-	garden_lantern = { title = "Садовый фонарь", maxLevel = 2, costs = { [2] = "4 дерева • 2 камня" } },
-	flower_bed = { title = "Клумба", maxLevel = 2, costs = { [2] = "3 дерева" } },
-	wooden_fence = { title = "Деревянный забор", maxLevel = 2, costs = { [2] = "3 дерева" } },
+	main_house = "Главный дом",
+	pet_house = "Домик питомцев",
+	stone_path = "Каменная дорожка",
+	garden_lantern = "Садовый фонарь",
+	flower_bed = "Клумба",
+	wooden_fence = "Деревянный забор",
 }
 
 local function updateBuildingContext(model: Model?)
@@ -598,17 +598,29 @@ local function updateBuildingContext(model: Model?)
 	local catalogId = model:GetAttribute("BuildingCatalogId")
 	local info = if type(catalogId) == "string" then BUILDING_DISPLAY[catalogId] else nil
 	local levelAttribute = model:GetAttribute("UpgradeLevel")
+	local maxLevelAttribute = model:GetAttribute("MaxUpgradeLevel")
 	local level = if type(levelAttribute) == "number" then math.max(1, math.floor(levelAttribute)) else 1
-	local maxLevel = if info then info.maxLevel else 1
-	selectionTitle.Text = if info then info.title else "Постройка"
+	local maxLevel = if type(maxLevelAttribute) == "number" then math.max(1, math.floor(maxLevelAttribute)) else level
+	selectionTitle.Text = if info then info else "Постройка"
 	if level >= maxLevel then
 		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel) .. " • Максимум"
 		upgradeButton.Visible = false
 	else
-		local nextLevel = level + 1
-		local cost = if info then info.costs[nextLevel] else nil
+		local costParts = {}
+		local costAttributes = {
+			{ name = "NextUpgradeWoodCost", suffix = " дерева" },
+			{ name = "NextUpgradeStoneCost", suffix = " камня" },
+			{ name = "NextUpgradeGoldCost", suffix = " золота" },
+			{ name = "NextUpgradeGemsCost", suffix = " самоцветов" },
+		}
+		for _, costAttribute in ipairs(costAttributes) do
+			local amount = model:GetAttribute(costAttribute.name)
+			if type(amount) == "number" and amount > 0 then
+				table.insert(costParts, tostring(amount) .. costAttribute.suffix)
+			end
+		end
 		selectionDetails.Text = "Уровень " .. tostring(level) .. " / " .. tostring(maxLevel)
-			.. (if cost then " • Улучшение: " .. cost else " • Улучшение доступно")
+			.. (if #costParts > 0 then " • Улучшение: " .. table.concat(costParts, " • ") else " • Улучшение доступно")
 		upgradeButton.Visible = true
 	end
 	upgradeButton.Active = upgradeButton.Visible and not upgradeRequestInFlight
