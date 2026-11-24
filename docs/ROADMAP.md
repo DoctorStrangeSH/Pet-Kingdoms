@@ -998,3 +998,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 
 - [x] Remove the last duplicated client/server footprint-size source: both construction preview and the server-owned BuildingCatalog now consume `ReplicatedStorage/Shared/Building/BuildingFootprints.lua` as the canonical base-size table.
 - [x] Add Studio smoke assertions that every canonical footprint has positive integer width/depth; runtime execution pending.
+
+
+### Stage 1 — Shared grid-to-world pivot conversion (2026-11-24)
+
+- [x] Add `GridMath.getFootprintCenterOffset` as the single conversion from an occupied grid rectangle to its local-space world center.
+- [x] Use the same helper in both client preview positioning and server Model pivot placement; asymmetric and rotated footprints now share identical center math.
+- [x] Add Studio smoke coverage for asymmetric 3×1 footprints, even-sized footprints, out-of-bounds rectangles, and invalid cell sizes.
+- [x] Route pointer-off-island and missing-surface preview failures through the common invalidation path so stale ghosts/locked cells are cleared.
+- [ ] Verify actual model pivot alignment in Studio on rotated spawn points and after island expansion; source-level checks are not runtime acceptance.
