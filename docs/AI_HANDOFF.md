@@ -1667,3 +1667,12 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [ ] Rojo CI/build and Roblox Studio runtime/device verification remain pending; source-level checks are not runtime acceptance.
 
 - [x] Commit `c898465`: extended `GridMathTests.server.lua` with 270-degree footprint dimension checks and rotated-rectangle overlap/edge-adjacency assertions. Studio execution remains pending.
+
+
+## Canonical shared building footprints — 2026-11-24
+
+- [x] Commit `423723d`: created `ReplicatedStorage/Shared/Building/BuildingFootprints.lua` with base dimensions for all six current buildable catalog IDs.
+- [x] Commit `04cab44`: client preview imports this shared table instead of maintaining a duplicate `BUILDING_SIZES` table.
+- [x] Commit `f52bead`: server-owned `BuildingCatalog` now derives `footprintWidth`/`footprintDepth` from the same shared table; server remains authoritative for IDs, unlocks, rotations, costs and transactions.
+- [x] Commit `1fbfbb2`: GridMath Studio smoke test validates every shared footprint has positive integer dimensions.
+- [ ] Studio run: confirm client preview and server validation agree for all six items at 0/90/180/270 degrees, including move and expanded island boundaries. CI/Studio runtime validation pending.
