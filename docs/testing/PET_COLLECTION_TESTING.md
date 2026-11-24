@@ -72,7 +72,7 @@ The test creates and removes a temporary floor and wall in Workspace. It does no
 The test uses a synthetic owner ID and the procedural prototype factory injected only by the test. It removes its temporary owner folder after completion and does not grant or modify any real player's collection.
 ## 6. Owner-triggered companion jump test — Studio only
 
-The jump regression is part of `CompanionFollowControllerTests.client.lua`. It uses a test character with a Humanoid and checks that one owner take-off starts a single companion hop, the companion gains vertical height, descending Freefall does not restart the hop, and the companion returns to its ground-follow state.
+The jump regression is part of `CompanionFollowControllerTests.client.lua`. It uses a test character with a Humanoid and checks that one owner take-off starts a single companion hop, the companion gains vertical height, descending Freefall does not restart the hop, and the companion returns to its ground-follow state, and a descending Freefall without take-off does not start a hop.
 
 1. Use the dedicated Studio test place and enable Workspace boolean attribute `RunPetKingdomsStudioTests = true`.
 2. Start **Test → Start** with a client. Keep the selected client's Output visible.
