@@ -396,7 +396,7 @@ local selectionDetails = make("TextLabel", {
 	Size = UDim2.new(1, 0, 0, 26),
 	Font = Enum.Font.Gotham,
 	Text = "Уровень 1",
-	TextColor3 = COLORS.textMuted,
+	TextColor3 = COLORS.muted,
 	TextSize = 11,
 	TextXAlignment = Enum.TextXAlignment.Left,
 	TextWrapped = true,
@@ -506,20 +506,33 @@ local function resizeBuildingPanel()
 	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
 	cancelButton.Text = "ОТМЕНА"
-	-- Selection actions share a row and remain within the mobile viewport.
-	local outerMargin = compact and 10 or 22
-	local actionGap = 8
-	-- Selection actions must stay inside the same safe rectangle as the rest
-	-- of the HUD. Do not force a minimum width that can overflow tiny viewports.
-	local actionAvailable = math.max(0, safeSize.X - outerMargin * 2 - actionGap)
-	local moveWidth = math.min(128, math.floor(actionAvailable * 0.43))
-	local demolishWidth = math.min(180, math.max(0, actionAvailable - moveWidth))
-	local preferredActionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
-	local actionTop = safeOrigin.Y + math.clamp(
-		preferredActionTop,
-		8,
-		math.max(8, safeSize.Y - 46)
-	)
+	-- Selected-building controls live inside one safe-area card, below the
+	-- build launcher. Its width follows the viewport instead of overflowing it.
+	local cardWidth = math.max(180, math.min(340, safeSize.X - 20))
+	local cardTop = safeOrigin.Y + (recoveryPanel.Visible and 118 or 60)
+	local cardHeight = 124
+	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
+	selectionPanel.Size = UDim2.fromOffset(cardWidth, cardHeight)
+	local cardContentWidth = math.max(0, cardWidth - 24)
+	local cardGap = 6
+	local showUpgrade = upgradeButton.Visible
+	local actionCount = if showUpgrade then 3 else 2
+	local actionWidth = math.max(0, (cardContentWidth - cardGap * (actionCount - 1)) / actionCount)
+	local actionY = 70
+	local actionHeight = 42
+	moveButton.Position = UDim2.fromOffset(0, actionY)
+	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	moveButton.TextSize = if compact then 10 else 11
+	if showUpgrade then
+		upgradeButton.Position = UDim2.fromOffset(actionWidth + cardGap, actionY)
+		upgradeButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+		demolishButton.Position = UDim2.fromOffset((actionWidth + cardGap) * 2, actionY)
+	else
+		demolishButton.Position = UDim2.fromOffset(actionWidth + cardGap, actionY)
+	end
+	demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
+	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ"
+	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
 		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
