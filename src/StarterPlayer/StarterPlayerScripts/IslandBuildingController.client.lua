@@ -420,7 +420,8 @@ local function resizeBuildingPanel()
 	local actionTop = if compact then (recoveryPanel.Visible and 120 or 80) else 24
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
-		buildLauncher.Size = UDim2.fromOffset(compact and 128 or 154, compact and 42 or 48)
+		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
+		buildLauncher.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
 		buildLauncher.Position = UDim2.new(1, compact and -10 or -22, 0, compact and 12 or 24)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
 		-- The full-width recovery notice owns the top safe area until the
