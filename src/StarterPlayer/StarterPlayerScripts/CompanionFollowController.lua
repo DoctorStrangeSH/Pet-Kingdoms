@@ -51,6 +51,10 @@ export type FollowController = {
 	lastInvestigatedNode: Instance?,
 	lastInvestigatedAt: number,
 	interactionConnection: RBXScriptConnection?,
+	pathDetourPosition: Vector3?,
+	pathDetourUntil: number,
+	nextObstacleScan: number,
+	lastPathTarget: Vector3?,
 	groundRaycastParams: RaycastParams,
 	update: (self: FollowController, dt: number) -> (),
 	destroy: (self: FollowController) -> (),
@@ -74,12 +78,70 @@ end
 local function resolveGroundPosition(model: Model, desired: Vector3, params: RaycastParams): Vector3
 	local scale = model:GetAttribute("Scale")
 	local resolvedScale = if type(scale) == "number" then scale else 1
+	local groundOffset = model:GetAttribute("GroundOffset")
+	local resolvedOffset = if type(groundOffset) == "number"
+		then math.clamp(groundOffset, 0.08, 1.2)
+		else 0.28 * resolvedScale
 	local origin = desired + Vector3.new(0, 8, 0)
 	local result = Workspace:Raycast(origin, Vector3.new(0, -32, 0), params)
 	if result then
-		return Vector3.new(desired.X, result.Position.Y + 0.28 * resolvedScale, desired.Z)
+		return Vector3.new(desired.X, result.Position.Y + resolvedOffset, desired.Z)
 	end
 	return desired
+end
+
+-- A short local detour is cheaper than recomputing a full navigation path every
+-- frame. It lets a companion move around nearby walls/buildings while keeping
+-- the server authoritative for all gameplay interactions and rewards.
+local function findObstacleDetour(
+	model: Model,
+	currentPosition: Vector3,
+	desiredPosition: Vector3,
+	params: RaycastParams
+): Vector3?
+	local displacement = horizontal(desiredPosition - currentPosition)
+	if displacement.Magnitude < 2.5 then
+		return nil
+	end
+
+	local direction = displacement.Unit
+	local origin = currentPosition + Vector3.new(0, 1, 0)
+	local destination = desiredPosition + Vector3.new(0, 1, 0)
+	local obstacle = Workspace:Raycast(origin, destination - origin, params)
+	if obstacle == nil then
+		return nil
+	end
+
+	local side = Vector3.new(-direction.Z, 0, direction.X)
+	local extents = model:GetExtentsSize()
+	local clearance = math.max(3.5, math.max(extents.X, extents.Z) * 0.5 + 1.5)
+	local bestCandidate: Vector3? = nil
+	local bestScore = math.huge
+
+	for _, sideSign in ipairs({ -1, 1 }) do
+		local candidate = obstacle.Position + direction * 2.5 + side * (clearance * sideSign)
+		candidate = Vector3.new(candidate.X, desiredPosition.Y, candidate.Z)
+		candidate = resolveGroundPosition(model, candidate, params)
+
+		local candidateProbe = candidate + Vector3.new(0, 1, 0)
+		local firstBlocked = Workspace:Raycast(origin, candidateProbe - origin, params) ~= nil
+		local secondBlocked = Workspace:Raycast(candidateProbe, destination - candidateProbe, params) ~= nil
+		local blockedSegments = (if firstBlocked then 1 else 0) + (if secondBlocked then 1 else 0)
+		local routeLength = horizontal(candidate - currentPosition).Magnitude
+			+ horizontal(desiredPosition - candidate).Magnitude
+		local score = blockedSegments * 100 + routeLength
+		if score < bestScore then
+			bestScore = score
+			bestCandidate = candidate
+		end
+	end
+
+	-- If both sides are completely blocked, keep the direct target and try again
+	-- later instead of repeatedly steering the pet into a corner.
+	if bestScore >= 200 then
+		return nil
+	end
+	return bestCandidate
 end
 
 function CompanionFollowController.new(
@@ -147,6 +209,10 @@ function CompanionFollowController.new(
 		lastInvestigatedNode = nil,
 		lastInvestigatedAt = 0,
 		interactionConnection = nil,
+		pathDetourPosition = nil,
+		pathDetourUntil = 0,
+		nextObstacleScan = 0,
+		lastPathTarget = nil,
 	}, CompanionFollowController)
 
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
@@ -310,6 +376,42 @@ function CompanionFollowController.update(self: FollowController, dt: number)
 	elseif self.environmentState ~= nil and os.clock() >= self.environmentUntil then
 		self.environmentState = nil
 	end
+	-- Avoid walking directly through nearby buildings or walls. Re-evaluate
+	-- periodically and keep a short-lived side waypoint until it is reached.
+	local now = os.clock()
+	local pathTarget = desired
+	if self.pathDetourPosition ~= nil then
+		local targetChanged = self.lastPathTarget ~= nil
+			and horizontal(pathTarget - self.lastPathTarget).Magnitude >= 4
+		local detourReached = horizontal(self.pathDetourPosition - currentPosition).Magnitude <= 1.25
+		if targetChanged or detourReached or now >= self.pathDetourUntil then
+			self.pathDetourPosition = nil
+		end
+	end
+	self.lastPathTarget = pathTarget
+
+	if self.pathDetourPosition == nil and now >= self.nextObstacleScan then
+		self.nextObstacleScan = now + 0.35
+		self.pathDetourPosition = findObstacleDetour(
+			self.model,
+			currentPosition,
+			pathTarget,
+			self.groundRaycastParams
+		)
+		if self.pathDetourPosition ~= nil then
+			self.pathDetourUntil = now + 2
+		end
+	end
+	if self.pathDetourPosition ~= nil then
+		desired = self.pathDetourPosition
+		lagDistance = horizontal(desired - currentPosition).Magnitude
+		if lagDistance > self.catchUpDistance then
+			state = "run"
+		elseif lagDistance > 1.1 then
+			state = "walk"
+		end
+	end
+
 	if self.animation then
 		self.animation:setState(state)
 	end
