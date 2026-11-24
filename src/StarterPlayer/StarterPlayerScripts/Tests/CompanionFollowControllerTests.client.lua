@@ -191,6 +191,13 @@ local rampAlignment = pets[1]:GetPivot().UpVector:Dot(ramp.CFrame.UpVector)
 expect("companion aligns its body with the ramp surface", rampAlignment > 0.95)
 expect("companion remains within the supported slope limit",
 	pets[1]:GetPivot().UpVector:Dot(Vector3.yAxis) > 0.75)
+ramp.CFrame = CFrame.new(40, 2, 0) * CFrame.Angles(0, 0, math.rad(65))
+controllers[1].nextGroundNormalScan = 0
+for _ = 1, 5 do
+	controllers[1]:update(0.05)
+end
+expect("near-vertical surfaces do not tilt the companion unsafely",
+	controllers[1].groundNormal:Dot(Vector3.yAxis) > 0.99)
 ramp:Destroy()
 
 -- A broad wall blocks the straight line to the first formation slot. The
