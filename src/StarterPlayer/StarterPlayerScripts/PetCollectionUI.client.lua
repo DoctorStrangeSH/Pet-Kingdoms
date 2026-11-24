@@ -151,7 +151,7 @@ local mobileBackButton = make("TextButton", {
 	Position = UDim2.new(0, 24, 0, 88),
 	Size = UDim2.new(1, -48, 0, 34),
 	BackgroundColor3 = COLORS.panelSoft,
-	Text = InterfaceTheme.Icons.Back .. "  К СПИСКУ ПИТОМЦЕВ",
+	Text = "НАЗАД К СПИСКУ ПИТОМЦЕВ",
 	TextSize = 12,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -211,8 +211,8 @@ end
 
 local allFilterButton = makeFilterButton("All", "ВСЕ", 0, 0.25)
 local teamFilterButton = makeFilterButton("Team", "КОМАНДА", 0.25, 0.25)
-local favoriteFilterButton = makeFilterButton("Favorites", InterfaceTheme.Icons.FavoriteOn, 0.5, 0.18)
-local sortButton = makeFilterButton("Sort", "НОВЫЕ", 0.68, 0.32)
+local favoriteFilterButton = makeFilterButton("Favorites", "ИЗБРАННОЕ", 0.5, 0.25)
+local sortButton = makeFilterButton("Sort", "НОВЫЕ", 0.75, 0.25)
 
 local list = make("ScrollingFrame", {
 	Name = "PetList",
@@ -285,7 +285,7 @@ local favoriteButton = make("TextButton", {
 	Position = UDim2.new(1, -88, 0.55, 0),
 	Size = UDim2.fromOffset(34, 30),
 	BackgroundColor3 = COLORS.card,
-	Text = InterfaceTheme.Icons.FavoriteOff,
+	Text = "ИЗБР.",
 	TextSize = 19,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
@@ -297,7 +297,7 @@ local lockButton = make("TextButton", {
 	Position = UDim2.new(1, -48, 0.55, 0),
 	Size = UDim2.fromOffset(34, 30),
 	BackgroundColor3 = COLORS.card,
-	Text = InterfaceTheme.Icons.Unlocked,
+	Text = "ЗАЩИТА",
 	TextSize = 16,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -337,7 +337,7 @@ local petButton = make("TextButton", {
 	Position = UDim2.new(0, 0, 0, 0),
 	Size = UDim2.new(0.5, -5, 1, 0),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "♡ ПОГЛАДИТЬ",
+	Text = "ПОГЛАДИТЬ",
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -349,7 +349,7 @@ local playButton = make("TextButton", {
 	Position = UDim2.new(0.5, 5, 0, 0),
 	Size = UDim2.new(0.5, -5, 1, 0),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = "✦ ПОИГРАТЬ",
+	Text = "ПОИГРАТЬ",
 	TextSize = 11,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -374,7 +374,7 @@ local mainButton = make("TextButton", {
 	Position = UDim2.new(0.50, 1, 1, -58),
 	Size = UDim2.new(0.18, -2, 0, 46),
 	BackgroundColor3 = COLORS.cardSelected,
-	Text = InterfaceTheme.Icons.FavoriteOn,
+	Text = "ГЛАВНЫЙ",
 	TextSize = 20,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.gold,
@@ -555,14 +555,14 @@ local function updateDetail()
 		then string.format("ДРУЖБА • УРОВЕНЬ %d  •  МАКСИМУМ", bondLevel)
 		else string.format("ДРУЖБА • УРОВЕНЬ %d  •  %d / 50 XP", bondLevel, bondXp % 50)
 	local equipped = isEquipped(selected.petId)
-	favoriteButton.Text = if selected.isFavorite then InterfaceTheme.Icons.FavoriteOn else InterfaceTheme.Icons.FavoriteOff
+	favoriteButton.Text = if selected.isFavorite then "ИЗБР." else "ИЗБРАТЬ"
 	favoriteButton.BackgroundColor3 = if selected.isFavorite then COLORS.cardSelected else COLORS.card
-	lockButton.Text = if selected.isLocked then InterfaceTheme.Icons.Locked else InterfaceTheme.Icons.Unlocked
+	lockButton.Text = if selected.isLocked then "ЗАЩИЩЁН" else "ЗАЩИТА"
 	lockButton.BackgroundColor3 = if selected.isLocked then COLORS.cardSelected else COLORS.card
 	deleteButton.Visible = not selected.isLocked
 	local equippedIndex = table.find(collection.equipped, selected.petId)
 	mainButton.Visible = equippedIndex ~= nil
-	mainButton.Text = if equippedIndex == 1 then InterfaceTheme.Icons.FavoriteOn else InterfaceTheme.Icons.FavoriteOff
+	mainButton.Text = if equippedIndex == 1 then "ГЛАВНЫЙ" else "НАЗНАЧИТЬ"
 	mainButton.BackgroundColor3 = if equippedIndex == 1 then COLORS.cardSelected else COLORS.card
 	mainButton.Active = equippedIndex ~= nil and equippedIndex ~= 1
 	equipButton.Text = if compactCollection
@@ -644,8 +644,8 @@ local function renderList()
 				Size = UDim2.new(1, -112, 0, 18),
 				Text = table.concat({
 					if equipped then "В КОМАНДЕ" else "В КОЛЛЕКЦИИ",
-					if record.isLocked then InterfaceTheme.Icons.Locked else "",
-					if record.isFavorite then InterfaceTheme.Icons.FavoriteOn else "",
+					if record.isLocked then "ЗАЩИЩЁН" else "",
+					if record.isFavorite then "ИЗБРАННОЕ" else "",
 				}, "  "),
 				TextSize = 10,
 				Font = Enum.Font.GothamMedium,
@@ -678,7 +678,7 @@ local function renderList()
 			Font = Enum.Font.Gotham,
 			LayoutOrder = 1,
 		}, list) :: TextLabel
-		InterfaceComponents.StyleEmptyState(empty, if #collection.owned == 0 then InterfaceTheme.Icons.Pet else InterfaceTheme.Icons.Search)
+		InterfaceComponents.StyleEmptyState(empty)
 	end
 	list.CanvasPosition = Vector2.zero
 	allFilterButton.BackgroundColor3 = if activeFilter == "all" then COLORS.cardSelected else COLORS.panelSoft
