@@ -1108,11 +1108,22 @@ local function beginPlacing()
 	setStatus(if touchPlacement then "1. Выбери здание  2. Коснись свободной травы  3. Нажми «ПОСТРОИТЬ»" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
-rotateButton.Activated:Connect(function()
+local function rotatePlacement()
 	if not placing or buildRequestInFlight then return end
 	rotation = (rotation + 90) % 360
-	if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
-end)
+	if currentCellX ~= nil and currentCellZ ~= nil then
+		local wasLocked = placementLocked
+		updatePreviewAtCell(currentCellX, currentCellZ)
+		placementLocked = wasLocked and currentValid
+	else
+		-- Keep a visible ghost on touch devices even before the player locks
+		-- a target cell. Rotation must be reflected immediately.
+		seedPreview()
+		placementLocked = false
+	end
+end
+
+rotateButton.Activated:Connect(rotatePlacement)
 
 cancelButton.Activated:Connect(stopPlacing)
 panelCloseButton.Activated:Connect(stopPlacing)
@@ -1283,8 +1294,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 	if processed or buildRequestInFlight or demolitionRequestInFlight then return end
 	if input.KeyCode == Enum.KeyCode.R and placing then
-		rotation = (rotation + 90) % 360
-		if placementLocked and currentCellX ~= nil and currentCellZ ~= nil then updatePreviewAtCell(currentCellX, currentCellZ) end
+		rotatePlacement()
 	elseif input.KeyCode == Enum.KeyCode.Escape and ModalManager.IsActive(script.Name) then
 		if overview.Visible then
 			dismissKingdomOverview()
