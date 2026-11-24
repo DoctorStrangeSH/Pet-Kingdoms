@@ -510,8 +510,10 @@ local function resizeBuildingPanel()
 	-- Selected-building controls live inside one safe-area card, below the
 	-- build launcher. Its width follows the viewport instead of overflowing it.
 	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
-	local cardTop = safeOrigin.Y + (recoveryPanel.Visible and 118 or 60)
 	local cardHeight = 124
+	-- Keep the card below the resource/bond HUD stack on normal screens,
+	-- but clamp it upward on short landscape viewports.
+	local cardTop = safeOrigin.Y + math.clamp(180, 8, math.max(8, safeSize.Y - cardHeight))
 	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
 	selectionPanel.Size = UDim2.fromOffset(cardWidth, cardHeight)
 	local cardContentWidth = math.max(0, cardWidth - 24)
