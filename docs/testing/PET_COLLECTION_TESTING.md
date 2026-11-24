@@ -91,3 +91,18 @@ The client follow regression creates a temporary 18-degree ramp and verifies tha
 4. Confirm the temporary ramp is removed when the test completes.
 
 This verifies one deterministic ramp fixture. Manually test the real island's bridges, ramps, uneven terrain and flat-to-slope transitions with the published Bunny mesh.
+## 8. Companion turning, gait and stop test — Studio only
+
+The client follow regression now includes two movement checks:
+
+1. A companion begins turning toward a new horizontal travel direction without snapping, then converges toward that direction.
+2. With the owner stationary, a companion placed slightly outside its formation slot walks toward the slot, switches to idle after settling, and remains within 0.05 studs of its settled position during additional updates.
+
+The server animation smoke test also compares slow and fast movement-speed inputs to ensure procedural leg cadence changes, and verifies the movement-speed clamp.
+
+1. Use the dedicated Studio test place. Enable Workspace boolean attribute `RunPetKingdomsStudioTests = true` for the client follow test.
+2. Run `PetAnimationControllerTests.server.lua` and inspect Server Output for gait-speed and clamp PASS lines.
+3. Start **Test → Start** with a client and inspect that client's Output for smooth-turn, walk-while-owner-stationary, settled-idle, and no-sliding PASS lines.
+4. Repeat the same checks with the published Bunny mesh on desktop and a mobile-sized viewport.
+
+These checks verify controller behavior and the procedural prototype. They do not replace visual approval of the production mesh or device performance testing.
