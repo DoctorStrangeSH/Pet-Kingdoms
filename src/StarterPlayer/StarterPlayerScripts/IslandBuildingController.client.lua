@@ -847,8 +847,17 @@ local function updatePreviewAtCell(x: number, z: number)
 	local valid = inside and not overlaps
 	currentCellX, currentCellZ = x, z
 	currentValid = valid
-	local centerX = (x + footprintWidth / 2 - width / 2) * cellSize
-	local centerZ = (z + footprintDepth / 2 - depth / 2) * cellSize
+	local centerX, centerZ = GridMath.getFootprintCenterOffset(
+		{ x = x, z = z, width = footprintWidth, depth = footprintDepth },
+		width,
+		depth,
+		cellSize
+	)
+	if centerX == nil or centerZ == nil then
+		hideUnavailablePreview()
+		setStatus("Не удалось рассчитать положение постройки", false)
+		return
+	end
 	local previewHeight = if selectedCatalogId == "stone_path" then 0.35 elseif selectedCatalogId == "garden_lantern" then cellSize * 0.8 elseif selectedCatalogId == "flower_bed" then cellSize * 0.5 else cellSize * 0.7
 	currentPreview.Size = Vector3.new(footprintWidth * cellSize, previewHeight, footprintDepth * cellSize)
 	currentPreview.CFrame = top.CFrame * CFrame.new(centerX, top.Size.Y / 2 + previewHeight / 2, centerZ) * CFrame.Angles(0, math.rad(rotation), 0)
