@@ -35,8 +35,9 @@ After automated checks pass, test the complete flow with a dedicated test accoun
 5. Leave the server and rejoin.
 6. Confirm the buildings return at the same world positions and rotations, the expanded bounds remain, and resource balances are unchanged.
 7. Upgrade the pet house to level 2; after rejoining, confirm its upgrade level and the deducted resource balances remain correct.
-8. If a resource node was recently gathered, confirm its prompt and floating gathering marker remain hidden until the saved `AvailableAt` time, then return together.
-9. Repeat with a second rejoin to catch one-time migration or session-generation problems.
+8. Gather enough resources to advance an introductory quest, choose the other quest as the tracked objective, leave, and rejoin. Confirm both quest counters and the selected tracked objective are restored.
+9. If a resource node was recently gathered, confirm its prompt and floating gathering marker remain hidden until the saved `AvailableAt` time, then return together.
+10. Repeat with a second rejoin to catch one-time migration or session-generation problems.
 
 ## Expected persistence contract
 
@@ -45,6 +46,7 @@ After automated checks pass, test the complete flow with a dedicated test accoun
 - Island expansion level and bounds.
 - Resource-node cooldown timestamps.
 - Building operation receipts used to prevent duplicate mutations.
+- Introductory quest counters and the player's tracked quest selection.
 - Profile revision and DataStore session generation.
 
 A successful Rojo/GitHub Actions build proves the place file can be assembled; it does not replace Studio execution or a real leave/rejoin test.
