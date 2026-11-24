@@ -19,6 +19,15 @@
 - Existing buildings: tap/click a building to reveal Move and Demolish actions.
 - Move uses the same placement preview; demolish is a two-step action. The main house is protected.
 
+## Gathering resources for construction
+
+- Each personal island spawns two wood nodes and two stone nodes in its perimeter `ResourceNodes` folder.
+- Walk to a tree marker labelled `ДЕРЕВО +3` and hold the gathering prompt; each wood node grants 3 wood.
+- Walk to a stone marker labelled `КАМЕНЬ +2` and hold the gathering prompt; each stone node grants 2 stone.
+- Each node has an independent 60-second respawn cooldown. Its cooldown and reward are saved together, so leaving the game does not reset the timer.
+- The starter wallet contains 2 wood and 1 stone. The pet house costs 5 wood and 2 stone, so the intended first-build loop is: gather one wood node and one stone node, then build the pet house.
+- If a construction is unaffordable, the panel explains which gathering nodes provide the missing materials.
+
 ## World contract
 
 The server island Model exposes:
