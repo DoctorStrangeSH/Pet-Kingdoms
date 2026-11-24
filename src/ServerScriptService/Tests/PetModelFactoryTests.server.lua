@@ -23,6 +23,7 @@ assert(bunny ~= nil)
 expect("stable species attribute", bunny:GetAttribute("SpeciesId") == "bunny")
 expect("rig version attribute", bunny:GetAttribute("RigVersion") == 1)
 expect("prototype is explicitly marked", bunny:GetAttribute("IsPetRigPrototype") == true)
+expect("ground contact offset is available to the follow controller", bunny:GetAttribute("GroundOffset") == 0.28)
 expect("root is primary part", bunny.PrimaryPart ~= nil and bunny.PrimaryPart.Name == "HumanoidRootPart")
 expect("root is anchored for safe PivotTo-driven companion movement", bunny.PrimaryPart ~= nil and bunny.PrimaryPart.Anchored)
 expect("animation controller exists", bunny:FindFirstChildOfClass("AnimationController") ~= nil)
@@ -55,6 +56,7 @@ local scaledBunny, scaledStatus = PetModelFactory.create("bunny", 1.5)
 expect("valid scale accepted", scaledBunny ~= nil and scaledStatus == "CREATED")
 if scaledBunny then
 	expect("scale is recorded", scaledBunny:GetAttribute("Scale") == 1.5)
+	expect("ground contact offset scales with the rig", scaledBunny:GetAttribute("GroundOffset") == 0.42)
 	scaledBunny:Destroy()
 end
 
