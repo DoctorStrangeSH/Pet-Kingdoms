@@ -589,6 +589,9 @@ local function spawnBuildings(world: Model, spawnCFrame: CFrame, profile: any, c
 		clone:SetAttribute("GridX", record.x)
 		clone:SetAttribute("GridZ", record.z)
 		clone:SetAttribute("GridRotation", record.rotation)
+		local footprintDefinition = BuildingCatalog[record.catalogId]
+		clone:SetAttribute("FootprintWidth", footprintDefinition.footprintWidth)
+		clone:SetAttribute("FootprintDepth", footprintDefinition.footprintDepth)
 		clone:SetAttribute("UpgradeLevel", if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1)
 		clone.Parent = world
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
@@ -858,6 +861,9 @@ function IslandWorldService.syncBuilding(userId: number, profile: any, record: a
 	clone:SetAttribute("GridX", record.x)
 	clone:SetAttribute("GridZ", record.z)
 	clone:SetAttribute("GridRotation", record.rotation)
+	local footprintDefinition = BuildingCatalog[record.catalogId]
+	clone:SetAttribute("FootprintWidth", footprintDefinition.footprintWidth)
+	clone:SetAttribute("FootprintDepth", footprintDefinition.footprintDepth)
 	clone:SetAttribute("UpgradeLevel", if type(record.upgradeLevel) == "number" then math.max(1, math.floor(record.upgradeLevel)) else 1)
 	local ok, err = pcall(function()
 		local pivot = gridToWorld(spawnCFrame, record, profile, cellSize)
