@@ -1790,3 +1790,10 @@ The technical lead selected hybrid Rojo + VS Code + Roblox Studio as the recomme
 - [x] Commit `6040e24`: `ModalManager` listens to the local player's `CharacterRemoving` and `CharacterAdded`, deferring `CloseAll()` to clear all registered modal visibility/focus across death and respawn. The UI ScreenGuis intentionally use `ResetOnSpawn=false`, so explicit cleanup is required.
 - [x] Window-specific cleanup remains in each registration callback; building's callback preserves in-flight transaction handling rather than blindly cancelling a server request.
 - [ ] Studio runtime checks remain required for death/reset/manual respawn with each window and nested confirmation open, and during active construction requests.
+
+
+## Building move/placement regression coverage — 2026-11-24
+
+- [x] Commit `f59afc2`: add four validator regression cases for exact same-cell move, overlap with a different building, out-of-bounds move, and unsupported rotation during move.
+- [x] Existing validator remains server-authoritative: it validates ownership, allowed rotations, bounds, and overlaps before the transaction service mutates resources/world state.
+- [ ] Run the expanded Studio smoke test and perform in-experience input/preview checks; source-level test additions are not execution evidence.
