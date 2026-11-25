@@ -192,7 +192,8 @@ function ConstructionCameraController.Start(island: Model?): boolean
 
 	targetOffset = Vector2.zero
 	distance = math.clamp(math.max(islandGrass.Size.X, islandGrass.Size.Z) * 0.85, 120, 260)
-	yaw = math.rad(38)
+	local islandForward = islandGrass.CFrame.LookVector
+	yaw = math.atan2(-islandForward.X, -islandForward.Z) + math.rad(38)
 	pitch = math.rad(52)
 	clearGestureState()
 	active = true
