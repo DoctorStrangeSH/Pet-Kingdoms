@@ -207,8 +207,46 @@ function Components.StyleEmptyState(label: TextLabel, icon: string?)
 	label.TextYAlignment = Enum.TextYAlignment.Center
 	label.RichText = false
 	if icon and icon ~= "" and not label:GetAttribute("PKEmptyIconApplied") then
-		label.Text = icon .. "\n" .. label.Text
+		-- Use native UI geometry instead of a font glyph: glyph fallback differs
+		-- between desktop/mobile fonts and can render as an empty square.
 		label:SetAttribute("PKEmptyIconApplied", true)
+		label.TextYAlignment = Enum.TextYAlignment.Bottom
+		local padding = label:FindFirstChildOfClass("UIPadding")
+		if padding == nil then
+			padding = Instance.new("UIPadding")
+			padding.Parent = label
+		end
+		padding.PaddingTop = UDim.new(0, 34)
+		local book = Instance.new("Frame")
+		book.Name = "EmptyStateIcon"
+		book.AnchorPoint = Vector2.new(0.5, 0)
+		book.Position = UDim2.new(0.5, 0, 0, 9)
+		book.Size = UDim2.fromOffset(28, 20)
+		book.BackgroundTransparency = 1
+		book.Parent = label
+		for pageIndex = 1, 2 do
+			local page = Instance.new("Frame")
+			page.Name = "Page" .. pageIndex
+			page.Position = UDim2.fromOffset(if pageIndex == 1 then 2 else 15, 1)
+			page.Size = UDim2.fromOffset(11, 17)
+			page.BackgroundColor3 = colors.panelLight
+			page.BorderSizePixel = 0
+			page.Parent = book
+			local pageCorner = Instance.new("UICorner")
+			pageCorner.CornerRadius = UDim.new(0, 2)
+			pageCorner.Parent = page
+			local pageStroke = Instance.new("UIStroke")
+			pageStroke.Color = colors.gold
+			pageStroke.Thickness = 1.2
+			pageStroke.Parent = page
+		end
+		local spine = Instance.new("Frame")
+		spine.Name = "Spine"
+		spine.Position = UDim2.fromOffset(13, 3)
+		spine.Size = UDim2.fromOffset(2, 14)
+		spine.BackgroundColor3 = colors.gold
+		spine.BorderSizePixel = 0
+		spine.Parent = book
 	end
 
 	local corner = label:FindFirstChildOfClass("UICorner")
