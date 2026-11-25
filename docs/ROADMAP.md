@@ -1394,3 +1394,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Touch gesture interruption safety (2026-11-25)
+
+- [x] Treat a second finger joining a placement touch as a gesture handoff: cancel the pending one-finger placement drag and prevent either finger from selecting/locking a world cell.
+- [x] Do not sink multi-touch input; leave camera pan/pinch handling to Roblox's default camera controller.
+- [x] Treat cancelled touch input as non-committing; never lock a preview from an interrupted gesture.
+- [x] Reset tracked touches, candidate, drag and block state when the Roblox window loses focus to prevent stale gesture state.
+- [x] Document the one-finger placement vs multi-touch camera ownership contract.
+- [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [ ] Verify one-finger tap/drag, two-finger camera pan/pinch, third-finger interruption, touch cancellation, focus loss/regain and no accidental placement on physical mobile devices and Studio emulation.
+
+Source PR: #38. Runtime touch/camera acceptance remains pending; this does not close Stage 1.
