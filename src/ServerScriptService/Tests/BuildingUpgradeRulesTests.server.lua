@@ -38,8 +38,8 @@ local maxed = { instanceId = "pet-house-test", catalogId = "pet_house", upgradeL
 local maxPlan, maxCode = Rules.plan(Catalog.pet_house, maxed, enough)
 expect("maximum level rejects another upgrade", maxPlan == nil and maxCode == "MAX_UPGRADE_LEVEL")
 
-local unsupportedPlan, unsupportedCode = Rules.plan(Catalog.wooden_fence, petHouse, enough)
-expect("building without configured upgrade rejects upgrade", unsupportedPlan == nil and unsupportedCode == "UPGRADE_NOT_AVAILABLE")
+local unsupportedPlan, unsupportedCode = Rules.plan(nil, petHouse, enough)
+expect("unknown building definition rejects upgrade", unsupportedPlan == nil and unsupportedCode == "UPGRADE_NOT_AVAILABLE")
 
 local missingWalletPlan, missingWalletCode = Rules.plan(Catalog.pet_house, petHouse, nil)
 expect("missing wallet reports resources not ready", missingWalletPlan == nil and missingWalletCode == "RESOURCES_NOT_READY")
