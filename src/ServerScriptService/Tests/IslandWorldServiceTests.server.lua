@@ -239,6 +239,22 @@ local ok, failure = pcall(function()
 	assert(movedPetHouse and (movedPetHouse:GetPivot().Position - beforeMovePivot.Position).Magnitude > 0.1,
 		"live move must reposition the rendered model")
 
+	-- Simulate a moved visual that failed to persist. Refreshing from the
+	-- authoritative profile must put it back at its original grid cell/rotation.
+	local moveRollbackOk, moveRollbackCode = IslandWorldService.refresh(
+		firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile
+	)
+	assert(moveRollbackOk and moveRollbackCode == "WORLD_REFRESHED",
+		"move rollback fallback must rebuild the world from the saved profile")
+	local moveRollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local restoredMoveHouse = moveRollbackWorld
+		and moveRollbackWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(restoredMoveHouse and restoredMoveHouse:GetAttribute("GridX") == maxExpandedProfile.buildings[2].x
+		and restoredMoveHouse:GetAttribute("GridZ") == maxExpandedProfile.buildings[2].z,
+		"move rollback must restore the authoritative saved grid coordinates")
+	assert(restoredMoveHouse and restoredMoveHouse:GetAttribute("GridRotation") == 90,
+		"move rollback must restore the authoritative saved rotation")
+
 	-- Simulate a level-3 visual upgrade that must be rolled back to the
 	-- authoritative level-2 profile after a failed persistence commit.
 	local failedUpgradeRecord = table.clone(maxExpandedProfile.buildings[2])
