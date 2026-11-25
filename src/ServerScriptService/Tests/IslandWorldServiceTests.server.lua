@@ -239,6 +239,48 @@ local ok, failure = pcall(function()
 	assert(movedPetHouse and (movedPetHouse:GetPivot().Position - beforeMovePivot.Position).Magnitude > 0.1,
 		"live move must reposition the rendered model")
 
+	-- Simulate a moved visual that failed to persist. Refreshing from the
+	-- authoritative profile must put it back at its original grid cell/rotation.
+	local moveRollbackOk, moveRollbackCode = IslandWorldService.refresh(
+		firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile
+	)
+	assert(moveRollbackOk and moveRollbackCode == "WORLD_REFRESHED",
+		"move rollback fallback must rebuild the world from the saved profile")
+	local moveRollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local restoredMoveHouse = moveRollbackWorld
+		and moveRollbackWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(restoredMoveHouse and restoredMoveHouse:GetAttribute("GridX") == maxExpandedProfile.buildings[2].x
+		and restoredMoveHouse:GetAttribute("GridZ") == maxExpandedProfile.buildings[2].z,
+		"move rollback must restore the authoritative saved grid coordinates")
+	assert(restoredMoveHouse and restoredMoveHouse:GetAttribute("GridRotation") == 90,
+		"move rollback must restore the authoritative saved rotation")
+
+	-- Simulate a newly placed but uncommitted model. Rebuilding from the profile
+	-- must remove that model because no matching building record was persisted.
+	local temporaryPlacement = table.clone(maxExpandedProfile.buildings[2])
+	temporaryPlacement.instanceId = "rollback-uncommitted-placement"
+	temporaryPlacement.x = 2
+	temporaryPlacement.z = 2
+	local temporaryPlacementOk, temporaryPlacementCode = IslandWorldService.syncBuilding(
+		firstUserId, maxExpandedProfile, temporaryPlacement
+	)
+	assert(temporaryPlacementOk and temporaryPlacementCode == "BUILDING_SYNCED",
+		"placement rollback setup must render a temporary uncommitted model")
+	local beforePlacementRollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local temporaryPlacementModel = beforePlacementRollbackWorld
+		and beforePlacementRollbackWorld:FindFirstChild("pet_house_rollback-uncommitted-placement")
+	assert(temporaryPlacementModel ~= nil, "temporary uncommitted model must exist before rollback")
+	local placementRollbackOk, placementRollbackCode = IslandWorldService.refresh(
+		firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile
+	)
+	assert(placementRollbackOk and placementRollbackCode == "WORLD_REFRESHED",
+		"placement rollback fallback must rebuild the world from the saved profile")
+	local placementRollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local uncommittedAfterRollback = placementRollbackWorld
+		and placementRollbackWorld:FindFirstChild("pet_house_rollback-uncommitted-placement")
+	assert(uncommittedAfterRollback == nil,
+		"placement rollback must remove a model absent from the authoritative profile")
+
 	-- Simulate a level-3 visual upgrade that must be rolled back to the
 	-- authoritative level-2 profile after a failed persistence commit.
 	local failedUpgradeRecord = table.clone(maxExpandedProfile.buildings[2])
