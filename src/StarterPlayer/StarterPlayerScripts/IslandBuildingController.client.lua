@@ -89,6 +89,64 @@ local function make(className: string, properties: { [string]: any }, parent: In
 	return object
 end
 
+-- Native house pictogram shared by the build launcher and its collapsed-state
+-- return button. Avoid font glyphs so icon rendering is stable on every device.
+local function addHouseActionIcon(button: TextButton)
+	local layer = button.ZIndex + 1
+	local root = make("Frame", {
+		Name = "HouseActionIcon",
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 9, 0.5, -9),
+		Size = UDim2.fromOffset(18, 18),
+		ZIndex = layer,
+	}, button) :: Frame
+
+	local function segment(name: string, width: number, height: number, x: number, y: number, angle: number)
+		local item = make("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(x, y),
+			Size = UDim2.fromOffset(width, height),
+			BackgroundColor3 = COLORS.gold,
+			BorderSizePixel = 0,
+			Rotation = angle,
+			ZIndex = layer + 1,
+		}, root) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(1, 0) }, item)
+	end
+
+	local body = make("Frame", {
+		Name = "HouseBody",
+		Position = UDim2.fromOffset(3, 8),
+		Size = UDim2.fromOffset(12, 9),
+		BackgroundColor3 = COLORS.gold,
+		BorderSizePixel = 0,
+		ZIndex = layer + 1,
+	}, root) :: Frame
+	make("UICorner", { CornerRadius = UDim.new(0, 2) }, body)
+	local door = make("Frame", {
+		Name = "Door",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.fromOffset(3, 5),
+		BackgroundColor3 = COLORS.panel,
+		BorderSizePixel = 0,
+		ZIndex = layer + 2,
+	}, body)
+	make("UICorner", { CornerRadius = UDim.new(0, 1) }, door)
+	segment("RoofLeft", 11, 2.5, 0.31, 0.34, -42)
+	segment("RoofRight", 11, 2.5, 0.69, 0.34, 42)
+
+	button.TextXAlignment = Enum.TextXAlignment.Left
+	local padding = button:FindFirstChildOfClass("UIPadding")
+	if padding == nil then
+		padding = Instance.new("UIPadding")
+		padding.Parent = button
+	end
+	padding.PaddingLeft = UDim.new(0, 34)
+	padding.PaddingRight = UDim.new(0, 6)
+end
+
 local gui = make("ScreenGui", {
 	Name = "IslandBuildingGui",
 	ResetOnSpawn = false,
@@ -227,6 +285,7 @@ local reopenConstructionButton = make("TextButton", {
 	ZIndex = 30,
 }, gui) :: TextButton
 InterfaceComponents.StyleActionButton(reopenConstructionButton, "gold")
+addHouseActionIcon(reopenConstructionButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -711,7 +770,19 @@ local function resizeBuildingPanel()
 	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 40, if ultraShort then 28 else 40)
 	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
-	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
+	local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
+	-- Compact screens place Build at the upper-left: Pet Collection and
+	-- Island Expansion already occupy the right-side vertical launcher rail.
+	-- This leaves the Quest Journal below on the left and avoids a 320×180
+	-- landscape collision between the three floating launchers.
+	local launcherAnchor = if compact then Vector2.new(0, 0) else Vector2.new(1, 0)
+	local launcherPosition = if compact
+		then Vector2.new(safeOrigin.X + 10, safeOrigin.Y + 4)
+		else Vector2.new(safeOrigin.X + safeSize.X - 22, safeOrigin.Y + 24)
+	reopenConstructionButton.AnchorPoint = launcherAnchor
+	reopenConstructionButton.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
+	reopenConstructionButton.Position = UDim2.fromOffset(launcherPosition.X, launcherPosition.Y)
+	reopenConstructionButton.TextSize = if tiny then 11 else (if compact then 12 else 15)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
 	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
@@ -783,12 +854,9 @@ local function resizeBuildingPanel()
 	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
-		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
+		buildLauncher.AnchorPoint = launcherAnchor
 		buildLauncher.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
-		buildLauncher.Position = UDim2.fromOffset(
-			safeOrigin.X + safeSize.X - launcherWidth - (if compact then 10 else 22),
-			safeOrigin.Y + (if compact then 12 else 24)
-		)
+		buildLauncher.Position = UDim2.fromOffset(launcherPosition.X, launcherPosition.Y)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
 		-- The full-width recovery notice owns the top safe area until the
 		-- uncertain server operation has been resolved.
@@ -2216,6 +2284,7 @@ local function addBuildEntry()
 		TextSize = 15,
 	}, gui) :: TextButton
 	InterfaceComponents.StyleActionButton(open, "gold")
+	addHouseActionIcon(open)
 	buildEntryButton = open
 	open.Activated:Connect(beginPlacing)
 end

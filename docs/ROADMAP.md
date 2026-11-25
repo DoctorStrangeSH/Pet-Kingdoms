@@ -1394,3 +1394,16 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Construction entry controls respect the Roblox safe viewport (2026-11-25)
+
+- [x] Correct the right-edge coordinate for the construction launcher: its `AnchorPoint = (1, 0)` means its position must be the safe area's right edge minus margin, not the right edge minus its width and margin.
+- [x] Apply the same safe-area right/top coordinates to the collapsed `СТРОЙКА` reopen button.
+- [x] Keep both controls aligned and consistently sized across compact and desktop viewports; preserve their existing visibility and activation behavior.
+- [x] Add one shared native-shape house pictogram to both entry buttons; keep Russian labels readable with consistent left padding and avoid font-dependent icon glyphs.
+- [x] Place the compact Build launcher at the upper-left instead of the right-side launcher rail already used by Pet Collection and Island Expansion; preserve a small gap above the Quest Journal launcher on short landscape screens.
+- [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [ ] Verify top safe-area placement with Roblox device emulation at 320/360/390 px portrait, short landscape, tablet, and desktop; check topbar/notch inset and confirm neither button overlaps HUD controls.
+
+Source PR: #36. Runtime visual acceptance remains pending; this does not close Stage 1.
