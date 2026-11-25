@@ -1394,3 +1394,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Native-shape Quest Journal empty-state icon (2026-11-25)
+
+- [x] Replace the Quest Journal empty-state font glyph with a two-page book icon drawn from native Roblox UI frames, rounded corners, and strokes.
+- [x] Keep the message text independent from the icon so platform font fallback cannot turn the icon into a missing-glyph square.
+- [x] Preserve the existing `StyleEmptyState(label, icon)` call contract; the icon token remains a presence signal for this journal-specific visual.
+- [ ] Run the pinned Rojo place build and inspect the Studio-ready artifact.
+- [ ] Verify the empty Quest Journal state at desktop, 320/360/390 px portrait, and short landscape sizes in Roblox Studio.
+
+Source PR: #32. Runtime visual acceptance remains pending; this does not close Stage 1.
