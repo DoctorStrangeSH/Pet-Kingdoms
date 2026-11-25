@@ -1324,3 +1324,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify multi-resource spending is atomic: a short balance in one resource must not deduct another resource; exact balances spend successfully.
 - [x] GitHub Actions run #777: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Execute `BuildingUpgradeRulesTests.server.lua` in Roblox Studio and verify a real upgrade updates the building, wallet HUD, and persisted profile after reconnect. Runtime validation pending.
+
+### Stage 1 — Server-side demolition protection and retry safety (2026-11-25)
+
+- [x] Centralize demolition authorization in `BuildingDemolitionRules` and apply it in the server mutation endpoint before removing the world model or profile record.
+- [x] Keep the main house protected on the server; reject malformed building records and unknown catalog IDs; allow valid ordinary buildings.
+- [x] Add Studio-only authorization tests for main house, pet house, paths, malformed IDs/records, and unknown catalog entries.
+- [x] Extend durable journal tests to prove a committed demolition receipt can be replayed for the same request ID/fingerprint without applying another mutation.
+- [ ] Run `BuildingDemolitionRulesTests.server.lua` and `IslandBuildingJournalDataTests.server.lua` in Roblox Studio; perform successful demolition, main-house rejection, simulated save failure/rollback, and reconnect checks. Runtime validation pending.
