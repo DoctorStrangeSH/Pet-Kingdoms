@@ -30,6 +30,30 @@ local appended, appendCode = Journal.append(
 expect("first building receipt is appended", appended ~= nil and appendCode == "RECORDED")
 ledger = appended or {}
 
+local upgradeResult = {
+	ok = true,
+	code = "BUILDING_UPGRADED",
+	instanceId = "building-1",
+	upgradeLevel = 2,
+}
+local withUpgrade, upgradeAppendCode = Journal.append(
+	ledger, "upgrade-request-1", "upgrade|building-1", "upgrade", upgradeResult, now, 2
+)
+expect("upgrade receipt is accepted by the durable journal",
+	withUpgrade ~= nil and upgradeAppendCode == "RECORDED")
+ledger = withUpgrade or {}
+local replayUpgrade, replayUpgradeCode = Journal.find(
+	ledger, "upgrade-request-1", "upgrade|building-1", now, 2
+)
+expect("successful upgrade receipt can be replayed after persistence",
+	replayUpgrade ~= nil and replayUpgradeCode == "DUPLICATE"
+		and replayUpgrade.code == "BUILDING_UPGRADED" and replayUpgrade.upgradeLevel == 2)
+
+local invalidUpgradeLedger = Journal.append(
+	ledger, "bad-action-request", "bad-action", "repair", upgradeResult, now, 3
+)
+expect("unsupported journal action is rejected", invalidUpgradeLedger == nil)
+
 local replay, replayCode = Journal.find(ledger, "request-1", "place|pet_house|2|3|0", now, 1)
 expect("same request fingerprint replays saved result",
 	replay ~= nil and replayCode == "DUPLICATE" and replay.instanceId == "building-1")
