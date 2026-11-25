@@ -296,13 +296,26 @@ local function handleRequest(player: Player, request: any): any
 		)
 		if not committed then
 			table.insert(profileForRemoval.buildings, removeIndex, removedRecord)
-			IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
+			local restored, restoreCode = IslandWorldService.syncBuilding(userId, profileForRemoval, removedRecord)
+			if not restored then
+				-- A single-model restore can fail when its template or world reference
+				-- disappears during the failed transaction. Rebuild from the restored
+				-- authoritative profile before reporting the original commit failure.
+				local refreshed, refreshCode = IslandWorldService.refresh(userId, player, profileForRemoval)
+				if not refreshed then
+					warn("[PetKingdoms] Demolition rollback could not restore the world:",
+						restoreCode, refreshCode, removedRecord.instanceId)
+				else
+					restored = true
+				end
+			end
 			if profileForRemoval.revision > previousRevision then
 				profileForRemoval.buildingOperations = previousLedger
 				if IslandSessionService.canWrite(userId, player) then
 					IslandSessionService.markDirty(userId)
 				end
 			end
+			if not restored then return fail("BUILDING_ROLLBACK_FAILED") end
 			return fail(commitCode)
 		end
 		remember(userId, request.requestId, fingerprint, removalResult)
