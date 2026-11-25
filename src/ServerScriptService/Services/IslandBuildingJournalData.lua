@@ -37,7 +37,7 @@ function IslandBuildingJournalData.validateLedger(ledger: any): (boolean, string
 			or seen[entry.requestId] == true
 			or type(entry.fingerprint) ~= "string" or #entry.fingerprint < 1
 			or #entry.fingerprint > MAX_FINGERPRINT_LENGTH
-			or (entry.action ~= "place" and entry.action ~= "move" and entry.action ~= "demolish")
+			or (entry.action ~= "place" and entry.action ~= "move" and entry.action ~= "upgrade" and entry.action ~= "demolish")
 			or not isInteger(entry.createdAt) or entry.createdAt < 0
 			or not isInteger(entry.revision) or entry.revision < 1
 			or type(entry.result) ~= "table"
@@ -89,7 +89,7 @@ function IslandBuildingJournalData.append(
 	if not valid then return nil, "INVALID_LEDGER" end
 	if type(requestId) ~= "string" or #requestId < 1 or #requestId > MAX_REQUEST_ID_LENGTH
 		or type(fingerprint) ~= "string" or #fingerprint < 1 or #fingerprint > MAX_FINGERPRINT_LENGTH
-		or (action ~= "place" and action ~= "move" and action ~= "demolish")
+		or (action ~= "place" and action ~= "move" and action ~= "upgrade" and action ~= "demolish")
 		or type(result) ~= "table" or result.ok ~= true
 		or not isInteger(now) or now < 0
 		or not isInteger(revision) or revision < 1
