@@ -1331,4 +1331,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the main house protected on the server; reject malformed building records and unknown catalog IDs; allow valid ordinary buildings.
 - [x] Add Studio-only authorization tests for main house, pet house, paths, malformed IDs/records, and unknown catalog entries.
 - [x] Extend durable journal tests to prove a committed demolition receipt can be replayed for the same request ID/fingerprint without applying another mutation.
+- [x] GitHub Actions run #779: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run `BuildingDemolitionRulesTests.server.lua` and `IslandBuildingJournalDataTests.server.lua` in Roblox Studio; perform successful demolition, main-house rejection, simulated save failure/rollback, and reconnect checks. Runtime validation pending.
