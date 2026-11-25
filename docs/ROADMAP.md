@@ -1402,7 +1402,8 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add a small native circular status indicator to the collapsed construction launcher so validity can be checked without reopening the tray.
 - [x] Use gold for an unlocked/aiming preview, red for a locked invalid footprint, amber for insufficient resources, and green only when the selected cell is valid and affordable.
 - [x] Refresh the indicator through the same availability update path as the confirm button, including after rotation and resource-wallet updates.
-- [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [x] GitHub Actions run #810: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [ ] Open the generated place in Roblox Studio and inspect the collapsed indicator layering and appearance.
 - [ ] Verify collapse/reopen preserves selected building, rotation, preview position and lock state on desktop and touch devices; verify each indicator color with valid/invalid/unaffordable scenarios in Studio.
 
 Source PR: #37. Runtime visual acceptance remains pending; this does not close Stage 1.
