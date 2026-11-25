@@ -239,6 +239,30 @@ local ok, failure = pcall(function()
 	assert(movedPetHouse and (movedPetHouse:GetPivot().Position - beforeMovePivot.Position).Magnitude > 0.1,
 		"live move must reposition the rendered model")
 
+	-- Simulate the world-model removal part of a demolition transaction, then
+	-- restore from the unchanged authoritative profile as the rollback fallback.
+	local removedForRollback = IslandWorldService.removeBuilding(
+		firstUserId, movedPetRecord.instanceId, maxExpandedProfile
+	)
+	assert(removedForRollback, "demolition rollback setup must remove the live model")
+	local missingAfterRemoval = maxExpandedWorld
+		and maxExpandedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(missingAfterRemoval == nil, "removed model must be absent before rollback refresh")
+	local rollbackRefreshOk, rollbackRefreshCode = IslandWorldService.refresh(
+		firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile
+	)
+	assert(rollbackRefreshOk and rollbackRefreshCode == "WORLD_REFRESHED",
+		"full island refresh must restore the world from the authoritative profile")
+	local rollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local restoredPetHouse = rollbackWorld
+		and rollbackWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(restoredPetHouse and restoredPetHouse:GetAttribute("GridX") == maxExpandedProfile.buildings[2].x
+		and restoredPetHouse:GetAttribute("GridZ") == maxExpandedProfile.buildings[2].z,
+		"rollback refresh must restore the saved building coordinates")
+	assert(restoredPetHouse and restoredPetHouse:GetAttribute("GridRotation") == 90
+		and restoredPetHouse:GetAttribute("UpgradeLevel") == 2,
+		"rollback refresh must restore rotation and upgrade progression")
+
 	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
 
