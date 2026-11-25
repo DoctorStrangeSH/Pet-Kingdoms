@@ -779,7 +779,7 @@ local function resizeBuildingPanel()
 		demolishButton.Position = UDim2.fromOffset(nextActionX, actionY)
 		demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
 	end
-	demolishButton.Text = if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ"
+	demolishButton.Text = if demolitionArmed then (if compact then "ТОЧНО?" else "ТОЧНО УДАЛИТЬ?") else (if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ")
 	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
@@ -939,7 +939,7 @@ local function selectBuilding(model: Model?)
 	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Text = if compactBuildingUI
 		then "УДАЛИТЬ"
-		else "ДЕМОНТИРОВАТЬ"
+		else "ДЕМОНТАЖ"
 	if model then
 		-- Treat the context card as the active top-level interaction surface so
 		-- it cannot remain underneath another modal window.
@@ -1059,7 +1059,7 @@ demolishButton.Activated:Connect(function()
 	end
 	if not demolitionArmed then
 		demolitionArmed = true
-		demolishButton.Text = "ТОЧНО УДАЛИТЬ?"
+		demolishButton.Text = if compactBuildingUI then "ТОЧНО?" else "ТОЧНО УДАЛИТЬ?"
 		setStatus("Нажми ещё раз для подтверждения демонтажа", false)
 		return
 	end
@@ -1087,7 +1087,7 @@ demolishButton.Activated:Connect(function()
 	demolitionRequestInFlight = false
 	InterfaceComponents.SetButtonLoading(demolishButton, false)
 	moveButton.Active = true
-	demolishButton.Text = "ДЕМОНТИРОВАТЬ"
+	demolishButton.Text = if compactBuildingUI then "УДАЛИТЬ" else "ДЕМОНТАЖ"
 	demolitionArmed = false
 	if ok and not shouldKeepPendingRequest(response) then
 		if pendingBuildingOperationKey == operationKey then clearPendingBuildingOperation() else clearPendingRequestId(operationKey) end

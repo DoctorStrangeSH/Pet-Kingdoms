@@ -1342,3 +1342,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend the Studio-only island lifecycle test to remove a live building and verify full island refresh restores its persisted position, rotation, and upgrade level.
 - [x] GitHub Actions run #781: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the lifecycle test in Roblox Studio and inject a real persistence failure to exercise the demolition transaction's single-model restore and full-refresh fallback. Runtime validation pending.
+
+### Stage 1 — Mobile demolition confirmation UX (2026-11-25)
+
+- [x] Keep the two-step demolition confirmation label in sync with responsive panel resizing; a viewport change no longer silently hides the confirmation state.
+- [x] Use a short `ТОЧНО?` confirmation label on compact screens so the action remains legible in the narrow three-button card.
+- [x] Restore the correct responsive action label after the request completes and when a different building is selected.
+- [ ] Verify the confirmation flow on narrow portrait and landscape phone viewports in Roblox Studio. Runtime visual validation pending.
