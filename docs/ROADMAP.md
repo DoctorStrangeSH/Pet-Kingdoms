@@ -1424,6 +1424,7 @@ Source PR: #38. Runtime touch/camera acceptance remains pending; this does not c
 - [x] Restore the previous Roblox camera type/subject/FOV when construction or move mode exits; clear active gestures on focus loss and when the island is removed.
 - [x] Add pure geometry helpers and opt-in Studio tests for pan clamping, expanded bounds, zoom limits, orbit framing and pan-vector calculations.
 - [x] GitHub Actions run #823: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [x] GitHub Actions run #825: pinned Rojo verification, full place build, and Studio-ready artifact upload passed after hardening camera-subject restoration (2026-11-25).
 - [ ] Open the Studio-ready artifact in Roblox Studio and run `ConstructionCameraMathTests.server.lua` with `Workspace.RunConstructionCameraMathTests = true`.
 - [ ] Verify mouse controls, two-finger pan/pinch, one-finger placement isolation, island-edge clamping, expansion levels 0–2, and camera restoration after cancel/confirm/modal close in Roblox Studio and on physical mobile devices.
 
