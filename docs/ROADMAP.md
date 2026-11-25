@@ -1358,3 +1358,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add an island lifecycle integration test that simulates a temporary level-3 visual upgrade and verifies rollback refresh restores the saved level-2 visual state.
 - [x] GitHub Actions run #785: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the upgrade and demolition rollback scenarios with injected DataStore persistence failures in Roblox Studio. Runtime failure-injection validation pending.
+
+### Stage 1 — Placement and move rollback world consistency (2026-11-25)
+
+- [x] Check whether a failed placement commit actually removes its temporary world model; fall back to rebuilding the island from the authoritative profile if needed.
+- [x] Check whether a failed move commit restores the previous model; fall back to a full island refresh if single-model synchronization fails.
+- [x] Return `BUILDING_ROLLBACK_FAILED` when both the targeted restore and full-world recovery fail.
+- [x] Extend Studio-only world lifecycle coverage for move rollback (saved coordinates/rotation restored) and uncommitted placement rollback (temporary model removed).
+- [ ] Run placement/move commit-failure injection against Roblox DataStore in Studio and verify resource balances and saved profile after reconnect. Runtime validation pending.
