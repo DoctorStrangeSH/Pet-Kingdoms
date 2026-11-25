@@ -271,9 +271,72 @@ local function makeButton(name: string, label: string, width: number, color: Col
 	return button
 end
 
-local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 94, COLORS.panelLight)
+-- Draw placement-action icons from native UI geometry; do not rely on font glyphs.
+local confirmIconSegments: { Frame } = {}
+
+local function addPlacementActionIcon(button: TextButton, action: string, tint: Color3)
+	local size = 14
+	local layer = button.ZIndex + 1
+	local root = make("Frame", {
+		Name = "ActionIcon_" .. action,
+		AnchorPoint = Vector2.new(0.5, 0),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 0, 3),
+		Size = UDim2.fromOffset(size, size),
+		ZIndex = layer,
+	}, button) :: Frame
+
+	local function stroke(name: string, width: number, height: number, x: number, y: number, angle: number)
+		local segment = make("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(x, y),
+			Size = UDim2.fromOffset(width, height),
+			BackgroundColor3 = tint,
+			BorderSizePixel = 0,
+			Rotation = angle,
+			ZIndex = layer + 1,
+		}, root) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(1, 0) }, segment)
+		if action == "Confirm" then
+			table.insert(confirmIconSegments, segment)
+		end
+	end
+
+	if action == "Rotate" then
+		stroke("ArcTop", 9, 2, 0.53, 0.18, 18)
+		stroke("ArcRight", 2, 7, 0.83, 0.42, 12)
+		stroke("ArrowA", 5, 2, 0.67, 0.08, 25)
+		stroke("ArrowB", 5, 2, 0.84, 0.23, 105)
+		stroke("ArcBottom", 8, 2, 0.43, 0.82, 18)
+		stroke("ArrowC", 5, 2, 0.18, 0.75, 25)
+	elseif action == "Confirm" then
+		stroke("CheckShort", 7, 2.4, 0.34, 0.58, 45)
+		stroke("CheckLong", 10, 2.4, 0.66, 0.43, -48)
+	else
+		stroke("CrossA", 12, 2.4, 0.5, 0.5, 45)
+		stroke("CrossB", 12, 2.4, 0.5, 0.5, -45)
+	end
+
+	button.TextXAlignment = Enum.TextXAlignment.Center
+	button.TextYAlignment = Enum.TextYAlignment.Bottom
+	local padding = button:FindFirstChildOfClass("UIPadding")
+	if padding == nil then
+		padding = Instance.new("UIPadding")
+		padding.Parent = button
+	end
+	padding.PaddingTop = UDim.new(0, 16)
+	padding.PaddingBottom = UDim.new(0, 2)
+	padding.PaddingLeft = UDim.new(0, 2)
+	padding.PaddingRight = UDim.new(0, 2)
+end
+
+local rotateButton = makeButton("Rotate", "ПОВОРОТ", 94, COLORS.panelLight)
 local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
+addPlacementActionIcon(rotateButton, "Rotate", COLORS.cream)
+addPlacementActionIcon(confirmButton, "Confirm", COLORS.cream)
+addPlacementActionIcon(cancelButton, "Cancel", COLORS.cream)
 
 local catalogRow = make("ScrollingFrame", {
 	Name = "Catalog",
@@ -497,6 +560,10 @@ local function updateConfirmAvailability()
 	confirmButton.Active = canConfirm
 	confirmButton.AutoButtonColor = canConfirm
 	confirmButton.BackgroundTransparency = if canConfirm then 0 else 0.28
+	local iconColor = if canConfirm then COLORS.cream else COLORS.muted
+	for _, segment in ipairs(confirmIconSegments) do
+		segment.BackgroundColor3 = iconColor
+	end
 end
 
 local catalogLoadAttempts = 0
@@ -743,10 +810,12 @@ local function resizeBuildingPanel()
 	local confirmWidth = available - rotateWidth - cancelWidth
 	rotateButton.Size = UDim2.fromOffset(rotateWidth, 44)
 	rotateButton.Text = "ПОВОРОТ"
+	rotateButton.TextSize = if tiny then 9 else (if narrow then 10 else 11)
 	confirmButton.Size = UDim2.fromOffset(confirmWidth, 44)
 	confirmButton.TextSize = if tiny then 10 else (if narrow then 11 else 14)
 	cancelButton.Size = UDim2.fromOffset(cancelWidth, 44)
 	cancelButton.Text = "ОТМЕНА"
+	cancelButton.TextSize = if tiny then 9 else (if narrow then 10 else 11)
 	-- Selected-building controls live inside one safe-area card, below the
 	-- build launcher. Its width follows the viewport instead of overflowing it.
 	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
