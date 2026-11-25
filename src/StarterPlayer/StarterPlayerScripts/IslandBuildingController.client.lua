@@ -394,7 +394,7 @@ local function renderCatalogButton(catalogId: string)
 			end
 		end
 		local canAfford = true
-		local chipGap = 4
+		local chipGap = 5
 		local chipWidth = if #requiredResources > 0
 			then math.clamp(math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources), 30, 48)
 			else 48
