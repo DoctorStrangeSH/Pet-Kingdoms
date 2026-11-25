@@ -1306,4 +1306,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Fix move-record creation to retain the existing building's `upgradeLevel` while changing only its grid coordinates and rotation.
 - [x] Keep the original instance ID and catalog ID stable so references and ownership remain intact.
 - [x] Add Studio-only pure tests for level-2 progression preservation, coordinate/rotation updates, no mutation of the old record, and legacy level-1 records without an explicit upgrade field.
+- [x] GitHub Actions run #773: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the new `BuildingRecordFactoryTests.server.lua` in Roblox Studio and verify an upgraded building remains upgraded after a real move and island reload. Runtime validation pending.
