@@ -1313,5 +1313,6 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 
 - [x] Add `upgrade` to the supported persisted building-journal actions. Previously the upgrade transaction was rejected by journal validation even after its in-memory building/resource changes had been applied, forcing a rollback instead of a successful upgrade.
 - [x] Add a Studio-only journal test proving upgrade receipts append and replay after their revision is persisted.
+- [x] GitHub Actions run #775: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [x] Verify unsupported journal actions still fail closed.
 - [ ] Run `IslandBuildingJournalDataTests.server.lua` and perform a real level-1 to level-2 upgrade in Roblox Studio; verify resources, level, and reconnect persistence. Runtime validation pending.
