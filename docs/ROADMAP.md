@@ -1333,3 +1333,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend durable journal tests to prove a committed demolition receipt can be replayed for the same request ID/fingerprint without applying another mutation.
 - [x] GitHub Actions run #779: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run `BuildingDemolitionRulesTests.server.lua` and `IslandBuildingJournalDataTests.server.lua` in Roblox Studio; perform successful demolition, main-house rejection, simulated save failure/rollback, and reconnect checks. Runtime validation pending.
+
+### Stage 1 — Demolition rollback world recovery (2026-11-25)
+
+- [x] Check the result of the single-building world restore after a failed demolition commit instead of silently ignoring restoration failure.
+- [x] If the single-model restore fails, rebuild the island from the restored authoritative profile; preserve saved coordinates, rotation, and upgrade level.
+- [x] Return an explicit `BUILDING_ROLLBACK_FAILED` error if both restoration paths fail, and show a clear client-facing message.
+- [x] Extend the Studio-only island lifecycle test to remove a live building and verify full island refresh restores its persisted position, rotation, and upgrade level.
+- [ ] Run the lifecycle test in Roblox Studio and inject a real persistence failure to exercise the demolition transaction's single-model restore and full-refresh fallback. Runtime validation pending.
