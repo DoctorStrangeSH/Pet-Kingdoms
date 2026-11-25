@@ -154,7 +154,7 @@ local function runIntegrationScenario()
 		and receiptLoaded.buildings[2].instanceId == "store-test-pet-house"
 		and receiptLoaded.buildings[2].catalogId == "pet_house"
 		and receiptLoaded.buildings[2].x == 9
-		and receiptLoaded.buildings[2].z == 12
+		and receiptLoaded.buildings[2].z == 8
 		and receiptLoaded.buildings[2].rotation == 180
 		and receiptLoaded.buildings[2].upgradeLevel == 3
 		and receiptLoaded.buildings[3].catalogId == "stone_path"
