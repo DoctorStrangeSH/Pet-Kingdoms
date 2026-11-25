@@ -1038,6 +1038,7 @@ upgradeButton.Activated:Connect(function()
 			MAX_UPGRADE_LEVEL = "У постройки уже максимальный уровень",
 			UPGRADE_NOT_AVAILABLE = "Для этой постройки улучшение недоступно",
 			BUILDING_NOT_FOUND = "Постройка уже отсутствует",
+			BUILDING_ROLLBACK_FAILED = "Не удалось восстановить остров после ошибки. Обратись в поддержку",
 			SESSION_NOT_WRITABLE = "Сохранение временно недоступно",
 			BUILDING_OPERATION_BUSY = "Сервер занят. Попробуй позже",
 		}
