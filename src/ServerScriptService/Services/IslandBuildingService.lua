@@ -38,6 +38,50 @@ local function getRemote(): RemoteFunction
 	return remote
 end
 
+local function getCatalogRemote(): RemoteFunction
+	local folder = ReplicatedStorage:FindFirstChild("Remotes")
+	if folder == nil then
+		folder = Instance.new("Folder")
+		folder.Name = "Remotes"
+		folder.Parent = ReplicatedStorage
+	end
+	local remote = folder:FindFirstChild("GetBuildingCatalog")
+	if remote == nil then
+		remote = Instance.new("RemoteFunction")
+		remote.Name = "GetBuildingCatalog"
+		remote.Parent = folder
+	end
+	assert(remote:IsA("RemoteFunction"), "ReplicatedStorage/Remotes/GetBuildingCatalog must be a RemoteFunction")
+	return remote
+end
+
+local function getCatalogSnapshot(player: Player): any
+	local profile = IslandSessionService.getProfile(player.UserId)
+	if profile == nil then return { ok = false, code = "SESSION_NOT_READY" } end
+	local items = {}
+	for id, definition in pairs(BuildingCatalog) do
+		local cost = {}
+		for resource, amount in pairs(definition.cost or {}) do
+			cost[resource] = amount
+		end
+		items[id] = {
+			id = id,
+			cost = cost,
+			width = definition.footprintWidth,
+			depth = definition.footprintDepth,
+			unlocked = definition.defaultUnlocked == true
+				or (type(profile.unlockedBuildingIds) == "table" and profile.unlockedBuildingIds[id] == true),
+		}
+	end
+	local resources = {}
+	for resource, amount in pairs(profile.resources or {}) do
+		if type(resource) == "string" and type(amount) == "number" then
+			resources[resource] = amount
+		end
+	end
+	return { ok = true, items = items, resources = resources }
+end
+
 local function remember(userId: number, requestId: string, fingerprint: string, result: any)
 	local cache = resultsByUserId[userId]
 	if cache == nil then
@@ -399,6 +443,7 @@ end
 
 function IslandBuildingService.start()
 	getRemote().OnServerInvoke = handleRequest
+	getCatalogRemote().OnServerInvoke = getCatalogSnapshot
 	game:GetService("Players").PlayerRemoving:Connect(function(player)
 		resultsByUserId[player.UserId] = nil
 		requestOrderByUserId[player.UserId] = nil

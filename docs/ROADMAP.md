@@ -1262,3 +1262,13 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep server validation authoritative; client hints are explanatory only and do not enable placement or bypass resource/unlock checks.
 - [x] GitHub Actions run #763: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify all rejection messages, dimensions after rotation, and text fit on narrow phones/tablets/desktop in Roblox Studio. Runtime validation pending.
+
+### Stage 1 — Server-driven construction catalog cards (2026-11-25)
+
+- [x] Replace text-only construction buttons with compact cards showing the building name, footprint dimensions, and resource cost chips.
+- [x] Draw resource pictograms from native UI shapes to avoid missing font glyphs and empty icon placeholders.
+- [x] Add a server-owned `GetBuildingCatalog` snapshot containing sanitized building costs, dimensions, unlock state, and current resource balances.
+- [x] Refresh affordability and cost chip colors from the existing server resource update event after gathering, spending, and other resource changes.
+- [x] Visually distinguish selected, unaffordable, and locked cards; prevent selecting entries that are not currently unlocked or affordable.
+- [x] Retry the initial catalog request briefly while the island profile is still loading.
+- [ ] Verify card rendering, resource refresh, affordability, locked state, and phone/tablet/desktop scrolling in Roblox Studio. Runtime visual validation pending.
