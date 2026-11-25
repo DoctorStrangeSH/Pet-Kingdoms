@@ -171,6 +171,11 @@ local function handleRequest(player: Player, request: any): any
 	if IslandSessionService.isProfileMutationBusy(userId) then
 		return fail("BUILDING_OPERATION_BUSY")
 	end
+	-- Keep all pre-commit validation/profile/world mutations synchronous and
+	-- non-yielding. commitBuildingOperation acquires the profile-wide mutation
+	-- lock before its first DataStore wait, serializing building, gathering,
+	-- expansion, and hatch writes for this player. Do not add yielding calls
+	-- between this guard and the durable commit without moving lock acquisition.
 	local fingerprint, operationAction = makeFingerprint(request)
 	local cache = resultsByUserId[userId]
 	local cached = cache and cache[request.requestId]
