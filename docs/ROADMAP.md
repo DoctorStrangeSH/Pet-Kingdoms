@@ -1271,4 +1271,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Refresh affordability and cost chip colors from the existing server resource update event after gathering, spending, and other resource changes.
 - [x] Visually distinguish selected, unaffordable, and locked cards; prevent selecting entries that are not currently unlocked or affordable.
 - [x] Retry the initial catalog request briefly while the island profile is still loading.
+- [x] GitHub Actions run #765: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify card rendering, resource refresh, affordability, locked state, and phone/tablet/desktop scrolling in Roblox Studio. Runtime visual validation pending.
