@@ -1394,3 +1394,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Native resource pictograms in building costs (2026-11-25)
+
+- [x] Replace the construction catalog's generic colored resource squares with resource-specific native UI pictograms for wood, stone, gold, and gems.
+- [x] Replace font-glyph symbols in the selected-building upgrade cost chips with the same native-shape pictograms.
+- [x] Keep costs, affordability colors, chip dimensions, and server-side upgrade requests unchanged.
+- [ ] Run the pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [ ] Verify construction and upgrade cost icons remain legible at 320×180, 360×640, 390×844, tablet, and desktop in Roblox Studio.
+
+Source PR: #33. Runtime visual acceptance remains pending; this does not close Stage 1.
