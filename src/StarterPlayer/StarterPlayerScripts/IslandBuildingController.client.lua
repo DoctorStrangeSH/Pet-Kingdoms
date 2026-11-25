@@ -522,8 +522,12 @@ resourceUpdate.OnClientEvent:Connect(function(snapshot)
 		resourceBalances = snapshot
 		refreshCatalogCards()
 		updateConfirmAvailability()
-		if placing and movingInstanceId == nil and currentValid and not hasResourcesForSelectedBuilding() then
-			setStatus("Место свободно, но не хватает ресурсов для постройки", false)
+		if placing and currentValid then
+			if not hasResourcesForSelectedBuilding() then
+				setStatus("Место свободно, но не хватает ресурсов для постройки", false)
+			elseif placementLocked then
+				setStatus("Место закреплено. Нажми «Построить» или выбери другое", true)
+			end
 		end
 	end
 end)
@@ -2180,6 +2184,7 @@ UserInputService.InputChanged:Connect(function(input)
 			and (position - touchStartPosition).Magnitude > TAP_DRAG_THRESHOLD then
 			touchDraggingPlacement = true
 			placementLocked = false
+			updateConfirmAvailability()
 		end
 		if touchDraggingPlacement then
 			pointerPosition = position
