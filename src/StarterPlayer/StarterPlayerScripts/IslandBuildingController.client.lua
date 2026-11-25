@@ -23,6 +23,7 @@ local catalogRemote = remotes:WaitForChild("GetBuildingCatalog") :: RemoteFuncti
 local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local GridMath = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 local BUILDING_SIZES = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("BuildingFootprints"))
+local ConstructionCameraController = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("ConstructionCameraController"))
 local TouchGestureGate = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("TouchGestureGate"))
 
 local selectedCatalogId = "main_house"
@@ -1807,6 +1808,9 @@ local function beginMoveSelected()
 		updateBuildingContext(model)
 		return
 	end
+	-- Frame the island for the full move interaction; the controller restores
+	-- Roblox's character camera when the player exits construction mode.
+	ConstructionCameraController.Start(findOwnIsland())
 	-- Start the move ghost exactly where the selected building currently
 	-- stands. Starting from the island center can make the object appear to
 	-- jump away before the player has chosen a destination.
@@ -1831,6 +1835,7 @@ local function stopPlacing()
 		setStatus("Дождись ответа о строительстве", false)
 		return
 	end
+	ConstructionCameraController.Stop()
 	placing = false
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
@@ -1885,6 +1890,7 @@ local function beginPlacing()
 		end
 		return
 	end
+	ConstructionCameraController.Start(findOwnIsland())
 	placementLocked = false
 	seedPreview()
 	updateConfirmAvailability()
