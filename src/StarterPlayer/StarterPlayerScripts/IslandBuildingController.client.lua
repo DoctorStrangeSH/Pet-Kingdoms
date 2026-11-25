@@ -458,12 +458,19 @@ local function refreshCatalogCards()
 	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
 end
 
+local catalogLoadAttempts = 0
 local function loadCatalogSnapshot()
 	local ok, response = pcall(function() return catalogRemote:InvokeServer() end)
 	if not ok or type(response) ~= "table" or response.ok ~= true then
-		setStatus("Каталог пока загружается…", false)
+		catalogLoadAttempts += 1
+		if catalogLoadAttempts <= 5 then
+			task.delay(2, loadCatalogSnapshot)
+		else
+			setStatus("Не удалось загрузить каталог. Попробуй перезайти на остров", false)
+		end
 		return
 	end
+	catalogLoadAttempts = 0
 	catalogItems = response.items or {}
 	resourceBalances = response.resources or {}
 	refreshCatalogCards()
