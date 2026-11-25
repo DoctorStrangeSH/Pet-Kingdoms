@@ -54,6 +54,25 @@ local invalidUpgradeLedger = Journal.append(
 )
 expect("unsupported journal action is rejected", invalidUpgradeLedger == nil)
 
+local demolitionResult = {
+	ok = true,
+	code = "BUILDING_DEMOLISHED",
+	instanceId = "building-1",
+}
+local withDemolition, demolitionAppendCode = Journal.append(
+	ledger, "demolish-request-1", "demolish|building-1", "demolish", demolitionResult, now, 3
+)
+expect("demolition receipt is accepted by the durable journal",
+	withDemolition ~= nil and demolitionAppendCode == "RECORDED")
+ledger = withDemolition or {}
+local replayDemolition, replayDemolitionCode = Journal.find(
+	ledger, "demolish-request-1", "demolish|building-1", now, 3
+)
+expect("retry of committed demolition replays the original result without a second mutation",
+	replayDemolition ~= nil and replayDemolitionCode == "DUPLICATE"
+		and replayDemolition.code == "BUILDING_DEMOLISHED"
+		and replayDemolition.instanceId == "building-1")
+
 local replay, replayCode = Journal.find(ledger, "request-1", "place|pet_house|2|3|0", now, 1)
 expect("same request fingerprint replays saved result",
 	replay ~= nil and replayCode == "DUPLICATE" and replay.instanceId == "building-1")
