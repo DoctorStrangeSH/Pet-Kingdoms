@@ -1384,3 +1384,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the DataStore integration scenario opt-in via `Workspace.RunIslandStoreIntegrationTests` and synthetic user IDs; ordinary Studio play does not write test records.
 - [x] GitHub Actions run #791: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Execute the opt-in scenario in a dedicated Roblox test universe with Studio API access enabled; verify cleanup and a second session claim. Runtime DataStore validation pending.
+
+### Stage 1 — Durable building request replay and journal compaction (2026-11-25)
+
+- [x] Verify retrying an already-recorded request with the same fingerprint does not append a second receipt.
+- [x] Verify a reused request ID with a different fingerprint is rejected as a conflict.
+- [x] Verify returned replay results are detached snapshots and cannot mutate the saved receipt.
+- [x] Verify appending a fresh operation compacts receipts older than the seven-day retention window before enforcing the bounded journal capacity.
+- [x] Verify a compacted expired request is no longer replayable.
+- [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
