@@ -17,7 +17,10 @@ local function announcePanelOpened()
 end
 
 local camera = Workspace.CurrentCamera
-local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceBuilding") :: RemoteFunction
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local remote = remotes:WaitForChild("PlaceBuilding") :: RemoteFunction
+local catalogRemote = remotes:WaitForChild("GetBuildingCatalog") :: RemoteFunction
+local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local GridMath = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 local BUILDING_SIZES = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("BuildingFootprints"))
 
@@ -293,30 +296,175 @@ make("UIListLayout", {
 	SortOrder = Enum.SortOrder.LayoutOrder,
 }, catalogRow)
 
-local function makeCatalogButton(name: string, label: string): TextButton
+local catalogItems: { [string]: any } = {}
+local resourceBalances: { [string]: number } = {}
+local catalogButtonsById: { [string]: TextButton } = {}
+
+local function makeCatalogButton(name: string, catalogId: string, titleText: string): TextButton
 	local button = make("TextButton", {
 		Name = name,
-		Size = UDim2.fromOffset(130, 70),
+		Size = UDim2.fromOffset(138, 70),
 		BackgroundColor3 = COLORS.panelLight,
 		BorderSizePixel = 0,
 		AutoButtonColor = true,
-		Font = Enum.Font.GothamBold,
-		Text = label,
-		TextColor3 = COLORS.text,
-		TextSize = 13,
-		TextWrapped = true,
+		Text = "",
+		ClipsDescendants = true,
 	}, catalogRow) :: TextButton
 	make("UICorner", { CornerRadius = UDim.new(0, 12) }, button)
-	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.75, Thickness = 1 }, button)
+	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.78, Thickness = 1 }, button)
+	make("TextLabel", {
+		Name = "BuildingName",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(8, 5),
+		Size = UDim2.new(1, -16, 0, 25),
+		Font = Enum.Font.GothamBold,
+		Text = titleText,
+		TextColor3 = COLORS.text,
+		TextSize = 11,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+	}, button)
+	make("TextLabel", {
+		Name = "Footprint",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(8, 30),
+		Size = UDim2.new(1, -16, 0, 14),
+		Font = Enum.Font.GothamMedium,
+		Text = "— × — клетки",
+		TextColor3 = COLORS.muted,
+		TextSize = 9,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, button)
+	local costRow = make("Frame", {
+		Name = "CostRow",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(7, 47),
+		Size = UDim2.new(1, -14, 0, 18),
+	}, button) :: Frame
+	make("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 5),
+	}, costRow)
+	catalogButtonsById[catalogId] = button
 	return button
 end
 
-local mainHouseButton = makeCatalogButton("MainHouse", "ГЛАВНЫЙ ДОМ")
-local petHouseButton = makeCatalogButton("PetHouse", "ДОМИК ПИТОМЦЕВ\n5 дерева • 2 камня")
-local stonePathButton = makeCatalogButton("StonePath", "КАМЕННАЯ ДОРОЖКА\n1 дерево • 1 камень")
-local gardenLanternButton = makeCatalogButton("GardenLantern", "САДОВЫЙ ФОНАРЬ\n2 дерева • 1 камень")
-local flowerBedButton = makeCatalogButton("FlowerBed", "КЛУМБА\n1 дерево")
-local woodenFenceButton = makeCatalogButton("WoodenFence", "ЗАБОР\n1 дерево")
+local mainHouseButton = makeCatalogButton("MainHouse", "main_house", "ГЛАВНЫЙ ДОМ")
+local petHouseButton = makeCatalogButton("PetHouse", "pet_house", "ДОМИК ПИТОМЦЕВ")
+local stonePathButton = makeCatalogButton("StonePath", "stone_path", "КАМЕННАЯ ДОРОЖКА")
+local gardenLanternButton = makeCatalogButton("GardenLantern", "garden_lantern", "САДОВЫЙ ФОНАРЬ")
+local flowerBedButton = makeCatalogButton("FlowerBed", "flower_bed", "ЦВЕТОЧНАЯ КЛУМБА")
+local woodenFenceButton = makeCatalogButton("WoodenFence", "wooden_fence", "ДЕРЕВЯННЫЙ ЗАБОР")
+
+local RESOURCE_PRESENTATION = {
+	wood = { label = "Д", tint = Color3.fromRGB(169, 207, 151), shape = "wood" },
+	stone = { label = "К", tint = Color3.fromRGB(190, 202, 218), shape = "stone" },
+	gold = { label = "З", tint = Color3.fromRGB(239, 194, 91), shape = "gold" },
+	gems = { label = "Кр", tint = Color3.fromRGB(139, 218, 235), shape = "gems" },
+}
+
+local function renderCatalogButton(catalogId: string)
+	local button = catalogButtonsById[catalogId]
+	local item = catalogItems[catalogId]
+	if button == nil or type(item) ~= "table" then return end
+	local footprint = button:FindFirstChild("Footprint")
+	if footprint and footprint:IsA("TextLabel") then
+		footprint.Text = string.format("%d × %d клетки", item.width or 1, item.depth or 1)
+	end
+	local costRow = button:FindFirstChild("CostRow")
+	if costRow and costRow:IsA("Frame") then
+		for _, child in ipairs(costRow:GetChildren()) do
+			if child:IsA("Frame") then child:Destroy() end
+		end
+		local cost = item.cost or {}
+		local resourceOrder = { "wood", "stone", "gold", "gems" }
+		local canAfford = true
+		for _, resourceId in ipairs(resourceOrder) do
+			local amount = cost[resourceId]
+			if type(amount) == "number" and amount > 0 then
+				local presentation = RESOURCE_PRESENTATION[resourceId]
+				local balance = resourceBalances[resourceId] or 0
+				if balance < amount then canAfford = false end
+				local chip = make("Frame", {
+					Name = "Cost_" .. resourceId,
+					BackgroundColor3 = COLORS.panel,
+					BackgroundTransparency = 0.12,
+					BorderSizePixel = 0,
+					Size = UDim2.fromOffset(52, 18),
+				}, costRow) :: Frame
+				make("UICorner", { CornerRadius = UDim.new(0, 6) }, chip)
+				local icon = make("Frame", {
+					Name = "ResourceIcon",
+					BackgroundColor3 = presentation.tint,
+					BorderSizePixel = 0,
+					Position = UDim2.fromOffset(4, 5),
+					Size = UDim2.fromOffset(8, 8),
+					Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
+				}, chip)
+				make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
+				make("TextLabel", {
+					BackgroundTransparency = 1,
+					Position = UDim2.fromOffset(16, 0),
+					Size = UDim2.new(1, -18, 1, 0),
+					Font = Enum.Font.GothamBold,
+					Text = tostring(math.floor(amount)),
+					TextColor3 = if balance >= amount then COLORS.text else COLORS.invalid,
+					TextSize = 10,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				}, chip)
+			end
+		end
+		if next(cost) == nil then
+			make("TextLabel", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 1, 0),
+				Font = Enum.Font.GothamBold,
+				Text = "БЕСПЛАТНО",
+				TextColor3 = COLORS.valid,
+				TextSize = 9,
+				TextXAlignment = Enum.TextXAlignment.Left,
+			}, costRow)
+		end
+		local unlocked = item.unlocked == true
+		button.Active = unlocked and canAfford
+		button.AutoButtonColor = unlocked and canAfford
+		button.BackgroundTransparency = if unlocked and canAfford then 0 else 0.32
+		local nameLabel = button:FindFirstChild("BuildingName")
+		if nameLabel and nameLabel:IsA("TextLabel") then
+			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
+			if not unlocked then nameLabel.Text ..= " • ЗАКРЫТО" end
+		end
+		local outline = button:FindFirstChild("SelectionStroke")
+		if outline and outline:IsA("UIStroke") then
+			outline.Color = if unlocked and canAfford then COLORS.gold else COLORS.invalid
+			outline.Transparency = if unlocked and canAfford then 0.78 else 0.25
+		end
+	end
+end
+
+local function refreshCatalogCards()
+	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
+end
+
+local function loadCatalogSnapshot()
+	local ok, response = pcall(function() return catalogRemote:InvokeServer() end)
+	if not ok or type(response) ~= "table" or response.ok ~= true then
+		setStatus("Каталог пока загружается…", false)
+		return
+	end
+	catalogItems = response.items or {}
+	resourceBalances = response.resources or {}
+	refreshCatalogCards()
+end
+
+resourceUpdate.OnClientEvent:Connect(function(snapshot)
+	if type(snapshot) == "table" then
+		resourceBalances = snapshot
+		refreshCatalogCards()
+	end
+end)
 local setStatus: (string, boolean?) -> ()
 local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
 local clearPendingBuildingOperation: () -> ()
