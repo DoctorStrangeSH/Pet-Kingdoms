@@ -474,6 +474,31 @@ local function refreshCatalogCards()
 	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
 end
 
+local function hasResourcesForSelectedBuilding(): boolean
+	-- Moving an existing building does not charge its construction cost again.
+	if movingInstanceId ~= nil then return true end
+	local item = catalogItems[selectedCatalogId]
+	-- If the snapshot is still loading, keep the server as the source of truth.
+	if type(item) ~= "table" then return true end
+	if item.unlocked ~= true then return false end
+	for resourceId, amount in pairs(item.cost or {}) do
+		if type(amount) == "number" and amount > 0
+			and (resourceBalances[resourceId] or 0) < amount
+		then
+			return false
+		end
+	end
+	return true
+end
+
+local function updateConfirmAvailability()
+	local affordable = hasResourcesForSelectedBuilding()
+	local canConfirm = placing and placementLocked and currentValid and affordable
+	confirmButton.Active = canConfirm
+	confirmButton.AutoButtonColor = canConfirm
+	confirmButton.BackgroundTransparency = if canConfirm then 0 else 0.28
+end
+
 local catalogLoadAttempts = 0
 local function loadCatalogSnapshot()
 	local ok, response = pcall(function() return catalogRemote:InvokeServer() end)
@@ -496,6 +521,14 @@ resourceUpdate.OnClientEvent:Connect(function(snapshot)
 	if type(snapshot) == "table" then
 		resourceBalances = snapshot
 		refreshCatalogCards()
+		updateConfirmAvailability()
+		if placing and currentValid and setStatus ~= nil then
+			if not hasResourcesForSelectedBuilding() then
+				setStatus("Место свободно, но не хватает ресурсов для постройки", false)
+			elseif placementLocked then
+				setStatus("Место закреплено. Нажми «Построить» или выбери другое", true)
+			end
+		end
 	end
 end)
 
@@ -1549,11 +1582,14 @@ local function updatePreviewAtCell(x: number, z: number)
 	end
 	currentPreview.Transparency = 0.65
 	currentPreview.Color = if valid then COLORS.valid else COLORS.invalid
+	local affordable = hasResourcesForSelectedBuilding()
 	local reason = if not inside then "Вне острова"
 		elseif overlaps then "Занято"
+		elseif not affordable then "Не хватает ресурсов"
 		else "Свободно"
 	local message = string.format("%d × %d клетки • %s", footprintWidth, footprintDepth, reason)
-	setStatus(message, valid)
+	setStatus(message, valid and affordable)
+	updateConfirmAvailability()
 end
 
 -- Hide every placement indicator and invalidate its coordinates when
@@ -1562,6 +1598,7 @@ hideUnavailablePreview = function()
 	currentValid = false
 	currentCellX, currentCellZ = nil, nil
 	placementLocked = false
+	updateConfirmAvailability()
 	if currentPreview then currentPreview.Transparency = 1 end
 	if footprintGuide then
 		for _, edge in ipairs(footprintGuide:GetChildren()) do
@@ -1774,6 +1811,7 @@ local function beginMoveSelected()
 	if type(savedX) == "number" and type(savedZ) == "number" then
 		updatePreviewAtCell(math.floor(savedX), math.floor(savedZ))
 		placementLocked = currentValid
+		updateConfirmAvailability()
 	else
 		placementLocked = false
 		seedPreview()
@@ -1847,6 +1885,7 @@ local function beginPlacing()
 	end
 	placementLocked = false
 	seedPreview()
+	updateConfirmAvailability()
 	setStatus(if touchPlacement then "Перетащи модель или коснись травы • отпусти, чтобы выбрать место" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
@@ -1857,6 +1896,7 @@ local function rotatePlacement()
 		local wasLocked = placementLocked
 		updatePreviewAtCell(currentCellX, currentCellZ)
 		placementLocked = wasLocked and currentValid
+		updateConfirmAvailability()
 	else
 		-- Keep a visible ghost on touch devices even before the player locks
 		-- a target cell. Rotation must be reflected immediately.
@@ -1890,6 +1930,11 @@ panelCloseButton.Activated:Connect(stopPlacing)
 confirmButton.Activated:Connect(function()
 	if buildRequestInFlight or not placing or not placementLocked or not currentValid or currentCellX == nil or currentCellZ == nil then
 		setStatus("Сначала выбери подходящее место", false)
+		return
+	end
+	if not hasResourcesForSelectedBuilding() then
+		updateConfirmAvailability()
+		setStatus("Не хватает ресурсов для этой постройки. Собери материалы и попробуй снова", false)
 		return
 	end
 	-- Freeze the complete payload before InvokeServer yields to other UI input.
@@ -2042,7 +2087,14 @@ local function chooseWorldPoint(screenPosition: Vector2)
 		pointerPosition = screenPosition
 		updatePreview(pointerPosition)
 		placementLocked = currentValid
-		if placementLocked then setStatus("Место закреплено. Нажми «Построить» или выбери другое", true) end
+		updateConfirmAvailability()
+		if placementLocked then
+			if hasResourcesForSelectedBuilding() then
+				setStatus("Место закреплено. Нажми «Построить» или выбери другое", true)
+			else
+				setStatus("Место свободно, но не хватает ресурсов для постройки", false)
+			end
+		end
 	else
 		selectBuildingAt(screenPosition)
 	end
@@ -2132,6 +2184,7 @@ UserInputService.InputChanged:Connect(function(input)
 			and (position - touchStartPosition).Magnitude > TAP_DRAG_THRESHOLD then
 			touchDraggingPlacement = true
 			placementLocked = false
+			updateConfirmAvailability()
 		end
 		if touchDraggingPlacement then
 			pointerPosition = position
