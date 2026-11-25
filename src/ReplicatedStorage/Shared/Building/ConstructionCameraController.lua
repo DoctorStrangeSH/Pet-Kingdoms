@@ -166,7 +166,9 @@ local function restoreCamera()
 		local character = player.Character
 		subject = if character then character:FindFirstChildOfClass("Humanoid") else nil
 	end
-	currentCamera.CameraSubject = subject
+	if subject ~= nil then
+		currentCamera.CameraSubject = subject
+	end
 	currentCamera.FieldOfView = originalFieldOfView
 	if originalCameraCFrame then currentCamera.CFrame = originalCameraCFrame end
 	currentCamera.CameraType = if originalCameraType == Enum.CameraType.Scriptable
