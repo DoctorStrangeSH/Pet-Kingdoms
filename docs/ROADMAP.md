@@ -1407,6 +1407,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extract the multi-touch ownership state machine into `Shared/Building/TouchGestureGate.lua` so it can be tested independently from Roblox input events.
 - [x] Add opt-in Studio smoke tests for single-touch commit, second/third-finger interruption, cancellation, ineligible GUI touches, duplicate input begin, and focus-reset recovery.
 - [x] GitHub Actions run #818: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [x] GitHub Actions run #821: pinned Rojo verification, full place build, and Studio-ready artifact upload passed after adding character-removal/respawn cleanup (2026-11-25).
 - [ ] Open the generated place in Roblox Studio and run the opt-in TouchGestureGate smoke tests.
 - [ ] Verify one-finger tap/drag, two-finger camera pan/pinch, third-finger interruption, touch cancellation, focus loss/regain and no accidental placement on physical mobile devices and Studio emulation.
 
