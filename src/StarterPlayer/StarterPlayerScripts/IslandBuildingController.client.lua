@@ -471,8 +471,8 @@ local function renderCatalogButton(catalogId: string)
 			local balance = resourceBalances[resourceId] or 0
 			if balance < amount then canAfford = false end
 			local chipHeight = if tinyCard then 11 elseif compactCard then 14 else 18
-			local iconSize = if tinyCard then 5 elseif compactCard then 6 else 8
-			local iconX = if tinyCard then 3 elseif compactCard then 4 else 4
+			local iconSize = if tinyCard then 8 elseif compactCard then 9 else 11
+			local iconX = if tinyCard then 3 else 4
 			local textX = iconX + iconSize + 3
 			local chip = make("Frame", {
 				Name = "Cost_" .. resourceId,
