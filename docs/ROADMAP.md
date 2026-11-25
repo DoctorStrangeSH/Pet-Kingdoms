@@ -1298,4 +1298,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extend the Studio-only island world integration test to verify saved building grid coordinates and 90-degree rotation are restored on spawn.
 - [x] Verify expansion refresh preserves building coordinates, rotation, and upgrade level.
 - [x] Exercise the live world sync path with a moved/rotated building and assert the rendered model updates its coordinates, rotation attribute, and world position.
+- [x] GitHub Actions run #771: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run `IslandWorldServiceTests.server.lua` in Roblox Studio with the project test place and confirm cleanup leaves no test islands behind. Runtime test pending.
