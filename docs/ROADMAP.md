@@ -1437,6 +1437,8 @@ Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains 
 - [x] Scale the overview against both safe width and height so its close and primary action controls remain visible in short landscape and compact portrait layouts.
 - [x] Move the collapsed construction reopen control to the bottom safe corner, away from the top resource HUD and build launcher.
 - [x] Reuse the shared InterfaceComponents.GetSafeViewport contract so inset handling stays consistent with the construction panel and resource HUD.
+- [x] Extract a shared safe-viewport fit-scale helper and add opt-in Studio math tests for landscape, portrait, zero-size and already-fitting layouts.
+- [ ] Run `InterfaceComponentsTests.server.lua` in Studio with `Workspace.RunInterfaceComponentsTests = true`.
 - [ ] Verify the overview and collapsed launcher at 320/360/390 px portrait, short landscape, and devices with display cutouts / Roblox top-bar insets.
 
 Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pending.
