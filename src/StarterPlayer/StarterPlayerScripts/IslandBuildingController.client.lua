@@ -582,6 +582,7 @@ local selectionPanel = make("Frame", {
 	Visible = false,
 	ZIndex = 15,
 }, gui) :: Frame
+local selectionPanelScale = make("UIScale", { Scale = 1 }, selectionPanel) :: UIScale
 make("UICorner", { CornerRadius = UDim.new(0, 16) }, selectionPanel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.3 }, selectionPanel)
 local selectionTitle = make("TextLabel", {
@@ -760,10 +761,11 @@ local function resizeBuildingPanel()
 	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
 	local cardHeight = 136
 	-- Keep the card below the resource/bond HUD stack on normal screens,
-	-- but clamp it upward on short landscape viewports.
+	-- but scale it down when the safe viewport is too short for the full card.
 	local cardTop = safeOrigin.Y + math.clamp(180, 8, math.max(8, safeSize.Y - cardHeight))
 	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
 	selectionPanel.Size = UDim2.fromOffset(cardWidth, cardHeight)
+	selectionPanelScale.Scale = InterfaceComponents.GetSafeFitScale(Vector2.new(cardWidth, cardHeight), safeSize, 8)
 	local cardContentWidth = math.max(0, cardWidth - 24)
 	local cardGap = 6
 	local showUpgrade = upgradeButton.Visible
