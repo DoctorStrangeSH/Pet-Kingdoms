@@ -1366,3 +1366,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Return `BUILDING_ROLLBACK_FAILED` when both the targeted restore and full-world recovery fail.
 - [x] Extend Studio-only world lifecycle coverage for move rollback (saved coordinates/rotation restored) and uncommitted placement rollback (temporary model removed).
 - [ ] Run placement/move commit-failure injection against Roblox DataStore in Studio and verify resource balances and saved profile after reconnect. Runtime validation pending.
+
+### Stage 1 — Mutation serialization audit and resource wallet integrity (2026-11-25)
+
+- [x] Audit the shared per-profile mutation guard: building requests reject while a profile mutation is active; durable building commits acquire the lock before their first DataStore wait; gathering, expansion, and hatch mutations share the same guard.
+- [x] Document the non-yielding pre-commit transaction boundary so future changes do not introduce a yield between the initial busy check and lock acquisition.
+- [x] Extend `IslandResourcesTests.server.lua` for unknown wallet keys, fractional/NaN/infinite balances, detached reward snapshots, and unknown/negative multi-resource spend costs.
+- [x] Preserve atomic wallet guarantees: validate every resource and cap before changing any balance.
+- [ ] Run concurrent RemoteFunction requests and simultaneous gathering/building/hatching in Roblox Studio; confirm exactly one mutation commits and no resources/buildings duplicate. Runtime concurrency validation pending.
