@@ -714,6 +714,12 @@ local function resizeBuildingPanel()
 	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
 	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
+	-- Keep the collapsed construction launcher in the bottom safe corner so it
+	-- cannot cover the resource HUD or the top-right build launcher.
+	reopenConstructionButton.Position = UDim2.fromOffset(
+		safeOrigin.X + math.max(8, safeSize.X - reopenConstructionButton.Size.X - 10),
+		safeOrigin.Y + math.max(8, safeSize.Y - reopenConstructionButton.Size.Y - 12)
+	)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
 	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
@@ -2387,14 +2393,21 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 local function resizeKingdomOverview()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport = camera.ViewportSize
-	local compact = viewport.X < 520
-	local width = math.max(220, math.min(viewport.X - 24, 420))
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera, gui)
+	local compact = safeSize.X < 520
+	local width = math.max(180, math.min(safeSize.X - 24, 420))
 	overview.Size = UDim2.fromOffset(width, 286)
-	overviewConstraint.MinSize = Vector2.new(math.min(220, width), 286)
+	overviewConstraint.MinSize = Vector2.new(math.min(180, width), 286)
 	overviewConstraint.MaxSize = Vector2.new(width, 286)
-	-- Keep the complete overview and its close/action buttons visible in short landscape viewports.
-	overviewScale.Scale = math.clamp((viewport.Y - 32) / 286, 0.68, 1)
+	-- Center inside the usable rectangle, not the raw viewport. Scale both axes
+	-- so the close button and primary action stay reachable on short/tall phones.
+	overview.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
+	local availableWidth = math.max(1, safeSize.X - 24)
+	local availableHeight = math.max(1, safeSize.Y - 24)
+	overviewScale.Scale = math.min(1, availableWidth / width, availableHeight / 286)
 	overviewTitle.TextSize = if compact then 15 else 18
 	overviewStage.TextSize = if compact then 16 else 20
 	overviewStats.TextSize = if compact then 11 else 13
