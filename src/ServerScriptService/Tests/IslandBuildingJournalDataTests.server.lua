@@ -73,6 +73,56 @@ expect("retry of committed demolition replays the original result without a seco
 		and replayDemolition.code == "BUILDING_DEMOLISHED"
 		and replayDemolition.instanceId == "building-1")
 
+local duplicateAppend, duplicateAppendCode = Journal.append(
+	ledger, "request-1", "place|pet_house|2|3|0", "place", result, now + 1, 99
+)
+expect("retry append with same request and fingerprint does not add another receipt",
+	duplicateAppend ~= nil and duplicateAppendCode == "ALREADY_RECORDED"
+		and #duplicateAppend == #ledger)
+
+local duplicateConflict, duplicateConflictCode = Journal.append(
+	ledger, "request-1", "place|stone_path|2|3|0", "place", result, now + 1, 99
+)
+expect("retry append cannot reuse an existing request ID for another payload",
+	duplicateConflict == nil and duplicateConflictCode == "REQUEST_ID_CONFLICT")
+
+local detachedReplay, detachedReplayCode = Journal.find(
+	ledger, "request-1", "place|pet_house|2|3|0", now, 1
+)
+expect("replay returns an independent result snapshot",
+	detachedReplay ~= nil and detachedReplayCode == "DUPLICATE")
+if detachedReplay then detachedReplay.code = "CLIENT_MUTATED_RESULT" end
+local replayAfterMutation, replayAfterMutationCode = Journal.find(
+	ledger, "request-1", "place|pet_house|2|3|0", now, 1
+)
+expect("mutating a replay result cannot mutate the durable receipt",
+	replayAfterMutation ~= nil and replayAfterMutationCode == "DUPLICATE"
+		and replayAfterMutation.code == "BUILDING_PLACED")
+
+local expiredLedger = {
+	{
+		requestId = "expired-receipt",
+		fingerprint = "old-payload",
+		action = "place",
+		createdAt = now - 7 * 24 * 60 * 60 - 1,
+		revision = 1,
+		result = result,
+	},
+}
+local compactedLedger, compactedCode = Journal.append(
+	expiredLedger, "fresh-request", "fresh-payload", "place", result, now, 2
+)
+expect("append compacts expired receipts before enforcing the ledger limit",
+	compactedLedger ~= nil and compactedCode == "RECORDED"
+		and #compactedLedger == 1
+		and compactedLedger[1].requestId == "fresh-request")
+
+local compactedOldReceipt, compactedOldCode = Journal.find(
+	compactedLedger, "expired-receipt", "old-payload", now, 2
+)
+expect("compacted expired receipt cannot be replayed",
+	compactedOldReceipt == nil and compactedOldCode == "NOT_FOUND")
+
 local replay, replayCode = Journal.find(ledger, "request-1", "place|pet_house|2|3|0", now, 1)
 expect("same request fingerprint replays saved result",
 	replay ~= nil and replayCode == "DUPLICATE" and replay.instanceId == "building-1")
