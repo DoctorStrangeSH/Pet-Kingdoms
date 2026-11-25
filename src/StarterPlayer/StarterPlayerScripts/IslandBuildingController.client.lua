@@ -89,6 +89,70 @@ local function make(className: string, properties: { [string]: any }, parent: In
 	return object
 end
 
+-- Draw resource pictograms with Roblox UI geometry, never font glyphs.
+-- This keeps the construction catalog and selected-building upgrade card
+-- consistent with the resource HUD on platforms with different font fallback.
+local function createResourceIcon(
+	parent: Instance,
+	resourceId: string,
+	tint: Color3,
+	size: number,
+	x: number,
+	y: number,
+	zIndex: number?
+): Frame
+	local layer = zIndex or 1
+	local root = make("Frame", {
+		Name = "ResourceIcon",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(x, y),
+		Size = UDim2.fromOffset(size, size),
+		ZIndex = layer,
+	}, parent) :: Frame
+
+	local function shape(name: string, width: number, height: number, px: number, py: number, color: Color3, rotation: number?, radius: number?)
+		local item = make("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(px, py),
+			Size = UDim2.fromOffset(width, height),
+			BackgroundColor3 = color,
+			BorderSizePixel = 0,
+			Rotation = rotation or 0,
+			ZIndex = layer + 1,
+		}, root) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(0, radius or math.max(1, math.floor(size * 0.16))) }, item)
+		return item
+	end
+
+	if resourceId == "wood" then
+		local log = shape("Log", size * 0.82, size * 0.34, 0.5, 0.5, Color3.fromRGB(139, 94, 57), -28, math.max(1, size * 0.16))
+		local outline = Instance.new("UIStroke")
+		outline.Color = tint
+		outline.Thickness = math.max(1, size * 0.07)
+		outline.Parent = log
+		shape("CutEnd", size * 0.2, size * 0.24, 0.82, 0.5, Color3.fromRGB(235, 202, 151), -28, size)
+	elseif resourceId == "stone" then
+		shape("BackRock", size * 0.5, size * 0.52, 0.34, 0.57, Color3.fromRGB(105, 119, 139), 18, math.max(1, size * 0.12))
+		shape("FrontRock", size * 0.54, size * 0.66, 0.65, 0.45, tint, -12, math.max(1, size * 0.12))
+	elseif resourceId == "gold" then
+		local coin = shape("Coin", size * 0.72, size * 0.72, 0.5, 0.5, tint, 0, size)
+		local outline = Instance.new("UIStroke")
+		outline.Color = Color3.fromRGB(255, 238, 176)
+		outline.Thickness = math.max(1, size * 0.07)
+		outline.Parent = coin
+		shape("CoinCenter", size * 0.2, size * 0.2, 0.5, 0.5, Color3.fromRGB(255, 238, 176), 0, size)
+	else
+		local gem = shape("Gem", size * 0.62, size * 0.62, 0.5, 0.5, tint, 45, math.max(1, size * 0.08))
+		local outline = Instance.new("UIStroke")
+		outline.Color = Color3.fromRGB(218, 250, 255)
+		outline.Thickness = math.max(1, size * 0.06)
+		outline.Parent = gem
+		shape("GemFacet", size * 0.13, size * 0.45, 0.5, 0.5, Color3.fromRGB(218, 250, 255), 45, 1)
+	end
+	return root
+end
+
 local gui = make("ScreenGui", {
 	Name = "IslandBuildingGui",
 	ResetOnSpawn = false,
@@ -418,15 +482,7 @@ local function renderCatalogButton(catalogId: string)
 				Size = UDim2.fromOffset(chipWidth, chipHeight),
 			}, costRow) :: Frame
 			make("UICorner", { CornerRadius = UDim.new(0, 5) }, chip)
-			local icon = make("Frame", {
-				Name = "ResourceIcon",
-				BackgroundColor3 = presentation.tint,
-				BorderSizePixel = 0,
-				Position = UDim2.new(0, iconX, 0.5, -iconSize / 2),
-				Size = UDim2.fromOffset(iconSize, iconSize),
-				Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
-			}, chip)
-			make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
+			createResourceIcon(chip, resourceId, presentation.tint, iconSize, iconX, math.floor((chipHeight - iconSize) / 2), 1)
 			make("TextLabel", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(textX, 0),
@@ -864,10 +920,10 @@ local function updateBuildingContext(model: Model?)
 		upgradeButton.Visible = false
 	else
 		local costAttributes = {
-			{ name = "NextUpgradeWoodCost", icon = InterfaceTheme.Icons.Wood, color = Color3.fromRGB(111, 174, 112) },
-			{ name = "NextUpgradeStoneCost", icon = InterfaceTheme.Icons.Stone, color = Color3.fromRGB(153, 169, 190) },
-			{ name = "NextUpgradeGoldCost", icon = InterfaceTheme.Icons.Gold, color = Color3.fromRGB(244, 195, 91) },
-			{ name = "NextUpgradeGemsCost", icon = InterfaceTheme.Icons.Gems, color = Color3.fromRGB(189, 139, 231) },
+			{ name = "NextUpgradeWoodCost", resourceId = "wood", color = Color3.fromRGB(111, 174, 112) },
+			{ name = "NextUpgradeStoneCost", resourceId = "stone", color = Color3.fromRGB(153, 169, 190) },
+			{ name = "NextUpgradeGoldCost", resourceId = "gold", color = Color3.fromRGB(244, 195, 91) },
+			{ name = "NextUpgradeGemsCost", resourceId = "gems", color = Color3.fromRGB(189, 139, 231) },
 		}
 		local costCount = 0
 		for _, costAttribute in ipairs(costAttributes) do
@@ -884,17 +940,7 @@ local function updateBuildingContext(model: Model?)
 					ZIndex = 16,
 				}, selectionCostRow) :: Frame
 				make("UICorner", { CornerRadius = UDim.new(0, 7) }, chip)
-				make("TextLabel", {
-					Name = "ResourceIcon",
-					BackgroundTransparency = 1,
-					Position = UDim2.fromOffset(4, 0),
-					Size = UDim2.fromOffset(18, 22),
-					Font = Enum.Font.GothamBold,
-					Text = costAttribute.icon,
-					TextColor3 = costAttribute.color,
-					TextSize = 15,
-					ZIndex = 17,
-				}, chip)
+				createResourceIcon(chip, costAttribute.resourceId, costAttribute.color, 16, 4, 3, 17)
 				make("TextLabel", {
 					Name = "ResourceAmount",
 					BackgroundTransparency = 1,
