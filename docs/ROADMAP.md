@@ -1405,7 +1405,8 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Document the one-finger placement vs multi-touch camera ownership contract.
 - [x] Extract the multi-touch ownership state machine into `Shared/Building/TouchGestureGate.lua` so it can be tested independently from Roblox input events.
 - [x] Add opt-in Studio smoke tests for single-touch commit, second/third-finger interruption, cancellation, ineligible GUI touches, duplicate input begin, and focus-reset recovery.
-- [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [x] GitHub Actions run #818: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [ ] Open the generated place in Roblox Studio and run the opt-in TouchGestureGate smoke tests.
 - [ ] Verify one-finger tap/drag, two-finger camera pan/pinch, third-finger interruption, touch cancellation, focus loss/regain and no accidental placement on physical mobile devices and Studio emulation.
 
 Source PR: #38. Runtime touch/camera acceptance remains pending; this does not close Stage 1.
