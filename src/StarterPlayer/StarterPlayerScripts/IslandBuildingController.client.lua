@@ -272,6 +272,8 @@ local function makeButton(name: string, label: string, width: number, color: Col
 end
 
 -- Draw placement-action icons from native UI geometry; do not rely on font glyphs.
+local confirmIconSegments: { Frame } = {}
+
 local function addPlacementActionIcon(button: TextButton, action: string, tint: Color3)
 	local size = 14
 	local layer = button.ZIndex + 1
@@ -296,6 +298,9 @@ local function addPlacementActionIcon(button: TextButton, action: string, tint: 
 			ZIndex = layer + 1,
 		}, root) :: Frame
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, segment)
+		if action == "Confirm" then
+			table.insert(confirmIconSegments, segment)
+		end
 	end
 
 	if action == "Rotate" then
@@ -555,6 +560,10 @@ local function updateConfirmAvailability()
 	confirmButton.Active = canConfirm
 	confirmButton.AutoButtonColor = canConfirm
 	confirmButton.BackgroundTransparency = if canConfirm then 0 else 0.28
+	local iconColor = if canConfirm then COLORS.cream else COLORS.muted
+	for _, segment in ipairs(confirmIconSegments) do
+		segment.BackgroundColor3 = iconColor
+	end
 end
 
 local catalogLoadAttempts = 0
