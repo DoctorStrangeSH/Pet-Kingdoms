@@ -939,7 +939,7 @@ local function selectBuilding(model: Model?)
 	demolishButton.Active = model ~= nil and catalogId ~= "main_house"
 	demolishButton.Text = if compactBuildingUI
 		then "УДАЛИТЬ"
-		else "ДЕМОНТИРОВАТЬ"
+		else "ДЕМОНТАЖ"
 	if model then
 		-- Treat the context card as the active top-level interaction surface so
 		-- it cannot remain underneath another modal window.
