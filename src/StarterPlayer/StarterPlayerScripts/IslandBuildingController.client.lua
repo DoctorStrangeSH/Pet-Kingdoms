@@ -2174,9 +2174,11 @@ UserInputService.InputEnded:Connect(function(input)
 	chooseWorldPoint(endPosition)
 end)
 
--- If Roblox cancels an input or the window loses focus mid-gesture, clear all
--- local touch bookkeeping. A stale touch must never lock a preview later.
+-- If Roblox cancels an input, the window loses focus, or the character is
+-- removed during a gesture, clear all local touch bookkeeping. A stale touch
+-- must never lock a preview after the interruption or after respawn.
 UserInputService.WindowFocusReleased:Connect(resetTouchGesture)
+player.CharacterRemoving:Connect(resetTouchGesture)
 
 UserInputService.InputChanged:Connect(function(input)
 	if TouchGestureGate.IsBlocked() then return end
