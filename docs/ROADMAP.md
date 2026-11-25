@@ -1356,4 +1356,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Check the result of restoring an upgraded building after a failed durable commit instead of ignoring a failed world sync.
 - [x] If the single-building restore fails, rebuild the complete island from the restored authoritative profile; return `BUILDING_ROLLBACK_FAILED` if both recovery paths fail.
 - [x] Add an island lifecycle integration test that simulates a temporary level-3 visual upgrade and verifies rollback refresh restores the saved level-2 visual state.
+- [x] GitHub Actions run #785: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the upgrade and demolition rollback scenarios with injected DataStore persistence failures in Roblox Studio. Runtime failure-injection validation pending.
