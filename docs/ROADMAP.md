@@ -1382,4 +1382,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Persist and verify all four durable operation receipts alongside the final island profile.
 - [x] Verify reconnect restores the moved level-3 pet house, leaves the demolished lantern absent, preserves the remaining five buildings, and retains exact post-spend wallet balances.
 - [x] Keep the DataStore integration scenario opt-in via `Workspace.RunIslandStoreIntegrationTests` and synthetic user IDs; ordinary Studio play does not write test records.
+- [x] GitHub Actions run #791: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Execute the opt-in scenario in a dedicated Roblox test universe with Studio API access enabled; verify cleanup and a second session claim. Runtime DataStore validation pending.
