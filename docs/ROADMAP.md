@@ -1348,4 +1348,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the two-step demolition confirmation label in sync with responsive panel resizing; a viewport change no longer silently hides the confirmation state.
 - [x] Use a short `ТОЧНО?` confirmation label on compact screens so the action remains legible in the narrow three-button card.
 - [x] Restore the correct responsive action label after the request completes and when a different building is selected.
+- [x] GitHub Actions run #783: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify the confirmation flow on narrow portrait and landscape phone viewports in Roblox Studio. Runtime visual validation pending.
