@@ -386,50 +386,66 @@ local function renderCatalogButton(catalogId: string)
 		end
 		local cost = item.cost or {}
 		local resourceOrder = { "wood", "stone", "gold", "gems" }
-		local canAfford = true
+		local requiredResources = {}
 		for _, resourceId in ipairs(resourceOrder) do
 			local amount = cost[resourceId]
 			if type(amount) == "number" and amount > 0 then
-				local presentation = RESOURCE_PRESENTATION[resourceId]
-				local balance = resourceBalances[resourceId] or 0
-				if balance < amount then canAfford = false end
-				local chip = make("Frame", {
-					Name = "Cost_" .. resourceId,
-					BackgroundColor3 = COLORS.panel,
-					BackgroundTransparency = 0.12,
-					BorderSizePixel = 0,
-					Size = UDim2.fromOffset(52, 18),
-				}, costRow) :: Frame
-				make("UICorner", { CornerRadius = UDim.new(0, 6) }, chip)
-				local icon = make("Frame", {
-					Name = "ResourceIcon",
-					BackgroundColor3 = presentation.tint,
-					BorderSizePixel = 0,
-					Position = UDim2.fromOffset(4, 5),
-					Size = UDim2.fromOffset(8, 8),
-					Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
-				}, chip)
-				make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
-				make("TextLabel", {
-					BackgroundTransparency = 1,
-					Position = UDim2.fromOffset(16, 0),
-					Size = UDim2.new(1, -18, 1, 0),
-					Font = Enum.Font.GothamBold,
-					Text = tostring(math.floor(amount)),
-					TextColor3 = if balance >= amount then COLORS.text else COLORS.invalid,
-					TextSize = 10,
-					TextXAlignment = Enum.TextXAlignment.Left,
-				}, chip)
+				table.insert(requiredResources, { id = resourceId, amount = amount })
 			end
 		end
-		if next(cost) == nil then
+		local canAfford = true
+		local chipGap = 5
+		local chipWidth = if #requiredResources > 0
+			then math.clamp(math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources), 30, 48)
+			else 48
+		local compactCard = button.Size.Y.Offset <= 52
+		local tinyCard = button.Size.Y.Offset <= 40
+		for _, required in ipairs(requiredResources) do
+			local resourceId = required.id
+			local amount = required.amount
+			local presentation = RESOURCE_PRESENTATION[resourceId]
+			local balance = resourceBalances[resourceId] or 0
+			if balance < amount then canAfford = false end
+			local chipHeight = if tinyCard then 11 elseif compactCard then 14 else 18
+			local iconSize = if tinyCard then 5 elseif compactCard then 6 else 8
+			local iconX = if tinyCard then 3 elseif compactCard then 4 else 4
+			local textX = iconX + iconSize + 3
+			local chip = make("Frame", {
+				Name = "Cost_" .. resourceId,
+				BackgroundColor3 = COLORS.panel,
+				BackgroundTransparency = 0.12,
+				BorderSizePixel = 0,
+				Size = UDim2.fromOffset(chipWidth, chipHeight),
+			}, costRow) :: Frame
+			make("UICorner", { CornerRadius = UDim.new(0, 5) }, chip)
+			local icon = make("Frame", {
+				Name = "ResourceIcon",
+				BackgroundColor3 = presentation.tint,
+				BorderSizePixel = 0,
+				Position = UDim2.new(0, iconX, 0.5, -iconSize / 2),
+				Size = UDim2.fromOffset(iconSize, iconSize),
+				Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
+			}, chip)
+			make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
+			make("TextLabel", {
+				BackgroundTransparency = 1,
+				Position = UDim2.fromOffset(textX, 0),
+				Size = UDim2.new(1, -textX - 2, 1, 0),
+				Font = Enum.Font.GothamBold,
+				Text = tostring(math.floor(amount)),
+				TextColor3 = if balance >= amount then COLORS.text else COLORS.invalid,
+				TextSize = if tinyCard then 8 else (if compactCard then 9 else 10),
+				TextXAlignment = Enum.TextXAlignment.Left,
+			}, chip)
+		end
+		if #requiredResources == 0 then
 			make("TextLabel", {
 				BackgroundTransparency = 1,
 				Size = UDim2.new(1, 0, 1, 0),
 				Font = Enum.Font.GothamBold,
 				Text = "БЕСПЛАТНО",
 				TextColor3 = COLORS.valid,
-				TextSize = 9,
+				TextSize = if button.Size.Y.Offset <= 40 then 7 else 9,
 				TextXAlignment = Enum.TextXAlignment.Left,
 			}, costRow)
 		end
@@ -664,11 +680,31 @@ local function resizeBuildingPanel()
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
 	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
+	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
+	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
-		button.TextSize = if ultraShort then 8 else (if tiny then 9 else (if compact then 10 else 13))
-		button.Size = UDim2.fromOffset(if ultraShort then 100 else (if compact then (if tiny then 106 else 112) else 130), if ultraShort then 40 else (if compact then 52 else 70))
+		button.Size = UDim2.fromOffset(cardWidth, cardHeight)
+		local nameLabel = button:FindFirstChild("BuildingName")
+		local footprint = button:FindFirstChild("Footprint")
+		local costRow = button:FindFirstChild("CostRow")
+		if nameLabel and nameLabel:IsA("TextLabel") then
+			nameLabel.Position = UDim2.fromOffset(7, if ultraShort then 1 else (if compact then 3 else 5))
+			nameLabel.Size = UDim2.new(1, -14, 0, if ultraShort then 12 else (if compact then 18 else 25))
+			nameLabel.TextSize = if ultraShort then 8 else (if compact then 10 else 11)
+		end
+		if footprint and footprint:IsA("TextLabel") then
+			footprint.Visible = not ultraShort
+			footprint.Position = UDim2.fromOffset(7, if compact then 21 else 30)
+			footprint.Size = UDim2.new(1, -14, 0, if compact then 11 else 14)
+			footprint.TextSize = if compact then 8 else 9
+		end
+		if costRow and costRow:IsA("Frame") then
+			costRow.Position = UDim2.fromOffset(7, if ultraShort then 19 else (if compact then 34 else 47))
+			costRow.Size = UDim2.new(1, -14, 0, if ultraShort then 12 else (if compact then 15 else 18))
+		end
 	end
 	catalogRow.ScrollBarThickness = if compact then 3 else 4
+	refreshCatalogCards()
 	local rotateWidth = if narrow then math.floor(available * 0.27) else 94
 	local cancelWidth = if narrow then math.floor(available * 0.27) else 88
 	local confirmWidth = available - rotateWidth - cancelWidth

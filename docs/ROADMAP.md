@@ -1273,3 +1273,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Retry the initial catalog request briefly while the island profile is still loading.
 - [x] GitHub Actions run #765: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify card rendering, resource refresh, affordability, locked state, and phone/tablet/desktop scrolling in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Responsive construction catalog cards (2026-11-25)
+
+- [x] Reflow building cards for desktop, compact phone, and ultra-short landscape layouts instead of shrinking the entire card into unreadable text.
+- [x] Hide secondary footprint copy only on ultra-short screens while preserving the building name and resource cost.
+- [x] Scale resource pictograms, chip heights, and amount text to each card size; calculate chip widths from the actual card width so two-resource costs remain inside the card.
+- [x] Refresh the catalog card layout after viewport changes so orientation and resolution changes are reflected immediately.
+- [ ] Verify horizontal scrolling, all cost combinations, touch targets, and card text at phone/tablet/desktop resolutions in Roblox Studio. Runtime visual validation pending.
