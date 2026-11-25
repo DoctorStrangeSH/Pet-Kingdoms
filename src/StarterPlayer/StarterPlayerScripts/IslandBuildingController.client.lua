@@ -2055,6 +2055,16 @@ local touchStartTime = 0
 local touchStartedPlacing = false
 local touchDraggingPlacement = false
 
+local function resetTouchGesture()
+	table.clear(activeTouches)
+	touchCount = 0
+	gestureBlocked = false
+	touchCandidate = nil
+	touchStartPosition = nil
+	touchStartedPlacing = false
+	touchDraggingPlacement = false
+end
+
 local function isOverInteractiveGui(screenPosition: Vector2): boolean
 	-- Any visible GUI surface owns its screen-space area, not only buttons.
 	-- Ignoring plain Frames/TextLabels let clicks on empty panel padding or
@@ -2110,9 +2120,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		end
 		-- Once two fingers participate, neither is allowed to select the world.
 		if touchCount > 1 then
+			-- Hand the complete multi-touch gesture to Roblox's default camera
+			-- controller. No finger from this gesture may place or move a building.
 			gestureBlocked = true
 			touchCandidate = nil
 			touchStartPosition = nil
+			touchStartedPlacing = false
+			touchDraggingPlacement = false
 			return
 		end
 		if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or gestureBlocked then return end
@@ -2159,8 +2173,9 @@ UserInputService.InputEnded:Connect(function(input)
 		touchDraggingPlacement = false
 	end
 	local blocked = gestureBlocked
+	local wasCancelled = input.UserInputState == Enum.UserInputState.Cancel
 	if touchCount == 0 then gestureBlocked = false end
-	if not isCandidate or blocked or touchCount ~= 0 then return end
+	if not isCandidate or blocked or wasCancelled or touchCount ~= 0 then return end
 	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or startPosition == nil or not sameMode then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
 	-- A deliberate drag moves the ghost continuously and locks the final
@@ -2174,7 +2189,12 @@ UserInputService.InputEnded:Connect(function(input)
 	chooseWorldPoint(endPosition)
 end)
 
+-- If Roblox cancels an input or the window loses focus mid-gesture, clear all
+-- local touch bookkeeping. A stale touch must never lock a preview later.
+UserInputService.WindowFocusReleased:Connect(resetTouchGesture)
+
 UserInputService.InputChanged:Connect(function(input)
+	if gestureBlocked then return end
 	if input.UserInputType == Enum.UserInputType.MouseMovement and not placementLocked then
 		pointerPosition = UserInputService:GetMouseLocation()
 	elseif input.UserInputType == Enum.UserInputType.Touch
