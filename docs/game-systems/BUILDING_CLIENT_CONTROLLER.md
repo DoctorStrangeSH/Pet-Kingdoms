@@ -16,6 +16,9 @@
 
 - PC: mouse to aim, `R` to rotate, `Escape` to cancel; panel buttons confirm or cancel.
 - Touch: tap free grass to position/lock the preview, or drag with one finger and release over a valid cell to lock it; use large rotate, confirm and cancel buttons.
+- Multi-touch: once a second finger joins, the building-placement gesture is cancelled and neither finger can place or move a building. The controller does not sink the gesture, leaving pan/pinch handling to Roblox's default camera controls.
+- Cancelled touches, window-focus loss and character removal/respawn clear the local gesture state, so a stale touch cannot lock the preview after interruption.
+- The multi-touch gate is isolated in `Shared/Building/TouchGestureGate.lua`; Studio smoke tests cover single-touch commit, second/third-finger interruption, cancellation, ineligible GUI touches, duplicate input begin, and focus-reset recovery.
 - Existing buildings: tap/click a building to reveal Move and Demolish actions.
 - Move uses the same placement preview; demolish is a two-step action. The main house is protected.
 
