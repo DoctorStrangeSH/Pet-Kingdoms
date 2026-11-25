@@ -23,6 +23,7 @@ local catalogRemote = remotes:WaitForChild("GetBuildingCatalog") :: RemoteFuncti
 local resourceUpdate = remotes:WaitForChild("IslandResourceUpdate") :: RemoteEvent
 local GridMath = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("GridMath"))
 local BUILDING_SIZES = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("BuildingFootprints"))
+local TouchGestureGate = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Building"):WaitForChild("TouchGestureGate"))
 
 local selectedCatalogId = "main_house"
 local BUILDING_WIDTH = BUILDING_SIZES.main_house.width
@@ -2045,21 +2046,14 @@ end)
 local TAP_DRAG_THRESHOLD = 18
 local MAX_TAP_DURATION = 0.55
 local TOUCH_MOUSE_SUPPRESSION = 0.35
-local activeTouches: { [InputObject]: boolean } = {}
-local touchCount = 0
-local gestureBlocked = false
 local lastTouchTime = -math.huge
-local touchCandidate: InputObject? = nil
 local touchStartPosition: Vector2? = nil
 local touchStartTime = 0
 local touchStartedPlacing = false
 local touchDraggingPlacement = false
 
 local function resetTouchGesture()
-	table.clear(activeTouches)
-	touchCount = 0
-	gestureBlocked = false
-	touchCandidate = nil
+	TouchGestureGate.Reset()
 	touchStartPosition = nil
 	touchStartedPlacing = false
 	touchDraggingPlacement = false
@@ -2114,25 +2108,22 @@ end
 UserInputService.InputBegan:Connect(function(input, processed)
 	if input.UserInputType == Enum.UserInputType.Touch then
 		lastTouchTime = os.clock()
-		if not activeTouches[input] then
-			activeTouches[input] = true
-			touchCount += 1
-		end
+		local position = Vector2.new(input.Position.X, input.Position.Y)
+		local eligible = not processed
+			and not buildRequestInFlight
+			and not demolitionRequestInFlight
+			and not upgradeRequestInFlight
+			and not isOverInteractiveGui(position)
+		local canStartCandidate = TouchGestureGate.Begin(input, eligible)
 		-- Once two fingers participate, neither is allowed to select the world.
-		if touchCount > 1 then
-			-- Hand the complete multi-touch gesture to Roblox's default camera
-			-- controller. No finger from this gesture may place or move a building.
-			gestureBlocked = true
-			touchCandidate = nil
+		-- Do not sink the input: Roblox's default camera keeps ownership of it.
+		if TouchGestureGate.IsBlocked() then
 			touchStartPosition = nil
 			touchStartedPlacing = false
 			touchDraggingPlacement = false
 			return
 		end
-		if processed or buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or gestureBlocked then return end
-		local position = Vector2.new(input.Position.X, input.Position.Y)
-		if isOverInteractiveGui(position) then return end
-		touchCandidate = input
+		if not canStartCandidate then return end
 		touchStartPosition = position
 		touchStartTime = os.clock()
 		touchStartedPlacing = placing
@@ -2162,20 +2153,18 @@ UserInputService.InputEnded:Connect(function(input)
 		activeTouches[input] = nil
 		touchCount = math.max(0, touchCount - 1)
 	end
-	local isCandidate = input == touchCandidate
+	local isCandidate = input == TouchGestureGate.GetCandidate()
 	local startPosition = touchStartPosition
 	local elapsed = os.clock() - touchStartTime
 	local sameMode = touchStartedPlacing == placing
 	local wasDraggingPlacement = touchDraggingPlacement
+	local wasCancelled = input.UserInputState == Enum.UserInputState.Cancel
+	local mayCommit = TouchGestureGate.End(input, wasCancelled)
 	if isCandidate then
-		touchCandidate = nil
 		touchStartPosition = nil
 		touchDraggingPlacement = false
 	end
-	local blocked = gestureBlocked
-	local wasCancelled = input.UserInputState == Enum.UserInputState.Cancel
-	if touchCount == 0 then gestureBlocked = false end
-	if not isCandidate or blocked or wasCancelled or touchCount ~= 0 then return end
+	if not isCandidate or not mayCommit then return end
 	if buildRequestInFlight or demolitionRequestInFlight or upgradeRequestInFlight or startPosition == nil or not sameMode then return end
 	local endPosition = Vector2.new(input.Position.X, input.Position.Y)
 	-- A deliberate drag moves the ghost continuously and locks the final
@@ -2194,11 +2183,11 @@ end)
 UserInputService.WindowFocusReleased:Connect(resetTouchGesture)
 
 UserInputService.InputChanged:Connect(function(input)
-	if gestureBlocked then return end
+	if TouchGestureGate.IsBlocked() then return end
 	if input.UserInputType == Enum.UserInputType.MouseMovement and not placementLocked then
 		pointerPosition = UserInputService:GetMouseLocation()
 	elseif input.UserInputType == Enum.UserInputType.Touch
-		and input == touchCandidate and placing and touchStartedPlacing
+		and input == TouchGestureGate.GetCandidate() and placing and touchStartedPlacing
 		and touchStartPosition ~= nil and not buildRequestInFlight and not upgradeRequestInFlight then
 		local position = Vector2.new(input.Position.X, input.Position.Y)
 		if not touchDraggingPlacement
