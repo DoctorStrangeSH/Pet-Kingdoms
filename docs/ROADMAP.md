@@ -1401,6 +1401,7 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Correct the right-edge coordinate for the construction launcher: its `AnchorPoint = (1, 0)` means its position must be the safe area's right edge minus margin, not the right edge minus its width and margin.
 - [x] Apply the same safe-area right/top coordinates to the collapsed `СТРОЙКА` reopen button.
 - [x] Keep both controls aligned and consistently sized across compact and desktop viewports; preserve their existing visibility and activation behavior.
+- [x] Add one shared native-shape house pictogram to both entry buttons; keep Russian labels readable with consistent left padding and avoid font-dependent icon glyphs.
 - [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
 - [ ] Verify top safe-area placement with Roblox device emulation at 320/360/390 px portrait, short landscape, tablet, and desktop; check topbar/notch inset and confirm neither button overlaps HUD controls.
 
