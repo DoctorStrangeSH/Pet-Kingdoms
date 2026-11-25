@@ -76,6 +76,52 @@ local malformed = { wood = -1, stone = 0 }
 local malformedOk = IslandResources.validate(malformed)
 expect("negative balance rejected", not malformedOk)
 
+local malformedUnknown = { wood = 1, stone = 0, gold = 0, gems = 0, dragon_scale = 1 }
+local malformedUnknownOk = IslandResources.validate(malformedUnknown)
+expect("wallet with an unknown resource key is rejected", not malformedUnknownOk)
+
+local malformedFraction = { wood = 1.25, stone = 0, gold = 0, gems = 0 }
+local malformedFractionOk = IslandResources.validate(malformedFraction)
+expect("fractional wallet balance is rejected", not malformedFractionOk)
+
+local malformedNaN = { wood = 0 / 0, stone = 0, gold = 0, gems = 0 }
+local malformedNaNOk = IslandResources.validate(malformedNaN)
+expect("NaN wallet balance is rejected", not malformedNaNOk)
+
+local malformedInfinity = { wood = math.huge, stone = 0, gold = 0, gems = 0 }
+local malformedInfinityOk = IslandResources.validate(malformedInfinity)
+expect("infinite wallet balance is rejected", not malformedInfinityOk)
+
+local returnedSnapshotWallet = { wood = 2, stone = 3, gold = 0, gems = 0 }
+local snapshotGranted, snapshotCode, returnedSnapshot = IslandResources.grantMany(
+	returnedSnapshotWallet, { wood = 1, stone = 1 }
+)
+expect("multi-reward grant returns a balance snapshot",
+	snapshotGranted and snapshotCode == "GRANTED" and returnedSnapshot ~= nil)
+if returnedSnapshot then returnedSnapshot.wood = 999 end
+expect("returned grant snapshot cannot mutate the live wallet",
+	returnedSnapshotWallet.wood == 3 and returnedSnapshotWallet.stone == 4)
+
+local unknownSpendWallet = { wood = 5, stone = 5, gold = 0, gems = 0 }
+local unknownSpendBefore = table.clone(unknownSpendWallet)
+local unknownSpend, unknownSpendCode = IslandResources.spend(
+	unknownSpendWallet, { wood = 1, dragon_scale = 1 }
+)
+expect("unknown resource spend is rejected without partial deduction",
+	not unknownSpend and unknownSpendCode == "UNKNOWN_RESOURCE"
+		and unknownSpendWallet.wood == unknownSpendBefore.wood
+		and unknownSpendWallet.stone == unknownSpendBefore.stone)
+
+local invalidCostWallet = { wood = 5, stone = 5, gold = 0, gems = 0 }
+local invalidCostBefore = table.clone(invalidCostWallet)
+local invalidCostSpend, invalidCostCode = IslandResources.spend(
+	invalidCostWallet, { wood = -1, stone = 1 }
+)
+expect("negative cost is rejected without partial deduction",
+	not invalidCostSpend and invalidCostCode == "INVALID_AMOUNT"
+		and invalidCostWallet.wood == invalidCostBefore.wood
+		and invalidCostWallet.stone == invalidCostBefore.stone)
+
 local overCap = { wood = 2_000_000_000, stone = 0, gold = 0, gems = 0 }
 local overflow, overflowCode = IslandResources.grant(overCap, "wood", 1)
 expect("balance overflow rejected", not overflow and overflowCode == "RESOURCE_CAP_REACHED")
