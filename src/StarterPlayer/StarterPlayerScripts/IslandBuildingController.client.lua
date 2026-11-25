@@ -598,7 +598,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, moveButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, moveButton)
 moveButton.TextXAlignment = Enum.TextXAlignment.Left
 make("UIPadding", { PaddingLeft = UDim.new(0, 25), PaddingRight = UDim.new(0, 4) }, moveButton)
-createBuildingActionIcon(moveButton, "Move", COLORS.cream, 14, 7, 16, 1)
+createBuildingActionIcon(moveButton, "Move", COLORS.cream, 14, 7, 16, 17)
 
 local demolishButton = make("TextButton", {
 	Name = "DemolishSelected",
@@ -617,7 +617,7 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
 demolishButton.TextXAlignment = Enum.TextXAlignment.Left
 make("UIPadding", { PaddingLeft = UDim.new(0, 25), PaddingRight = UDim.new(0, 4) }, demolishButton)
-createBuildingActionIcon(demolishButton, "Demolish", COLORS.cream, 14, 7, 16, 1)
+createBuildingActionIcon(demolishButton, "Demolish", COLORS.cream, 14, 7, 16, 17)
 
 -- A single compact context card replaces the old floating action buttons.
 -- It is shown only while an owned building is selected.
