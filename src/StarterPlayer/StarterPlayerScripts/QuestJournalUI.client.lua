@@ -359,6 +359,11 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Selectable = not done,
 		}, card) :: TextButton
 		InterfaceComponents.StyleActionButton(trackButton, if done or trackedQuestId == quest.id then "primary" else "secondary")
+		-- StyleActionButton enables hover feedback by default; completed quests
+		-- are informational and must not look or behave like an available action.
+		trackButton.AutoButtonColor = not done
+		trackButton.Active = not done
+		trackButton.Selectable = not done
 		trackButton.TextTruncate = Enum.TextTruncate.AtEnd
 		trackButton.BackgroundTransparency = if done then 0.12 else 0
 		trackButton.Activated:Connect(function()
