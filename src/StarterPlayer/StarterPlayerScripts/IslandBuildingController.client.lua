@@ -522,7 +522,7 @@ resourceUpdate.OnClientEvent:Connect(function(snapshot)
 		resourceBalances = snapshot
 		refreshCatalogCards()
 		updateConfirmAvailability()
-		if placing and currentValid then
+		if placing and currentValid and setStatus ~= nil then
 			if not hasResourcesForSelectedBuilding() then
 				setStatus("Место свободно, но не хватает ресурсов для постройки", false)
 			elseif placementLocked then
