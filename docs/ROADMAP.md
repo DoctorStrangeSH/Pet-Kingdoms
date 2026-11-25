@@ -1340,4 +1340,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] If the single-model restore fails, rebuild the island from the restored authoritative profile; preserve saved coordinates, rotation, and upgrade level.
 - [x] Return an explicit `BUILDING_ROLLBACK_FAILED` error if both restoration paths fail, and show a clear client-facing message.
 - [x] Extend the Studio-only island lifecycle test to remove a live building and verify full island refresh restores its persisted position, rotation, and upgrade level.
+- [x] GitHub Actions run #781: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the lifecycle test in Roblox Studio and inject a real persistence failure to exercise the demolition transaction's single-model restore and full-refresh fallback. Runtime validation pending.
