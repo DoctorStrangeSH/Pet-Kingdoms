@@ -51,7 +51,7 @@ local function profileFor(userId: number)
 				catalogId = "pet_house",
 				x = 10,
 				z = 10,
-				rotation = 0,
+				rotation = 90,
 				upgradeLevel = 2,
 			},
 		},
@@ -129,6 +129,10 @@ local ok, failure = pcall(function()
 	assert(petHouse and petHouse:IsA("Model"), "saved pet house must be rendered")
 	assert(petHouse and petHouse:GetAttribute("UpgradeLevel") == 2,
 		"spawned pet house must restore its saved level-2 upgrade attribute")
+	assert(petHouse and petHouse:GetAttribute("GridX") == 10 and petHouse:GetAttribute("GridZ") == 10,
+		"spawned pet house must restore its saved grid coordinates")
+	assert(petHouse and petHouse:GetAttribute("GridRotation") == 90,
+		"spawned pet house must restore its saved 90-degree rotation")
 	assert(petHouse and petHouse:GetAttribute("MaxUpgradeLevel") == 3,
 		"spawned pet house must expose its server-owned upgrade level cap")
 	assert(petHouse and petHouse:GetAttribute("NextUpgradeWoodCost") == 20
@@ -171,6 +175,11 @@ local ok, failure = pcall(function()
 	local expandedPetHouse = expandedWorld and expandedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
 	assert(expandedPetHouse and expandedPetHouse:GetAttribute("UpgradeLevel") == 2,
 		"world refresh after expansion must preserve the saved pet-house upgrade level")
+	assert(expandedPetHouse and expandedPetHouse:GetAttribute("GridRotation") == 90,
+		"world refresh after expansion must preserve the saved pet-house rotation")
+	assert(expandedPetHouse and expandedPetHouse:GetAttribute("GridX") == 14
+		and expandedPetHouse:GetAttribute("GridZ") == 14,
+		"world refresh after expansion must preserve the shifted saved pet-house coordinates")
 	local expandedNodes = expandedWorld and expandedWorld:FindFirstChild("ResourceNodes")
 	local expandedWoodNode = expandedNodes and expandedNodes:FindFirstChild("WoodNode_A")
 	assert(expandedWoodNode and expandedWoodNode:GetAttribute("AvailableAt") > os.time(),
@@ -206,6 +215,29 @@ local ok, failure = pcall(function()
 	assert(maxExpandedHouse and maxExpandedHouse:IsA("Model"), "maximum expanded world must retain the main house")
 	assert((maxExpandedHouse:GetPivot().Position - originalHousePivot.Position).Magnitude < 0.01,
 		"two expansion levels must preserve the original main-house world position")
+	local maxExpandedPetHouse = maxExpandedWorld and maxExpandedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(maxExpandedPetHouse and maxExpandedPetHouse:GetAttribute("GridRotation") == 90,
+		"maximum expansion must preserve the saved pet-house rotation")
+	assert(maxExpandedPetHouse and maxExpandedPetHouse:GetAttribute("GridX") == 18
+		and maxExpandedPetHouse:GetAttribute("GridZ") == 18,
+		"maximum expansion must preserve the shifted pet-house grid coordinates")
+
+	-- A live move updates the rendered model's grid metadata and orientation,
+	-- while the profile record remains the caller-owned transaction source.
+	local movedPetRecord = table.clone(maxExpandedProfile.buildings[2])
+	movedPetRecord.x += 1
+	movedPetRecord.rotation = 180
+	local beforeMovePivot = maxExpandedPetHouse:GetPivot()
+	local syncOk, syncCode = IslandWorldService.syncBuilding(firstUserId, maxExpandedProfile, movedPetRecord)
+	assert(syncOk and syncCode == "BUILDING_SYNCED", "moving a saved building must sync its world model")
+	local movedPetHouse = maxExpandedWorld and maxExpandedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(movedPetHouse and movedPetHouse:GetAttribute("GridX") == movedPetRecord.x
+		and movedPetHouse:GetAttribute("GridZ") == movedPetRecord.z,
+		"live move must update the rendered model grid coordinates")
+	assert(movedPetHouse and movedPetHouse:GetAttribute("GridRotation") == 180,
+		"live move must update the rendered model rotation")
+	assert(movedPetHouse and (movedPetHouse:GetPivot().Position - beforeMovePivot.Position).Magnitude > 0.1,
+		"live move must reposition the rendered model")
 
 	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
