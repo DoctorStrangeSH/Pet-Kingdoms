@@ -1392,4 +1392,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify returned replay results are detached snapshots and cannot mutate the saved receipt.
 - [x] Verify appending a fresh operation compacts receipts older than the seven-day retention window before enforcing the bounded journal capacity.
 - [x] Verify a compacted expired request is no longer replayable.
+- [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
