@@ -15,6 +15,9 @@
 ## Controls
 
 - PC: mouse to aim, `R` to rotate, `Escape` to cancel; panel buttons confirm or cancel.
+- Construction camera on PC: middle-mouse drag pans across the island, right-mouse drag orbits, and the mouse wheel zooms.
+- Construction camera on touch: two fingers pan the island view and pinch to zoom. A one-finger gesture remains reserved for selecting/dragging the building preview.
+- The camera is framed around the owned island, clamps its target inside the grass bounds, and scales its travel range with island expansion. It is active only during placement/move mode; exiting construction restores the normal Roblox character camera.
 - Touch: tap free grass to position/lock the preview, or drag with one finger and release over a valid cell to lock it; use large rotate, confirm and cancel buttons.
 - Multi-touch: once a second finger joins, the building-placement gesture is cancelled and neither finger can place or move a building. The controller does not sink the gesture, leaving pan/pinch handling to Roblox's default camera controls.
 - Cancelled touches, window-focus loss and character removal/respawn clear the local gesture state, so a stale touch cannot lock the preview after interruption.
@@ -45,7 +48,7 @@ The client raycasts only against `Island_GrassTop` belonging to the local player
 
 - Preview and fallback structures are procedural blockouts, not approved production house/prop art.
 - No final illustrated catalogue cards, search, category filters or unlock progression UI.
-- Placement, move/demolish, touch drag, safe-area behavior and camera lifecycle still require Roblox Studio/device verification.
+- Placement, move/demolish, touch drag, safe-area behavior and construction-camera lifecycle/gestures still require Roblox Studio/device verification.
 - Resource prices are provisional server-owned balance values.
 
 ## Studio acceptance
@@ -56,3 +59,4 @@ The client raycasts only against `Island_GrassTop` belonging to the local player
 - Verify cancel leaves no model/profile record.
 - Verify move and demolish, including protected main house and timeout recovery.
 - Test desktop, 320/360/390 px portrait, short landscape and touch devices.
+- Verify middle-mouse pan, right-mouse orbit, wheel zoom, two-finger pan/pinch, island-edge clamping, expanded-island bounds, and restoration of the default camera after cancel/confirm/modal close/respawn.
