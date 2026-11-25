@@ -37,6 +37,17 @@ function Components.ClampPanelSize(desired: Vector2, safeSize: Vector2, margin: 
 	)
 end
 
+-- Returns a uniform scale that fits a fixed-size UI card into the safe viewport.
+-- A scale below 1 preserves the card's internal layout while keeping every edge
+-- inside the usable screen rectangle.
+function Components.GetSafeFitScale(contentSize: Vector2, safeSize: Vector2, margin: number?): number
+	if contentSize.X <= 0 or contentSize.Y <= 0 then return 1 end
+	local inset = math.max(0, margin or 12)
+	local availableWidth = math.max(0, safeSize.X - inset * 2)
+	local availableHeight = math.max(0, safeSize.Y - inset * 2)
+	return math.min(1, availableWidth / contentSize.X, availableHeight / contentSize.Y)
+end
+
 function Components.StyleCloseButton(button: TextButton)
 	local colors = Theme.Colors
 	button.Size = UDim2.fromOffset(40, 40)
