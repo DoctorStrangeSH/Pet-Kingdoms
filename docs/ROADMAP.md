@@ -1464,3 +1464,12 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] GitHub Actions run #837: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
 - [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`.
 - [ ] Verify real window transitions: construction → journal → collection → expansion; confirm only one top-level panel/shade remains active, launchers return after close, Escape closes the top layer, and respawn clears stale overlays.
+
+
+### Stage 1 — Catalog price readability (2026-11-25)
+
+- [x] Widen horizontally scrolling catalog cards and remove the forced minimum cost-chip width; compute gaps and widths from resource count.
+- [x] Increase native resource marker sizes and constrain price text scaling.
+- [x] Keep availability messages separate from building names (visible footprint/status row).
+- [ ] Verify 1–4 resource prices, long names, locked/unaffordable states and ultra-short layouts in Studio; the footprint/status row remains hidden in ultra-short mode.
+- [ ] Verify full place build for this change.
