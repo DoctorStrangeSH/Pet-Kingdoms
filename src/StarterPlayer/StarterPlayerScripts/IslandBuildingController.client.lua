@@ -277,8 +277,9 @@ local function addPlacementActionIcon(button: TextButton, action: string, tint: 
 	local layer = button.ZIndex + 1
 	local root = make("Frame", {
 		Name = "ActionIcon_" .. action,
+		AnchorPoint = Vector2.new(0.5, 0),
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(6, 15),
+		Position = UDim2.new(0.5, 0, 0, 3),
 		Size = UDim2.fromOffset(size, size),
 		ZIndex = layer,
 	}, button) :: Frame
@@ -312,11 +313,17 @@ local function addPlacementActionIcon(button: TextButton, action: string, tint: 
 		stroke("CrossB", 12, 2.4, 0.5, 0.5, -45)
 	end
 
-	button.TextXAlignment = Enum.TextXAlignment.Left
-	make("UIPadding", {
-		PaddingLeft = UDim.new(0, 24),
-		PaddingRight = UDim.new(0, 3),
-	}, button)
+	button.TextXAlignment = Enum.TextXAlignment.Center
+	button.TextYAlignment = Enum.TextYAlignment.Bottom
+	local padding = button:FindFirstChildOfClass("UIPadding")
+	if padding == nil then
+		padding = Instance.new("UIPadding")
+		padding.Parent = button
+	end
+	padding.PaddingTop = UDim.new(0, 16)
+	padding.PaddingBottom = UDim.new(0, 2)
+	padding.PaddingLeft = UDim.new(0, 2)
+	padding.PaddingRight = UDim.new(0, 2)
 end
 
 local rotateButton = makeButton("Rotate", "ПОВОРОТ", 94, COLORS.panelLight)
