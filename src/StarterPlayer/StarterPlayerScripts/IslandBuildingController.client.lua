@@ -1807,6 +1807,7 @@ local function beginMoveSelected()
 	if type(savedX) == "number" and type(savedZ) == "number" then
 		updatePreviewAtCell(math.floor(savedX), math.floor(savedZ))
 		placementLocked = currentValid
+		updateConfirmAvailability()
 	else
 		placementLocked = false
 		seedPreview()
@@ -1880,6 +1881,7 @@ local function beginPlacing()
 	end
 	placementLocked = false
 	seedPreview()
+	updateConfirmAvailability()
 	setStatus(if touchPlacement then "Перетащи модель или коснись травы • отпусти, чтобы выбрать место" else "Наведи на свободную траву • R — поворот • ПОСТРОИТЬ — подтвердить")
 end
 
@@ -1890,6 +1892,7 @@ local function rotatePlacement()
 		local wasLocked = placementLocked
 		updatePreviewAtCell(currentCellX, currentCellZ)
 		placementLocked = wasLocked and currentValid
+		updateConfirmAvailability()
 	else
 		-- Keep a visible ghost on touch devices even before the player locks
 		-- a target cell. Rotation must be reflected immediately.
