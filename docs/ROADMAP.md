@@ -1280,5 +1280,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Hide secondary footprint copy only on ultra-short screens while preserving the building name and resource cost.
 - [x] Scale resource pictograms, chip heights, and amount text to each card size; calculate chip widths from the actual card width so two-resource costs remain inside the card.
 - [x] Refresh the catalog card layout after viewport changes so orientation and resolution changes are reflected immediately.
-- [x] GitHub Actions run #766: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
+- [x] GitHub Actions run #767: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify horizontal scrolling, all cost combinations, touch targets, and card text at phone/tablet/desktop resolutions in Roblox Studio. Runtime visual validation pending.
