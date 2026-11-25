@@ -239,6 +239,31 @@ local ok, failure = pcall(function()
 	assert(movedPetHouse and (movedPetHouse:GetPivot().Position - beforeMovePivot.Position).Magnitude > 0.1,
 		"live move must reposition the rendered model")
 
+	-- Simulate a level-3 visual upgrade that must be rolled back to the
+	-- authoritative level-2 profile after a failed persistence commit.
+	local failedUpgradeRecord = table.clone(maxExpandedProfile.buildings[2])
+	failedUpgradeRecord.upgradeLevel = 3
+	local failedUpgradeSyncOk, failedUpgradeSyncCode = IslandWorldService.syncBuilding(
+		firstUserId, maxExpandedProfile, failedUpgradeRecord
+	)
+	assert(failedUpgradeSyncOk and failedUpgradeSyncCode == "BUILDING_SYNCED",
+		"failed-upgrade setup must render the temporary level-3 state")
+	local failedUpgradeWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local temporaryLevelThree = failedUpgradeWorld
+		and failedUpgradeWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(temporaryLevelThree and temporaryLevelThree:GetAttribute("UpgradeLevel") == 3,
+		"failed-upgrade setup must expose the temporary level-3 visual state")
+	local upgradeRollbackOk, upgradeRollbackCode = IslandWorldService.refresh(
+		firstUserId, { UserId = firstUserId } :: any, maxExpandedProfile
+	)
+	assert(upgradeRollbackOk and upgradeRollbackCode == "WORLD_REFRESHED",
+		"upgrade rollback fallback must rebuild the world from the saved profile")
+	local upgradeRollbackWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	local rolledBackPetHouse = upgradeRollbackWorld
+		and upgradeRollbackWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(rolledBackPetHouse and rolledBackPetHouse:GetAttribute("UpgradeLevel") == 2,
+		"upgrade rollback must restore the authoritative level-2 visual state")
+
 	-- Simulate the world-model removal part of a demolition transaction, then
 	-- restore from the unchanged authoritative profile as the rollback fallback.
 	local removedForRollback = IslandWorldService.removeBuilding(
