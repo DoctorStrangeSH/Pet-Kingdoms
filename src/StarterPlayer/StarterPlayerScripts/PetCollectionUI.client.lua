@@ -1119,14 +1119,22 @@ resize = function()
 		safeOrigin.X + safeSize.X * 0.5,
 		safeOrigin.Y + safeSize.Y * 0.5
 	)
-	local confirmWidth = math.min(330, math.max(240, viewport.X - 32))
-	confirmPanel.Size = UDim2.fromOffset(confirmWidth, 178)
+	-- Confirmation dialogs must fit narrow safe areas as well as short screens.
+	-- Do not force a 240 px minimum: that overflows on compact split-screen /
+	-- narrow phone layouts even when the main collection panel fits correctly.
+	local confirmWidth = math.max(1, math.min(330, safeSize.X - 24))
+	local confirmHeight = 178
+	confirmPanel.Size = UDim2.fromOffset(confirmWidth, confirmHeight)
 	confirmPanel.AnchorPoint = Vector2.new(0.5, 0.5)
 	confirmPanel.Position = UDim2.fromOffset(
 		safeOrigin.X + safeSize.X * 0.5,
 		safeOrigin.Y + safeSize.Y * 0.5
 	)
-	confirmScale.Scale = math.clamp((viewport.Y - 32) / 178, 0.82, 1)
+	confirmScale.Scale = InterfaceComponents.GetSafeFitScale(
+		Vector2.new(confirmWidth, confirmHeight),
+		safeSize,
+		12
+	)
 	cancelDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 	confirmDeleteButton.Size = UDim2.new(0.5, -22, 0, if compactCollection then 40 else 34)
 end
