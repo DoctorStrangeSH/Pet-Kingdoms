@@ -442,6 +442,10 @@ local function renderCatalogButton(catalogId: string)
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextScaled = true,
 			}, chip)
+			local amountLabel = chip:FindFirstChildOfClass("TextLabel")
+			if amountLabel then
+				make("UITextSizeConstraint", { MinTextSize = 1, MaxTextSize = if tinyCard then 8 elseif compactCard then 9 else 10 }, amountLabel)
+			end
 		end
 		if #requiredResources == 0 then
 			make("TextLabel", {
@@ -464,8 +468,7 @@ local function renderCatalogButton(catalogId: string)
 		local nameLabel = button:FindFirstChild("BuildingName")
 		if nameLabel and nameLabel:IsA("TextLabel") then
 			local baseTitle = button:GetAttribute("BaseTitle")
-			nameLabel.Text = (if type(baseTitle) == "string" then baseTitle else catalogId)
-				
+			nameLabel.Text = if type(baseTitle) == "string" then baseTitle else catalogId
 			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
 		end
 		local outline = button:FindFirstChild("SelectionStroke")
