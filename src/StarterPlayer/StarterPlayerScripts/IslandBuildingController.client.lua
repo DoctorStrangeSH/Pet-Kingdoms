@@ -89,6 +89,64 @@ local function make(className: string, properties: { [string]: any }, parent: In
 	return object
 end
 
+-- Native house pictogram shared by the build launcher and its collapsed-state
+-- return button. Avoid font glyphs so icon rendering is stable on every device.
+local function addHouseActionIcon(button: TextButton)
+	local layer = button.ZIndex + 1
+	local root = make("Frame", {
+		Name = "HouseActionIcon",
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 9, 0.5, -9),
+		Size = UDim2.fromOffset(18, 18),
+		ZIndex = layer,
+	}, button) :: Frame
+
+	local function segment(name: string, width: number, height: number, x: number, y: number, angle: number)
+		local item = make("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(x, y),
+			Size = UDim2.fromOffset(width, height),
+			BackgroundColor3 = COLORS.gold,
+			BorderSizePixel = 0,
+			Rotation = angle,
+			ZIndex = layer + 1,
+		}, root) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(1, 0) }, item)
+	end
+
+	local body = make("Frame", {
+		Name = "HouseBody",
+		Position = UDim2.fromOffset(3, 8),
+		Size = UDim2.fromOffset(12, 9),
+		BackgroundColor3 = COLORS.gold,
+		BorderSizePixel = 0,
+		ZIndex = layer + 1,
+	}, root) :: Frame
+	make("UICorner", { CornerRadius = UDim.new(0, 2) }, body)
+	local door = make("Frame", {
+		Name = "Door",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.fromOffset(3, 5),
+		BackgroundColor3 = COLORS.panel,
+		BorderSizePixel = 0,
+		ZIndex = layer + 2,
+	}, body)
+	make("UICorner", { CornerRadius = UDim.new(0, 1) }, door)
+	segment("RoofLeft", 11, 2.5, 0.31, 0.34, -42)
+	segment("RoofRight", 11, 2.5, 0.69, 0.34, 42)
+
+	button.TextXAlignment = Enum.TextXAlignment.Left
+	local padding = button:FindFirstChildOfClass("UIPadding")
+	if padding == nil then
+		padding = Instance.new("UIPadding")
+		padding.Parent = button
+	end
+	padding.PaddingLeft = UDim.new(0, 34)
+	padding.PaddingRight = UDim.new(0, 6)
+end
+
 local gui = make("ScreenGui", {
 	Name = "IslandBuildingGui",
 	ResetOnSpawn = false,
@@ -227,6 +285,7 @@ local reopenConstructionButton = make("TextButton", {
 	ZIndex = 30,
 }, gui) :: TextButton
 InterfaceComponents.StyleActionButton(reopenConstructionButton, "gold")
+addHouseActionIcon(reopenConstructionButton)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -2219,6 +2278,7 @@ local function addBuildEntry()
 		TextSize = 15,
 	}, gui) :: TextButton
 	InterfaceComponents.StyleActionButton(open, "gold")
+	addHouseActionIcon(open)
 	buildEntryButton = open
 	open.Activated:Connect(beginPlacing)
 end
