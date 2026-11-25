@@ -15,6 +15,7 @@ local IslandStore = require(services:WaitForChild("IslandStore"))
 local IslandData = require(services:WaitForChild("IslandData"))
 local BuildingJournal = require(services:WaitForChild("IslandBuildingJournalData"))
 local IslandExpansion = require(services:WaitForChild("IslandExpansion"))
+local IslandResources = require(services:WaitForChild("IslandResources"))
 
 local invalidOk, invalidCode = IslandStore.load(0)
 assert(not invalidOk and invalidCode == "INVALID_USER_ID", "invalid user ID should be rejected before DataStore access")
@@ -55,8 +56,8 @@ local function runIntegrationScenario()
 	assert(profileA.trackedQuestId == "gather_wood",
 		"legacy profile claim should migrate the default tracked quest")
 	
-	-- Build a representative island snapshot before saving: a placed house,
-	-- non-default wallet, expanded plot and a resource node on cooldown.
+	-- Build a representative island, then run a full persisted lifecycle:
+	-- place -> pay/upgrade -> move -> demolish -> save -> load.
 	local persistenceBuildings = {
 		{ instanceId = "store-test-main-house", catalogId = "main_house", x = 1, z = 1, rotation = 90 },
 		{ instanceId = "store-test-pet-house", catalogId = "pet_house", x = 5, z = 1, rotation = 0, upgradeLevel = 2 },
@@ -68,7 +69,7 @@ local function runIntegrationScenario()
 	for _, building in ipairs(persistenceBuildings) do
 		table.insert(profileA.buildings, building)
 	end
-	profileA.resources = { wood = 17, stone = 9, gold = 4, gems = 2 }
+	profileA.resources = { wood = 60, stone = 40, gold = 4, gems = 2 }
 	profileA.questProgress = {
 		gather_wood = { count = 2 },
 		gather_stone = { count = 1 },
@@ -77,35 +78,74 @@ local function runIntegrationScenario()
 	local expandedProfile, expansionCode = IslandExpansion.expandProfile(profileA)
 	assert(expandedProfile ~= nil and expansionCode == "EXPANDED", "synthetic island should expand before persistence")
 	profileA = expandedProfile
-	
+
+	-- The pet house was built, upgraded twice, and moved before the final save.
+	-- Apply both upgrade prices plus the original construction price atomically.
+	local paid, paymentCode = IslandResources.spend(profileA.resources, {
+		wood = 35,
+		stone = 19,
+	})
+	assert(paid and paymentCode == "SPENT", "synthetic lifecycle should pay the configured building and upgrade costs")
+	local petHouseRecord = profileA.buildings[2]
+	petHouseRecord.x = 9
+	petHouseRecord.z = 8
+	petHouseRecord.rotation = 180
+	petHouseRecord.upgradeLevel = 3
+
+	-- Demolish one ordinary building: it must be absent after reconnect.
+	local demolishedRecord = table.remove(profileA.buildings, 4)
+	assert(demolishedRecord ~= nil and demolishedRecord.instanceId == "store-test-lantern",
+		"synthetic lifecycle should remove the selected garden lantern")
+
 	local gatheredAt = os.time()
 	profileA.resourceNodes = {
 		{ nodeId = "WoodNode_A", resourceId = "wood", lastGatheredAt = gatheredAt, availableAt = gatheredAt + 60 },
 	}
-	
-	local receiptRevision = profileA.revision + 1
-	local receiptLedger, receiptCode = BuildingJournal.append(
-		profileA.buildingOperations,
-		"store-test-request",
-		"place|test|1|1|0",
-		"place",
-		{ ok = true, code = "BUILDING_PLACED", instanceId = "store-test-building" },
-		os.time(),
-		receiptRevision
-	)
-	assert(receiptLedger ~= nil and receiptCode == "RECORDED", "synthetic building receipt should be created")
-	profileA.buildingOperations = receiptLedger
-	profileA.revision = receiptRevision
+
+	local function appendLifecycleReceipt(requestId: string, fingerprint: string, action: string, result: any)
+		local nextRevision = profileA.revision + 1
+		local nextLedger, appendCode = BuildingJournal.append(
+			profileA.buildingOperations,
+			requestId,
+			fingerprint,
+			action,
+			result,
+			os.time(),
+			nextRevision
+		)
+		assert(nextLedger ~= nil and appendCode == "RECORDED",
+			"synthetic " .. action .. " receipt should be recorded: " .. appendCode)
+		profileA.buildingOperations = nextLedger
+		profileA.revision = nextRevision
+	end
+
+	appendLifecycleReceipt("store-test-place", "place|pet_house|5|1|0", "place", {
+		ok = true, code = "BUILDING_PLACED", instanceId = "store-test-pet-house",
+	})
+	appendLifecycleReceipt("store-test-upgrade", "upgrade|store-test-pet-house", "upgrade", {
+		ok = true, code = "BUILDING_UPGRADED", instanceId = "store-test-pet-house", upgradeLevel = 3,
+	})
+	appendLifecycleReceipt("store-test-move", "move|store-test-pet-house|9|8|180", "move", {
+		ok = true, code = "BUILDING_PLACED", instanceId = "store-test-pet-house",
+		x = 9, z = 8, rotation = 180,
+	})
+	appendLifecycleReceipt("store-test-demolish", "demolish|store-test-lantern", "demolish", {
+		ok = true, code = "BUILDING_DEMOLISHED", instanceId = "store-test-lantern",
+	})
+
 	local receiptSaveOk, receiptSaveCode = IslandStore.save(profileA)
-	assert(receiptSaveOk, "building receipt should persist: " .. receiptSaveCode)
-	
+	assert(receiptSaveOk, "full building lifecycle should persist: " .. receiptSaveCode)
+
 	local receiptLoadOk, receiptLoaded = IslandStore.load(syntheticUserId)
 	assert(receiptLoadOk and receiptLoaded ~= nil
-		and #receiptLoaded.buildingOperations == 1
-		and receiptLoaded.buildingOperations[1].requestId == "store-test-request"
+		and #receiptLoaded.buildingOperations == 4
+		and receiptLoaded.buildingOperations[1].requestId == "store-test-place"
+		and receiptLoaded.buildingOperations[2].requestId == "store-test-upgrade"
+		and receiptLoaded.buildingOperations[3].requestId == "store-test-move"
+		and receiptLoaded.buildingOperations[4].requestId == "store-test-demolish"
 		and #receiptLoaded.resourceNodes == 1
 		and receiptLoaded.resourceNodes[1].nodeId == "WoodNode_A"
-		and #receiptLoaded.buildings == 6
+		and #receiptLoaded.buildings == 5
 		and receiptLoaded.buildings[1].instanceId == "store-test-main-house"
 		and receiptLoaded.buildings[1].catalogId == "main_house"
 		and receiptLoaded.buildings[1].x == 5
@@ -114,18 +154,17 @@ local function runIntegrationScenario()
 		and receiptLoaded.buildings[2].instanceId == "store-test-pet-house"
 		and receiptLoaded.buildings[2].catalogId == "pet_house"
 		and receiptLoaded.buildings[2].x == 9
-		and receiptLoaded.buildings[2].z == 5
-		and receiptLoaded.buildings[2].upgradeLevel == 2
+		and receiptLoaded.buildings[2].z == 12
+		and receiptLoaded.buildings[2].rotation == 180
+		and receiptLoaded.buildings[2].upgradeLevel == 3
 		and receiptLoaded.buildings[3].catalogId == "stone_path"
 		and receiptLoaded.buildings[3].x == 13
-		and receiptLoaded.buildings[4].catalogId == "garden_lantern"
-		and receiptLoaded.buildings[4].x == 14
-		and receiptLoaded.buildings[5].catalogId == "flower_bed"
-		and receiptLoaded.buildings[5].x == 15
-		and receiptLoaded.buildings[6].catalogId == "wooden_fence"
-		and receiptLoaded.buildings[6].x == 16
-		and receiptLoaded.resources.wood == 17
-		and receiptLoaded.resources.stone == 9
+		and receiptLoaded.buildings[4].catalogId == "flower_bed"
+		and receiptLoaded.buildings[4].x == 15
+		and receiptLoaded.buildings[5].catalogId == "wooden_fence"
+		and receiptLoaded.buildings[5].x == 16
+		and receiptLoaded.resources.wood == 25
+		and receiptLoaded.resources.stone == 21
 		and receiptLoaded.resources.gold == 4
 		and receiptLoaded.resources.gems == 2
 		and receiptLoaded.expansionLevel == 1
@@ -134,10 +173,14 @@ local function runIntegrationScenario()
 		and receiptLoaded.questProgress.gather_wood.count == 2
 		and receiptLoaded.questProgress.gather_stone.count == 1
 		and receiptLoaded.trackedQuestId == "gather_stone",
-		"all six catalog buildings, exact grid positions, wallet, expansion and cooldown should survive DataStore save/load")
-	print("[PetKingdoms Test] PASS: all six building types, wallet, expansion bounds, cooldown and quest state survive save/load")
-	
-	-- A delayed loader holding the original generation-zero snapshot must not
+		"place/upgrade/move/demolish results, wallet, expanded bounds, cooldown and quest state should survive DataStore save/load")
+	for _, savedBuilding in ipairs(receiptLoaded.buildings) do
+		assert(savedBuilding.instanceId ~= "store-test-lantern",
+			"demolished building must not return after reconnect")
+	end
+	print("[PetKingdoms Test] PASS: full place/upgrade/move/demolish lifecycle, wallet, bounds and cooldown survive save/load")
+
+		-- A delayed loader holding the original generation-zero snapshot must not
 	-- supersede the first session after its claim has committed.
 	local staleClaimOk, _, staleClaimStatus = IslandStore.claimSession(seed)
 	assert(not staleClaimOk and staleClaimStatus == "SESSION_CLAIM_REJECTED", "stale loader must not claim over a newer generation")
