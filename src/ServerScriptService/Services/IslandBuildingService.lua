@@ -12,6 +12,7 @@ local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
 local BuildingRecordFactory = require(services:WaitForChild("BuildingRecordFactory"))
+local BuildingUpgradeRules = require(services:WaitForChild("BuildingUpgradeRules"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -211,19 +212,11 @@ local function handleRequest(player: Player, request: any): any
 			end
 			if upgradeIndex == nil or upgradeRecord == nil then return fail("BUILDING_NOT_FOUND") end
 			local definition = BuildingCatalog[upgradeRecord.catalogId]
-			if definition == nil or definition.maxUpgradeLevel == nil then return fail("UPGRADE_NOT_AVAILABLE") end
-			local currentLevel = if type(upgradeRecord.upgradeLevel) == "number" then math.max(1, math.floor(upgradeRecord.upgradeLevel)) else 1
-			local targetLevel = currentLevel + 1
-			if targetLevel > definition.maxUpgradeLevel then return fail("MAX_UPGRADE_LEVEL") end
-			local cost = definition.upgradeCosts and definition.upgradeCosts[targetLevel]
-			if cost == nil then return fail("UPGRADE_NOT_AVAILABLE") end
 			local resources = profileForUpgrade.resources
-			if type(resources) ~= "table" then return fail("RESOURCES_NOT_READY") end
-			for resource, amount in pairs(cost) do
-				if type(resources[resource]) ~= "number" or resources[resource] < amount then
-					return fail("NOT_ENOUGH_" .. string.upper(resource))
-				end
-			end
+			local upgradePlan, planCode = BuildingUpgradeRules.plan(definition, upgradeRecord, resources)
+			if upgradePlan == nil then return fail(planCode) end
+			local targetLevel = upgradePlan.targetLevel
+			local cost = upgradePlan.cost
 			local previousRecord = table.clone(upgradeRecord)
 			local previousResources = table.clone(resources)
 			local previousLedger = table.clone(profileForUpgrade.buildingOperations or {})
