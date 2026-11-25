@@ -19,7 +19,7 @@
 - Construction camera on touch: two fingers pan the island view and pinch to zoom. A one-finger gesture remains reserved for selecting/dragging the building preview.
 - The camera is framed around the owned island, clamps its target inside the grass bounds, and scales its travel range with island expansion. It is active only during placement/move mode; exiting construction restores the normal Roblox character camera.
 - Touch: tap free grass to position/lock the preview, or drag with one finger and release over a valid cell to lock it; use large rotate, confirm and cancel buttons.
-- Multi-touch: once a second finger joins, the building-placement gesture is cancelled and neither finger can place or move a building. The controller does not sink the gesture, leaving pan/pinch handling to Roblox's default camera controls.
+- Multi-touch: once a second finger joins, the building-placement gesture is cancelled and neither finger can place or move a building. During construction, `ConstructionCameraController` owns two-finger pan/pinch; it does not sink the gesture at the input layer.
 - Cancelled touches, window-focus loss and character removal/respawn clear the local gesture state, so a stale touch cannot lock the preview after interruption.
 - The multi-touch gate is isolated in `Shared/Building/TouchGestureGate.lua`; Studio smoke tests cover single-touch commit, second/third-finger interruption, cancellation, ineligible GUI touches, duplicate input begin, and focus-reset recovery.
 - Existing buildings: tap/click a building to reveal Move and Demolish actions.
