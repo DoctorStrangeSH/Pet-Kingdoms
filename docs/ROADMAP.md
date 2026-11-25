@@ -1454,3 +1454,12 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Fit the pet deletion confirmation dialog to both safe viewport width and height; remove its hard 240 px minimum that could overflow narrow split-screen/mobile layouts.
 - [x] Remove the overlapping `ОБН` text from the refresh control; keep the native-drawn refresh pictogram as the single visual affordance.
 - [ ] Verify quest sorting, tracking, completion and refresh interactions in Roblox Studio.
+
+
+### Stage 1 — Modal focus and window-transition regression coverage (2026-11-25)
+
+- [x] Verify the shared `ModalManager` is used by construction, island expansion, quest journal and pet collection windows.
+- [x] Extend modal smoke tests: unknown modal names cannot steal focus; reopening the active modal preserves focus; closing an inactive modal cannot dismiss the active window.
+- [x] Preserve existing regression coverage for switching windows, closing all windows, unregister/re-register cleanup, and recursive unregister callbacks.
+- [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`.
+- [ ] Verify real window transitions: construction → journal → collection → expansion; confirm only one top-level panel/shade remains active, launchers return after close, Escape closes the top layer, and respawn clears stale overlays.
