@@ -771,10 +771,17 @@ local function resizeBuildingPanel()
 	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
 	local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
-	local launcherRight = safeOrigin.X + safeSize.X - (if compact then 10 else 22)
-	local launcherTop = safeOrigin.Y + (if compact then 12 else 24)
+	-- Compact screens place Build at the upper-left: Pet Collection and
+	-- Island Expansion already occupy the right-side vertical launcher rail.
+	-- This leaves the Quest Journal below on the left and avoids a 320×180
+	-- landscape collision between the three floating launchers.
+	local launcherAnchor = if compact then Vector2.new(0, 0) else Vector2.new(1, 0)
+	local launcherPosition = if compact
+		then Vector2.new(safeOrigin.X + 10, safeOrigin.Y + 12)
+		else Vector2.new(safeOrigin.X + safeSize.X - 22, safeOrigin.Y + 24)
+	reopenConstructionButton.AnchorPoint = launcherAnchor
 	reopenConstructionButton.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
-	reopenConstructionButton.Position = UDim2.fromOffset(launcherRight, launcherTop)
+	reopenConstructionButton.Position = UDim2.fromOffset(launcherPosition.X, launcherPosition.Y)
 	reopenConstructionButton.TextSize = if tiny then 11 else (if compact then 12 else 15)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
@@ -847,10 +854,9 @@ local function resizeBuildingPanel()
 	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
+		buildLauncher.AnchorPoint = launcherAnchor
 		buildLauncher.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
-		-- Both entry buttons use AnchorPoint (1, 0), so Position is the
-		-- safe area's right edge, not the left edge minus the button width.
-		buildLauncher.Position = UDim2.fromOffset(launcherRight, launcherTop)
+		buildLauncher.Position = UDim2.fromOffset(launcherPosition.X, launcherPosition.Y)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
 		-- The full-width recovery notice owns the top safe area until the
 		-- uncertain server operation has been resolved.
