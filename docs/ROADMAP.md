@@ -1282,3 +1282,12 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Refresh the catalog card layout after viewport changes so orientation and resolution changes are reflected immediately.
 - [x] GitHub Actions run #767: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify horizontal scrolling, all cost combinations, touch targets, and card text at phone/tablet/desktop resolutions in Roblox Studio. Runtime visual validation pending.
+
+### Stage 1 — Live affordability during placement (2026-11-25)
+
+- [x] Re-check the selected building's cost against the latest server resource snapshot while placement mode is active.
+- [x] Disable the confirmation action until a valid cell is locked and the selected building is affordable.
+- [x] Show a clear resource-shortage hint before sending a placement request, while preserving geometric validity and server-side validation.
+- [x] Re-enable confirmation when resources are replenished; moving an existing building remains free of a second construction charge.
+- [x] Keep the server authoritative: the client preflight is a usability hint and the server still validates unlocks, balance, footprint, and transaction.
+- [ ] Verify resource changes during an active placement, locked-cell confirmation, move mode, and recovery after reconnect in Roblox Studio. Runtime validation pending.
