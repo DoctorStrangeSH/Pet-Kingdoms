@@ -1461,5 +1461,6 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Verify the shared `ModalManager` is used by construction, island expansion, quest journal and pet collection windows.
 - [x] Extend modal smoke tests: unknown modal names cannot steal focus; reopening the active modal preserves focus; closing an inactive modal cannot dismiss the active window.
 - [x] Preserve existing regression coverage for switching windows, closing all windows, unregister/re-register cleanup, and recursive unregister callbacks.
+- [x] GitHub Actions run #837: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
 - [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`.
 - [ ] Verify real window transitions: construction → journal → collection → expansion; confirm only one top-level panel/shade remains active, launchers return after close, Escape closes the top layer, and respawn clears stale overlays.
