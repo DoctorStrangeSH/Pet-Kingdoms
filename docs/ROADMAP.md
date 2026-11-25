@@ -1412,3 +1412,20 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [ ] Verify one-finger tap/drag, two-finger camera pan/pinch, third-finger interruption, touch cancellation, focus loss/regain and no accidental placement on physical mobile devices and Studio emulation.
 
 Source PR: #38. Runtime touch/camera acceptance remains pending; this does not close Stage 1.
+
+
+### Stage 1 — Construction camera controls (2026-11-25)
+
+- [x] Add a temporary island-focused camera controller, activated only after a placement/move preview is successfully created.
+- [x] Desktop controls: middle-mouse drag pans, right-mouse drag orbits, and mouse wheel zooms.
+- [x] Touch controls: two-finger drag pans and pinch zooms; one-finger placement remains owned by the building controller.
+- [x] Derive the camera target and pan limits from the owned island's grass CFrame and actual dimensions, including expanded islands and rotated island slots.
+- [x] Clamp camera pan to the island bounds with an inner safety margin; clamp zoom and orbit pitch to prevent unusable views.
+- [x] Restore the previous Roblox camera type/subject/FOV when construction or move mode exits; clear active gestures on focus loss and when the island is removed.
+- [x] Add pure geometry helpers and opt-in Studio tests for pan clamping, expanded bounds, zoom limits, orbit framing and pan-vector calculations.
+- [x] GitHub Actions run #823: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [x] GitHub Actions run #825: pinned Rojo verification, full place build, and Studio-ready artifact upload passed after hardening camera-subject restoration (2026-11-25).
+- [ ] Open the Studio-ready artifact in Roblox Studio and run `ConstructionCameraMathTests.server.lua` with `Workspace.RunConstructionCameraMathTests = true`.
+- [ ] Verify mouse controls, two-finger pan/pinch, one-finger placement isolation, island-edge clamping, expansion levels 0–2, and camera restoration after cancel/confirm/modal close in Roblox Studio and on physical mobile devices.
+
+Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains pending.
