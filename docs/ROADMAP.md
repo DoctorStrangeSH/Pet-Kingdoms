@@ -1308,3 +1308,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Add Studio-only pure tests for level-2 progression preservation, coordinate/rotation updates, no mutation of the old record, and legacy level-1 records without an explicit upgrade field.
 - [x] GitHub Actions run #773: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run the new `BuildingRecordFactoryTests.server.lua` in Roblox Studio and verify an upgraded building remains upgraded after a real move and island reload. Runtime validation pending.
+
+### Stage 1 — Durable upgrade operation receipts (2026-11-25)
+
+- [x] Add `upgrade` to the supported persisted building-journal actions. Previously the upgrade transaction was rejected by journal validation even after its in-memory building/resource changes had been applied, forcing a rollback instead of a successful upgrade.
+- [x] Add a Studio-only journal test proving upgrade receipts append and replay after their revision is persisted.
+- [x] Verify unsupported journal actions still fail closed.
+- [ ] Run `IslandBuildingJournalDataTests.server.lua` and perform a real level-1 to level-2 upgrade in Roblox Studio; verify resources, level, and reconnect persistence. Runtime validation pending.
