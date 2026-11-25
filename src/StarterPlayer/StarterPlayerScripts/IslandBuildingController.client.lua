@@ -296,6 +296,11 @@ make("UIListLayout", {
 	SortOrder = Enum.SortOrder.LayoutOrder,
 }, catalogRow)
 
+local setStatus: (string, boolean?) -> ()
+local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
+local clearPendingBuildingOperation: () -> ()
+local findOwnIsland: () -> Model?
+
 local catalogItems: { [string]: any } = {}
 local resourceBalances: { [string]: number } = {}
 local catalogButtonsById: { [string]: TextButton } = {}
@@ -312,6 +317,7 @@ local function makeCatalogButton(name: string, catalogId: string, titleText: str
 	}, catalogRow) :: TextButton
 	make("UICorner", { CornerRadius = UDim.new(0, 12) }, button)
 	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.78, Thickness = 1 }, button)
+	button:SetAttribute("BaseTitle", titleText)
 	make("TextLabel", {
 		Name = "BuildingName",
 		BackgroundTransparency = 1,
@@ -376,7 +382,7 @@ local function renderCatalogButton(catalogId: string)
 	local costRow = button:FindFirstChild("CostRow")
 	if costRow and costRow:IsA("Frame") then
 		for _, child in ipairs(costRow:GetChildren()) do
-			if child:IsA("Frame") then child:Destroy() end
+			if not child:IsA("UIListLayout") then child:Destroy() end
 		end
 		local cost = item.cost or {}
 		local resourceOrder = { "wood", "stone", "gold", "gems" }
@@ -433,13 +439,17 @@ local function renderCatalogButton(catalogId: string)
 		button.BackgroundTransparency = if unlocked and canAfford then 0 else 0.32
 		local nameLabel = button:FindFirstChild("BuildingName")
 		if nameLabel and nameLabel:IsA("TextLabel") then
+			local baseTitle = button:GetAttribute("BaseTitle")
+			nameLabel.Text = (if type(baseTitle) == "string" then baseTitle else catalogId)
+				.. (if not unlocked then " • ЗАКРЫТО" else "")
 			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
-			if not unlocked then nameLabel.Text ..= " • ЗАКРЫТО" end
 		end
 		local outline = button:FindFirstChild("SelectionStroke")
 		if outline and outline:IsA("UIStroke") then
-			outline.Color = if unlocked and canAfford then COLORS.gold else COLORS.invalid
-			outline.Transparency = if unlocked and canAfford then 0.78 else 0.25
+			local selected = catalogId == selectedCatalogId
+			outline.Color = if selected then COLORS.gold elseif unlocked and canAfford then COLORS.panelLight else COLORS.invalid
+			outline.Transparency = if selected then 0 else (if unlocked and canAfford then 0.78 else 0.25)
+			outline.Thickness = if selected then 2.5 else 1
 		end
 	end
 end
@@ -465,10 +475,6 @@ resourceUpdate.OnClientEvent:Connect(function(snapshot)
 		refreshCatalogCards()
 	end
 end)
-local setStatus: (string, boolean?) -> ()
-local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
-local clearPendingBuildingOperation: () -> ()
-local findOwnIsland: () -> Model?
 
 -- Filled after the overview UI is created farther down in this controller.
 local dismissKingdomOverview: () -> () = function() end
@@ -1615,13 +1621,9 @@ local function setSelectedBuilding(catalogId: string)
 	for id, button in pairs(catalogButtons) do
 		local active = id == catalogId
 		button.BackgroundColor3 = if active then Color3.fromRGB(91, 75, 126) else COLORS.panelLight
-		local outline = button:FindFirstChild("SelectionStroke")
-		if outline and outline:IsA("UIStroke") then
-			outline.Transparency = if active then 0 else 0.75
-			outline.Thickness = if active then 2.5 else 1
-		end
 		button:SetAttribute("Selected", active)
 	end
+	refreshCatalogCards()
 	if currentPreview then
 		local _, _, _, cellSize = getIslandGrid()
 		if cellSize then
@@ -2440,6 +2442,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 	end
 end)
 
+loadCatalogSnapshot()
 addBuildEntry()
 ModalManager.ActiveChanged:Connect(function(activeName: string?)
 	if buildEntryButton then
