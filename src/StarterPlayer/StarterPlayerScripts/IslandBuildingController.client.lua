@@ -227,6 +227,18 @@ local reopenConstructionButton = make("TextButton", {
 	ZIndex = 30,
 }, gui) :: TextButton
 InterfaceComponents.StyleActionButton(reopenConstructionButton, "gold")
+local collapsedPlacementStatus = make("Frame", {
+	Name = "PlacementStatusDot",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -5, 0, 5),
+	Size = UDim2.fromOffset(10, 10),
+	BackgroundColor3 = COLORS.gold,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 33,
+}, reopenConstructionButton) :: Frame
+make("UICorner", { CornerRadius = UDim.new(1, 0) }, collapsedPlacementStatus)
+make("UIStroke", { Color = COLORS.panel, Thickness = 1.5 }, collapsedPlacementStatus)
 
 local status = make("TextLabel", {
 	Name = "Status",
@@ -497,6 +509,15 @@ local function updateConfirmAvailability()
 	confirmButton.Active = canConfirm
 	confirmButton.AutoButtonColor = canConfirm
 	confirmButton.BackgroundTransparency = if canConfirm then 0 else 0.28
+
+	-- The collapsed launcher keeps a tiny, color-coded summary of the current
+	-- placement state so the player can inspect validity without reopening UI.
+	collapsedPlacementStatus.BackgroundColor3 = if not placementLocked
+		then COLORS.gold
+		elseif not currentValid then Color3.fromRGB(210, 82, 82)
+		elseif not affordable then Color3.fromRGB(225, 153, 67)
+		else Color3.fromRGB(91, 190, 125)
+	collapsedPlacementStatus.Visible = placing and panelCollapsed
 end
 
 local catalogLoadAttempts = 0
@@ -1904,6 +1925,7 @@ local function rotatePlacement()
 		seedPreview()
 		placementLocked = false
 	end
+	updateConfirmAvailability()
 end
 
 rotateButton.Activated:Connect(rotatePlacement)
@@ -1914,6 +1936,7 @@ collapseButton.Activated:Connect(function()
 	panelCollapsed = true
 	panel.Visible = false
 	reopenConstructionButton.Visible = true
+	updateConfirmAvailability()
 end)
 
 reopenConstructionButton.Activated:Connect(function()
@@ -1924,6 +1947,7 @@ reopenConstructionButton.Activated:Connect(function()
 	panelCollapsed = false
 	panel.Visible = true
 	reopenConstructionButton.Visible = false
+	collapsedPlacementStatus.Visible = false
 end)
 
 panelCloseButton.Activated:Connect(stopPlacing)
