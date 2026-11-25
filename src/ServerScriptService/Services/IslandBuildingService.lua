@@ -430,12 +430,29 @@ local function handleRequest(player: Player, request: any): any
 		userId, player, request.requestId, fingerprint, operationAction, result
 	)
 	if not committed then
+		local restored = true
 		if movingIndex and previousRecord then
 			profile.buildings[movingIndex] = previousRecord
-			IslandWorldService.syncBuilding(userId, profile, previousRecord)
+			local syncRestored, restoreCode = IslandWorldService.syncBuilding(userId, profile, previousRecord)
+			if not syncRestored then
+				local refreshed, refreshCode = IslandWorldService.refresh(userId, player, profile)
+				if not refreshed then
+					warn("[PetKingdoms] Move rollback could not restore the world:",
+						restoreCode, refreshCode, previousRecord.instanceId)
+					restored = false
+				end
+			end
 		else
 			table.remove(profile.buildings, #profile.buildings)
-			IslandWorldService.removeBuilding(userId, record.instanceId)
+			local removed, removeCode = IslandWorldService.removeBuilding(userId, record.instanceId, profile)
+			if not removed then
+				local refreshed, refreshCode = IslandWorldService.refresh(userId, player, profile)
+				if not refreshed then
+					warn("[PetKingdoms] Placement rollback could not remove the temporary world model:",
+						removeCode, refreshCode, record.instanceId)
+					restored = false
+				end
+			end
 		end
 		if charged then profile.resources = resourcesBefore end
 		if profile.revision > previousRevision then
@@ -444,6 +461,7 @@ local function handleRequest(player: Player, request: any): any
 				IslandSessionService.markDirty(userId)
 			end
 		end
+		if not restored then return fail("BUILDING_ROLLBACK_FAILED") end
 		return fail(commitCode)
 	end
 
