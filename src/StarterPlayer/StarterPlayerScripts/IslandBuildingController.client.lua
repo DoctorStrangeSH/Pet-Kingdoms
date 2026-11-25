@@ -2405,9 +2405,7 @@ local function resizeKingdomOverview()
 		safeOrigin.X + safeSize.X * 0.5,
 		safeOrigin.Y + safeSize.Y * 0.5
 	)
-	local availableWidth = math.max(1, safeSize.X - 24)
-	local availableHeight = math.max(1, safeSize.Y - 24)
-	overviewScale.Scale = math.min(1, availableWidth / width, availableHeight / 286)
+	overviewScale.Scale = InterfaceComponents.GetSafeFitScale(Vector2.new(width, 286), safeSize, 12)
 	overviewTitle.TextSize = if compact then 15 else 18
 	overviewStage.TextSize = if compact then 16 else 20
 	overviewStats.TextSize = if compact then 11 else 13
