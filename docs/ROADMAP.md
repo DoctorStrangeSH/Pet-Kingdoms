@@ -1375,3 +1375,11 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Preserve atomic wallet guarantees: validate every resource and cap before changing any balance.
 - [x] GitHub Actions run #789: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run concurrent RemoteFunction requests and simultaneous gathering/building/hatching in Roblox Studio; confirm exactly one mutation commits and no resources/buildings duplicate. Runtime concurrency validation pending.
+
+### Stage 1 — Full building lifecycle persistence round-trip (2026-11-25)
+
+- [x] Extend the dedicated-universe `IslandStoreTests` scenario to save/load a complete building lifecycle: initial placement, configured construction + two upgrade costs, move to a new grid cell/rotation, and demolition of an ordinary building.
+- [x] Persist and verify all four durable operation receipts alongside the final island profile.
+- [x] Verify reconnect restores the moved level-3 pet house, leaves the demolished lantern absent, preserves the remaining five buildings, and retains exact post-spend wallet balances.
+- [x] Keep the DataStore integration scenario opt-in via `Workspace.RunIslandStoreIntegrationTests` and synthetic user IDs; ordinary Studio play does not write test records.
+- [ ] Execute the opt-in scenario in a dedicated Roblox test universe with Studio API access enabled; verify cleanup and a second session claim. Runtime DataStore validation pending.
