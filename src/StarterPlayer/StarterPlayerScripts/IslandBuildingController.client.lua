@@ -474,6 +474,31 @@ local function refreshCatalogCards()
 	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
 end
 
+local function hasResourcesForSelectedBuilding(): boolean
+	-- Moving an existing building does not charge its construction cost again.
+	if movingInstanceId ~= nil then return true end
+	local item = catalogItems[selectedCatalogId]
+	-- If the snapshot is still loading, keep the server as the source of truth.
+	if type(item) ~= "table" then return true end
+	if item.unlocked ~= true then return false end
+	for resourceId, amount in pairs(item.cost or {}) do
+		if type(amount) == "number" and amount > 0
+			and (resourceBalances[resourceId] or 0) < amount
+		then
+			return false
+		end
+	end
+	return true
+end
+
+local function updateConfirmAvailability()
+	local affordable = hasResourcesForSelectedBuilding()
+	local canConfirm = placing and placementLocked and currentValid and affordable
+	confirmButton.Active = canConfirm
+	confirmButton.AutoButtonColor = canConfirm
+	confirmButton.BackgroundTransparency = if canConfirm then 0 else 0.28
+end
+
 local catalogLoadAttempts = 0
 local function loadCatalogSnapshot()
 	local ok, response = pcall(function() return catalogRemote:InvokeServer() end)
@@ -496,6 +521,10 @@ resourceUpdate.OnClientEvent:Connect(function(snapshot)
 	if type(snapshot) == "table" then
 		resourceBalances = snapshot
 		refreshCatalogCards()
+		updateConfirmAvailability()
+		if placing and movingInstanceId == nil and currentValid and not hasResourcesForSelectedBuilding() then
+			setStatus("Место свободно, но не хватает ресурсов для постройки", false)
+		end
 	end
 end)
 
