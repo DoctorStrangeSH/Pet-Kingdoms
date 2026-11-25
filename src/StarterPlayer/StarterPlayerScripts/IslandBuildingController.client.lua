@@ -2149,10 +2149,6 @@ end)
 UserInputService.InputEnded:Connect(function(input)
 	if input.UserInputType ~= Enum.UserInputType.Touch then return end
 	lastTouchTime = os.clock()
-	if activeTouches[input] then
-		activeTouches[input] = nil
-		touchCount = math.max(0, touchCount - 1)
-	end
 	local isCandidate = input == TouchGestureGate.GetCandidate()
 	local startPosition = touchStartPosition
 	local elapsed = os.clock() - touchStartTime
