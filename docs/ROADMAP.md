@@ -1394,3 +1394,14 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Native icons for selected-building actions (2026-11-25)
+
+- [x] Add platform-independent native-shape pictograms for moving, upgrading, and demolishing a selected building.
+- [x] Place action pictograms inside the existing buttons with consistent left padding; retain Russian action labels and confirmation wording.
+- [x] Keep the responsive action-card layout and all existing button activation/request handlers unchanged.
+- [ ] Run pinned Rojo verification and the full place build; inspect the Studio-ready artifact.
+- [ ] Verify action icons and labels at compact portrait, short landscape, tablet, and desktop sizes in Roblox Studio, including the demolition confirmation state.
+
+Source PR: #34. Runtime visual acceptance remains pending; this does not close Stage 1.

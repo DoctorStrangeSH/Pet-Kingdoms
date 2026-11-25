@@ -89,6 +89,52 @@ local function make(className: string, properties: { [string]: any }, parent: In
 	return object
 end
 
+-- Native-shape action pictograms avoid platform-dependent font glyphs.
+local function createBuildingActionIcon(parent: Instance, action: string, tint: Color3, size: number, x: number, y: number, zIndex: number): Frame
+	local root = make("Frame", {
+		Name = "ActionIcon_" .. action,
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(x, y),
+		Size = UDim2.fromOffset(size, size),
+		ZIndex = zIndex,
+	}, parent) :: Frame
+
+	local function part(name: string, width: number, height: number, px: number, py: number, rotation: number?, radius: number?)
+		local item = make("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(px, py),
+			Size = UDim2.fromOffset(width, height),
+			BackgroundColor3 = tint,
+			BorderSizePixel = 0,
+			Rotation = rotation or 0,
+			ZIndex = zIndex + 1,
+		}, root) :: Frame
+		make("UICorner", { CornerRadius = UDim.new(0, radius or 1) }, item)
+		return item
+	end
+
+	if action == "Move" then
+		part("Horizontal", size * 0.66, math.max(2, size * 0.12), 0.5, 0.5)
+		part("LeftHeadA", size * 0.32, math.max(2, size * 0.12), 0.2, 0.32, -38)
+		part("LeftHeadB", size * 0.32, math.max(2, size * 0.12), 0.2, 0.68, 38)
+		part("RightHeadA", size * 0.32, math.max(2, size * 0.12), 0.8, 0.32, 38)
+		part("RightHeadB", size * 0.32, math.max(2, size * 0.12), 0.8, 0.68, -38)
+	elseif action == "Upgrade" then
+		part("Stem", math.max(2, size * 0.13), size * 0.56, 0.5, 0.58)
+		part("ArrowLeft", size * 0.42, math.max(2, size * 0.13), 0.34, 0.28, -45)
+		part("ArrowRight", size * 0.42, math.max(2, size * 0.13), 0.66, 0.28, 45)
+		part("Base", size * 0.72, math.max(2, size * 0.12), 0.5, 0.9)
+	elseif action == "Demolish" then
+		part("BinBody", size * 0.52, size * 0.58, 0.5, 0.62, 0, 2)
+		part("Lid", size * 0.72, math.max(2, size * 0.12), 0.5, 0.25)
+		part("Handle", size * 0.25, math.max(2, size * 0.12), 0.5, 0.12)
+		part("BinLineA", math.max(1, size * 0.08), size * 0.34, 0.38, 0.62)
+		part("BinLineB", math.max(1, size * 0.08), size * 0.34, 0.62, 0.62)
+	end
+	return root
+end
+
 local gui = make("ScreenGui", {
 	Name = "IslandBuildingGui",
 	ResetOnSpawn = false,
@@ -550,6 +596,9 @@ local moveButton = make("TextButton", {
 }, gui) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, moveButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, moveButton)
+moveButton.TextXAlignment = Enum.TextXAlignment.Left
+make("UIPadding", { PaddingLeft = UDim.new(0, 25), PaddingRight = UDim.new(0, 4) }, moveButton)
+createBuildingActionIcon(moveButton, "Move", COLORS.cream, 14, 7, 16, 17)
 
 local demolishButton = make("TextButton", {
 	Name = "DemolishSelected",
@@ -566,6 +615,9 @@ local demolishButton = make("TextButton", {
 }, gui) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 13) }, demolishButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.5, Thickness = 1 }, demolishButton)
+demolishButton.TextXAlignment = Enum.TextXAlignment.Left
+make("UIPadding", { PaddingLeft = UDim.new(0, 25), PaddingRight = UDim.new(0, 4) }, demolishButton)
+createBuildingActionIcon(demolishButton, "Demolish", COLORS.cream, 14, 7, 16, 17)
 
 -- A single compact context card replaces the old floating action buttons.
 -- It is shown only while an owned building is selected.
@@ -650,6 +702,9 @@ local upgradeButton = make("TextButton", {
 }, selectionPanel) :: TextButton
 make("UICorner", { CornerRadius = UDim.new(0, 10) }, upgradeButton)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.65, Thickness = 1 }, upgradeButton)
+upgradeButton.TextXAlignment = Enum.TextXAlignment.Left
+make("UIPadding", { PaddingLeft = UDim.new(0, 25), PaddingRight = UDim.new(0, 4) }, upgradeButton)
+createBuildingActionIcon(upgradeButton, "Upgrade", COLORS.cream, 14, 7, 13, 17)
 moveButton.Parent = selectionPanel
 demolishButton.Parent = selectionPanel
 moveButton.ZIndex = 16
@@ -768,7 +823,8 @@ local function resizeBuildingPanel()
 	local nextActionX = 12
 	moveButton.Position = UDim2.fromOffset(nextActionX, actionY)
 	moveButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
-	moveButton.TextSize = if compact then 10 else 11
+	moveButton.TextSize = if compact then 9 else 10
+	upgradeButton.TextSize = if compact then 9 else 10
 	nextActionX += actionWidth + cardGap
 	if showUpgrade then
 		upgradeButton.Position = UDim2.fromOffset(nextActionX, actionY)
@@ -780,7 +836,7 @@ local function resizeBuildingPanel()
 		demolishButton.Size = UDim2.fromOffset(actionWidth, actionHeight)
 	end
 	demolishButton.Text = if demolitionArmed then (if compact then "ТОЧНО?" else "ТОЧНО УДАЛИТЬ?") else (if compact then "УДАЛИТЬ" else "ДЕМОНТАЖ")
-	demolishButton.TextSize = if compact then 10 else 11
+	demolishButton.TextSize = if compact then 9 else 10
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
 		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
