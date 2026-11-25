@@ -1394,3 +1394,15 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Verify a compacted expired request is no longer replayable.
 - [x] GitHub Actions run #793: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Run retry/reconnect behavior through the live RemoteFunction in Roblox Studio, including a client retry after a simulated response timeout. Runtime validation pending.
+
+
+### Stage 1 — Native placement action icons (2026-11-25)
+
+- [x] Replace the rotation text glyph with a native-shape rotation pictogram.
+- [x] Add native checkmark and cancel pictograms to placement confirmation controls.
+- [x] Stack icons above their labels so narrow phone buttons retain readable Russian text without horizontal crowding.
+- [x] Reuse an existing UIPadding instance when present; preserve the current placement, rotation, cancel, and confirmation handlers.
+- [ ] Run pinned Rojo verification and the full place build; inspect the Studio-ready artifact.
+- [ ] Verify all three controls at 320 px portrait, 360 px portrait, 320×180 landscape, tablet, and desktop in Roblox Studio; test disabled confirm, valid placement, and move-save wording.
+
+Source PR: #35. Runtime visual acceptance remains pending; this does not close Stage 1.
