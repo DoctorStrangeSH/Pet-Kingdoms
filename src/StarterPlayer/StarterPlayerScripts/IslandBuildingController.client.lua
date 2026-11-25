@@ -711,7 +711,12 @@ local function resizeBuildingPanel()
 	panelCloseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 40, if ultraShort then 28 else 40)
 	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
-	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
+	local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
+	local launcherRight = safeOrigin.X + safeSize.X - (if compact then 10 else 22)
+	local launcherTop = safeOrigin.Y + (if compact then 12 else 24)
+	reopenConstructionButton.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
+	reopenConstructionButton.Position = UDim2.fromOffset(launcherRight, launcherTop)
+	reopenConstructionButton.TextSize = if tiny then 11 else (if compact then 12 else 15)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
 	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
 	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
@@ -783,12 +788,10 @@ local function resizeBuildingPanel()
 	demolishButton.TextSize = if compact then 10 else 11
 	local buildLauncher = gui:FindFirstChild("OpenBuildButton")
 	if buildLauncher and buildLauncher:IsA("TextButton") then
-		local launcherWidth = if tiny then 112 else (if compact then 128 else 154)
 		buildLauncher.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
-		buildLauncher.Position = UDim2.fromOffset(
-			safeOrigin.X + safeSize.X - launcherWidth - (if compact then 10 else 22),
-			safeOrigin.Y + (if compact then 12 else 24)
-		)
+		-- Both entry buttons use AnchorPoint (1, 0), so Position is the
+		-- safe area's right edge, not the left edge minus the button width.
+		buildLauncher.Position = UDim2.fromOffset(launcherRight, launcherTop)
 		buildLauncher.TextSize = if tiny then 11 else (if compact then 12 else 15)
 		-- The full-width recovery notice owns the top safe area until the
 		-- uncertain server operation has been resolved.
