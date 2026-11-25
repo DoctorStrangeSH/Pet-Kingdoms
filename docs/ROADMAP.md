@@ -1423,7 +1423,8 @@ Source PR: #38. Runtime touch/camera acceptance remains pending; this does not c
 - [x] Clamp camera pan to the island bounds with an inner safety margin; clamp zoom and orbit pitch to prevent unusable views.
 - [x] Restore the previous Roblox camera type/subject/FOV when construction or move mode exits; clear active gestures on focus loss and when the island is removed.
 - [x] Add pure geometry helpers and opt-in Studio tests for pan clamping, expanded bounds, zoom limits, orbit framing and pan-vector calculations.
-- [ ] Run pinned Rojo verification and full place build; inspect the Studio-ready artifact.
+- [x] GitHub Actions run #823: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [ ] Open the Studio-ready artifact in Roblox Studio and run `ConstructionCameraMathTests.server.lua` with `Workspace.RunConstructionCameraMathTests = true`.
 - [ ] Verify mouse controls, two-finger pan/pinch, one-finger placement isolation, island-edge clamping, expansion levels 0–2, and camera restoration after cancel/confirm/modal close in Roblox Studio and on physical mobile devices.
 
 Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains pending.
