@@ -1429,3 +1429,14 @@ Source PR: #38. Runtime touch/camera acceptance remains pending; this does not c
 - [ ] Verify mouse controls, two-finger pan/pinch, one-finger placement isolation, island-edge clamping, expansion levels 0–2, and camera restoration after cancel/confirm/modal close in Roblox Studio and on physical mobile devices.
 
 Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains pending.
+
+
+### Stage 1 — Construction overview safe-area layout (2026-11-25)
+
+- [x] Center the kingdom overview inside the usable Roblox safe viewport rather than the raw screen center.
+- [x] Scale the overview against both safe width and height so its close and primary action controls remain visible in short landscape and compact portrait layouts.
+- [x] Move the collapsed construction reopen control to the bottom safe corner, away from the top resource HUD and build launcher.
+- [x] Reuse the shared InterfaceComponents.GetSafeViewport contract so inset handling stays consistent with the construction panel and resource HUD.
+- [ ] Verify the overview and collapsed launcher at 320/360/390 px portrait, short landscape, and devices with display cutouts / Roblox top-bar insets.
+
+Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pending.
