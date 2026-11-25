@@ -1290,4 +1290,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Show a clear resource-shortage hint before sending a placement request, while preserving geometric validity and server-side validation.
 - [x] Re-enable confirmation when resources are replenished; moving an existing building remains free of a second construction charge.
 - [x] Keep the server authoritative: the client preflight is a usability hint and the server still validates unlocks, balance, footprint, and transaction.
+- [x] GitHub Actions run #769: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify resource changes during an active placement, locked-cell confirmation, move mode, and recovery after reconnect in Roblox Studio. Runtime validation pending.
