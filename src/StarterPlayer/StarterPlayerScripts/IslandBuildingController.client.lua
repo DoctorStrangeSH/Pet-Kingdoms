@@ -379,7 +379,7 @@ local function renderCatalogButton(catalogId: string)
 	if button == nil or type(item) ~= "table" then return end
 	local footprint = button:FindFirstChild("Footprint")
 	if footprint and footprint:IsA("TextLabel") then
-		footprint.Text = string.format("%d × %d клетки", item.width or 1, item.depth or 1)
+		footprint.Text = if item.unlocked ~= true then "ЗАКРЫТО" else string.format("%d × %d клетки", item.width or 1, item.depth or 1)
 	end
 	local costRow = button:FindFirstChild("CostRow")
 	if costRow and costRow:IsA("Frame") then
@@ -396,9 +396,11 @@ local function renderCatalogButton(catalogId: string)
 			end
 		end
 		local canAfford = true
-		local chipGap = 5
+		local chipGap = if #requiredResources >= 3 then 3 else 5
+		local layout = costRow:FindFirstChildOfClass("UIListLayout")
+		if layout then layout.Padding = UDim.new(0, chipGap) end
 		local chipWidth = if #requiredResources > 0
-			then math.clamp(math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources), 30, 48)
+			then math.max(1, math.min(48, math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources)))
 			else 48
 		local compactCard = button.Size.Y.Offset <= 52
 		local tinyCard = button.Size.Y.Offset <= 40
@@ -409,8 +411,8 @@ local function renderCatalogButton(catalogId: string)
 			local balance = resourceBalances[resourceId] or 0
 			if balance < amount then canAfford = false end
 			local chipHeight = if tinyCard then 11 elseif compactCard then 14 else 18
-			local iconSize = if tinyCard then 5 elseif compactCard then 6 else 8
-			local iconX = if tinyCard then 3 elseif compactCard then 4 else 4
+			local iconSize = if tinyCard then 7 elseif compactCard then 8 else 10
+			local iconX = if tinyCard then 2 else 3
 			local textX = iconX + iconSize + 3
 			local chip = make("Frame", {
 				Name = "Cost_" .. resourceId,
@@ -438,6 +440,7 @@ local function renderCatalogButton(catalogId: string)
 				TextColor3 = if balance >= amount then COLORS.text else COLORS.invalid,
 				TextSize = if tinyCard then 8 else (if compactCard then 9 else 10),
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextScaled = true,
 			}, chip)
 		end
 		if #requiredResources == 0 then
@@ -452,6 +455,9 @@ local function renderCatalogButton(catalogId: string)
 			}, costRow)
 		end
 		local unlocked = item.unlocked == true
+		if unlocked and not canAfford and footprint and footprint:IsA("TextLabel") then
+			footprint.Text = "НЕ ХВАТАЕТ РЕСУРСОВ"
+		end
 		button.Active = unlocked and canAfford
 		button.AutoButtonColor = unlocked and canAfford
 		button.BackgroundTransparency = if unlocked and canAfford then 0 else 0.32
@@ -459,7 +465,7 @@ local function renderCatalogButton(catalogId: string)
 		if nameLabel and nameLabel:IsA("TextLabel") then
 			local baseTitle = button:GetAttribute("BaseTitle")
 			nameLabel.Text = (if type(baseTitle) == "string" then baseTitle else catalogId)
-				.. (if not unlocked then " • ЗАКРЫТО" else "")
+				
 			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
 		end
 		local outline = button:FindFirstChild("SelectionStroke")
@@ -722,7 +728,8 @@ local function resizeBuildingPanel()
 		safeOrigin.Y + math.max(8, safeSize.Y - reopenConstructionButton.Size.Y - 12)
 	)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
-	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
+	-- The catalog scrolls horizontally; wider cards preserve readable prices without enlarging the panel.
+	local cardWidth = if ultraShort then 154 else (if compact then 154 else 164)
 	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 		button.Size = UDim2.fromOffset(cardWidth, cardHeight)
