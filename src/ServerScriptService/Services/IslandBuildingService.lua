@@ -13,6 +13,7 @@ local IslandResourceService = require(services:WaitForChild("IslandResourceServi
 local IslandResources = require(services:WaitForChild("IslandResources"))
 local BuildingRecordFactory = require(services:WaitForChild("BuildingRecordFactory"))
 local BuildingUpgradeRules = require(services:WaitForChild("BuildingUpgradeRules"))
+local BuildingDemolitionRules = require(services:WaitForChild("BuildingDemolitionRules"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -275,9 +276,8 @@ local function handleRequest(player: Player, request: any): any
 		if removeIndex == nil or removedRecord == nil then
 			return fail("BUILDING_NOT_FOUND")
 		end
-		if removedRecord.catalogId == "main_house" then
-			return fail("MAIN_HOUSE_PROTECTED")
-		end
+		local canDemolish, demolitionCode = BuildingDemolitionRules.validate(removedRecord, BuildingCatalog)
+		if not canDemolish then return fail(demolitionCode) end
 		local previousLedger = table.clone(profileForRemoval.buildingOperations or {})
 		local previousRevision = profileForRemoval.revision
 		table.remove(profileForRemoval.buildings, removeIndex)
