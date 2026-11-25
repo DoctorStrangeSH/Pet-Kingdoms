@@ -777,7 +777,7 @@ local function resizeBuildingPanel()
 	-- landscape collision between the three floating launchers.
 	local launcherAnchor = if compact then Vector2.new(0, 0) else Vector2.new(1, 0)
 	local launcherPosition = if compact
-		then Vector2.new(safeOrigin.X + 10, safeOrigin.Y + 12)
+		then Vector2.new(safeOrigin.X + 10, safeOrigin.Y + 4)
 		else Vector2.new(safeOrigin.X + safeSize.X - 22, safeOrigin.Y + 24)
 	reopenConstructionButton.AnchorPoint = launcherAnchor
 	reopenConstructionButton.Size = UDim2.fromOffset(launcherWidth, compact and 42 or 48)
