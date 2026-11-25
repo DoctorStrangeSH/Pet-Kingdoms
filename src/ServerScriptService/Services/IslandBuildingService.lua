@@ -11,6 +11,7 @@ local PlacementValidator = require(services:WaitForChild("PlacementValidator"))
 local IslandWorldService = require(services:WaitForChild("IslandWorldService"))
 local IslandResourceService = require(services:WaitForChild("IslandResourceService"))
 local IslandResources = require(services:WaitForChild("IslandResources"))
+local BuildingRecordFactory = require(services:WaitForChild("BuildingRecordFactory"))
 
 local IslandBuildingService = {}
 local MAX_REQUEST_ID_LENGTH = 80
@@ -344,13 +345,7 @@ local function handleRequest(player: Player, request: any): any
 			if existing.instanceId == request.movingInstanceId then
 				movingIndex = index
 				previousRecord = table.clone(existing)
-				record = {
-					instanceId = existing.instanceId,
-					catalogId = validation.catalogId,
-					x = validation.x,
-					z = validation.z,
-					rotation = validation.rotation,
-				}
+				record = BuildingRecordFactory.moved(existing, validation)
 				break
 			end
 		end
