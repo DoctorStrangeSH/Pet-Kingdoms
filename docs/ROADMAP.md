@@ -1322,4 +1322,5 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Extract server-side upgrade eligibility, target-level calculation, and catalog cost checks into `BuildingUpgradeRules` and use it in the live upgrade endpoint.
 - [x] Add Studio-only tests for level-1/2 upgrade plans, exact catalog prices, insufficient wood/stone, maximum level, unsupported upgrades, missing wallet, and invalid negative costs.
 - [x] Verify multi-resource spending is atomic: a short balance in one resource must not deduct another resource; exact balances spend successfully.
+- [x] GitHub Actions run #777: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Execute `BuildingUpgradeRulesTests.server.lua` in Roblox Studio and verify a real upgrade updates the building, wallet HUD, and persisted profile after reconnect. Runtime validation pending.
