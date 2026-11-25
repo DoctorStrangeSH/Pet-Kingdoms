@@ -242,11 +242,23 @@ local function handleRequest(player: Player, request: any): any
 				for key in pairs(upgradeRecord) do upgradeRecord[key] = nil end
 				for key, value in pairs(previousRecord) do upgradeRecord[key] = value end
 				profileForUpgrade.resources = previousResources
-				IslandWorldService.syncBuilding(userId, profileForUpgrade, upgradeRecord)
+				local restored, restoreCode = IslandWorldService.syncBuilding(userId, profileForUpgrade, upgradeRecord)
+				if not restored then
+					-- If the upgraded model cannot be replaced in place, rebuild the
+					-- complete island from the restored profile to avoid visual/profile drift.
+					local refreshed, refreshCode = IslandWorldService.refresh(userId, player, profileForUpgrade)
+					if not refreshed then
+						warn("[PetKingdoms] Upgrade rollback could not restore the world:",
+							restoreCode, refreshCode, upgradeRecord.instanceId)
+					else
+						restored = true
+					end
+				end
 				if profileForUpgrade.revision > previousRevision then
 					profileForUpgrade.buildingOperations = previousLedger
 					if IslandSessionService.canWrite(userId, player) then IslandSessionService.markDirty(userId) end
 				end
+				if not restored then return fail("BUILDING_ROLLBACK_FAILED") end
 				return fail(commitCode)
 			end
 			-- The upgrade transaction spends server-owned resources. Publish the
