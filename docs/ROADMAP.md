@@ -1444,3 +1444,12 @@ Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains 
 - [ ] Verify the overview and collapsed launcher at 320/360/390 px portrait, short landscape, and devices with display cutouts / Roblox top-bar insets.
 
 Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pending.
+
+
+### Stage 1 — Quest journal clarity (2026-11-25)
+
+- [x] Sort active quests before completed quests so the next useful action is always at the top.
+- [x] Apply a stable ID tie-breaker so quest order does not jump between refreshes when the server snapshot is built from a map.
+- [x] Replace the completed quest's misleading active tracking action with a non-interactive `ГОТОВО` state.
+- [x] Remove the overlapping `ОБН` text from the refresh control; keep the native-drawn refresh pictogram as the single visual affordance.
+- [ ] Verify quest sorting, tracking, completion and refresh interactions in Roblox Studio.
