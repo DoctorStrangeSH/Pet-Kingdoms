@@ -1292,3 +1292,10 @@ Source commits: `df5d5e5`, `828abc4`, `0ddfbf8`, `12fb285`, `33b7522`, `7c9ce96`
 - [x] Keep the server authoritative: the client preflight is a usability hint and the server still validates unlocks, balance, footprint, and transaction.
 - [x] GitHub Actions run #769: pinned Rojo verification, full place build, and Studio-ready artifact upload passed.
 - [ ] Verify resource changes during an active placement, locked-cell confirmation, move mode, and recovery after reconnect in Roblox Studio. Runtime validation pending.
+
+### Stage 1 — Building placement lifecycle regression tests (2026-11-25)
+
+- [x] Extend the Studio-only island world integration test to verify saved building grid coordinates and 90-degree rotation are restored on spawn.
+- [x] Verify expansion refresh preserves building coordinates, rotation, and upgrade level.
+- [x] Exercise the live world sync path with a moved/rotated building and assert the rendered model updates its coordinates, rotation attribute, and world position.
+- [ ] Run `IslandWorldServiceTests.server.lua` in Roblox Studio with the project test place and confirm cleanup leaves no test islands behind. Runtime test pending.
