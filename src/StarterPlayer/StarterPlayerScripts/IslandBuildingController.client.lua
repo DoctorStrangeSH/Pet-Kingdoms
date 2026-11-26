@@ -358,6 +358,7 @@ local setStatus: (string, boolean?) -> ()
 local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
 local clearPendingBuildingOperation: () -> ()
 local findOwnIsland: () -> Model?
+local stopPlacing: () -> ()
 
 local catalogItems: { [string]: any } = {}
 local resourceBalances: { [string]: number } = {}
@@ -1152,7 +1153,17 @@ local function selectBuilding(model: Model?)
 		selectedBuildingHighlight = highlight
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
-			if selectedBuildingModel == model and not demolitionRequestInFlight then
+			if selectedBuildingModel ~= model or demolitionRequestInFlight then return end
+			if movingInstanceId ~= nil and not buildRequestInFlight then
+				-- Defer until Destroying finishes so move mode cannot retain a ghost
+				-- and stale target id after its source model disappears.
+				task.defer(function()
+					if placing and movingInstanceId ~= nil then
+						stopPlacing()
+						setStatus("Исходная постройка исчезла. Перемещение отменено", false)
+					end
+				end)
+			else
 				selectBuilding(nil)
 			end
 		end)
@@ -2053,7 +2064,7 @@ end
 moveButton.Activated:Connect(beginMoveSelected)
 
 
-local function stopPlacing()
+stopPlacing = function()
 	if buildRequestInFlight then
 		setStatus("Дождись ответа о строительстве", false)
 		return
