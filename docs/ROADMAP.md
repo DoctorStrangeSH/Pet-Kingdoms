@@ -1551,5 +1551,5 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Assert the saved resource-node cooldown timestamp and ProximityPrompt enabled state are restored on rejoin.
 - [x] Include a non-default wallet in the saved-profile fixture and assert all four balances survive the detached profile snapshot.
 - [x] Extend the durable building journal test to clone a persisted receipt ledger and replay the successful placement result from the reloaded snapshot.
-- [ ] Run the Studio-only `IslandWorldServiceTests.server.lua` and `IslandBuildingJournalDataTests.server.lua` and confirm all assertions pass.
+- [x] GitHub Actions run #868 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the rejoin-test changes.
 - [ ] Verify a real Roblox server leave/rejoin with DataStore enabled; Studio simulation is not proof of a live DataStore round trip.
