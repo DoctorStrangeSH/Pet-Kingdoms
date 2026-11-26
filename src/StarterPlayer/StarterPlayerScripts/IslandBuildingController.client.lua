@@ -1375,7 +1375,13 @@ recoveryButton.Activated:Connect(function()
 	end
 	local response = requestResult.value
 	if type(response) == "table" and response.ok == true then
+		-- A timed-out request may have committed on the server while the local
+		-- placement ghost stayed open. Once recovery confirms success, close that
+		-- stale preview and restore local visibility/highlights exactly once.
+		local wasMove = pending.payload.movingInstanceId ~= nil
 		clearPendingBuildingOperation()
+		if wasMove then selectBuilding(nil) end
+		if placing then stopPlacing() end
 		setStatus(pending.description .. " — выполнено", true)
 		NotificationManager.Notify(pending.description .. " выполнено", "success")
 	elseif shouldKeepPendingRequest(response) then
