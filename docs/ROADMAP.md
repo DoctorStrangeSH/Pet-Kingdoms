@@ -1511,3 +1511,4 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Keep a focused catalog card inside the horizontal ScrollingFrame viewport when controller/keyboard selection moves beyond the visible edge.
 - [x] Clamp scroll position to the actual canvas bounds and ignore cards hidden by the active category.
 - [ ] Verify focus auto-scroll in Roblox Studio with keyboard and gamepad, including first/last card and category changes.
+- [x] GitHub Actions run #855 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
