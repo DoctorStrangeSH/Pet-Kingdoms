@@ -1493,3 +1493,12 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Reflow catalog cards and action buttons so category filters do not clip 70 px desktop or 52 px compact cards.
 - [ ] Verify each category contains the intended buildings, empty/locked states remain understandable, and filters work with mouse, touch and gamepad in Studio.
 - [ ] Verify 320/360/390 px portrait, short landscape and full place build for latest commit.
+
+
+### Stage 1 — Catalog navigation and focus states (2026-11-26)
+
+- [x] Make category buttons explicitly selectable and add visible selected/focus strokes.
+- [x] Add bounded text scaling for category labels on narrow viewports; calculate the compact breakpoint before applying category sizing.
+- [x] Add deterministic gamepad/keyboard left-right navigation across visible catalog cards and up/down navigation between the selected category and its visible cards.
+- [x] Exclude filtered-out catalog cards from gamepad navigation targets.
+- [ ] Verify controller/keyboard focus, touch activation, category switching and selected card visibility in Roblox Studio.
