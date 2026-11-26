@@ -1542,3 +1542,14 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [ ] Verify timeout → server commit → recovery success for both new placement and move in Studio, including resource snapshot and replicated world model.
 - [ ] Verify timeout → still in progress → retry recovery does not close the preview prematurely, and confirmed failure remains retryable/cancellable.
 - [x] GitHub Actions run #863 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Rejoin reconstruction acceptance coverage (2026-11-26)
+
+- [x] Extend the Studio world lifecycle test to remove an island and spawn it again from a detached saved-profile snapshot, simulating a fresh player session without reusing live world Instances.
+- [x] Assert the rejoined world restores the latest saved building grid coordinates, rotation and upgrade level.
+- [x] Assert the saved resource-node cooldown timestamp and ProximityPrompt enabled state are restored on rejoin.
+- [x] Include a non-default wallet in the saved-profile fixture and assert all four balances survive the detached profile snapshot.
+- [x] Extend the durable building journal test to clone a persisted receipt ledger and replay the successful placement result from the reloaded snapshot.
+- [ ] Run the Studio-only `IslandWorldServiceTests.server.lua` and `IslandBuildingJournalDataTests.server.lua` and confirm all assertions pass.
+- [ ] Verify a real Roblox server leave/rejoin with DataStore enabled; Studio simulation is not proof of a live DataStore round trip.
