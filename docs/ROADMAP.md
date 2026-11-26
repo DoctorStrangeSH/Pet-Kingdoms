@@ -1482,4 +1482,4 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Tint locked building pictograms with the same muted state as their title.
 - [x] Keep the icon/title columns separated on regular, compact and ultra-short cards.
 - [ ] Verify Roblox font fallback on Windows and mobile; confirm every pictogram renders and the ultra-short title does not overlap its icon.
-- [ ] Run pinned Rojo verification and full place build for the latest commit.
+- [x] GitHub Actions run #844: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-26).
