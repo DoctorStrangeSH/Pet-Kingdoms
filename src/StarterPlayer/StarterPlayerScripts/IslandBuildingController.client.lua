@@ -277,6 +277,45 @@ local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 94, COLORS.pane
 local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
 
+local catalogCategoryRow = make("Frame", {
+	Name = "CatalogCategories",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 52),
+	Size = UDim2.new(1, 0, 0, 24),
+}, panel) :: Frame
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+	Padding = UDim.new(0, 4),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, catalogCategoryRow)
+
+local catalogCategory = "all"
+local catalogCategoryButtons: { [string]: TextButton } = {}
+local CATALOG_CATEGORIES = {
+	{ id = "all", label = "ВСЁ" },
+	{ id = "homes", label = "ДОМА" },
+	{ id = "decor", label = "ДЕКОР" },
+	{ id = "paths", label = "ДОРОЖКИ" },
+	{ id = "fences", label = "ЗАБОРЫ" },
+}
+for index, category in ipairs(CATALOG_CATEGORIES) do
+	local categoryButton = make("TextButton", {
+		Name = "Category_" .. category.id,
+		LayoutOrder = index,
+		BackgroundColor3 = COLORS.panelLight,
+		BackgroundTransparency = 0.12,
+		BorderSizePixel = 0,
+		Text = category.label,
+		TextColor3 = COLORS.muted,
+		TextSize = 9,
+		Font = Enum.Font.GothamBold,
+		AutoButtonColor = true,
+	}, catalogCategoryRow) :: TextButton
+	make("UICorner", { CornerRadius = UDim.new(0, 7) }, categoryButton)
+	catalogCategoryButtons[category.id] = categoryButton
+end
+
 local catalogRow = make("ScrollingFrame", {
 	Name = "Catalog",
 	BackgroundTransparency = 1,
@@ -306,6 +345,14 @@ local findOwnIsland: () -> Model?
 local catalogItems: { [string]: any } = {}
 local resourceBalances: { [string]: number } = {}
 local catalogButtonsById: { [string]: TextButton } = {}
+local CATALOG_ITEM_CATEGORY = {
+	main_house = "homes",
+	pet_house = "homes",
+	garden_lantern = "decor",
+	flower_bed = "decor",
+	stone_path = "paths",
+	wooden_fence = "fences",
+}
 
 -- Text pictograms use Roblox's platform font fallback and need no external
 -- asset IDs, so catalog cards never show a missing-image placeholder.
@@ -512,7 +559,25 @@ local function renderCatalogButton(catalogId: string)
 end
 
 local function refreshCatalogCards()
-	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
+	for catalogId, button in pairs(catalogButtonsById) do
+		renderCatalogButton(catalogId)
+		local category = CATALOG_ITEM_CATEGORY[catalogId] or "decor"
+		button.Visible = catalogCategory == "all" or catalogCategory == category
+	end
+	for categoryId, button in pairs(catalogCategoryButtons) do
+		local selected = categoryId == catalogCategory
+		button.BackgroundColor3 = if selected then COLORS.gold else COLORS.panelLight
+		button.TextColor3 = if selected then COLORS.panel else COLORS.muted
+		button.BackgroundTransparency = if selected then 0 else 0.12
+	end
+end
+
+for categoryId, button in pairs(catalogCategoryButtons) do
+	button.Activated:Connect(function()
+		catalogCategory = categoryId
+		catalogRow.CanvasPosition = Vector2.zero
+		refreshCatalogCards()
+	end)
 end
 
 local function hasResourcesForSelectedBuilding(): boolean
@@ -728,8 +793,17 @@ local function resizeBuildingPanel()
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
 	status.Position = UDim2.fromOffset(0, if ultraShort then 4 elseif compact then 27 else 30)
 	status.Size = UDim2.new(1, if ultraShort then -78 else 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
-	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 52 else 62)
-	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 62 else 84)
+	catalogCategoryRow.Visible = not ultraShort
+	catalogCategoryRow.Position = UDim2.fromOffset(0, if compact then 51 else 55)
+	catalogCategoryRow.Size = UDim2.new(1, 0, 0, 22)
+	local categoryGap = 4
+	local categoryWidth = math.max(1, math.floor((panelWidth - 28 - categoryGap * 4) / 5))
+	for _, categoryButton in pairs(catalogCategoryButtons) do
+		categoryButton.Size = UDim2.fromOffset(categoryWidth, 22)
+		categoryButton.TextSize = if tiny then 7 else (if compact then 8 else 9)
+	end
+	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 76 else 81)
+	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 40 else 62)
 	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 120 else 157)
 	buttons.Size = UDim2.new(1, 0, 0, 44)
 	-- Keep the construction panel inside the Roblox safe area at the bottom.
