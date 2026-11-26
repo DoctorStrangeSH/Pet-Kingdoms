@@ -1523,3 +1523,11 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [ ] Verify cancel restores the original model visually and spatially; verify successful move shows the server-confirmed destination and failed move remains recoverable in Studio.
 - [ ] Verify model destruction/selection cleanup during a move does not leave stale hidden parts or highlight references.
 - [x] GitHub Actions run #858 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Move target destruction recovery (2026-11-26)
+
+- [x] Observe the selected source model's `Destroying` event while a move preview is active.
+- [x] If the source disappears outside an in-flight server transaction, defer a clean exit from move mode, restore any surviving local visibility state, destroy the preview and clear the stale target ID.
+- [x] Show an explicit cancellation reason instead of leaving the player in a move mode that can no longer succeed.
+- [ ] Verify external source deletion, player island refresh, server-confirmed successful move and demolition flows do not conflict with the cleanup callback in Studio.
