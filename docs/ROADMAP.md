@@ -1530,4 +1530,5 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Observe the selected source model's `Destroying` event while a move preview is active.
 - [x] If the source disappears outside an in-flight server transaction, defer a clean exit from move mode, restore any surviving local visibility state, destroy the preview and clear the stale target ID.
 - [x] Show an explicit cancellation reason instead of leaving the player in a move mode that can no longer succeed.
+- [x] GitHub Actions run #861 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
 - [ ] Verify external source deletion, player island refresh, server-confirmed successful move and demolition flows do not conflict with the cleanup callback in Studio.
