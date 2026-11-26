@@ -1473,3 +1473,13 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Keep availability messages separate from building names (visible footprint/status row).
 - [ ] Verify 1–4 resource prices, long names, locked/unaffordable states and ultra-short layouts in Studio; the footprint/status row remains hidden in ultra-short mode.
 - [ ] Verify full place build for this change.
+
+
+### Stage 1 — Catalog pictograms (2026-11-26)
+
+- [x] Add distinct platform-font pictograms for the six current building types; no external image asset IDs or empty ImageLabels are required.
+- [x] Replace colored geometric resource placeholders with wood, stone, coin and gem pictograms.
+- [x] Tint locked building pictograms with the same muted state as their title.
+- [x] Keep the icon/title columns separated on regular, compact and ultra-short cards.
+- [ ] Verify Roblox font fallback on Windows and mobile; confirm every pictogram renders and the ultra-short title does not overlap its icon.
+- [ ] Run pinned Rojo verification and full place build for the latest commit.
