@@ -1500,5 +1500,6 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Make category buttons explicitly selectable and add visible selected/focus strokes.
 - [x] Add bounded text scaling for category labels on narrow viewports; calculate the compact breakpoint before applying category sizing.
 - [x] Add deterministic gamepad/keyboard left-right navigation across visible catalog cards and up/down navigation between the selected category and its visible cards.
+- [x] Prevent ultra-short layouts from routing gamepad focus to the category strip while that strip is hidden.
 - [x] Exclude filtered-out catalog cards from gamepad navigation targets.
 - [ ] Verify controller/keyboard focus, touch activation, category switching and selected card visibility in Roblox Studio.
