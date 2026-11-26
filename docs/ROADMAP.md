@@ -1522,3 +1522,4 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Temporarily disable the selected-building highlight while previewing and restore its previous enabled state on exit.
 - [ ] Verify cancel restores the original model visually and spatially; verify successful move shows the server-confirmed destination and failed move remains recoverable in Studio.
 - [ ] Verify model destruction/selection cleanup during a move does not leave stale hidden parts or highlight references.
+- [x] GitHub Actions run #858 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
