@@ -380,9 +380,13 @@ local BUILDING_PICTOGRAMS = {
 	wooden_fence = "▥",
 }
 
+local catalogButtonOrder = 0
 local function makeCatalogButton(name: string, catalogId: string, titleText: string): TextButton
+	catalogButtonOrder += 1
 	local button = make("TextButton", {
 		Name = name,
+		SelectionOrder = 200 + catalogButtonOrder,
+		Selectable = true,
 		Size = UDim2.fromOffset(138, 70),
 		BackgroundColor3 = COLORS.panelLight,
 		BorderSizePixel = 0,
@@ -574,11 +578,23 @@ local function renderCatalogButton(catalogId: string)
 end
 
 local function refreshCatalogCards()
+	local visibleButtons = {}
 	for catalogId, button in pairs(catalogButtonsById) do
 		renderCatalogButton(catalogId)
 		local category = CATALOG_ITEM_CATEGORY[catalogId] or "decor"
 		button.Visible = catalogCategory == "all" or catalogCategory == category
+		if button.Visible then table.insert(visibleButtons, button) end
 	end
+	table.sort(visibleButtons, function(a, b) return a.SelectionOrder < b.SelectionOrder end)
+	-- Explicit left/right links make the horizontal catalog predictable on
+	-- gamepad and keyboard; hidden cards never become a navigation target.
+	local categoryFocus = catalogCategoryButtons[catalogCategory]
+	for index, button in ipairs(visibleButtons) do
+		button.NextSelectionLeft = visibleButtons[math.max(1, index - 1)]
+		button.NextSelectionRight = visibleButtons[math.min(#visibleButtons, index + 1)]
+		button.NextSelectionUp = categoryFocus
+	end
+	if categoryFocus then categoryFocus.NextSelectionDown = visibleButtons[1] end
 	for categoryId, button in pairs(catalogCategoryButtons) do
 		local selected = categoryId == catalogCategory
 		button.BackgroundColor3 = if selected then COLORS.gold else COLORS.panelLight
