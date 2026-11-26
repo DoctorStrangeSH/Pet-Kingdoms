@@ -307,6 +307,17 @@ local catalogItems: { [string]: any } = {}
 local resourceBalances: { [string]: number } = {}
 local catalogButtonsById: { [string]: TextButton } = {}
 
+-- Text pictograms use Roblox's platform font fallback and need no external
+-- asset IDs, so catalog cards never show a missing-image placeholder.
+local BUILDING_PICTOGRAMS = {
+	main_house = "⌂",
+	pet_house = "🐾",
+	stone_path = "◆",
+	garden_lantern = "♨",
+	flower_bed = "✿",
+	wooden_fence = "▥",
+}
+
 local function makeCatalogButton(name: string, catalogId: string, titleText: string): TextButton
 	local button = make("TextButton", {
 		Name = name,
@@ -321,10 +332,22 @@ local function makeCatalogButton(name: string, catalogId: string, titleText: str
 	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.78, Thickness = 1 }, button)
 	button:SetAttribute("BaseTitle", titleText)
 	make("TextLabel", {
+		Name = "BuildingIcon",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(7, 5),
+		Size = UDim2.fromOffset(22, 22),
+		Font = Enum.Font.GothamBold,
+		Text = BUILDING_PICTOGRAMS[catalogId] or "•",
+		TextColor3 = COLORS.gold,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextYAlignment = Enum.TextYAlignment.Center,
+	}, button)
+	make("TextLabel", {
 		Name = "BuildingName",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(8, 5),
-		Size = UDim2.new(1, -16, 0, 25),
+		Position = UDim2.fromOffset(33, 5),
+		Size = UDim2.new(1, -40, 0, 25),
 		Font = Enum.Font.GothamBold,
 		Text = titleText,
 		TextColor3 = COLORS.text,
@@ -367,10 +390,10 @@ local flowerBedButton = makeCatalogButton("FlowerBed", "flower_bed", "ЦВЕТО
 local woodenFenceButton = makeCatalogButton("WoodenFence", "wooden_fence", "ДЕРЕВЯННЫЙ ЗАБОР")
 
 local RESOURCE_PRESENTATION = {
-	wood = { label = "Д", tint = Color3.fromRGB(169, 207, 151), shape = "wood" },
-	stone = { label = "К", tint = Color3.fromRGB(190, 202, 218), shape = "stone" },
-	gold = { label = "З", tint = Color3.fromRGB(239, 194, 91), shape = "gold" },
-	gems = { label = "Кр", tint = Color3.fromRGB(139, 218, 235), shape = "gems" },
+	wood = { icon = "🪵", tint = Color3.fromRGB(169, 207, 151) },
+	stone = { icon = "🪨", tint = Color3.fromRGB(190, 202, 218) },
+	gold = { icon = "🪙", tint = Color3.fromRGB(239, 194, 91) },
+	gems = { icon = "💎", tint = Color3.fromRGB(139, 218, 235) },
 }
 
 local function renderCatalogButton(catalogId: string)
@@ -422,15 +445,18 @@ local function renderCatalogButton(catalogId: string)
 				Size = UDim2.fromOffset(chipWidth, chipHeight),
 			}, costRow) :: Frame
 			make("UICorner", { CornerRadius = UDim.new(0, 5) }, chip)
-			local icon = make("Frame", {
+			make("TextLabel", {
 				Name = "ResourceIcon",
-				BackgroundColor3 = presentation.tint,
-				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
 				Position = UDim2.new(0, iconX, 0.5, -iconSize / 2),
-				Size = UDim2.fromOffset(iconSize, iconSize),
-				Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
+				Size = UDim2.fromOffset(iconSize + 2, iconSize + 2),
+				Font = Enum.Font.GothamBold,
+				Text = presentation.icon,
+				TextColor3 = presentation.tint,
+				TextSize = iconSize + 1,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
 			}, chip)
-			make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
 			make("TextLabel", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(textX, 0),
@@ -470,6 +496,10 @@ local function renderCatalogButton(catalogId: string)
 			local baseTitle = button:GetAttribute("BaseTitle")
 			nameLabel.Text = if type(baseTitle) == "string" then baseTitle else catalogId
 			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
+		end
+		local buildingIcon = button:FindFirstChild("BuildingIcon")
+		if buildingIcon and buildingIcon:IsA("TextLabel") then
+			buildingIcon.TextColor3 = if unlocked then COLORS.gold else COLORS.muted
 		end
 		local outline = button:FindFirstChild("SelectionStroke")
 		if outline and outline:IsA("UIStroke") then
@@ -739,9 +769,15 @@ local function resizeBuildingPanel()
 		local nameLabel = button:FindFirstChild("BuildingName")
 		local footprint = button:FindFirstChild("Footprint")
 		local costRow = button:FindFirstChild("CostRow")
+		local buildingIcon = button:FindFirstChild("BuildingIcon")
+		if buildingIcon and buildingIcon:IsA("TextLabel") then
+			buildingIcon.Position = UDim2.fromOffset(7, if ultraShort then 0 else (if compact then 2 else 5))
+			buildingIcon.Size = UDim2.fromOffset(if ultraShort then 16 else 22, if ultraShort then 16 else 22)
+			buildingIcon.TextSize = if ultraShort then 13 else (if compact then 17 else 19)
+		end
 		if nameLabel and nameLabel:IsA("TextLabel") then
-			nameLabel.Position = UDim2.fromOffset(7, if ultraShort then 1 else (if compact then 3 else 5))
-			nameLabel.Size = UDim2.new(1, -14, 0, if ultraShort then 12 else (if compact then 18 else 25))
+			nameLabel.Position = UDim2.fromOffset(if ultraShort then 7 else 33, if ultraShort then 1 else (if compact then 3 else 5))
+			nameLabel.Size = UDim2.new(1, if ultraShort then -14 else -40, 0, if ultraShort then 12 else (if compact then 18 else 25))
 			nameLabel.TextSize = if ultraShort then 8 else (if compact then 10 else 11)
 		end
 		if footprint and footprint:IsA("TextLabel") then
