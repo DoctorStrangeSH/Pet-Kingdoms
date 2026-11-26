@@ -1504,3 +1504,10 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] GitHub Actions run #852: pinned Rojo verification, full place build and Studio-ready artifact upload passed (2026-11-26).
 - [x] Exclude filtered-out catalog cards from gamepad navigation targets.
 - [ ] Verify controller/keyboard focus, touch activation, category switching and selected card visibility in Roblox Studio.
+
+
+### Stage 1 — Keyboard/gamepad catalog auto-scroll (2026-11-26)
+
+- [x] Keep a focused catalog card inside the horizontal ScrollingFrame viewport when controller/keyboard selection moves beyond the visible edge.
+- [x] Clamp scroll position to the actual canvas bounds and ignore cards hidden by the active category.
+- [ ] Verify focus auto-scroll in Roblox Studio with keyboard and gamepad, including first/last card and category changes.
