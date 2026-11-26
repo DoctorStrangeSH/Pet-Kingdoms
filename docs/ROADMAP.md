@@ -1553,3 +1553,14 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Extend the durable building journal test to clone a persisted receipt ledger and replay the successful placement result from the reloaded snapshot.
 - [x] GitHub Actions run #868 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the rejoin-test changes.
 - [ ] Verify a real Roblox server leave/rejoin with DataStore enabled; Studio simulation is not proof of a live DataStore round trip.
+
+
+### Stage 1 — Cross-server island write fencing (2026-11-26)
+
+- [x] Extract DataStore session-generation claim and revision-write decisions into a pure helper so the fencing rules can be tested without touching production DataStores.
+- [x] Reject a delayed loader whose observed generation has already been advanced by another server.
+- [x] Reject saves from an old session generation even when their revision is higher than the current saved revision.
+- [x] Treat a retry as durable only when the current generation matches and the stored revision is equal to or newer than the retry snapshot.
+- [x] Add deterministic Studio tests for competing claims, generation exhaustion, malformed metadata, stale writers, retry acknowledgements and out-of-order revisions.
+- [ ] Execute `IslandStoreConcurrencyDataTests.server.lua` in Roblox Studio.
+- [ ] Run a live two-server test with DataStore and MemoryStore enabled: server A acquires generation N, server B takes over after lease expiry and claims N+1, then prove server A cannot overwrite B's profile.
