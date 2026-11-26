@@ -38,6 +38,7 @@ local function profileFor(userId: number)
 		schemaVersion = 1,
 		boundsWidth = 24,
 		boundsDepth = 24,
+		resources = { wood = 17, stone = 9, gold = 4, gems = 2 },
 		buildings = {
 			{
 				instanceId = "test-main-house-" .. tostring(userId),
@@ -350,6 +351,9 @@ local ok, failure = pcall(function()
 	table.insert(spawnedUsers, firstUserId)
 	local rejoinedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
 	assert(rejoinedWorld ~= nil, "rejoined player must receive a new island world instance")
+	assert(rejoinedProfile.resources.wood == 17 and rejoinedProfile.resources.stone == 9
+		and rejoinedProfile.resources.gold == 4 and rejoinedProfile.resources.gems == 2,
+		"rejoin profile snapshot must retain the saved resource wallet")
 	local rejoinedPetHouse = rejoinedWorld
 		and rejoinedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
 	assert(rejoinedPetHouse and rejoinedPetHouse:GetAttribute("GridX") == rejoinedProfile.buildings[2].x
