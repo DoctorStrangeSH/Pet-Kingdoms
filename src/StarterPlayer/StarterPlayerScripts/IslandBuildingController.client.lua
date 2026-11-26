@@ -296,7 +296,7 @@ local CATALOG_CATEGORIES = {
 	{ id = "all", label = "ВСЁ" },
 	{ id = "homes", label = "ДОМА" },
 	{ id = "decor", label = "ДЕКОР" },
-	{ id = "paths", label = "ДОРОЖКИ" },
+	{ id = "paths", label = "ПУТИ" },
 	{ id = "fences", label = "ЗАБОРЫ" },
 }
 for index, category in ipairs(CATALOG_CATEGORIES) do
@@ -803,8 +803,8 @@ local function resizeBuildingPanel()
 		categoryButton.TextSize = if tiny then 7 else (if compact then 8 else 9)
 	end
 	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 76 else 81)
-	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 40 else 62)
-	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 120 else 157)
+	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 52 else 76)
+	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 132 else 161)
 	buttons.Size = UDim2.new(1, 0, 0, 44)
 	-- Keep the construction panel inside the Roblox safe area at the bottom.
 	-- This changes only the panel; placement preview and grid coordinates stay world-driven.
