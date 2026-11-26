@@ -303,17 +303,32 @@ for index, category in ipairs(CATALOG_CATEGORIES) do
 	local categoryButton = make("TextButton", {
 		Name = "Category_" .. category.id,
 		LayoutOrder = index,
+		SelectionOrder = 100 + index,
+		Selectable = true,
 		BackgroundColor3 = COLORS.panelLight,
 		BackgroundTransparency = 0.12,
 		BorderSizePixel = 0,
 		Text = category.label,
 		TextColor3 = COLORS.muted,
 		TextSize = 9,
+		TextScaled = true,
 		Font = Enum.Font.GothamBold,
 		AutoButtonColor = true,
 	}, catalogCategoryRow) :: TextButton
 	make("UICorner", { CornerRadius = UDim.new(0, 7) }, categoryButton)
+	make("UIStroke", {
+		Name = "FocusStroke",
+		Color = COLORS.gold,
+		Thickness = 1.2,
+		Transparency = 1,
+	}, categoryButton)
+	make("UITextSizeConstraint", { MinTextSize = 6, MaxTextSize = 9 }, categoryButton)
 	catalogCategoryButtons[category.id] = categoryButton
+end
+for index, category in ipairs(CATALOG_CATEGORIES) do
+	local button = catalogCategoryButtons[category.id]
+	button.NextSelectionLeft = catalogCategoryButtons[CATALOG_CATEGORIES[((index - 2) % #CATALOG_CATEGORIES) + 1].id]
+	button.NextSelectionRight = catalogCategoryButtons[CATALOG_CATEGORIES[(index % #CATALOG_CATEGORIES) + 1].id]
 end
 
 local catalogRow = make("ScrollingFrame", {
@@ -569,6 +584,10 @@ local function refreshCatalogCards()
 		button.BackgroundColor3 = if selected then COLORS.gold else COLORS.panelLight
 		button.TextColor3 = if selected then COLORS.panel else COLORS.muted
 		button.BackgroundTransparency = if selected then 0 else 0.12
+		local focusStroke = button:FindFirstChild("FocusStroke")
+		if focusStroke and focusStroke:IsA("UIStroke") then
+			focusStroke.Transparency = if selected then 0 else 1
+		end
 	end
 end
 
@@ -793,6 +812,7 @@ local function resizeBuildingPanel()
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
 	status.Position = UDim2.fromOffset(0, if ultraShort then 4 elseif compact then 27 else 30)
 	status.Size = UDim2.new(1, if ultraShort then -78 else 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
+	local tiny = viewport.X < 360
 	catalogCategoryRow.Visible = not ultraShort
 	catalogCategoryRow.Position = UDim2.fromOffset(0, if compact then 51 else 55)
 	catalogCategoryRow.Size = UDim2.new(1, 0, 0, 22)
@@ -800,7 +820,6 @@ local function resizeBuildingPanel()
 	local categoryWidth = math.max(1, math.floor((panelWidth - 28 - categoryGap * 4) / 5))
 	for _, categoryButton in pairs(catalogCategoryButtons) do
 		categoryButton.Size = UDim2.fromOffset(categoryWidth, 22)
-		categoryButton.TextSize = if tiny then 7 else (if compact then 8 else 9)
 	end
 	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 76 else 81)
 	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 52 else 76)
@@ -817,7 +836,6 @@ local function resizeBuildingPanel()
 	local gap = 8
 	local available = contentWidth - 2 * gap
 	local narrow = panelWidth < 370
-	local tiny = viewport.X < 360
 	local title = panel:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
 		title.Visible = not ultraShort
