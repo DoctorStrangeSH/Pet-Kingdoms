@@ -592,9 +592,13 @@ local function refreshCatalogCards()
 	for index, button in ipairs(visibleButtons) do
 		button.NextSelectionLeft = visibleButtons[math.max(1, index - 1)]
 		button.NextSelectionRight = visibleButtons[math.min(#visibleButtons, index + 1)]
-		button.NextSelectionUp = categoryFocus
+		-- Ultra-short landscape hides the category strip, so never route focus
+		-- to an invisible category button from the catalog.
+		button.NextSelectionUp = if catalogCategoryRow.Visible then categoryFocus else nil
 	end
-	if categoryFocus then categoryFocus.NextSelectionDown = visibleButtons[1] end
+	if categoryFocus then
+		categoryFocus.NextSelectionDown = if catalogCategoryRow.Visible then visibleButtons[1] else nil
+	end
 	for categoryId, button in pairs(catalogCategoryButtons) do
 		local selected = categoryId == catalogCategory
 		button.BackgroundColor3 = if selected then COLORS.gold else COLORS.panelLight
