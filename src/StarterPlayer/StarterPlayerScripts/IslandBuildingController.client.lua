@@ -43,6 +43,8 @@ local selectedBuildingModel: Model? = nil
 local selectedBuildingDestroyConnection: RBXScriptConnection? = nil
 local selectedBuildingHighlight: Highlight? = nil
 local movingInstanceId: string? = nil
+local movingHiddenParts: { [BasePart]: number } = {}
+local movingHighlightWasEnabled: boolean? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
@@ -1390,6 +1392,35 @@ findOwnIsland = function(): Model?
 end
 
 
+local function hideOriginalBuildingForMove(model: Model)
+	-- The server-owned model is never repositioned optimistically. Hide only
+	-- this client's original copy while the translucent placement ghost moves.
+	table.clear(movingHiddenParts)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			movingHiddenParts[descendant] = descendant.LocalTransparencyModifier
+			descendant.LocalTransparencyModifier = 1
+		end
+	end
+	if selectedBuildingHighlight and selectedBuildingHighlight.Parent then
+		movingHighlightWasEnabled = selectedBuildingHighlight.Enabled
+		selectedBuildingHighlight.Enabled = false
+	end
+end
+
+local function restoreOriginalBuildingAfterMove()
+	for part, transparency in pairs(movingHiddenParts) do
+		if part.Parent then
+			part.LocalTransparencyModifier = transparency
+		end
+	end
+	table.clear(movingHiddenParts)
+	if selectedBuildingHighlight and selectedBuildingHighlight.Parent and movingHighlightWasEnabled ~= nil then
+		selectedBuildingHighlight.Enabled = movingHighlightWasEnabled
+	end
+	movingHighlightWasEnabled = nil
+end
+
 local function clearPreview()
 	if currentPreview then
 		currentPreview:Destroy()
@@ -1997,6 +2028,9 @@ local function beginMoveSelected()
 		updateBuildingContext(model)
 		return
 	end
+	-- The original server model remains untouched until the server accepts
+	-- the move. Hide its local rendering so the ghost is not doubled up.
+	hideOriginalBuildingForMove(model)
 	-- Frame the island for the full move interaction; the controller restores
 	-- Roblox's character camera when the player exits construction mode.
 	ConstructionCameraController.Start(findOwnIsland())
@@ -2025,6 +2059,10 @@ local function stopPlacing()
 		return
 	end
 	ConstructionCameraController.Stop()
+	-- Cancel/failure never changes the server-owned building transform. Restore
+	-- its exact pre-move local visibility instead of attempting a client-side
+	-- CFrame rollback that could fight a concurrent server update.
+	restoreOriginalBuildingAfterMove()
 	placing = false
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
