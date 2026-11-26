@@ -776,8 +776,8 @@ local function resizeBuildingPanel()
 			buildingIcon.TextSize = if ultraShort then 13 else (if compact then 17 else 19)
 		end
 		if nameLabel and nameLabel:IsA("TextLabel") then
-			nameLabel.Position = UDim2.fromOffset(if ultraShort then 7 else 33, if ultraShort then 1 else (if compact then 3 else 5))
-			nameLabel.Size = UDim2.new(1, if ultraShort then -14 else -40, 0, if ultraShort then 12 else (if compact then 18 else 25))
+			nameLabel.Position = UDim2.fromOffset(if ultraShort then 27 else 33, if ultraShort then 1 else (if compact then 3 else 5))
+			nameLabel.Size = UDim2.new(1, if ultraShort then -34 else -40, 0, if ultraShort then 12 else (if compact then 18 else 25))
 			nameLabel.TextSize = if ultraShort then 8 else (if compact then 10 else 11)
 		end
 		if footprint and footprint:IsA("TextLabel") then
