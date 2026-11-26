@@ -1483,3 +1483,13 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Keep the icon/title columns separated on regular, compact and ultra-short cards.
 - [ ] Verify Roblox font fallback on Windows and mobile; confirm every pictogram renders and the ultra-short title does not overlap its icon.
 - [x] GitHub Actions run #844: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-26).
+
+
+### Stage 1 — Building catalog categories (2026-11-26)
+
+- [x] Add category filters for all, homes, decor, paths and fences using the six existing catalog item IDs.
+- [x] Keep the selected filter visually distinct and reset horizontal scroll when changing categories.
+- [x] Hide the category strip on ultra-short landscape layouts while preserving the current filter and placement controls.
+- [x] Reflow catalog cards and action buttons so category filters do not clip 70 px desktop or 52 px compact cards.
+- [ ] Verify each category contains the intended buildings, empty/locked states remain understandable, and filters work with mouse, touch and gamepad in Studio.
+- [ ] Verify 320/360/390 px portrait, short landscape and full place build for latest commit.
