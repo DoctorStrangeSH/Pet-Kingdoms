@@ -1512,3 +1512,13 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Clamp scroll position to the actual canvas bounds and ignore cards hidden by the active category.
 - [ ] Verify focus auto-scroll in Roblox Studio with keyboard and gamepad, including first/last card and category changes.
 - [x] GitHub Actions run #855 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Safe move-preview cancel (2026-11-26)
+
+- [x] Keep the server-owned building transform untouched while the player previews a move; the client only renders a local placement ghost.
+- [x] Hide the original model locally during move preview so the translucent ghost is not doubled by the solid source model.
+- [x] Snapshot each part's prior `LocalTransparencyModifier` and restore the exact values when leaving move mode, including cancel and rejected/failed move flows.
+- [x] Temporarily disable the selected-building highlight while previewing and restore its previous enabled state on exit.
+- [ ] Verify cancel restores the original model visually and spatially; verify successful move shows the server-confirmed destination and failed move remains recoverable in Studio.
+- [ ] Verify model destruction/selection cleanup during a move does not leave stale hidden parts or highlight references.
