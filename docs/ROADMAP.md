@@ -1562,5 +1562,5 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Reject saves from an old session generation even when their revision is higher than the current saved revision.
 - [x] Treat a retry as durable only when the current generation matches and the stored revision is equal to or newer than the retry snapshot.
 - [x] Add deterministic Studio tests for competing claims, generation exhaustion, malformed metadata, stale writers, retry acknowledgements and out-of-order revisions.
-- [ ] Execute `IslandStoreConcurrencyDataTests.server.lua` in Roblox Studio.
+- [x] GitHub Actions run #874 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the fencing helper/tests.
 - [ ] Run a live two-server test with DataStore and MemoryStore enabled: server A acquires generation N, server B takes over after lease expiry and claims N+1, then prove server A cannot overwrite B's profile.
