@@ -1541,3 +1541,4 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Reuse the normal placement exit path to restore local source visibility, clear the ghost and reset construction controls; do not issue a second placement request.
 - [ ] Verify timeout → server commit → recovery success for both new placement and move in Studio, including resource snapshot and replicated world model.
 - [ ] Verify timeout → still in progress → retry recovery does not close the preview prematurely, and confirmed failure remains retryable/cancellable.
+- [x] GitHub Actions run #863 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
