@@ -455,6 +455,29 @@ local gardenLanternButton = makeCatalogButton("GardenLantern", "garden_lantern",
 local flowerBedButton = makeCatalogButton("FlowerBed", "flower_bed", "ЦВЕТОЧНАЯ КЛУМБА")
 local woodenFenceButton = makeCatalogButton("WoodenFence", "wooden_fence", "ДЕРЕВЯННЫЙ ЗАБОР")
 
+-- Keep gamepad/keyboard focus inside the visible horizontal catalog window.
+-- Roblox does not consistently auto-scroll a ScrollingFrame for every
+-- programmatic selection transition, so make the selected card explicit.
+for _, button in pairs(catalogButtonsById) do
+	button.SelectionGained:Connect(function()
+		if not button.Visible then return end
+		local left = button.AbsolutePosition.X - catalogRow.AbsolutePosition.X + catalogRow.CanvasPosition.X
+		local right = left + button.AbsoluteSize.X
+		local viewLeft = catalogRow.CanvasPosition.X
+		local viewRight = viewLeft + catalogRow.AbsoluteSize.X
+		local targetX = viewLeft
+		if left < viewLeft then
+			targetX = left
+		elseif right > viewRight then
+			targetX = right - catalogRow.AbsoluteSize.X
+		else
+			return
+		end
+		local maxX = math.max(0, catalogRow.AbsoluteCanvasSize.X - catalogRow.AbsoluteSize.X)
+		catalogRow.CanvasPosition = Vector2.new(math.clamp(targetX, 0, maxX), 0)
+	end)
+end
+
 local RESOURCE_PRESENTATION = {
 	wood = { icon = "🪵", tint = Color3.fromRGB(169, 207, 151) },
 	stone = { icon = "🪨", tint = Color3.fromRGB(190, 202, 218) },
