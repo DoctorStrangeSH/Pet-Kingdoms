@@ -35,6 +35,13 @@ ModalManager.Open("ModalManagerTestFirst")
 expect("registered first modal receives focus", ModalManager.IsActive("ModalManagerTestFirst"))
 expect("active modal change is published", activeChanges[#activeChanges] == "ModalManagerTestFirst")
 
+-- Opening an unknown window must not steal focus from a valid modal.
+ModalManager.Open("ModalManagerTestMissing")
+expect("unknown modal cannot steal active focus", ModalManager.IsActive("ModalManagerTestFirst"))
+-- Reopening the active modal is idempotent and keeps the same focus owner.
+ModalManager.Open("ModalManagerTestFirst")
+expect("reopening active modal preserves focus", ModalManager.IsActive("ModalManagerTestFirst"))
+
 secondOpen = true
 ModalManager.Open("ModalManagerTestSecond")
 expect("opening second modal transfers focus", ModalManager.IsActive("ModalManagerTestSecond"))
@@ -53,6 +60,13 @@ expect("only focused modal reports active", ModalManager.IsActive("ModalManagerT
 ModalManager.Close("ModalManagerTestFirst")
 expect("closing focused modal clears focus", ModalManager.GetActive() == nil)
 expect("closing modal publishes empty focus", activeChanges[#activeChanges] == "none")
+
+-- Closing an inactive modal must never dismiss the current topmost window.
+ModalManager.Open("ModalManagerTestFirst")
+ModalManager.Open("ModalManagerTestSecond")
+ModalManager.Close("ModalManagerTestFirst")
+expect("closing inactive modal preserves current focus", ModalManager.IsActive("ModalManagerTestSecond"))
+ModalManager.Close("ModalManagerTestSecond")
 
 -- Unregistering a visible controller must run cleanup before dropping its callback.
 firstOpen = true

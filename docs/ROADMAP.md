@@ -1429,3 +1429,149 @@ Source PR: #38. Runtime touch/camera acceptance remains pending; this does not c
 - [ ] Verify mouse controls, two-finger pan/pinch, one-finger placement isolation, island-edge clamping, expansion levels 0–2, and camera restoration after cancel/confirm/modal close in Roblox Studio and on physical mobile devices.
 
 Source PR: #39 (stacked on PR #38); runtime camera and input acceptance remains pending.
+
+
+### Stage 1 — Construction overview safe-area layout (2026-11-25)
+
+- [x] Center the kingdom overview inside the usable Roblox safe viewport rather than the raw screen center.
+- [x] Scale the overview against both safe width and height so its close and primary action controls remain visible in short landscape and compact portrait layouts.
+- [x] Move the collapsed construction reopen control to the bottom safe corner, away from the top resource HUD and build launcher.
+- [x] Scale the selected-building context card to fit the available safe viewport height without changing its internal action layout.
+- [x] Reuse the shared InterfaceComponents.GetSafeViewport contract so inset handling stays consistent with the construction panel and resource HUD.
+- [x] Extract a shared safe-viewport fit-scale helper and add opt-in Studio math tests for landscape, portrait, zero-size and already-fitting layouts.
+- [x] GitHub Actions run #827: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [ ] Run `InterfaceComponentsTests.server.lua` in Studio with `Workspace.RunInterfaceComponentsTests = true`.
+- [ ] Verify the overview and collapsed launcher at 320/360/390 px portrait, short landscape, and devices with display cutouts / Roblox top-bar insets.
+
+Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pending.
+
+
+### Stage 1 — Quest journal clarity (2026-11-25)
+
+- [x] Sort active quests before completed quests so the next useful action is always at the top.
+- [x] Apply a stable ID tie-breaker so quest order does not jump between refreshes when the server snapshot is built from a map.
+- [x] Replace the completed quest's misleading active tracking action with a non-interactive `ГОТОВО` state.
+- [x] Fit the pet deletion confirmation dialog to both safe viewport width and height; remove its hard 240 px minimum that could overflow narrow split-screen/mobile layouts.
+- [x] Remove the overlapping `ОБН` text from the refresh control; keep the native-drawn refresh pictogram as the single visual affordance.
+- [ ] Verify quest sorting, tracking, completion and refresh interactions in Roblox Studio.
+
+
+### Stage 1 — Modal focus and window-transition regression coverage (2026-11-25)
+
+- [x] Verify the shared `ModalManager` is used by construction, island expansion, quest journal and pet collection windows.
+- [x] Extend modal smoke tests: unknown modal names cannot steal focus; reopening the active modal preserves focus; closing an inactive modal cannot dismiss the active window.
+- [x] Preserve existing regression coverage for switching windows, closing all windows, unregister/re-register cleanup, and recursive unregister callbacks.
+- [x] GitHub Actions run #837: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-25).
+- [ ] Run `ModalManagerTests.client.lua` in Roblox Studio with `Workspace.RunPetKingdomsStudioTests = true`.
+- [ ] Verify real window transitions: construction → journal → collection → expansion; confirm only one top-level panel/shade remains active, launchers return after close, Escape closes the top layer, and respawn clears stale overlays.
+
+
+### Stage 1 — Catalog price readability (2026-11-25)
+
+- [x] Widen horizontally scrolling catalog cards and remove the forced minimum cost-chip width; compute gaps and widths from resource count.
+- [x] Increase native resource marker sizes and constrain price text scaling.
+- [x] Keep availability messages separate from building names (visible footprint/status row).
+- [ ] Verify 1–4 resource prices, long names, locked/unaffordable states and ultra-short layouts in Studio; the footprint/status row remains hidden in ultra-short mode.
+- [ ] Verify full place build for this change.
+
+
+### Stage 1 — Catalog pictograms (2026-11-26)
+
+- [x] Add distinct platform-font pictograms for the six current building types; no external image asset IDs or empty ImageLabels are required.
+- [x] Replace colored geometric resource placeholders with wood, stone, coin and gem pictograms.
+- [x] Tint locked building pictograms with the same muted state as their title.
+- [x] Keep the icon/title columns separated on regular, compact and ultra-short cards.
+- [ ] Verify Roblox font fallback on Windows and mobile; confirm every pictogram renders and the ultra-short title does not overlap its icon.
+- [x] GitHub Actions run #844: pinned Rojo verification, full place build, and Studio-ready artifact upload passed (2026-11-26).
+
+
+### Stage 1 — Building catalog categories (2026-11-26)
+
+- [x] Add category filters for all, homes, decor, paths and fences using the six existing catalog item IDs.
+- [x] Keep the selected filter visually distinct and reset horizontal scroll when changing categories.
+- [x] Hide the category strip on ultra-short landscape layouts while preserving the current filter and placement controls.
+- [x] Reflow catalog cards and action buttons so category filters do not clip 70 px desktop or 52 px compact cards.
+- [ ] Verify each category contains the intended buildings, empty/locked states remain understandable, and filters work with mouse, touch and gamepad in Studio.
+- [ ] Verify 320/360/390 px portrait, short landscape and full place build for latest commit.
+
+
+### Stage 1 — Catalog navigation and focus states (2026-11-26)
+
+- [x] Make category buttons explicitly selectable and add visible selected/focus strokes.
+- [x] Add bounded text scaling for category labels on narrow viewports; calculate the compact breakpoint before applying category sizing.
+- [x] Add deterministic gamepad/keyboard left-right navigation across visible catalog cards and up/down navigation between the selected category and its visible cards.
+- [x] Prevent ultra-short layouts from routing gamepad focus to the category strip while that strip is hidden.
+- [x] GitHub Actions run #852: pinned Rojo verification, full place build and Studio-ready artifact upload passed (2026-11-26).
+- [x] Exclude filtered-out catalog cards from gamepad navigation targets.
+- [ ] Verify controller/keyboard focus, touch activation, category switching and selected card visibility in Roblox Studio.
+
+
+### Stage 1 — Keyboard/gamepad catalog auto-scroll (2026-11-26)
+
+- [x] Keep a focused catalog card inside the horizontal ScrollingFrame viewport when controller/keyboard selection moves beyond the visible edge.
+- [x] Clamp scroll position to the actual canvas bounds and ignore cards hidden by the active category.
+- [ ] Verify focus auto-scroll in Roblox Studio with keyboard and gamepad, including first/last card and category changes.
+- [x] GitHub Actions run #855 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Safe move-preview cancel (2026-11-26)
+
+- [x] Keep the server-owned building transform untouched while the player previews a move; the client only renders a local placement ghost.
+- [x] Hide the original model locally during move preview so the translucent ghost is not doubled by the solid source model.
+- [x] Snapshot each part's prior `LocalTransparencyModifier` and restore the exact values when leaving move mode, including cancel and rejected/failed move flows.
+- [x] Temporarily disable the selected-building highlight while previewing and restore its previous enabled state on exit.
+- [ ] Verify cancel restores the original model visually and spatially; verify successful move shows the server-confirmed destination and failed move remains recoverable in Studio.
+- [ ] Verify model destruction/selection cleanup during a move does not leave stale hidden parts or highlight references.
+- [x] GitHub Actions run #858 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Move target destruction recovery (2026-11-26)
+
+- [x] Observe the selected source model's `Destroying` event while a move preview is active.
+- [x] If the source disappears outside an in-flight server transaction, defer a clean exit from move mode, restore any surviving local visibility state, destroy the preview and clear the stale target ID.
+- [x] Show an explicit cancellation reason instead of leaving the player in a move mode that can no longer succeed.
+- [x] GitHub Actions run #861 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+- [ ] Verify external source deletion, player island refresh, server-confirmed successful move and demolition flows do not conflict with the cleanup callback in Studio.
+
+
+### Stage 1 — Timed-out build/move recovery cleanup (2026-11-26)
+
+- [x] When a timed-out place/move request is later confirmed successful by the idempotent recovery request, clear the pending operation and close any stale placement preview.
+- [x] For recovered moves, clear the old selected-building context before leaving placement mode so the old source highlight/context is not presented as current.
+- [x] Reuse the normal placement exit path to restore local source visibility, clear the ghost and reset construction controls; do not issue a second placement request.
+- [ ] Verify timeout → server commit → recovery success for both new placement and move in Studio, including resource snapshot and replicated world model.
+- [ ] Verify timeout → still in progress → retry recovery does not close the preview prematurely, and confirmed failure remains retryable/cancellable.
+- [x] GitHub Actions run #863 passed pinned Rojo verification, full place build and Studio-ready artifact upload (2026-11-26).
+
+
+### Stage 1 — Rejoin reconstruction acceptance coverage (2026-11-26)
+
+- [x] Extend the Studio world lifecycle test to remove an island and spawn it again from a detached saved-profile snapshot, simulating a fresh player session without reusing live world Instances.
+- [x] Assert the rejoined world restores the latest saved building grid coordinates, rotation and upgrade level.
+- [x] Assert the saved resource-node cooldown timestamp and ProximityPrompt enabled state are restored on rejoin.
+- [x] Include a non-default wallet in the saved-profile fixture and assert all four balances survive the detached profile snapshot.
+- [x] Extend the durable building journal test to clone a persisted receipt ledger and replay the successful placement result from the reloaded snapshot.
+- [x] GitHub Actions run #868 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the rejoin-test changes.
+- [ ] Verify a real Roblox server leave/rejoin with DataStore enabled; Studio simulation is not proof of a live DataStore round trip.
+
+
+### Stage 1 — Cross-server island write fencing (2026-11-26)
+
+- [x] Extract DataStore session-generation claim and revision-write decisions into a pure helper so the fencing rules can be tested without touching production DataStores.
+- [x] Reject a delayed loader whose observed generation has already been advanced by another server.
+- [x] Reject saves from an old session generation even when their revision is higher than the current saved revision.
+- [x] Treat a retry as durable only when the current generation matches and the stored revision is equal to or newer than the retry snapshot.
+- [x] Add deterministic Studio tests for competing claims, generation exhaustion, malformed metadata, stale writers, retry acknowledgements and out-of-order revisions.
+- [x] GitHub Actions run #874 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the fencing helper/tests.
+- [ ] Run a live two-server test with DataStore and MemoryStore enabled: server A acquires generation N, server B takes over after lease expiry and claims N+1, then prove server A cannot overwrite B's profile.
+
+
+### Stage 1 — MemoryStore lease transition coverage (2026-11-28)
+
+- [x] Extract acquire, renew and release decisions into a pure helper while keeping MemoryStore `UpdateAsync` as the atomic cross-server authority.
+- [x] Preserve fail-closed behavior for renewals with a missing, expired, released, malformed or foreign lease.
+- [x] Ensure a stale token cannot release a lease already owned by a newer server.
+- [x] Add deterministic Studio tests for acquisition contention, same-token refresh, expiry takeover, release, stale-owner rejection and malformed records.
+- [x] GitHub Actions run #879 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the MemoryStore lease helper/tests.
+- [ ] Execute `IslandLeaseDataTests.server.lua` and `IslandStoreConcurrencyDataTests.server.lua` in Roblox Studio.
+- [ ] Run a live two-server takeover test with DataStore and MemoryStore enabled; pure transition tests and CI builds do not prove live service behavior.

@@ -8,6 +8,7 @@ local IslandData = require(script.Parent:WaitForChild("IslandData"))
 local BuildingCatalog = require(script.Parent:WaitForChild("BuildingCatalog"))
 local IslandResources = require(script.Parent:WaitForChild("IslandResources"))
 local QuestProgressData = require(script.Parent:WaitForChild("QuestProgressData"))
+local IslandStoreConcurrencyData = require(script.Parent:WaitForChild("IslandStoreConcurrencyData"))
 
 local IslandStore = {}
 local STORE_NAME = "PetKingdoms_Islands_v1"
@@ -145,17 +146,14 @@ function IslandStore.claimSession(profile: any): (boolean, any, string)
 			if nextProfile.trackedQuestId == nil then
 				nextProfile.trackedQuestId = "gather_wood"
 			end
-			local currentGeneration = nextProfile.sessionGeneration or 0
-			if type(currentGeneration) ~= "number" or currentGeneration ~= expectedGeneration then
+			local nextGeneration = IslandStoreConcurrencyData.nextSessionGeneration(
+				nextProfile.sessionGeneration,
+				expectedGeneration
+			)
+			if nextGeneration == nil then
 				return current
 			end
-			if currentGeneration < 0
-				or currentGeneration ~= math.floor(currentGeneration)
-				or currentGeneration >= 2_000_000_000
-			then
-				return current
-			end
-			nextProfile.sessionGeneration = currentGeneration + 1
+			nextProfile.sessionGeneration = nextGeneration
 			claimed = true
 			return nextProfile
 		end)
@@ -191,15 +189,20 @@ function IslandStore.save(profile: any): (boolean, string)
 			if type(current) ~= "table" then return current end
 			-- Fencing check is atomic with the profile write. A stale server's
 			-- generation can never overwrite a newer claimed generation.
-			if current.sessionGeneration ~= snapshot.sessionGeneration then return current end
-			if type(current.revision) ~= "number" then return current end
-			if current.revision >= snapshot.revision then
+			local disposition = IslandStoreConcurrencyData.classifySave(
+				current.sessionGeneration,
+				current.revision,
+				snapshot.sessionGeneration,
+				snapshot.revision
+			)
+			if disposition == "ALREADY_DURABLE" then
 				-- An earlier retry may have committed this snapshot but lost its
 				-- acknowledgement. A newer revision from the same generation also
 				-- proves this revision was durably superseded.
 				snapshotDurable = true
 				return current
 			end
+			if disposition ~= "WRITE" then return current end
 			snapshotDurable = true
 			return snapshot
 		end)

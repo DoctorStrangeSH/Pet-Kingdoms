@@ -38,6 +38,7 @@ local function profileFor(userId: number)
 		schemaVersion = 1,
 		boundsWidth = 24,
 		boundsDepth = 24,
+		resources = { wood = 17, stone = 9, gold = 4, gems = 2 },
 		buildings = {
 			{
 				instanceId = "test-main-house-" .. tostring(userId),
@@ -332,6 +333,43 @@ local ok, failure = pcall(function()
 
 	IslandWorldService.remove(firstUserId)
 	assert(IslandWorldService.getArrivalCFrame(firstUserId) == nil, "removing an island must clear its arrival CFrame")
+
+	-- Simulate a fresh server session after the player has left: the world
+	-- renderer receives only the saved profile snapshot and must reconstruct
+	-- every building and node cooldown without relying on old live Instances.
+	local rejoinedProfile = table.clone(maxExpandedProfile)
+	rejoinedProfile.buildings = {}
+	for index, record in ipairs(maxExpandedProfile.buildings) do
+		rejoinedProfile.buildings[index] = table.clone(record)
+	end
+	rejoinedProfile.resourceNodes = {}
+	for index, state in ipairs(maxExpandedProfile.resourceNodes) do
+		rejoinedProfile.resourceNodes[index] = table.clone(state)
+	end
+	local rejoinOk, rejoinCode = IslandWorldService.spawn({ UserId = firstUserId } :: any, rejoinedProfile)
+	assert(rejoinOk and rejoinCode == "SPAWNED", "rejoining player must rebuild an island from the saved profile snapshot")
+	table.insert(spawnedUsers, firstUserId)
+	local rejoinedWorld = worldFolder and worldFolder:FindFirstChild("Island_" .. tostring(firstUserId))
+	assert(rejoinedWorld ~= nil, "rejoined player must receive a new island world instance")
+	assert(rejoinedProfile.resources.wood == 17 and rejoinedProfile.resources.stone == 9
+		and rejoinedProfile.resources.gold == 4 and rejoinedProfile.resources.gems == 2,
+		"rejoin profile snapshot must retain the saved resource wallet")
+	local rejoinedPetHouse = rejoinedWorld
+		and rejoinedWorld:FindFirstChild("pet_house_test-pet-house-" .. tostring(firstUserId))
+	assert(rejoinedPetHouse and rejoinedPetHouse:GetAttribute("GridX") == rejoinedProfile.buildings[2].x
+		and rejoinedPetHouse:GetAttribute("GridZ") == rejoinedProfile.buildings[2].z,
+		"rejoin must restore the last saved building coordinates")
+	assert(rejoinedPetHouse and rejoinedPetHouse:GetAttribute("GridRotation") == rejoinedProfile.buildings[2].rotation
+		and rejoinedPetHouse:GetAttribute("UpgradeLevel") == rejoinedProfile.buildings[2].upgradeLevel,
+		"rejoin must restore building rotation and upgrade progression")
+	local rejoinedNodes = rejoinedWorld and rejoinedWorld:FindFirstChild("ResourceNodes")
+	local rejoinedWoodNode = rejoinedNodes and rejoinedNodes:FindFirstChild("WoodNode_A")
+	assert(rejoinedWoodNode and rejoinedWoodNode:GetAttribute("AvailableAt") == rejoinedProfile.resourceNodes[1].availableAt,
+		"rejoin must restore the exact persisted resource cooldown timestamp")
+	local rejoinedPrompt = rejoinedWoodNode and rejoinedWoodNode:FindFirstChild("GatherPrompt", true)
+	assert(rejoinedPrompt and rejoinedPrompt:IsA("ProximityPrompt")
+		and rejoinedPrompt.Enabled == (rejoinedProfile.resourceNodes[1].availableAt <= os.time()),
+		"rejoined resource prompt must match the persisted cooldown state")
 
 	local thirdOk, thirdCode = IslandWorldService.spawn({ UserId = thirdUserId } :: any, profileFor(thirdUserId))
 	assert(thirdOk and thirdCode == "SPAWNED", "released spawn slot must be reusable")

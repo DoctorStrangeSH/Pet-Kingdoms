@@ -3,6 +3,7 @@
 -- Uses MemoryStoreHashMap atomic UpdateAsync transforms. Fail closed on errors.
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local LEASES = MemoryStoreService:GetHashMap("PetKingdoms_IslandLeases_v1")
+local IslandLeaseData = require(script.Parent:WaitForChild("IslandLeaseData"))
 
 local LeaseService = {}
 local LEASE_TTL_SECONDS = 90
@@ -32,20 +33,8 @@ function LeaseService.acquire(userId: number, token: string): (boolean, string)
 	local now = os.time()
 	local ok, record = pcall(function()
 		return LEASES:UpdateAsync(keyFor(userId), function(current)
-			if type(current) == "table"
-				and current.token ~= token
-				and current.released ~= true
-				and type(current.expiresAt) == "number"
-				and current.expiresAt > now
-			then
-				return nil
-			end
-
-			return {
-				token = token,
-				expiresAt = now + LEASE_TTL_SECONDS,
-				released = false,
-			}
+			local nextRecord = IslandLeaseData.acquire(current, token, now, LEASE_TTL_SECONDS)
+			return nextRecord
 		end, LEASE_TTL_SECONDS)
 	end)
 
@@ -68,19 +57,8 @@ function LeaseService.renew(userId: number, token: string): (boolean, string)
 	local now = os.time()
 	local ok, record = pcall(function()
 		return LEASES:UpdateAsync(keyFor(userId), function(current)
-			if type(current) ~= "table" or current.token ~= token
-				or current.released == true
-				or type(current.expiresAt) ~= "number"
-				or current.expiresAt <= now
-			then
-				return nil
-			end
-
-			return {
-				token = token,
-				expiresAt = now + LEASE_TTL_SECONDS,
-				released = false,
-			}
+			local nextRecord = IslandLeaseData.renew(current, token, now, LEASE_TTL_SECONDS)
+			return nextRecord
 		end, LEASE_TTL_SECONDS)
 	end)
 
@@ -103,17 +81,11 @@ function LeaseService.release(userId: number, token: string): (boolean, string)
 		return false, "INVALID_LEASE_REQUEST"
 	end
 
+	local now = os.time()
 	local ok, record = pcall(function()
 		return LEASES:UpdateAsync(keyFor(userId), function(current)
-			if type(current) ~= "table" or current.token ~= token then
-				return nil
-			end
-
-			return {
-				token = token,
-				expiresAt = os.time(),
-				released = true,
-			}
+			local nextRecord = IslandLeaseData.release(current, token, now)
+			return nextRecord
 		end, 1)
 	end)
 

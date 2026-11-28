@@ -43,6 +43,8 @@ local selectedBuildingModel: Model? = nil
 local selectedBuildingDestroyConnection: RBXScriptConnection? = nil
 local selectedBuildingHighlight: Highlight? = nil
 local movingInstanceId: string? = nil
+local movingHiddenParts: { [BasePart]: number } = {}
+local movingHighlightWasEnabled: boolean? = nil
 local demolitionArmed = false
 local pointerPosition = UserInputService:GetMouseLocation()
 local placementLocked = false
@@ -277,6 +279,60 @@ local rotateButton = makeButton("Rotate", "↻  ПОВОРОТ", 94, COLORS.pane
 local confirmButton = makeButton("Confirm", "ПОСТРОИТЬ", 104, Color3.fromRGB(45, 137, 91))
 local cancelButton = makeButton("Cancel", "ОТМЕНА", 78, Color3.fromRGB(139, 67, 76))
 
+local catalogCategoryRow = make("Frame", {
+	Name = "CatalogCategories",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(0, 52),
+	Size = UDim2.new(1, 0, 0, 24),
+}, panel) :: Frame
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+	Padding = UDim.new(0, 4),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, catalogCategoryRow)
+
+local catalogCategory = "all"
+local catalogCategoryButtons: { [string]: TextButton } = {}
+local CATALOG_CATEGORIES = {
+	{ id = "all", label = "ВСЁ" },
+	{ id = "homes", label = "ДОМА" },
+	{ id = "decor", label = "ДЕКОР" },
+	{ id = "paths", label = "ПУТИ" },
+	{ id = "fences", label = "ЗАБОРЫ" },
+}
+for index, category in ipairs(CATALOG_CATEGORIES) do
+	local categoryButton = make("TextButton", {
+		Name = "Category_" .. category.id,
+		LayoutOrder = index,
+		SelectionOrder = 100 + index,
+		Selectable = true,
+		BackgroundColor3 = COLORS.panelLight,
+		BackgroundTransparency = 0.12,
+		BorderSizePixel = 0,
+		Text = category.label,
+		TextColor3 = COLORS.muted,
+		TextSize = 9,
+		TextScaled = true,
+		Font = Enum.Font.GothamBold,
+		AutoButtonColor = true,
+	}, catalogCategoryRow) :: TextButton
+	make("UICorner", { CornerRadius = UDim.new(0, 7) }, categoryButton)
+	make("UIStroke", {
+		Name = "FocusStroke",
+		Color = COLORS.gold,
+		Thickness = 1.2,
+		Transparency = 1,
+	}, categoryButton)
+	make("UITextSizeConstraint", { MinTextSize = 6, MaxTextSize = 9 }, categoryButton)
+	catalogCategoryButtons[category.id] = categoryButton
+end
+for index, category in ipairs(CATALOG_CATEGORIES) do
+	local button = catalogCategoryButtons[category.id]
+	button.NextSelectionLeft = catalogCategoryButtons[CATALOG_CATEGORIES[((index - 2) % #CATALOG_CATEGORIES) + 1].id]
+	button.NextSelectionRight = catalogCategoryButtons[CATALOG_CATEGORIES[(index % #CATALOG_CATEGORIES) + 1].id]
+end
+
 local catalogRow = make("ScrollingFrame", {
 	Name = "Catalog",
 	BackgroundTransparency = 1,
@@ -302,14 +358,38 @@ local setStatus: (string, boolean?) -> ()
 local setPendingBuildingOperation: (string, string, { [string]: any }, string) -> ()
 local clearPendingBuildingOperation: () -> ()
 local findOwnIsland: () -> Model?
+local stopPlacing: () -> ()
 
 local catalogItems: { [string]: any } = {}
 local resourceBalances: { [string]: number } = {}
 local catalogButtonsById: { [string]: TextButton } = {}
+local CATALOG_ITEM_CATEGORY = {
+	main_house = "homes",
+	pet_house = "homes",
+	garden_lantern = "decor",
+	flower_bed = "decor",
+	stone_path = "paths",
+	wooden_fence = "fences",
+}
 
+-- Text pictograms use Roblox's platform font fallback and need no external
+-- asset IDs, so catalog cards never show a missing-image placeholder.
+local BUILDING_PICTOGRAMS = {
+	main_house = "⌂",
+	pet_house = "🐾",
+	stone_path = "◆",
+	garden_lantern = "♨",
+	flower_bed = "✿",
+	wooden_fence = "▥",
+}
+
+local catalogButtonOrder = 0
 local function makeCatalogButton(name: string, catalogId: string, titleText: string): TextButton
+	catalogButtonOrder += 1
 	local button = make("TextButton", {
 		Name = name,
+		SelectionOrder = 200 + catalogButtonOrder,
+		Selectable = true,
 		Size = UDim2.fromOffset(138, 70),
 		BackgroundColor3 = COLORS.panelLight,
 		BorderSizePixel = 0,
@@ -321,10 +401,22 @@ local function makeCatalogButton(name: string, catalogId: string, titleText: str
 	make("UIStroke", { Name = "SelectionStroke", Color = COLORS.gold, Transparency = 0.78, Thickness = 1 }, button)
 	button:SetAttribute("BaseTitle", titleText)
 	make("TextLabel", {
+		Name = "BuildingIcon",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(7, 5),
+		Size = UDim2.fromOffset(22, 22),
+		Font = Enum.Font.GothamBold,
+		Text = BUILDING_PICTOGRAMS[catalogId] or "•",
+		TextColor3 = COLORS.gold,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextYAlignment = Enum.TextYAlignment.Center,
+	}, button)
+	make("TextLabel", {
 		Name = "BuildingName",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(8, 5),
-		Size = UDim2.new(1, -16, 0, 25),
+		Position = UDim2.fromOffset(33, 5),
+		Size = UDim2.new(1, -40, 0, 25),
 		Font = Enum.Font.GothamBold,
 		Text = titleText,
 		TextColor3 = COLORS.text,
@@ -366,11 +458,34 @@ local gardenLanternButton = makeCatalogButton("GardenLantern", "garden_lantern",
 local flowerBedButton = makeCatalogButton("FlowerBed", "flower_bed", "ЦВЕТОЧНАЯ КЛУМБА")
 local woodenFenceButton = makeCatalogButton("WoodenFence", "wooden_fence", "ДЕРЕВЯННЫЙ ЗАБОР")
 
+-- Keep gamepad/keyboard focus inside the visible horizontal catalog window.
+-- Roblox does not consistently auto-scroll a ScrollingFrame for every
+-- programmatic selection transition, so make the selected card explicit.
+for _, button in pairs(catalogButtonsById) do
+	button.SelectionGained:Connect(function()
+		if not button.Visible then return end
+		local left = button.AbsolutePosition.X - catalogRow.AbsolutePosition.X + catalogRow.CanvasPosition.X
+		local right = left + button.AbsoluteSize.X
+		local viewLeft = catalogRow.CanvasPosition.X
+		local viewRight = viewLeft + catalogRow.AbsoluteSize.X
+		local targetX = viewLeft
+		if left < viewLeft then
+			targetX = left
+		elseif right > viewRight then
+			targetX = right - catalogRow.AbsoluteSize.X
+		else
+			return
+		end
+		local maxX = math.max(0, catalogRow.AbsoluteCanvasSize.X - catalogRow.AbsoluteSize.X)
+		catalogRow.CanvasPosition = Vector2.new(math.clamp(targetX, 0, maxX), 0)
+	end)
+end
+
 local RESOURCE_PRESENTATION = {
-	wood = { label = "Д", tint = Color3.fromRGB(169, 207, 151), shape = "wood" },
-	stone = { label = "К", tint = Color3.fromRGB(190, 202, 218), shape = "stone" },
-	gold = { label = "З", tint = Color3.fromRGB(239, 194, 91), shape = "gold" },
-	gems = { label = "Кр", tint = Color3.fromRGB(139, 218, 235), shape = "gems" },
+	wood = { icon = "🪵", tint = Color3.fromRGB(169, 207, 151) },
+	stone = { icon = "🪨", tint = Color3.fromRGB(190, 202, 218) },
+	gold = { icon = "🪙", tint = Color3.fromRGB(239, 194, 91) },
+	gems = { icon = "💎", tint = Color3.fromRGB(139, 218, 235) },
 }
 
 local function renderCatalogButton(catalogId: string)
@@ -379,7 +494,7 @@ local function renderCatalogButton(catalogId: string)
 	if button == nil or type(item) ~= "table" then return end
 	local footprint = button:FindFirstChild("Footprint")
 	if footprint and footprint:IsA("TextLabel") then
-		footprint.Text = string.format("%d × %d клетки", item.width or 1, item.depth or 1)
+		footprint.Text = if item.unlocked ~= true then "ЗАКРЫТО" else string.format("%d × %d клетки", item.width or 1, item.depth or 1)
 	end
 	local costRow = button:FindFirstChild("CostRow")
 	if costRow and costRow:IsA("Frame") then
@@ -396,9 +511,11 @@ local function renderCatalogButton(catalogId: string)
 			end
 		end
 		local canAfford = true
-		local chipGap = 5
+		local chipGap = if #requiredResources >= 3 then 3 else 5
+		local layout = costRow:FindFirstChildOfClass("UIListLayout")
+		if layout then layout.Padding = UDim.new(0, chipGap) end
 		local chipWidth = if #requiredResources > 0
-			then math.clamp(math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources), 30, 48)
+			then math.max(1, math.min(48, math.floor((button.Size.X.Offset - 14 - chipGap * (#requiredResources - 1)) / #requiredResources)))
 			else 48
 		local compactCard = button.Size.Y.Offset <= 52
 		local tinyCard = button.Size.Y.Offset <= 40
@@ -409,8 +526,8 @@ local function renderCatalogButton(catalogId: string)
 			local balance = resourceBalances[resourceId] or 0
 			if balance < amount then canAfford = false end
 			local chipHeight = if tinyCard then 11 elseif compactCard then 14 else 18
-			local iconSize = if tinyCard then 5 elseif compactCard then 6 else 8
-			local iconX = if tinyCard then 3 elseif compactCard then 4 else 4
+			local iconSize = if tinyCard then 7 elseif compactCard then 8 else 10
+			local iconX = if tinyCard then 2 else 3
 			local textX = iconX + iconSize + 3
 			local chip = make("Frame", {
 				Name = "Cost_" .. resourceId,
@@ -420,15 +537,18 @@ local function renderCatalogButton(catalogId: string)
 				Size = UDim2.fromOffset(chipWidth, chipHeight),
 			}, costRow) :: Frame
 			make("UICorner", { CornerRadius = UDim.new(0, 5) }, chip)
-			local icon = make("Frame", {
+			make("TextLabel", {
 				Name = "ResourceIcon",
-				BackgroundColor3 = presentation.tint,
-				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
 				Position = UDim2.new(0, iconX, 0.5, -iconSize / 2),
-				Size = UDim2.fromOffset(iconSize, iconSize),
-				Rotation = if resourceId == "stone" or resourceId == "gems" then 45 else 0,
+				Size = UDim2.fromOffset(iconSize + 2, iconSize + 2),
+				Font = Enum.Font.GothamBold,
+				Text = presentation.icon,
+				TextColor3 = presentation.tint,
+				TextSize = iconSize + 1,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
 			}, chip)
-			make("UICorner", { CornerRadius = UDim.new(0, if resourceId == "wood" then 2 else 3) }, icon)
 			make("TextLabel", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(textX, 0),
@@ -438,7 +558,12 @@ local function renderCatalogButton(catalogId: string)
 				TextColor3 = if balance >= amount then COLORS.text else COLORS.invalid,
 				TextSize = if tinyCard then 8 else (if compactCard then 9 else 10),
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextScaled = true,
 			}, chip)
+			local amountLabel = chip:FindFirstChildOfClass("TextLabel")
+			if amountLabel then
+				make("UITextSizeConstraint", { MinTextSize = 1, MaxTextSize = if tinyCard then 8 elseif compactCard then 9 else 10 }, amountLabel)
+			end
 		end
 		if #requiredResources == 0 then
 			make("TextLabel", {
@@ -452,15 +577,21 @@ local function renderCatalogButton(catalogId: string)
 			}, costRow)
 		end
 		local unlocked = item.unlocked == true
+		if unlocked and not canAfford and footprint and footprint:IsA("TextLabel") then
+			footprint.Text = "НЕ ХВАТАЕТ РЕСУРСОВ"
+		end
 		button.Active = unlocked and canAfford
 		button.AutoButtonColor = unlocked and canAfford
 		button.BackgroundTransparency = if unlocked and canAfford then 0 else 0.32
 		local nameLabel = button:FindFirstChild("BuildingName")
 		if nameLabel and nameLabel:IsA("TextLabel") then
 			local baseTitle = button:GetAttribute("BaseTitle")
-			nameLabel.Text = (if type(baseTitle) == "string" then baseTitle else catalogId)
-				.. (if not unlocked then " • ЗАКРЫТО" else "")
+			nameLabel.Text = if type(baseTitle) == "string" then baseTitle else catalogId
 			nameLabel.TextColor3 = if unlocked then COLORS.text else COLORS.muted
+		end
+		local buildingIcon = button:FindFirstChild("BuildingIcon")
+		if buildingIcon and buildingIcon:IsA("TextLabel") then
+			buildingIcon.TextColor3 = if unlocked then COLORS.gold else COLORS.muted
 		end
 		local outline = button:FindFirstChild("SelectionStroke")
 		if outline and outline:IsA("UIStroke") then
@@ -473,7 +604,45 @@ local function renderCatalogButton(catalogId: string)
 end
 
 local function refreshCatalogCards()
-	for catalogId in pairs(catalogButtonsById) do renderCatalogButton(catalogId) end
+	local visibleButtons = {}
+	for catalogId, button in pairs(catalogButtonsById) do
+		renderCatalogButton(catalogId)
+		local category = CATALOG_ITEM_CATEGORY[catalogId] or "decor"
+		button.Visible = catalogCategory == "all" or catalogCategory == category
+		if button.Visible then table.insert(visibleButtons, button) end
+	end
+	table.sort(visibleButtons, function(a, b) return a.SelectionOrder < b.SelectionOrder end)
+	-- Explicit left/right links make the horizontal catalog predictable on
+	-- gamepad and keyboard; hidden cards never become a navigation target.
+	local categoryFocus = catalogCategoryButtons[catalogCategory]
+	for index, button in ipairs(visibleButtons) do
+		button.NextSelectionLeft = visibleButtons[math.max(1, index - 1)]
+		button.NextSelectionRight = visibleButtons[math.min(#visibleButtons, index + 1)]
+		-- Ultra-short landscape hides the category strip, so never route focus
+		-- to an invisible category button from the catalog.
+		button.NextSelectionUp = if catalogCategoryRow.Visible then categoryFocus else nil
+	end
+	if categoryFocus then
+		categoryFocus.NextSelectionDown = if catalogCategoryRow.Visible then visibleButtons[1] else nil
+	end
+	for categoryId, button in pairs(catalogCategoryButtons) do
+		local selected = categoryId == catalogCategory
+		button.BackgroundColor3 = if selected then COLORS.gold else COLORS.panelLight
+		button.TextColor3 = if selected then COLORS.panel else COLORS.muted
+		button.BackgroundTransparency = if selected then 0 else 0.12
+		local focusStroke = button:FindFirstChild("FocusStroke")
+		if focusStroke and focusStroke:IsA("UIStroke") then
+			focusStroke.Transparency = if selected then 0 else 1
+		end
+	end
+end
+
+for categoryId, button in pairs(catalogCategoryButtons) do
+	button.Activated:Connect(function()
+		catalogCategory = categoryId
+		catalogRow.CanvasPosition = Vector2.zero
+		refreshCatalogCards()
+	end)
 end
 
 local function hasResourcesForSelectedBuilding(): boolean
@@ -582,6 +751,7 @@ local selectionPanel = make("Frame", {
 	Visible = false,
 	ZIndex = 15,
 }, gui) :: Frame
+local selectionPanelScale = make("UIScale", { Scale = 1 }, selectionPanel) :: UIScale
 make("UICorner", { CornerRadius = UDim.new(0, 16) }, selectionPanel)
 make("UIStroke", { Color = COLORS.gold, Transparency = 0.28, Thickness = 1.3 }, selectionPanel)
 local selectionTitle = make("TextLabel", {
@@ -688,9 +858,18 @@ local function resizeBuildingPanel()
 	panel.Size = UDim2.fromOffset(panelWidth, panelHeight)
 	status.Position = UDim2.fromOffset(0, if ultraShort then 4 elseif compact then 27 else 30)
 	status.Size = UDim2.new(1, if ultraShort then -78 else 0, 0, if ultraShort then 18 elseif compact then 24 else 30)
-	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 52 else 62)
-	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 62 else 84)
-	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 120 else 157)
+	local tiny = viewport.X < 360
+	catalogCategoryRow.Visible = not ultraShort
+	catalogCategoryRow.Position = UDim2.fromOffset(0, if compact then 51 else 55)
+	catalogCategoryRow.Size = UDim2.new(1, 0, 0, 22)
+	local categoryGap = 4
+	local categoryWidth = math.max(1, math.floor((panelWidth - 28 - categoryGap * 4) / 5))
+	for _, categoryButton in pairs(catalogCategoryButtons) do
+		categoryButton.Size = UDim2.fromOffset(categoryWidth, 22)
+	end
+	catalogRow.Position = UDim2.fromOffset(0, if ultraShort then 27 elseif compact then 76 else 81)
+	catalogRow.Size = UDim2.new(1, 0, 0, if ultraShort then 40 elseif compact then 52 else 76)
+	buttons.Position = UDim2.fromOffset(0, if ultraShort then 72 elseif compact then 132 else 161)
 	buttons.Size = UDim2.new(1, 0, 0, 44)
 	-- Keep the construction panel inside the Roblox safe area at the bottom.
 	-- This changes only the panel; placement preview and grid coordinates stay world-driven.
@@ -703,7 +882,6 @@ local function resizeBuildingPanel()
 	local gap = 8
 	local available = contentWidth - 2 * gap
 	local narrow = panelWidth < 370
-	local tiny = viewport.X < 360
 	local title = panel:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
 		title.Visible = not ultraShort
@@ -714,17 +892,30 @@ local function resizeBuildingPanel()
 	collapseButton.Size = UDim2.fromOffset(if ultraShort then 28 else 36, if ultraShort then 28 else 36)
 	collapseButton.Position = UDim2.new(1, if ultraShort then -34 else -48, 0, 0)
 	reopenConstructionButton.Size = UDim2.fromOffset(if tiny then 96 else 112, 38)
+	-- Keep the collapsed construction launcher in the bottom safe corner so it
+	-- cannot cover the resource HUD or the top-right build launcher.
+	reopenConstructionButton.Position = UDim2.fromOffset(
+		safeOrigin.X + math.max(8, safeSize.X - reopenConstructionButton.Size.X - 10),
+		safeOrigin.Y + math.max(8, safeSize.Y - reopenConstructionButton.Size.Y - 12)
+	)
 	status.TextSize = if ultraShort then 9 else (if tiny then 10 else (if compact then 11 else 12))
-	local cardWidth = if ultraShort then 104 else (if compact then (if tiny then 112 else 120) else 138)
+	-- The catalog scrolls horizontally; wider cards preserve readable prices without enlarging the panel.
+	local cardWidth = if ultraShort then 154 else (if compact then 154 else 164)
 	local cardHeight = if ultraShort then 38 else (if compact then 52 else 70)
 	for _, button in ipairs({ mainHouseButton, petHouseButton, stonePathButton, gardenLanternButton, flowerBedButton, woodenFenceButton }) do
 		button.Size = UDim2.fromOffset(cardWidth, cardHeight)
 		local nameLabel = button:FindFirstChild("BuildingName")
 		local footprint = button:FindFirstChild("Footprint")
 		local costRow = button:FindFirstChild("CostRow")
+		local buildingIcon = button:FindFirstChild("BuildingIcon")
+		if buildingIcon and buildingIcon:IsA("TextLabel") then
+			buildingIcon.Position = UDim2.fromOffset(7, if ultraShort then 0 else (if compact then 2 else 5))
+			buildingIcon.Size = UDim2.fromOffset(if ultraShort then 16 else 22, if ultraShort then 16 else 22)
+			buildingIcon.TextSize = if ultraShort then 13 else (if compact then 17 else 19)
+		end
 		if nameLabel and nameLabel:IsA("TextLabel") then
-			nameLabel.Position = UDim2.fromOffset(7, if ultraShort then 1 else (if compact then 3 else 5))
-			nameLabel.Size = UDim2.new(1, -14, 0, if ultraShort then 12 else (if compact then 18 else 25))
+			nameLabel.Position = UDim2.fromOffset(if ultraShort then 27 else 33, if ultraShort then 1 else (if compact then 3 else 5))
+			nameLabel.Size = UDim2.new(1, if ultraShort then -34 else -40, 0, if ultraShort then 12 else (if compact then 18 else 25))
 			nameLabel.TextSize = if ultraShort then 8 else (if compact then 10 else 11)
 		end
 		if footprint and footprint:IsA("TextLabel") then
@@ -754,10 +945,11 @@ local function resizeBuildingPanel()
 	local cardWidth = math.max(0, math.min(340, safeSize.X - 20))
 	local cardHeight = 136
 	-- Keep the card below the resource/bond HUD stack on normal screens,
-	-- but clamp it upward on short landscape viewports.
+	-- but scale it down when the safe viewport is too short for the full card.
 	local cardTop = safeOrigin.Y + math.clamp(180, 8, math.max(8, safeSize.Y - cardHeight))
 	selectionPanel.Position = UDim2.fromOffset(safeOrigin.X + 10, cardTop)
 	selectionPanel.Size = UDim2.fromOffset(cardWidth, cardHeight)
+	selectionPanelScale.Scale = InterfaceComponents.GetSafeFitScale(Vector2.new(cardWidth, cardHeight), safeSize, 8)
 	local cardContentWidth = math.max(0, cardWidth - 24)
 	local cardGap = 6
 	local showUpgrade = upgradeButton.Visible
@@ -961,7 +1153,17 @@ local function selectBuilding(model: Model?)
 		selectedBuildingHighlight = highlight
 		setStatus("Выбрана постройка: " .. model.Name)
 		selectedBuildingDestroyConnection = model.Destroying:Connect(function()
-			if selectedBuildingModel == model and not demolitionRequestInFlight then
+			if selectedBuildingModel ~= model or demolitionRequestInFlight then return end
+			if movingInstanceId ~= nil and not buildRequestInFlight then
+				-- Defer until Destroying finishes so move mode cannot retain a ghost
+				-- and stale target id after its source model disappears.
+				task.defer(function()
+					if placing and movingInstanceId ~= nil then
+						stopPlacing()
+						setStatus("Исходная постройка исчезла. Перемещение отменено", false)
+					end
+				end)
+			else
 				selectBuilding(nil)
 			end
 		end)
@@ -1173,7 +1375,13 @@ recoveryButton.Activated:Connect(function()
 	end
 	local response = requestResult.value
 	if type(response) == "table" and response.ok == true then
+		-- A timed-out request may have committed on the server while the local
+		-- placement ghost stayed open. Once recovery confirms success, close that
+		-- stale preview and restore local visibility/highlights exactly once.
+		local wasMove = pending.payload.movingInstanceId ~= nil
 		clearPendingBuildingOperation()
+		if wasMove then selectBuilding(nil) end
+		if placing then stopPlacing() end
 		setStatus(pending.description .. " — выполнено", true)
 		NotificationManager.Notify(pending.description .. " выполнено", "success")
 	elseif shouldKeepPendingRequest(response) then
@@ -1200,6 +1408,35 @@ findOwnIsland = function(): Model?
 	return nil
 end
 
+
+local function hideOriginalBuildingForMove(model: Model)
+	-- The server-owned model is never repositioned optimistically. Hide only
+	-- this client's original copy while the translucent placement ghost moves.
+	table.clear(movingHiddenParts)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			movingHiddenParts[descendant] = descendant.LocalTransparencyModifier
+			descendant.LocalTransparencyModifier = 1
+		end
+	end
+	if selectedBuildingHighlight and selectedBuildingHighlight.Parent then
+		movingHighlightWasEnabled = selectedBuildingHighlight.Enabled
+		selectedBuildingHighlight.Enabled = false
+	end
+end
+
+local function restoreOriginalBuildingAfterMove()
+	for part, transparency in pairs(movingHiddenParts) do
+		if part.Parent then
+			part.LocalTransparencyModifier = transparency
+		end
+	end
+	table.clear(movingHiddenParts)
+	if selectedBuildingHighlight and selectedBuildingHighlight.Parent and movingHighlightWasEnabled ~= nil then
+		selectedBuildingHighlight.Enabled = movingHighlightWasEnabled
+	end
+	movingHighlightWasEnabled = nil
+end
 
 local function clearPreview()
 	if currentPreview then
@@ -1808,6 +2045,9 @@ local function beginMoveSelected()
 		updateBuildingContext(model)
 		return
 	end
+	-- The original server model remains untouched until the server accepts
+	-- the move. Hide its local rendering so the ghost is not doubled up.
+	hideOriginalBuildingForMove(model)
 	-- Frame the island for the full move interaction; the controller restores
 	-- Roblox's character camera when the player exits construction mode.
 	ConstructionCameraController.Start(findOwnIsland())
@@ -1830,12 +2070,16 @@ end
 moveButton.Activated:Connect(beginMoveSelected)
 
 
-local function stopPlacing()
+stopPlacing = function()
 	if buildRequestInFlight then
 		setStatus("Дождись ответа о строительстве", false)
 		return
 	end
 	ConstructionCameraController.Stop()
+	-- Cancel/failure never changes the server-owned building transform. Restore
+	-- its exact pre-move local visibility instead of attempting a client-side
+	-- CFrame rollback that could fight a concurrent server update.
+	restoreOriginalBuildingAfterMove()
 	placing = false
 	panelCollapsed = false
 	reopenConstructionButton.Visible = false
@@ -2387,14 +2631,19 @@ make("UICorner", { CornerRadius = UDim.new(0, 13) }, overviewBuild)
 local function resizeKingdomOverview()
 	local camera = Workspace.CurrentCamera
 	if camera == nil then return end
-	local viewport = camera.ViewportSize
-	local compact = viewport.X < 520
-	local width = math.max(220, math.min(viewport.X - 24, 420))
+	local viewport, safeOrigin, safeSize = InterfaceComponents.GetSafeViewport(camera, gui)
+	local compact = safeSize.X < 520
+	local width = math.max(180, math.min(safeSize.X - 24, 420))
 	overview.Size = UDim2.fromOffset(width, 286)
-	overviewConstraint.MinSize = Vector2.new(math.min(220, width), 286)
+	overviewConstraint.MinSize = Vector2.new(math.min(180, width), 286)
 	overviewConstraint.MaxSize = Vector2.new(width, 286)
-	-- Keep the complete overview and its close/action buttons visible in short landscape viewports.
-	overviewScale.Scale = math.clamp((viewport.Y - 32) / 286, 0.68, 1)
+	-- Center inside the usable rectangle, not the raw viewport. Scale both axes
+	-- so the close button and primary action stay reachable on short/tall phones.
+	overview.Position = UDim2.fromOffset(
+		safeOrigin.X + safeSize.X * 0.5,
+		safeOrigin.Y + safeSize.Y * 0.5
+	)
+	overviewScale.Scale = InterfaceComponents.GetSafeFitScale(Vector2.new(width, 286), safeSize, 12)
 	overviewTitle.TextSize = if compact then 15 else 18
 	overviewStage.TextSize = if compact then 16 else 20
 	overviewStats.TextSize = if compact then 11 else 13

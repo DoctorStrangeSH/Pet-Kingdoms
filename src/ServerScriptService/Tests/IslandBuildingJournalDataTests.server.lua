@@ -30,6 +30,23 @@ local appended, appendCode = Journal.append(
 expect("first building receipt is appended", appended ~= nil and appendCode == "RECORDED")
 ledger = appended or {}
 
+-- Model the profile snapshot crossing a server boundary through DataStore:
+-- the new server receives a detached ledger and can replay the committed
+-- result without running the building mutation a second time.
+local reloadedLedger = {}
+for index, receipt in ipairs(ledger) do
+	local reloadedReceipt = table.clone(receipt)
+	reloadedReceipt.result = table.clone(receipt.result)
+	reloadedLedger[index] = reloadedReceipt
+end
+local reloadedResult, reloadedCode = Journal.find(
+	reloadedLedger, "request-1", "place|pet_house|2|3|0", now, 1
+)
+expect("saved placement receipt replays after a fresh session reload",
+	reloadedResult ~= nil and reloadedCode == "DUPLICATE"
+		and reloadedResult.instanceId == "building-1"
+		and reloadedResult.x == 2 and reloadedResult.z == 3)
+
 local upgradeResult = {
 	ok = true,
 	code = "BUILDING_UPGRADED",

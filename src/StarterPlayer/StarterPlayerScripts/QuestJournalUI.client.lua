@@ -144,7 +144,7 @@ local refreshButton = make("TextButton", {
 	Position = UDim2.new(1, -62, 0, 14),
 	Size = UDim2.fromOffset(40, 40),
 	BackgroundColor3 = COLORS.panelSoft,
-	Text = "ОБН",
+	Text = "",
 	TextSize = 10,
 	Font = Enum.Font.GothamBold,
 	TextColor3 = COLORS.cream,
@@ -315,7 +315,18 @@ local function render(quests: any, serverTrackedQuestId: string?)
 	clearCards()
 	local completedCount = 0
 	local renderedCount = 0
-	for index, quest in ipairs(quests) do
+	-- Server snapshots are assembled from a map, so their raw order is not
+	-- guaranteed. Keep active quests first and completed quests at the bottom.
+	local orderedQuests = table.clone(quests)
+	table.sort(orderedQuests, function(a, b)
+		local aDone = type(a) == "table" and a.completed == true
+		local bDone = type(b) == "table" and b.completed == true
+		if aDone ~= bDone then return not aDone end
+		local aId = if type(a) == "table" and type(a.id) == "string" then a.id else ""
+		local bId = if type(b) == "table" and type(b.id) == "string" then b.id else ""
+		return aId < bId
+	end)
+	for index, quest in ipairs(orderedQuests) do
 		if type(quest) ~= "table" or type(quest.id) ~= "string"
 			or type(quest.name) ~= "string" or type(quest.description) ~= "string"
 			or type(quest.count) ~= "number" or type(quest.target) ~= "number"
@@ -339,14 +350,22 @@ local function render(quests: any, serverTrackedQuestId: string?)
 			Position = UDim2.new(1, -10, 0, 6),
 			Size = UDim2.fromOffset(if compactCard then 82 else 102, if compactCard then 24 else 27),
 			BackgroundColor3 = if trackedQuestId == quest.id then COLORS.mint else COLORS.card,
-			Text = if trackedQuestId == quest.id then "СЛЕЖУ" else "СЛЕДИТЬ",
-			TextSize = 12,
+			Text = if done then "ГОТОВО" elseif trackedQuestId == quest.id then "СЛЕЖУ" else "СЛЕДИТЬ",
+			TextSize = 11,
 			Font = Enum.Font.GothamBold,
-			TextColor3 = if trackedQuestId == quest.id then COLORS.panel else COLORS.cream,
-			AutoButtonColor = true,
+			TextColor3 = if done or trackedQuestId == quest.id then COLORS.panel else COLORS.cream,
+			AutoButtonColor = not done,
+			Active = not done,
+			Selectable = not done,
 		}, card) :: TextButton
-		InterfaceComponents.StyleActionButton(trackButton, if trackedQuestId == quest.id then "primary" else "secondary")
+		InterfaceComponents.StyleActionButton(trackButton, if done or trackedQuestId == quest.id then "primary" else "secondary")
+		-- StyleActionButton enables hover feedback by default; completed quests
+		-- are informational and must not look or behave like an available action.
+		trackButton.AutoButtonColor = not done
+		trackButton.Active = not done
+		trackButton.Selectable = not done
 		trackButton.TextTruncate = Enum.TextTruncate.AtEnd
+		trackButton.BackgroundTransparency = if done then 0.12 else 0
 		trackButton.Activated:Connect(function()
 			if quest.completed == true then return end
 			InterfaceComponents.SetButtonLoading(trackButton, true, "СОХРАНЕНИЕ...")
