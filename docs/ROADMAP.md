@@ -1572,5 +1572,6 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Preserve fail-closed behavior for renewals with a missing, expired, released, malformed or foreign lease.
 - [x] Ensure a stale token cannot release a lease already owned by a newer server.
 - [x] Add deterministic Studio tests for acquisition contention, same-token refresh, expiry takeover, release, stale-owner rejection and malformed records.
+- [x] GitHub Actions run #879 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the MemoryStore lease helper/tests.
 - [ ] Execute `IslandLeaseDataTests.server.lua` and `IslandStoreConcurrencyDataTests.server.lua` in Roblox Studio.
 - [ ] Run a live two-server takeover test with DataStore and MemoryStore enabled; pure transition tests and CI builds do not prove live service behavior.
