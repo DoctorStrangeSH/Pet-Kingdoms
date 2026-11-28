@@ -1564,3 +1564,13 @@ Source PR: #40 (stacked on PR #39); visual Studio/device acceptance remains pend
 - [x] Add deterministic Studio tests for competing claims, generation exhaustion, malformed metadata, stale writers, retry acknowledgements and out-of-order revisions.
 - [x] GitHub Actions run #874 passed pinned Rojo verification, full place build and Studio-ready artifact upload for the fencing helper/tests.
 - [ ] Run a live two-server test with DataStore and MemoryStore enabled: server A acquires generation N, server B takes over after lease expiry and claims N+1, then prove server A cannot overwrite B's profile.
+
+
+### Stage 1 — MemoryStore lease transition coverage (2026-11-28)
+
+- [x] Extract acquire, renew and release decisions into a pure helper while keeping MemoryStore `UpdateAsync` as the atomic cross-server authority.
+- [x] Preserve fail-closed behavior for renewals with a missing, expired, released, malformed or foreign lease.
+- [x] Ensure a stale token cannot release a lease already owned by a newer server.
+- [x] Add deterministic Studio tests for acquisition contention, same-token refresh, expiry takeover, release, stale-owner rejection and malformed records.
+- [ ] Execute `IslandLeaseDataTests.server.lua` and `IslandStoreConcurrencyDataTests.server.lua` in Roblox Studio.
+- [ ] Run a live two-server takeover test with DataStore and MemoryStore enabled; pure transition tests and CI builds do not prove live service behavior.
